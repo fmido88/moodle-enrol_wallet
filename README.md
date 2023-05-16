@@ -25,6 +25,16 @@ Admin can define either to totaly use moodle for the wallet system and coupons, 
 14- Enable gifts as wallet credits upon creation of a user.
 15- Discounts on courses for specific users depend on custom profile field.
 
+## Wallet block ##
+
+Also you can install block_wallet to display the balance for the user.
+
+In addition the block give the ability for users to topup their wallet using fixed value coupon.
+
+Or using payment gateways.
+
+And for managers it allow them to credit or debit any user.
+
 ## Installing via uploaded ZIP file ##
 
 1. Log in to your Moodle site as an admin and go to _Site administration >
@@ -37,7 +47,7 @@ Admin can define either to totaly use moodle for the wallet system and coupons, 
 
 The plugin can be also installed by putting the contents of this directory to
 
-    {your/moodle/dirroot}/blocks/maxviews
+    {your/moodle/dirroot}/enrol/wallet
 
 Afterwards, log in to your Moodle site as an admin and go to _Site administration >
 Notifications_ to complete the installation.
