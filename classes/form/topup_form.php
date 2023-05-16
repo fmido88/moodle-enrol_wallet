@@ -59,6 +59,10 @@ class topup_form extends \moodleform {
         $mform->setType('account', PARAM_INT);
         $mform->setDefault('account', $instance->customint1);
 
+        $mform->addElement('hidden', 'sesskey');
+        $mform->setType('sesskey', PARAM_TEXT);
+        $mform->setDefault('sesskey', sesskey());
+
         $this->add_action_buttons(false, 'Apply');
     }
 

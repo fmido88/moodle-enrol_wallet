@@ -33,7 +33,9 @@ require_login();
 require_capability('enrol/wallet:creditdebit', $context);
 
 $op = optional_param('op', 'none', PARAM_TEXT);
-
+echo '<pre>';
+var_dump($_POST);
+echo '</pre>';
 if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
 
     $value = optional_param('value', '', PARAM_NUMBER);
@@ -176,6 +178,10 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     $mform->hideIf('value', 'op', 'eq', 'balance');
 
     $mform->addElement('submit', 'submit', 'submit');
+
+    $mform->addElement('hidden', 'sesskey');
+    $mform->setType('sesskey', PARAM_TEXT);
+    $mform->setDefault('sesskey', sesskey());
 
     ob_start();
     $mform->display();

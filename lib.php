@@ -522,10 +522,13 @@ class enrol_wallet_plugin extends enrol_plugin {
         $fields['customint6'] = $this->get_config('newenrols');
         $fields['customint7'] = 0;
         $awards = $this->get_config('awards');
-        $fields['customint8'] = $awards;
+        $fields['customint8'] = isset($awards) ? $awards : 0;
         if ($awards) {
             $fields['customdec1'] = $this->get_config('awardcreteria');
             $fields['customdec2'] = $this->get_config('awardvalue');
+        } else {
+            $fields['customdec1'] = 0;
+            $fields['customdec2'] = 0;
         }
 
         return $fields;

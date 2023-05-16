@@ -71,6 +71,10 @@ class applycoupon_form extends \moodleform {
         $mform->addElement('hidden', 'url');
         $mform->setType('url', PARAM_URL);
         $mform->setDefault('url', $url);
+
+        $mform->addElement('hidden', 'sesskey');
+        $mform->setType('sesskey', PARAM_TEXT);
+        $mform->setDefault('sesskey', sesskey());
     }
 
 }
