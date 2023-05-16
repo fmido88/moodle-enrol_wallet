@@ -10,19 +10,33 @@ Admin can define either to totaly use moodle for the wallet system and coupons, 
 ## Features ##
 
 1- Enrollment using wallet balance.
+
 2- Charging wallet by manager (or users with capability) for other users.
+
 3- Charging wallet by users using coupons or payments gateways.
+
 4- Direct enrol using coupons or payment gateways.
+
 5- Cashback student when purchase a course (optional).
+
 6- Awarding students in a given course if they completed the course with high mark (optional).
+
 7- Generate coupons with limiting the usage, and time.
+
 8- Admin can switch to use woocommerce Tera wallet and woocommerce coupons.
+
 9- Cohorts restrictions.
+
 10- Another course enrollment restriction.
+
 11- Display the transactions of wallet.
+
 12- Bulk edit all enrolments in selected courses.
+
 13- Bulk edit all wallet enrolment instances in selected courses.
+
 14- Enable gifts as wallet credits upon creation of a user.
+
 15- Discounts on courses for specific users depend on custom profile field.
 
 ## Installing via uploaded ZIP file ##
