@@ -26,7 +26,6 @@ namespace enrol_wallet;
 use enrol_wallet_plugin;
 
 /** Gifting new users observer for enrol_wallet.
- *
  * As the course marked as completed for a student, this observer check his overall grade
  * and award him according the award setting defined in the enrolment instant.
  *
