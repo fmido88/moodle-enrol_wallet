@@ -95,7 +95,6 @@ class enrol_form extends \moodleform {
         }
     }
 
-
     /**
      * Dummy stub method - override if you needed to perform some extra validation.
      * If there are errors return array of errors ("fieldname"=>"error message"),
@@ -104,13 +103,12 @@ class enrol_form extends \moodleform {
      * returns of "element_name"=>"error_description" if there are errors,
      * or an empty array if everything is OK (true allowed for backwards compatibility too).
      *
-     * @param array $data: array of ("fieldname"=>value) of submitted data
-     * @param array $files: array of uploaded files "element_name"=>tmp_file_path
-     * @return array array of errors.
+     * @param array $data array of data
+     * @param array $files array of files
+     * @return array array of errors
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
-        $instance = $this->instance;
 
         if ($this->toomany) {
             $errors['notice'] = get_string('error');
