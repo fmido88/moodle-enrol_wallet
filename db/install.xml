@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="wallet_items" COMMENT="Fake items added to be purchased during wallet topup">
+    <TABLE NAME="enrol_wallet_items" COMMENT="Fake items added to be purchased during wallet topup">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="cost" TYPE="char" LENGTH="25" NOTNULL="true" SEQUENCE="false" COMMENT="the price should be added"/>

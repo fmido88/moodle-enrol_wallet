@@ -55,7 +55,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
         } else {
             global $DB;
             // Get the fake item in case of topup the wallet.
-            $item = $DB->get_record('wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+            $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
             // In this case we get the default settings.
             $account = get_config('enrol_wallet', 'paymentaccount');
             return new \core_payment\local\entities\payable($item->cost, $item->currency, $account);
@@ -122,10 +122,10 @@ class service_provider implements \core_payment\local\callback\service_provider 
             return true;
         } else {
             // Get the fake item in case of topup the wallet.
-            $item = $DB->get_record('wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+            $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
             \enrol_wallet_plugin::payment_topup($item->cost, $userid);
             // Deleting the fake item record for privacy.
-            $DB->delete_records('wallet_items', ['id' => $itemid]);
+            $DB->delete_records('enrol_wallet_items', ['id' => $itemid]);
             return true;
         }
     }

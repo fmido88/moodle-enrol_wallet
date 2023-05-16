@@ -17,7 +17,7 @@
 /**
  * The page to charge wallet for other users.
  *
- * @package    block_wallet
+ * @package    enrol_wallet
  * @copyright  2021 bdecent gmbh <https://bdecent.de>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

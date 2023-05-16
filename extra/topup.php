@@ -54,7 +54,7 @@ if (confirm_sesskey()) {
         $url = ($courseid == SITEID) ? new \moodle_url('/') : new \moodle_url('/course/view.php', ['id' => $courseid]);
 
         // Set a fake item form payment.
-        $id = $DB->insert_record('wallet_items', ['cost' => $value, 'currency' => $currency, 'userid' => $USER->id]);
+        $id = $DB->insert_record('enrol_wallet_items', ['cost' => $value, 'currency' => $currency, 'userid' => $USER->id]);
         // Prepare the payment button.
         $attributes = [
             'class' => "btn btn-primary",
