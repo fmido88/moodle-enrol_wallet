@@ -1,0 +1,42 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template block_wallet/display
+
+    This template will render informations about current user wallet balance.
+
+    Variables required for this template:
+    * balance - the user's balance
+    * currency - the currency we use
+    * transaction - the displayed url for transactions page.
+
+    Example context (json):
+    {
+        "balance": 50,
+        "currency": EGP,
+        "transaction": <a scr="https://youmoodle.com/enrol/wallet/extra/transactions.php">Wallet transactions</a>
+    }
+
+}}
+
+<div display="block" style="text-align: left; padding-bottom: 10px;">
+    <h3 class="wallet-heading" style="text-align: center;">My Wallet</h3>
+    <span class="balance-card"><p style="text-align: center; direction: ltr;"> Your have balance </br>
+        <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong></br>
+        in your Wallet</p></span>
+    <span class="transactions"><p style="text-align: center; direction: ltr;">{{{transactions}}}</p></span>
+</div>
