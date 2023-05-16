@@ -25,7 +25,7 @@
 /**
  * Upgarding database.
  *
- * @param $oldversion the old version of this plugin.
+ * @param int $oldversion the old version of this plugin.
  * @return bool
  */
 function xmldb_enrol_wallet_upgrade($oldversion) {

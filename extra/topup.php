@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
-/** The topup wallet page.
- * Display confiramtion about payment to charge wallet.
+/** The topup wallet page Display confiramtion about payment to charge wallet.
  *
  * @package     enrol_wallet
  * @copyright   2023 Mohammad Farouk <phun.for.physics@gmail.com>
