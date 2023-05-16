@@ -22,6 +22,12 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * Upgarding database.
+ *
+ * @param $oldversion the old version of this plugin.
+ * @return bool
+ */
 function xmldb_enrol_wallet_upgrade($oldversion) {
     global $CFG, $DB;
 

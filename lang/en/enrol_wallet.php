@@ -66,6 +66,8 @@ $string['coupon_generation'] = 'Create coupons';
 $string['coupon_generation_method'] = 'Generation method';
 $string['coupon_generation_method_help'] = 'Choose if you need to create a single coupon with a code of your choice or generate a number of random coupons';
 $string['coupons_generation_success'] = '{$a} coupon codes successfuly generated.';
+$string['coupon_generator_nonumber'] = 'No number of coupons specified.';
+$string['coupon_generator_error'] = 'Error while try to generate coupons.';
 $string['coupons_length'] = 'Length';
 $string['coupons_length_help'] = 'How many characters in a single coupon';
 $string['coupon_novalue'] = 'the coupon return with no value, likely the coupon code not exist';
@@ -160,6 +162,7 @@ $string['keyholder'] = 'You should have received this enrolment key from:';
 
 $string['insufficient_balance'] = 'You have insufficient wallet balance to enroll. {$a->cost_before} EGP are required, your balance is {$a->user_balance} EGP.';
 $string['insufficient_balance_discount'] = 'You have insufficient wallet balance to enroll. <del>{$a->cost_before}EGP</del> {$a->cost_after} EGP are required, your balance is {$a->user_balance} EGP.';
+$string['inyourwallet'] = 'in your wallet.';
 
 $string['longtimenosee'] = 'Unenrol inactive after';
 $string['longtimenosee_help'] = 'If users haven\'t accessed a course for a long time, then they are automatically unenrolled. This parameter specifies that time limit.';
@@ -186,6 +189,7 @@ more info: {$a->desc}. at: {$a->time}';
 $string['messageprovider:expiry_notification'] = 'Wallet enrolment expiry notifications';
 $string['messageprovider:wallet_transaction'] = 'Wallet transaction notifications';
 $string['mustselectchar'] = 'Must select at least one charachter type.';
+$string['mywallet'] = 'My Wallet';
 
 $string['newenrols'] = 'Allow new enrolments';
 $string['newenrols_desc'] = 'Allow users to enrol into new courses by default.';
@@ -235,6 +239,7 @@ $string['transactions'] = 'Wallet Transactions';
 $string['topupvalue'] = 'Value';
 $string['topupvalue_help'] = 'Value to topup your wallet with using payment methods';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
+
 $string['unenrol'] = 'Unenrol user';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
@@ -269,3 +274,5 @@ $string['wordpressurl_desc'] = 'wordpress url with woo-wallet (tera wallet) plug
 
 $string['validfrom'] = 'Valid from';
 $string['validto'] = 'Valid to';
+
+$string['youhavebalance'] = 'You have balance:';

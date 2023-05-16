@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
+/** Enrollment form.
+ * Appear when the user's balance is more than or equal the cost after discount.
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -26,8 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
 
-/**
- * Enrollment form.
+/** Enrollment form.
+ *
  */
 class enrol_form extends \moodleform {
     /**
@@ -100,10 +101,12 @@ class enrol_form extends \moodleform {
      * If there are errors return array of errors ("fieldname"=>"error message"),
      * otherwise true if ok.
      * Server side rules do not work for uploaded files, implement serverside rules here if needed.
+     * returns of "element_name"=>"error_description" if there are errors,
+     * or an empty array if everything is OK (true allowed for backwards compatibility too).
+     *
      * @param $data: array of ("fieldname"=>value) of submitted data
      * @param $files: array of uploaded files "element_name"=>tmp_file_path
-     * @return array of "element_name"=>"error_description" if there are errors,
-     * or an empty array if everything is OK (true allowed for backwards compatibility too).
+     * @return array array of errors.
      */
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);

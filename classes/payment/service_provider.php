@@ -38,7 +38,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
      * for the course that $instanceid enrolment instance belongs to.
      *
      * @param string $paymentarea Payment area
-     * @param int $instanceid The enrolment instance id
+     * @param int $itemid The enrolment instance id or fake item id
      * @return \core_payment\local\entities\payable
      */
     public static function get_payable(string $paymentarea, int $itemid): \core_payment\local\entities\payable {

@@ -19,7 +19,7 @@
 
     This template will render informations about current user wallet balance.
 
-    Variables required for this template:
+    Context variables required for this template:
     * balance - the user's balance
     * currency - the currency we use
     * transaction - the displayed url for transactions page.
@@ -28,15 +28,15 @@
     {
         "balance": 50,
         "currency": "EGP",
-        "transaction": "<a scr="https://youmoodle.com/enrol/wallet/extra/transactions.php">Wallet transactions</a>",
+        "transaction": "<a href='https://your-moodle.com/enrol/wallet/extra/transactions.php'>Wallet transactions</a>"
     }
 
 }}
 
 <div display="block" style="text-align: left; padding-bottom: 10px;">
-    <h3 class="wallet-heading" style="text-align: center;">My Wallet</h3>
-    <span class="balance-card"><p style="text-align: center; direction: ltr;"> Your have balance </br>
+    <h3 class="wallet-heading" style="text-align: center;">{{# str }} mywallet, enrol_wallet {{/st}}</h3>
+    <span class="balance-card"><p style="text-align: center; direction: ltr;">{{# str }} youhavebalance, enrol_wallet {{/st}}</br>
         <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong></br>
-        in your Wallet</p></span>
+        {{# str }} inyourwallet, enrol_wallet {{/st}}</p></span>
     <span class="transactions"><p style="text-align: center; direction: ltr;">{{{transactions}}}</p></span>
 </div>

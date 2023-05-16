@@ -84,6 +84,12 @@ function enrol_wallet_get_random_coupon($length, $options) {
     return $randomcoupon;
 }
 
+/**
+ * Generating coupons.
+ *
+ * @param object $options the options from coupon form.
+ * @return array|string array of coupon, or string of error.
+ */
 function enrol_wallet_generate_coupons($options) {
     global $DB;
 
@@ -106,7 +112,7 @@ function enrol_wallet_generate_coupons($options) {
     ];
 
     if (!$number) {
-        return;
+        return get_string('coupon_generator_nonumber', 'enrol_wallet');
     }
     $ids = [];
     if (!empty($code)) {

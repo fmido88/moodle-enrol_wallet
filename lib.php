@@ -32,13 +32,37 @@ use enrol_wallet\form\empty_form;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_wallet_plugin extends enrol_plugin {
+    /**
+     * If the wallet source is from wordpress site.
+     */
     public const SOURCE_WORDPRESS = 0;
+    /**
+     * If the wallet source is from this moodle site.
+     */
     public const SOURCE_MOODLE = 1;
+    /**
+     * If coupons disabled.
+     */
     public const WALLET_NOCOUPONS = 0;
+    /**
+     * If only fixed value coupons enabled.
+     */
     public const WALLET_COUPONSFIXED = 1;
+    /**
+     * If only percentage discount coupons enabled.
+     */
     public const WALLET_COUPONSDISCOUNT = 2;
+    /**
+     * If all coupons enabled.
+     */
     public const WALLET_COUPONSALL = 3;
+    /**
+     * If the user has inssfficient balance.
+     */
     private const INSUFFICIENT_BALANCE = 2;
+    /**
+     * If the user has inssfficient balance even after discount.
+     */
     private const INSUFFICIENT_BALANCE_DISCOUNTED = 3;
     /**
      * lasternoller
@@ -721,10 +745,8 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param restore_enrolments_structure_step $step
      * @param stdClass $data
      * @param stdClass $instance
-     * @param int $oldinstancestatus
      * @param int $userid
-     * @throws \coding_exception
-     * @since 1.0
+     * @param int $oldinstancestatus
      */
     public function restore_user_enrolment(restore_enrolments_structure_step $step, $data, $instance, $userid, $oldinstancestatus) {
         $this->enrol_user($instance, $userid, null, $data->timestart, $data->timeend, $data->status);
@@ -737,8 +759,6 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param int $roleid
      * @param int $userid
      * @param int $contextid
-     * @throws \coding_exception
-     * @since 1.0
      */
     public function restore_role_assignment($instance, $roleid, $userid, $contextid) {
         // This is necessary only because we may migrate other types to this instance,
@@ -1210,8 +1230,8 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Get the "from" contact which the email will be sent from.
      *
      * @param int $sendoption send email from constant ENROL_SEND_EMAIL_FROM_*
-     * @param $context context where the user will be fetched
-     * @return mixed|stdClass the contact user object.
+     * @param object $context context where the user will be fetched
+     * @return array|stdClass the contact user object.
      */
     public function get_welcome_email_contact($sendoption, $context) {
         global $CFG;
@@ -1256,10 +1276,10 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Get the balance available to user from wp-site.
+     * return the user balance or false or string in case of error.
      *
-     * @param $userid
-     * @return float|mixed
-     * @throws dml_exception
+     * @param int $userid
+     * @return float|false|string
      */
     public static function get_user_balance($userid) {
         $source = get_config('enrol_wallet', 'walletsource');

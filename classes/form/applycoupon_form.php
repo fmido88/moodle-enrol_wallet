@@ -26,8 +26,8 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
-/**
- * Form to apply coupons.
+/** Form to apply coupons.
+ *
  */
 class applycoupon_form extends \moodleform {
 

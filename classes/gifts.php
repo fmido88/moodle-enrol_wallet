@@ -26,8 +26,8 @@
 namespace enrol_wallet;
 use enrol_wallet_plugin;
 
-/**
- * Gifting new users observer for enrol_wallet.
+/** Gifting new users observer for enrol_wallet.
+ *
  * As the course marked as completed for a student, this observer check his overall grade
  * and award him according the award setting defined in the enrolment instant.
  *
@@ -37,8 +37,7 @@ use enrol_wallet_plugin;
  */
 class enrol_wallet_gifts {
 
-    /**
-     * This is a callback function when user created,
+    /** This is a callback function when user created,
      * and send him a gift on his wallet if the setting is enabled.
      * @param \core\event\user_created $event
      * @return void

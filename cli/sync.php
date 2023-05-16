@@ -14,8 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * CLI update for wallet enrolments, use for debugging or immediate update
+/** CLI update for wallet enrolments, use for debugging or immediate update
  * of all courses.
  *
  * Notes:
