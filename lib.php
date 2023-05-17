@@ -1031,8 +1031,9 @@ class enrol_wallet_plugin extends enrol_plugin {
             $options[$course->id] = $parentname.$course->fullname;
         }
 
-        $select = $mform->addElement('select', 'customint7', get_string('courses'), $options);
+        $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction', 'enrol_wallet'), $options);
         $select->setMultiple(false);
+        $mform->addHelpButton('customint7', 'coursesrestriction', 'enrol_wallet');
 
         $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'),
                 enrol_send_welcome_email_options());

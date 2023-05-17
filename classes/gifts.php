@@ -14,9 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Gifting new users observer for enrol_wallet.
-/**
- * Gifting new users observer for enrol_wallet.
+/** Gifting new users observer for enrol_wallet.
+ *
  * As the course marked as completed for a student, this observer check his overall grade
  * and award him according the award setting defined in the enrolment instant.
  *
@@ -28,6 +27,7 @@ namespace enrol_wallet;
 use enrol_wallet_plugin;
 
 /** Gifting new users observer for enrol_wallet.
+ *
  * As the course marked as completed for a student, this observer check his overall grade
  * and award him according the award setting defined in the enrolment instant.
  *

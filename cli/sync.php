@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/** CLI update for wallet enrolments use for debugging or immediate update of all courses.
+/** CLI update for wallet enrolments, use for debugging or immediate update of all courses
+ *
  * Notes:
  *   - it is required to use the web server account when executing PHP CLI scripts
  *   - you need to change the "www-data" to match the apache user account
