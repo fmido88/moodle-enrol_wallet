@@ -58,13 +58,13 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
         redirect($redirecturl, $err);
         exit;
     }
-
-    $before = enrol_wallet_plugin::get_user_balance($userid);
+    $transaction = new enrol_wallet\transactions;
+    $before = $transactions->get_user_balance($userid);
     if ($op === 'credit') {
         $desc = 'charging from wallet block by '.fullname($USER);
         // Process the transaction.
-        $result = enrol_wallet_plugin::payment_topup($value, $userid, $desc, $charger);
-        $after = enrol_wallet_plugin::get_user_balance($userid);
+        $result = $transactions->payment_topup($value, $userid, $desc, $charger);
+        $after = $transactions->get_user_balance($userid);
     } else if ($op === 'debit') {
         if ($value > $before) {
             $err = 'The value ('.$value.') is greater that the user\'s balance ('.$before.')';
@@ -74,8 +74,8 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
             exit;
         } else {
             // Process the payment.
-            $result = enrol_wallet_plugin::debit($userid, $value, '(deduct from wallet block by '.fullname($USER).')', $charger);
-            $after = enrol_wallet_plugin::get_user_balance($userid);
+            $result = $transactions->debit($userid, $value, '(deduct from wallet block by '.fullname($USER).')', $charger);
+            $after = $transactions->get_user_balance($userid);
         }
 
     } else if ($op = 'balance') {

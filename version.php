@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2023051700;
+$plugin->version = 2023052102;
 $plugin->requires = 2016120509;
 $plugin->component = 'enrol_wallet'; // Full name of the plugin (used for diagnostics).
 $plugin->release = '1.3';

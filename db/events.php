@@ -31,15 +31,15 @@ $observers = array(
     // Include the file containing the callback just in case.
     array(
         'eventname' => '\core\event\course_completed',
-        'callback' => 'enrol_wallet\enrol_wallet_awards::wallet_completion_awards',
-        'includefile' => '/enrol/wallet/classes/awards.php'
+        'callback' => 'enrol_wallet\observer::wallet_completion_awards',
+        'includefile' => '/enrol/wallet/classes/observer.php'
     ),
     // The observer to check for new user creation and gift the student.
     // Include the file containing the callback just in case.
     array(
         'eventname' => '\core\event\user_created',
-        'callback' => 'enrol_wallet\enrol_wallet_gifts::wallet_gifting_new_user',
-        'includefile' => '/enrol/wallet/classes/gifts.php'
+        'callback' => 'enrol_wallet\observer::wallet_gifting_new_user',
+        'includefile' => '/enrol/wallet/classes/observer.php'
     ),
 );
 

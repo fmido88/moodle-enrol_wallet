@@ -49,7 +49,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
             require_once(__DIR__.'/../../lib.php');
             $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : null;
             $fee = (float)\enrol_wallet_plugin::get_cost_after_discount($USER->id, $instance, $coupon);
-            $balance = (float)\enrol_wallet_plugin::get_user_balance($USER->id);
+            $balance = (float)\enrol_wallet\transactions::get_user_balance($USER->id);
             $cost = $fee - $balance;
             return new \core_payment\local\entities\payable((float)$cost, $instance->currency, (int)$instance->customint1);
         } else {
@@ -112,18 +112,18 @@ class service_provider implements \core_payment\local\callback\service_provider 
             $course = $DB->get_record('course', ['id' => $instance->courseid], '*', IGNORE_MISSING);
             $course ? $coursename = $course->fullname : $coursename = '';
             // Check the balance because we only get paied for the difference.
-            $balance = (float)\enrol_wallet_plugin::get_user_balance($userid);
+            $balance = (float)\enrol_wallet\transactions::get_user_balance($userid);
             $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : null;
             $_SESSION['coupon'] = ''; // Unset the coupon.
             $fee = (float)\enrol_wallet_plugin::get_cost_after_discount($userid, $instance, $coupon);
             $cost = $fee - $balance;
             // Deduct the user's balance.
-            \enrol_wallet_plugin::debit($userid, $balance, '('.$coursename.') And '.$cost.' from payment');
+            \enrol_wallet\transactions::debit($userid, $balance, '('.$coursename.') And '.$cost.' from payment');
             return true;
         } else {
             // Get the fake item in case of topup the wallet.
             $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
-            \enrol_wallet_plugin::payment_topup($item->cost, $userid);
+            \enrol_wallet\transactions::payment_topup($item->cost, $userid);
             // Deleting the fake item record for privacy.
             $DB->delete_records('enrol_wallet_items', ['id' => $itemid]);
             return true;

@@ -26,25 +26,20 @@ require_once('../../../config.php');
 require(__DIR__.'/../lib.php');
 global $DB, $USER;
 
-// Call require_login() to ensure that the user is authenticated. Also, having the ability for transactions.
+// Call require_login() to ensure that the user is authenticated.
 require_login();
 
-$userid = optional_param('userid', 0, PARAM_INT);
-$coupon = optional_param('coupon', null, PARAM_RAW);
+$userid = required_param('userid', PARAM_INT);
+$coupon = required_param('coupon', PARAM_TEXT);
 $instanceid = optional_param('instanceid' , '', PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $couponsetting = get_config('enrol_wallet', 'coupons');
 $url = optional_param('url', '', PARAM_URL);
 $redirecturl = !empty($url) ? new moodle_url('/'.$url) : new moodle_url('/');
 
-if ($userid == 0 || $coupon == null) {
-    $errormessage = "Please provide both user ID and coupon code.";
-
-    redirect($redirecturl, $errormessage);
-    exit;
-} else if (confirm_sesskey()) {
+if (confirm_sesskey()) {
     // Get the coupon data.
-    $coupondata = enrol_wallet_plugin::get_coupon_value($coupon, $userid, $instanceid, false);
+    $coupondata = enrol_wallet\transactions::get_coupon_value($coupon, $userid, $instanceid, false);
     if (is_string($coupondata) || $coupondata === false) {
         $errormessage = 'ERROR invalid coupon code';
         $errormessage .= '<br>'.$coupondata;
