@@ -104,7 +104,7 @@ class observer {
         }
     }
 
-        /** This is a callback function when user created,
+    /** This is a callback function when user created,
      * and send him a gift on his wallet if the setting is enabled.
      * @param \core\event\user_created $event
      * @return void

@@ -129,9 +129,9 @@ class wordpress {
             'instanceid' => $instanceid,
             'apply' => $apply,
         );
-    
+
         $responsedata = $this->request($method, $data);
-    
+
         if (!isset($responsedata['coupon_value'])) {
             if (!isset($responsedata['err'])) {
                 // Response format is incorrect.

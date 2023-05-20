@@ -93,7 +93,7 @@ class transactions {
      * @param int $charger the id of the charger user.
      * @return mixed
      */
-    public static function debit($userid, float $amount, $coursename = '', $charger = '') {// TODO REMOVE
+    public static function debit($userid, float $amount, $coursename = '', $charger = '') {
         if ($charger === '') {
             $charger = $userid;
         }
@@ -102,7 +102,7 @@ class transactions {
         if ($source == self::SOURCE_WORDPRESS) {
             $wordpress = new \enrol_wallet\wordpress;
 
-            $response = $wordpress->debit($userid,$amount, $coursename, $charger);
+            $response = $wordpress->debit($userid, $amount, $coursename, $charger);
 
             $newbalance = self::get_user_balance($userid);
         } else if ($source == self::SOURCE_MOODLE) {
@@ -187,7 +187,7 @@ class transactions {
      * @param bool $apply Apply for fixed values only.
      * @return array|string the value of the coupon and its type in array or string represent the error if the code is not valid
      */
-    public static function get_coupon_value($coupon, $userid, $instanceid = 0, $apply = false) {// TODO REMOVE
+    public static function get_coupon_value($coupon, $userid, $instanceid = 0, $apply = false) {
         global $DB;
         $couponsetting = get_config('enrol_wallet', 'coupons');
 
@@ -241,18 +241,25 @@ class transactions {
         }
         // Check if the coupon type is enabled in this site.
         if ($coupondata['type'] == 'percent' &&
-            ($couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT || $couponsetting != enrol_wallet_plugin::WALLET_COUPONSALL)) {
+            ($couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT ||
+            $couponsetting != enrol_wallet_plugin::WALLET_COUPONSALL)) {
             return get_string('discountcoupondisabled', 'enrol_wallet');
         }
 
         if ($coupondata['type'] == 'fixed' &&
-            ($couponsetting != enrol_wallet_plugin::WALLET_COUPONSFIXED || $couponsetting != enrol_wallet_plugin::WALLET_COUPONSALL)) {
+            ($couponsetting != enrol_wallet_plugin::WALLET_COUPONSFIXED ||
+            $couponsetting != enrol_wallet_plugin::WALLET_COUPONSALL)) {
             return get_string('fixedcoupondisabled', 'enrol_wallet');
         }
 
         // After we get the coupon data now we check if this coupon used from enrolment page.
         // If true and the value >= the fee, save time for student and enrol directly.
-        if ($apply && 0 != $instanceid && $coupondata['type'] == 'fixed' && $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT) {
+        if (
+            $apply &&
+            0 != $instanceid &&
+            $coupondata['type'] == 'fixed' &&
+            $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
+            ) {
             $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
             $fee = (float)enrol_wallet_plugin::get_cost_after_discount($userid, $instance);
             $plugin = enrol_get_plugin('wallet');
