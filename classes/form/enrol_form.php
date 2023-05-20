@@ -57,7 +57,7 @@ class enrol_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $USER, $OUTPUT, $CFG, $PAGE;
+        global $USER;
         $instance = $this->_customdata;
         $costafter = \enrol_wallet_plugin::get_cost_after_discount($USER->id, $instance);
         $mform = $this->_form;

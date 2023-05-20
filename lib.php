@@ -1403,7 +1403,7 @@ class enrol_wallet_plugin extends enrol_plugin {
  * @return void
  */
 function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    global $CFG, $DB, $OUTPUT;
+    global $OUTPUT;
     // Get the user balance.
     $balance = transactions::get_user_balance($user->id);
 
@@ -1421,9 +1421,9 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
     // Display the current user's balance in the wallet.
     $render = $OUTPUT->render_from_template('enrol_wallet/display', $tempctx);
 
-    $walletdetailscategory = new core_user\output\myprofile\category('walletcreditdisplay',
+    $wdcategory = new core_user\output\myprofile\category('walletcreditdisplay',
                                                     get_string('walletcredit', 'enrol_wallet'));
-    $tree->add_category($walletdetailscategory);
+    $tree->add_category($wdcategory);
 
     $creditdisplay = '';
 

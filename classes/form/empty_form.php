@@ -46,8 +46,7 @@ class empty_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $CFG, $USER, $PAGE, $OUTPUT, $DB;
-        $instance = $this->_customdata->instance;
+
         $this->_form->addElement('header', 'walletheader', $this->_customdata->header);
         $this->_form->addElement('html', '<span style="text-align: center;"><p>'.$this->_customdata->info.'</p></span>');
     }

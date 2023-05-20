@@ -42,7 +42,6 @@ class observer {
      */
     public static function wallet_completion_awards(\core\event\course_completed $event) {
         $userid = $event->relateduserid;
-        $contex = $event->context;
         $courseid = $event->courseid;
         // Geting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
         $instances = enrol_get_instances($courseid, true);
