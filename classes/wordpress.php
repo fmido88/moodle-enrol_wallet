@@ -86,6 +86,16 @@ class wordpress {
         return $this->request('debit', $data);
     }
 
+    /**
+     * Add credit to user's balance in Tera wallet.
+     * return array contain error msg and success status.
+     *
+     * @param float $amount
+     * @param int $userid
+     * @param string $description
+     * @param string $charger
+     * @return array
+     */
     public function credit($amount, $userid, $description = '', $charger = '') {
         $data = array(
             'amount' => $amount,
