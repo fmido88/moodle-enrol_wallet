@@ -3,7 +3,7 @@
 
 by Mo. Farouk
 
-This enrollment method allow the user to enrol thimselfs into courses using wallet credit of using payments gateways in addition to using coupons for direct enrollment, charging wallet or get discounts.
+This enrollment method allow the user to enrol themselves into courses using wallet credit of using payments gateways in addition to using coupons for direct enrollment, charging wallet or get discounts.
 
 Admin can define either to totaly use moodle for the wallet system and coupons, or use an existance Tera wallet (in a woocommerce).
 
