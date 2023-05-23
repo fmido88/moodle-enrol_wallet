@@ -18,7 +18,7 @@
  * wallet enrol plugin implementation.
  *
  * @package    enrol_wallet
- * @copyright  2010 Petr Skoda  {@link http://skodak.org}
+ * @copyright  2023 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

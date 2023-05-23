@@ -54,8 +54,9 @@ if (confirm_sesskey()) {
             || $couponsetting == enrol_wallet_plugin::WALLET_COUPONSALL)) {
 
             // Apply the coupon code to add his value to the user's wallet.
-            enrol_wallet_plugin::get_coupon_value($coupon, $userid, $instanceid, true);
-            $msg = 'Coupon code applied successfully with value of '.$value.' EGP.';
+            enrol_wallet\transactions::get_coupon_value($coupon, $userid, $instanceid, true);
+            $currency = get_config('enrol_wallet', 'currency');
+            $msg = 'Coupon code applied successfully with value of '.$value.' '.$currency.'.';
 
             redirect($redirecturl, $msg, null, 'success');
         } else if ($type == 'percent' &&

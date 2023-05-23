@@ -30,6 +30,7 @@ use enrol_wallet_plugin;
  */
 class wordpress {
 
+    private const ENDPOINT = '/wp-json/moo-wallet/v1/';
     /**
      * Make an HTTP POST request to the moo-wallet plugin endpoint.
      * Of the external WordPress site.
@@ -39,10 +40,9 @@ class wordpress {
      */
     public function request($method, $data) {
 
-        define('ENDPOINT', '/wp-json/moo-wallet/v1/');
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
 
-        $url = $wordpressurl . ENDPOINT . $method;
+        $url = $wordpressurl . self::ENDPOINT . $method;
 
         $curl = curl_init();
         curl_setopt_array($curl, array(
@@ -94,7 +94,7 @@ class wordpress {
      * @param int $userid
      * @param string $description
      * @param string $charger
-     * @return array
+     * @return array|string
      */
     public function credit($amount, $userid, $description = '', $charger = '') {
         $data = array(
@@ -211,6 +211,7 @@ class wordpress {
             'username' => $user->username,
             'password' => random_string(12),
             'email' => $user->email,
+            'moodle_user_id' => $userid,
         ];
 
         return $this->request('create_user', $data);

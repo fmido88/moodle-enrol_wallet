@@ -293,7 +293,7 @@ class transactions {
 
         $source = get_config('enrol_wallet', 'walletsource');
 
-        if ($source == enrol_wallet_plugin::SOURCE_WORDPRESS) {
+        if ($source == self::SOURCE_WORDPRESS) {
             // It is already included in the wordpress plugin code.
             self::get_coupon_value($coupon, $userid, $instanceid, true);
         } else {

@@ -85,13 +85,13 @@ if ($ADMIN->fulltree) {
         get_string('pluginname_desc', 'enrol_wallet')));
     // Adding choice between using wordpress (woowallet) of internal moodle wallet.
     $sources = [
-        enrol_wallet_plugin::SOURCE_WORDPRESS => get_string('sourcewordpress', 'enrol_wallet'),
-        enrol_wallet_plugin::SOURCE_MOODLE => get_string('sourcemoodle', 'enrol_wallet'),
+        enrol_wallet\transactions::SOURCE_WORDPRESS => get_string('sourcewordpress', 'enrol_wallet'),
+        enrol_wallet\transactions::SOURCE_MOODLE => get_string('sourcemoodle', 'enrol_wallet'),
     ];
     $settings->add(new admin_setting_configselect('enrol_wallet/walletsource',
                                                 get_string('walletsource', 'enrol_wallet'),
                                                 get_string('walletsource_help', 'enrol_wallet'),
-                                                enrol_wallet_plugin::SOURCE_WORDPRESS,
+                                                enrol_wallet\transactions::SOURCE_WORDPRESS,
                                                 $sources));
     // Define the WordPress site URL configuration setting.
     $settings->add(new admin_setting_configtext(

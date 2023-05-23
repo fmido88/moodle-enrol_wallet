@@ -18,7 +18,7 @@
  * The page to charge wallet for other users.
  *
  * @package    enrol_wallet
- * @copyright  2021 bdecent gmbh <https://bdecent.de>
+ * @copyright  2023 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -33,9 +33,7 @@ require_login();
 require_capability('enrol/wallet:creditdebit', $context);
 
 $op = optional_param('op', 'none', PARAM_TEXT);
-echo '<pre>';
-var_dump($_POST);
-echo '</pre>';
+
 if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
 
     $value = optional_param('value', '', PARAM_NUMBER);
@@ -58,7 +56,7 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
         redirect($redirecturl, $err);
         exit;
     }
-    $transaction = new enrol_wallet\transactions;
+    $transactions = new enrol_wallet\transactions;
     $before = $transactions->get_user_balance($userid);
     if ($op === 'credit') {
         $desc = 'charging from wallet block by '.fullname($USER);
