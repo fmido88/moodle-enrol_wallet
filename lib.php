@@ -1041,7 +1041,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         // Adding the awarding program options for this course.
 
-        $mform->addElement('checkbox', 'customint8', get_string('awards', 'enrol_wallet'));
+        $mform->addElement('advcheckbox', 'customint8', get_string('awards', 'enrol_wallet'), '', [], [false, true]);
         $mform->setDefault('customint8', false);
         $mform->addHelpButton('customint8', 'awards', 'enrol_wallet');
 
@@ -1342,7 +1342,6 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
     }
 
-
     /**
      * Generates payment information to display on enrol/info page.
      *
@@ -1389,7 +1388,6 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         return $OUTPUT->render_from_template('enrol_wallet/payment_region', $data);
     }
-
 
 }
 

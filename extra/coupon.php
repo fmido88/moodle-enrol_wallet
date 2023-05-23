@@ -62,7 +62,7 @@ $mform->addElement('text', 'number', get_string('coupons_number', 'enrol_wallet'
 $mform->setType('number', PARAM_INT);
 $mform->addHelpButton('number', 'coupons_number', 'enrol_wallet');
 $mform->setDefault('number', 1);
-$mform->hideIf('number' , 'method', 'eq', 'single');
+$mform->disabledIf('number' , 'method', 'eq', 'single');
 
 $mform->addElement('text', 'length', get_string('coupons_length', 'enrol_wallet'));
 $mform->setType('length', PARAM_INT);
@@ -99,6 +99,10 @@ $mform->hideIf('characters' , 'method', 'eq', 'single');
 $mform->addElement('submit', 'submit', get_string('submit_coupongenerator', 'enrol_wallet'));
 $mform->disabledIf('submit', 'value', 'eq', 0);
 $mform->disabledIf('submit', 'value', 'eq', '');
+
+$mform->addElement('hidden', 'sesskey');
+$mform->setType('sesskey', PARAM_TEXT);
+$mform->setDefault('sesskey', sesskey());
 
 // Now let's display the form.
 ob_start();

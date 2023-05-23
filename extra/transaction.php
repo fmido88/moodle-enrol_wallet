@@ -46,7 +46,7 @@ $conditions = ($viewall) ? [] : ['userid' => $USER->id];
 
 echo $OUTPUT->header();
 
-// TODO Adding a filtiration form.
+// TODO Adding a filteration form.
 
 // Set up the transactions table.
 $columns = array(

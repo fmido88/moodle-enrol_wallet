@@ -229,26 +229,31 @@ class transactions {
                 'value' => $couponrecord->value,
                 'type' => $couponrecord->type,
             ];
-            // Check if we applying the coupon.
+
             if ($apply) {
-                if ($coupondata['type'] == 'fixed' && $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT) {
-                    $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
-                    self::payment_topup($couponrecord->value, $userid, $desc, $userid);
-                }
                 // Mark the coupon as used.
                 self::mark_coupon_used($coupon, $userid, $instanceid);
             }
         }
+
+        // Check if we applying the coupon.
+        if ($apply) {
+            if ($coupondata['type'] == 'fixed' && $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT) {
+                $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
+                self::payment_topup($coupondata['value'], $userid, $desc, $userid);
+            }
+        }
+
         // Check if the coupon type is enabled in this site.
         if ($coupondata['type'] == 'percent' &&
-            ($couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT ||
-            $couponsetting != enrol_wallet_plugin::WALLET_COUPONSALL)) {
+            ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSFIXED ||
+            $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS)) {
             return get_string('discountcoupondisabled', 'enrol_wallet');
         }
 
         if ($coupondata['type'] == 'fixed' &&
-            ($couponsetting != enrol_wallet_plugin::WALLET_COUPONSFIXED ||
-            $couponsetting != enrol_wallet_plugin::WALLET_COUPONSALL)) {
+            ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT ||
+            $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS)) {
             return get_string('fixedcoupondisabled', 'enrol_wallet');
         }
 

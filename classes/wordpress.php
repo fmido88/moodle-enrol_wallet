@@ -166,7 +166,7 @@ class wordpress {
             return get_string('coupon_novalue', 'enrol_wallet');
         }
 
-        if ($coupontype == 'fixed_cart') {
+        if ($coupontype == 'fixed_cart' || $coupontype == 'fixed_product') {
             $coupontype = 'fixed';
         } else if (strpos($coupontype, 'percent')) {
             $coupontype = 'percent';

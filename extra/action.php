@@ -29,13 +29,20 @@ global $DB, $USER;
 // Call require_login() to ensure that the user is authenticated.
 require_login();
 
+$cancel = optional_param('cancel', '', PARAM_TEXT);
+$url = optional_param('url', '', PARAM_URL);
+$redirecturl = !empty($url) ? new moodle_url('/'.$url) : new moodle_url('/');
+
+if ($cancel) {
+    redirect($redirecturl);
+    exit;
+}
+
 $userid = required_param('userid', PARAM_INT);
 $coupon = required_param('coupon', PARAM_TEXT);
 $instanceid = optional_param('instanceid' , '', PARAM_INT);
 $courseid = optional_param('courseid', 0, PARAM_INT);
 $couponsetting = get_config('enrol_wallet', 'coupons');
-$url = optional_param('url', '', PARAM_URL);
-$redirecturl = !empty($url) ? new moodle_url('/'.$url) : new moodle_url('/');
 
 if (confirm_sesskey()) {
     // Get the coupon data.
@@ -45,6 +52,7 @@ if (confirm_sesskey()) {
         $errormessage .= '<br>'.$coupondata;
         // This mean that the function return error.
         redirect($redirecturl, $errormessage);
+        exit;
     } else {
         $value = $coupondata['value'];
         $type = $coupondata['type'];
@@ -59,6 +67,7 @@ if (confirm_sesskey()) {
             $msg = 'Coupon code applied successfully with value of '.$value.' '.$currency.'.';
 
             redirect($redirecturl, $msg, null, 'success');
+            exit;
         } else if ($type == 'percent' &&
                 ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
                 || $couponsetting == enrol_wallet_plugin::WALLET_COUPONSALL)
@@ -71,7 +80,19 @@ if (confirm_sesskey()) {
                 $msg = 'You now have discounted by '. $value.'%';
                 redirect($redirecturl, $msg, null, 'success');
                 exit;
+            } else {
+                $msg = 'Error during applying coupon, course not found.';
+                redirect($redirecturl, $msg);
+                exit;
             }
+        } else if ($type == 'percent' && empty($instanceid)) {
+            $msg = 'Cannot apply discount coupon here.';
+            redirect($redirecturl, $msg);
+            exit;
+        } else {
+            $msg = 'Invalid Action.';
+            redirect($redirecturl, $msg);
+            exit;
         }
     }
 }

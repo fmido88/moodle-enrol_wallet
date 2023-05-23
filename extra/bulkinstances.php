@@ -226,9 +226,5 @@ $mform->display();
 $output = ob_get_clean();
 
 echo $OUTPUT->box($output);
-echo '<style>
-select#id_courses {
-    height: 361px;
-}
-</style>';
+
 echo $OUTPUT->footer();

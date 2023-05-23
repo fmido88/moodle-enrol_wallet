@@ -62,7 +62,7 @@ class enrol_form extends \moodleform {
         $costafter = \enrol_wallet_plugin::get_cost_after_discount($USER->id, $instance);
         $mform = $this->_form;
         $costbefore = $instance->cost;
-        $balance = \enrol_wallet_plugin::get_user_balance($USER->id);
+        $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
         $coupon = optional_param('coupon', '', PARAM_TEXT);
 
         $this->instance = $instance;

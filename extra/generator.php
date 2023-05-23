@@ -26,13 +26,23 @@ require_once('../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 require_login();
 
-$code = optional_param('code', '', PARAM_TEXT);
+$method = required_param('method', PARAM_TEXT);
+
+if ($method == 'single') {
+    $code = required_param('code', PARAM_TEXT);
+    $number = 1;
+    $length = '';
+    $characters = [];
+} else {
+    $code = '';
+    $number = required_param('number', PARAM_INT);
+    $length = required_param('length', PARAM_INT);
+    $characters = required_param_array('characters', PARAM_BOOL);
+}
+
 $value = required_param('value', PARAM_NUMBER);
-$number = required_param('number', PARAM_INT);
-$length = required_param('length', PARAM_INT);
 $type = required_param('type', PARAM_TEXT);
 $maxusage = required_param('maxusage', PARAM_INT);
-$characters = required_param_array('characters', PARAM_BOOL);
 $validto = optional_param_array('validto', [], PARAM_INT);
 $validfrom = optional_param_array('validfrom', [], PARAM_INT);
 
@@ -70,12 +80,7 @@ if (!empty($characters)) {
     $options->lower = isset($characters['lower']) ? $characters['lower'] : false;
     $options->upper = isset($characters['upper']) ? $characters['upper'] : false;
     $options->digits = isset($characters['digits']) ? $characters['digits'] : false;
-} else if (empty($code)) {
-    $msg = get_string('mustselectchar', 'enrol_wallet');
-    redirect($redirecturl, $msg);
-    exit;
 }
-
 
 $options->number = $number;
 $options->length = $length;

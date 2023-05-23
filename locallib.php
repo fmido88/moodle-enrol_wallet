@@ -94,7 +94,6 @@ function enrol_wallet_generate_coupons($options) {
     global $DB;
 
     $number = $options->number;
-    $digits = $options->digits;
     $maxusage = $options->maxusage;
     $from = $options->from;
     $to = $options->to;
@@ -126,6 +125,7 @@ function enrol_wallet_generate_coupons($options) {
         $length = $options->length;
         $lower = $options->lower;
         $upper = $options->upper;
+        $digits = $options->digits;
 
         for ($i = 0; $i < $number; $i++) {
             $gopt = [
