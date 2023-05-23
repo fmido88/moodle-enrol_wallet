@@ -29,7 +29,9 @@ use enrol_wallet_plugin;
  *
  */
 class wordpress {
-
+    /**
+     * Moo-Wallet plugin endpoint.
+     */
     private const ENDPOINT = '/wp-json/moo-wallet/v1/';
     /**
      * Make an HTTP POST request to the moo-wallet plugin endpoint.
