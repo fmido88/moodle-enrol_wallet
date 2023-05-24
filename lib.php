@@ -385,7 +385,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
             // Check if user is already enroled.
             if ($DB->record_exists('user_enrolments', ['userid' => $USER->id, 'enrolid' => $instance->id])) {
-                return get_string('allreadyenroled', 'enrol_wallet');
+                return get_string('alreadyenroled', 'enrol_wallet');
             }
         }
 

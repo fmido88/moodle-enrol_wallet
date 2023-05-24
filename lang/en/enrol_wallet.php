@@ -21,7 +21,8 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-$string['allreadyenroled'] = 'You are already enrolled in this course, may be your time is out or you got suspended <br> contact your TA or TS for more assistance';
+$string['alreadyenroled'] = 'You are already enrolled in this course, may be your time is out or you got suspended <br> contact your TA or TS for more assistance';
+$string['allusers'] = 'transactions for all users selected';
 $string['applycoupon'] = 'Apply Coupon';
 $string['applycoupon_help'] = 'Apply Coupon code to get discount or have a fixed value to charge your wallet. <br>
 If the coupon is a fixed value and it is greater than the fee of the course you will get enrolled.';
@@ -109,6 +110,8 @@ The following placeholders may be included in the message:
 * User email {$a->email}
 * User fullname {$a->fullname}';
 
+$string['datefrom'] = 'From';
+$string['dateto'] = 'To';
 $string['debitdesc_user'] = 'The user get charged by {$a->amount} by user of id {$a->charger}';
 $string['debitdesc_course'] = 'The user get charged by {$a->amount} for enrolment in course {$a->coursename}';
 $string['defaultrole'] = 'Default role assignment';
@@ -238,15 +241,19 @@ $string['submit_coupongenerator'] = 'Create';
 $string['syncenrolmentstask'] = 'Wallet enrolment synchronise enrolments task';
 
 $string['transactions'] = 'Wallet Transactions';
+
 $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
+$string['transaction_type'] = 'Type of transaction';
 
 $string['unenrol'] = 'Unenrol user';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolusers'] = 'Unenrol users';
 $string['upperletters'] = 'UPPER case';
+
+$string['value'] = 'Amount per transaction';
 
 $string['wallet:bulkedit'] = 'Bulk edit the enrolments in all courses';
 $string['wallet:config'] = 'Configure Wallet enrol instances';

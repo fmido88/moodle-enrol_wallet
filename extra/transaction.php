@@ -25,6 +25,8 @@
 require_once('../../../config.php');
 require_once(__DIR__.'/../lib.php');
 require_once($CFG->libdir.'/tablelib.php');
+require_once($CFG->libdir.'/formslib.php');
+
 global $DB, $USER;
 // Adding some security.
 require_login();
@@ -33,20 +35,91 @@ $systemcontext = context_system::instance();
 $viewall = has_capability('enrol/wallet:transaction', $systemcontext);
 
 $sort = optional_param('tsort', 'userid', PARAM_ALPHA);
-
+$userid = optional_param('user', '', PARAM_INT);
+$datefrom = optional_param_array('datefrom', [], PARAM_INT);
+$dateto = optional_param_array('dateto', [], PARAM_INT);
+$ttype = optional_param('ttype', '', PARAM_TEXT);
+$value = optional_param('value', '', PARAM_NUMBER);
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
-$PAGE->set_url(new moodle_url('/enrol/wallet/transaction.php'));
+$thisurl = new moodle_url('/enrol/wallet/extra/transaction.php');
+$PAGE->set_url($thisurl);
 $PAGE->set_title("Wallet Transactions");
 $PAGE->set_heading('Wallet Transactions');
 
 // If the user didn't have the capability to view all transaction, show him only his transactions.
 $conditions = ($viewall) ? [] : ['userid' => $USER->id];
+if ($viewall) {
+
+    if (!empty($userid)) {
+        $conditions['userid'] = $userid;
+    }
+
+    if (!empty($ttype)) {
+        $conditions['type'] = $ttype;
+    }
+
+    if (!empty($value)) {
+        $conditions['amount'] = $value;
+    }
+
+    if (!empty($datefrom)) {
+        $timefrom = mktime(
+            $datefrom['hour'],
+            $datefrom['minute'],
+            0,
+            $datefrom['month'],
+            $datefrom['day'],
+            $datefrom['year'],
+        );
+    }
+
+    if (!empty($dateto)) {
+        $timeto = mktime(
+            $dateto['hour'],
+            $dateto['minute'],
+            59,
+            $dateto['month'],
+            $dateto['day'],
+            $dateto['year'],
+        );
+    }
+    $mform = new MoodleQuickForm('transactions', 'GET', $thisurl);
+
+    $options = array(
+        'ajax' => 'enrol_manual/form-potential-user-selector',
+        'multiple' => false,
+        'courseid' => SITEID,
+        'enrolid' => 0,
+        'perpage' => $CFG->maxusersperpage,
+        'userfields' => implode(',', \core_user\fields::get_identity_fields($systemcontext, true)),
+        'noselectionstring' => get_string('allusers', 'enrol_wallet'),
+    );
+    $mform->addElement('autocomplete', 'user', get_string('selectusers', 'enrol_manual'), array(), $options);
+
+    $mform->addElement('date_time_selector', 'datefrom', get_string('datefrom', 'enrol_wallet'), array('optional' => true));
+    $mform->addElement('date_time_selector', 'dateto', get_string('dateto', 'enrol_wallet'), array('optional' => true));
+
+    $options = [
+        '' => 'All',
+        'debit' => 'debit',
+        'credit' => 'credit',
+    ];
+    $mform->addElement('select', 'ttype', get_string('transaction_type', 'enrol_wallet'), $options);
+
+    $mform->addElement('text', 'value', get_string('value', 'enrol_wallet'));
+    $mform->setType('value', PARAM_NUMBER);
+
+    $mform->addElement('submit', '', get_string('submit'));
+}
 
 echo $OUTPUT->header();
 
 // TODO Adding a filteration form.
+if ($viewall) {
+    $mform->display();
+}
 
 // Set up the transactions table.
 $columns = array(
@@ -91,6 +164,14 @@ if (!empty($sort)) {
 
 $records = $DB->get_records('enrol_wallet_transactions', $conditions, $orderby);
 foreach ($records as $record) {
+    // I'm just to lazy to reuse get_records_sql.
+    // TODO use getrecords sql instate of these conditions.
+    if (isset($timeto) && $record->timecreated > $timeto) {
+        continue;
+    }
+    if (isset($timefrom) && $record->timecreated < $timefrom) {
+        continue;
+    }
     $user = core_user::get_user($record->userid);
     $userfullname = fullname($user);
 
