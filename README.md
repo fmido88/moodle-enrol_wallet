@@ -3,9 +3,9 @@
 
 by Mo. Farouk
 
-This enrollment method allow the user to enrol thimselfs into courses using wallet credit of using payments gateways in addition to using coupons for direct enrollment, charging wallet or get discounts.
+This enrollment method allow the user to enrol themselves into courses using wallet credit of using payments gateways in addition to using coupons for direct enrollment, charging wallet or get discounts.
 
-Admin can define either to totaly use moodle for the wallet system and coupons, or use an existance Tera wallet (in a woocommerce).
+Admin can define either to totally use moodle for the wallet system and coupons, or use an existence Tera wallet (in a woocommerce).
 
 ## Features ##
 
@@ -20,7 +20,7 @@ Admin can define either to totaly use moodle for the wallet system and coupons, 
 9- Cohorts restrictions.
 10- Another course enrollment restriction.
 11- Display the transactions of wallet.
-12- Bulk edit all enrolments in selected courses.
+12- Bulk edit all enrollments in selected courses.
 13- Bulk edit all wallet enrolment instances in selected courses.
 14- Enable gifts as wallet credits upon creation of a user.
 15- Discounts on courses for specific users depend on custom profile field.
@@ -29,7 +29,7 @@ Admin can define either to totaly use moodle for the wallet system and coupons, 
 
 Also you can install block_wallet to display the balance for the user.
 
-In addition the block give the ability for users to topup their wallet using fixed value coupon.
+In addition the block give the ability for users to top-up their wallet using fixed value coupon.
 
 Or using payment gateways.
 

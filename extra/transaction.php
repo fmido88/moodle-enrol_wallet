@@ -50,8 +50,10 @@ $PAGE->set_heading('Wallet Transactions');
 
 // If the user didn't have the capability to view all transaction, show him only his transactions.
 $conditions = ($viewall) ? [] : ['userid' => $USER->id];
-if ($viewall) {
 
+// Lets add a filtration form for people with capabilities.
+if ($viewall) {
+    // Check the data from submitted form first.
     if (!empty($userid)) {
         $conditions['userid'] = $userid;
     }
@@ -85,8 +87,11 @@ if ($viewall) {
             $dateto['year'],
         );
     }
+
+    // Create the form.
     $mform = new MoodleQuickForm('transactions', 'GET', $thisurl);
 
+    // Borrow potential users selectors from enrol_manual.
     $options = array(
         'ajax' => 'enrol_manual/form-potential-user-selector',
         'multiple' => false,
@@ -98,9 +103,11 @@ if ($viewall) {
     );
     $mform->addElement('autocomplete', 'user', get_string('selectusers', 'enrol_manual'), array(), $options);
 
+    // Adding starting and ending dates for transactions.
     $mform->addElement('date_time_selector', 'datefrom', get_string('datefrom', 'enrol_wallet'), array('optional' => true));
     $mform->addElement('date_time_selector', 'dateto', get_string('dateto', 'enrol_wallet'), array('optional' => true));
 
+    // Select specific type of transaction.
     $options = [
         '' => 'All',
         'debit' => 'debit',
@@ -108,6 +115,7 @@ if ($viewall) {
     ];
     $mform->addElement('select', 'ttype', get_string('transaction_type', 'enrol_wallet'), $options);
 
+    // Select specific value.
     $mform->addElement('text', 'value', get_string('value', 'enrol_wallet'));
     $mform->setType('value', PARAM_NUMBER);
 
@@ -116,7 +124,7 @@ if ($viewall) {
 
 echo $OUTPUT->header();
 
-// TODO Adding a filteration form.
+// Display the filtration form.
 if ($viewall) {
     $mform->display();
 }
@@ -152,7 +160,7 @@ $allowedsort = array_diff(array_keys($table->columns), $table->column_nosort);
 if (!in_array($sort, $allowedsort)) {
     $sort = '';
 }
-
+// Doing the sorting.
 $orderby = 'id DESC';
 if (!empty($sort)) {
     $direction = ' DESC';
@@ -164,8 +172,8 @@ if (!empty($sort)) {
 
 $records = $DB->get_records('enrol_wallet_transactions', $conditions, $orderby);
 foreach ($records as $record) {
-    // I'm just to lazy to reuse get_records_sql.
-    // TODO use getrecords sql instate of these conditions.
+    // I'm just to lazy to rebuilt it get_records_sql.
+    // TODO use get_records_sql instate of these conditions.
     if (isset($timeto) && $record->timecreated > $timeto) {
         continue;
     }
