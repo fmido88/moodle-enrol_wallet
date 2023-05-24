@@ -91,7 +91,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('enrol_wallet/walletsource',
                                                 get_string('walletsource', 'enrol_wallet'),
                                                 get_string('walletsource_help', 'enrol_wallet'),
-                                                enrol_wallet\transactions::SOURCE_WORDPRESS,
+                                                enrol_wallet\transactions::SOURCE_MOODLE,
                                                 $sources));
     // Define the WordPress site URL configuration setting.
     $settings->add(new admin_setting_configtext(

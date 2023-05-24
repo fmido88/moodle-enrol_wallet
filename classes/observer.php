@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace enrol_wallet;
+use enrol_wallet\transactions;
 use enrol_wallet_plugin;
 /**
  * Observer class for enrol_wallet.
@@ -86,7 +87,7 @@ class observer {
             $a->maxgrade = $maxgrade;
 
             $desc = get_string('awardingdesc', 'enrol_wallet', $a);
-            enrol_wallet_plugin::payment_topup($award , $userid , $desc , $userid);
+            transactions::payment_topup($award , $userid , $desc , $userid);
 
             $data = [
                 'userid' => $userid,
@@ -122,7 +123,7 @@ class observer {
         $a->amount = $giftvalue;
         $desc = get_string('giftdesc', 'enrol_wallet', $a);
 
-        enrol_wallet_plugin::payment_topup($giftvalue, $userid, $desc, $userid);
+        transactions::payment_topup($giftvalue, $userid, $desc, $userid);
         // TODO Adding gifts event.
     }
 }

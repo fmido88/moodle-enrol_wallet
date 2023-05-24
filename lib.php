@@ -1087,6 +1087,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         return $currencies;
     }
+
     /**
      * Perform custom validation of the data used to edit the instance.
      *
@@ -1124,10 +1125,13 @@ class enrol_wallet_plugin extends enrol_plugin {
         $validroles = array_keys($this->extend_assignable_roles($context, $instance->roleid));
         $validexpirynotify = array_keys($this->get_expirynotify_options());
         $validlongtimenosee = array_keys($this->get_longtimenosee_options());
+        $validcurrencies = array_keys($this->get_possible_currencies());
         $tovalidate = array(
             'enrolstartdate' => PARAM_INT,
             'enrolenddate' => PARAM_INT,
             'name' => PARAM_TEXT,
+            'currency' => $validcurrencies,
+            'cost' => PARAM_NUMBER,
             'customint2' => $validlongtimenosee,
             'customint3' => PARAM_INT,
             'customint4' => PARAM_INT,
