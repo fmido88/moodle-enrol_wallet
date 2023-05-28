@@ -33,6 +33,8 @@ class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::get_payable().
      * For payment area walletenrol, which enrol user into the course after payment.
+     *
+     * @covers ::get_payable()
      */
     public function test_get_payable_walletenrol() {
         global $DB;
@@ -62,6 +64,8 @@ class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::get_payable().
      * For payment area wallettopup, which topping up the wallet after payment.
+     *
+     * @covers ::get_payable()
      */
     public function test_get_payable_wallettopup() {
         global $DB;
@@ -83,6 +87,8 @@ class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::get_success_url().
      * For payment area walletenrol, which enrol user into the course after payment.
+     *
+     * @covers ::get_success_url()
      */
     public function test_get_success_url_walletenrol() {
         global $CFG, $DB;
@@ -113,6 +119,8 @@ class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::get_success_url().
      * For payment area wallettopup, which topping up the wallet after payment.
+     *
+     * @covers ::get_success_url()
      */
     public function test_get_success_url_wallettopup() {
         global $CFG, $DB;
@@ -135,6 +143,8 @@ class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::deliver_order().
      * For payment area walletenrol, which enrol user into the course after payment.
+     * 
+     * @covers ::deliver_order()
      */
     public function test_deliver_order_walletenrol() {
         global $DB;
@@ -172,6 +182,8 @@ class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::deliver_order().
      * For payment area wallettopup, which topping up the wallet after payment.
+     *
+     * @covers ::deliver_order()
      */
     public function test_deliver_order_wallettopup() {
         global $DB;
