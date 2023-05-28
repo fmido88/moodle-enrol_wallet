@@ -143,7 +143,7 @@ class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::deliver_order().
      * For payment area walletenrol, which enrol user into the course after payment.
-     * 
+     *
      * @covers ::deliver_order()
      */
     public function test_deliver_order_walletenrol() {

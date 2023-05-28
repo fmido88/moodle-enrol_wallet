@@ -165,7 +165,7 @@ class transactions {
         } else if ($source == self::SOURCE_MOODLE) {
             global $DB;
 
-            $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'timecreated DESC', 'balance', 0, 1);
+            $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'id DESC', 'balance', 0, 1);
 
             // Getting the balance form last transaction.
             $key = array_key_first($record);
