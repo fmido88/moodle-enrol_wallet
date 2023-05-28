@@ -85,17 +85,17 @@ class service_provider implements \core_payment\local\callback\service_provider 
      * Callback function that delivers what the user paid for to them.
      *
      * @param string $paymentarea
-     * @param int $instanceid The enrolment instance id
+     * @param int $itemid The item id
      * @param int $paymentid payment id as inserted into the 'payments' table, if needed for reference
      * @param int $userid The userid the order is going to deliver to
      * @return bool Whether successful or not
      */
-    public static function deliver_order(string $paymentarea, int $instanceid, int $paymentid, int $userid): bool {
+    public static function deliver_order(string $paymentarea, int $itemid, int $paymentid, int $userid): bool {
         global $DB, $CFG;
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
         // Check if the payment is for enrolment or topup the wallet.
         if ($paymentarea == 'walletenrol') {
-            $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
+            $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $itemid], '*', MUST_EXIST);
 
             $plugin = enrol_get_plugin('wallet');
 
