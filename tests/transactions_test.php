@@ -49,7 +49,7 @@ class transactions_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
-        $sink = $this->redirectMessages();
+        $this->setAdminUser();
 
         $user = $this->getDataGenerator()->create_user();
 
