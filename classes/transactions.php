@@ -167,7 +167,7 @@ class transactions {
 
             $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'timecreated DESC', 'balance', 0, 1);
 
-            // Geting the balance form last transaction.
+            // Getting the balance form last transaction.
             $key = array_key_first($record);
             $balance = (!empty($record)) ? $record[$key]->balance : 0;
 

@@ -46,33 +46,30 @@ class transactions_test extends \advanced_testcase {
      * @covers ::get_user_balance()
      */
     public function test_credit_debit() {
+        global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $user = $this->getDataGenerator()->create_user();
 
         $balance = transactions::get_user_balance($user->id);
-
         $this->assertEquals(0, $balance);
 
         transactions::payment_topup(250, $user->id);
-
         $balance = transactions::get_user_balance($user->id);
-
         $this->assertEquals(250, $balance);
 
         $debit = transactions::debit($user->id, 50);
-
         $this->assertEquals('done', $debit);
 
-        $balance = transactions::get_user_balance($user->id);
+        $count = $DB->count_records('enrol_wallet_transactions', ['userid' => $user->id]);
+        $this->assertEquals(2, $count);
 
+        $balance = transactions::get_user_balance($user->id);
         $this->assertEquals(200, $balance);
 
         transactions::debit($user->id, 250);
-
         $balance = transactions::get_user_balance($user->id);
-
         $this->assertEquals(200, $balance);
     }
 

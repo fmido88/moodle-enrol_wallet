@@ -66,7 +66,6 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_payable_wallettopup() {
         global $DB;
         $this->resetAfterTest();
-        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
@@ -118,7 +117,6 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_success_url_wallettopup() {
         global $CFG, $DB;
         $this->resetAfterTest();
-        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
@@ -141,6 +139,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_deliver_order_walletenrol() {
         global $DB;
         $this->resetAfterTest();
+        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $walletplugin = enrol_get_plugin('wallet');
@@ -196,6 +195,6 @@ class service_provider_test extends \advanced_testcase {
         service_provider::deliver_order('wallettopup', $id, $paymentid, $user->id);
         $balance = \enrol_wallet\transactions::get_user_balance($user->id);
 
-        $this->assertEqual(250, $balance);
+        $this->assertEquals(250, $balance);
     }
 }
