@@ -66,6 +66,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_payable_wallettopup() {
         global $DB;
         $this->resetAfterTest();
+        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
@@ -74,7 +75,7 @@ class service_provider_test extends \advanced_testcase {
         // Set a fake item form payment.
         $id = $DB->insert_record('enrol_wallet_items', ['cost' => 250, 'currency' => 'USD', 'userid' => $user->id]);
 
-        $payable = service_provider::get_payable('walletenrol', $id);
+        $payable = service_provider::get_payable('wallettopup', $id);
 
         $this->assertEquals($account->get('id'), $payable->get_account_id());
         $this->assertEquals(250, $payable->get_amount());
@@ -117,6 +118,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_success_url_wallettopup() {
         global $CFG, $DB;
         $this->resetAfterTest();
+        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
@@ -175,6 +177,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_deliver_order_wallettopup() {
         global $DB;
         $this->resetAfterTest();
+        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
@@ -190,7 +193,7 @@ class service_provider_test extends \advanced_testcase {
             'userid' => $user->id
         ]);
 
-        service_provider::deliver_order('walletenrol', $id, $paymentid, $user->id);
+        service_provider::deliver_order('wallettopup', $id, $paymentid, $user->id);
         $balance = \enrol_wallet\transactions::get_user_balance($user->id);
 
         $this->assertEqual(250, $balance);

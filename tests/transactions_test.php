@@ -18,7 +18,6 @@
  * Wallet enrolment tests.
  *
  * @package    enrol_wallet
- * @category   phpunit
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -34,7 +33,6 @@ require_once($CFG->dirroot.'/enrol/wallet/lib.php');
  * Wallet enrolment tests.
  *
  * @package    enrol_wallet
- * @category   phpunit
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -45,6 +43,7 @@ class transactions_test extends \advanced_testcase {
      */
     public function test_credit_debit() {
         $this->resetAfterTest();
+        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $user = $this->getDataGenerator()->create_user();
 
@@ -80,6 +79,7 @@ class transactions_test extends \advanced_testcase {
         global $CFG, $DB;
 
         $this->resetAfterTest();
+        $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $user = $this->getDataGenerator()->create_user();
         set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSALL, 'enrol_wallet');
