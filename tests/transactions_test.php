@@ -40,6 +40,10 @@ class transactions_test extends \advanced_testcase {
     /**
      * Testing the functionalities of adding and deducting credits
      * from user's wallet.
+     *
+     * @covers ::payment_topup()
+     * @covers ::debit()
+     * @covers ::get_user_balance()
      */
     public function test_credit_debit() {
         $this->resetAfterTest();
@@ -57,7 +61,9 @@ class transactions_test extends \advanced_testcase {
 
         $this->assertEquals(250, $balance);
 
-        transactions::debit($user->id, 50);
+        $debit = transactions::debit($user->id, 50);
+
+        $this->assertEquals('done', $debit);
 
         $balance = transactions::get_user_balance($user->id);
 
@@ -72,8 +78,11 @@ class transactions_test extends \advanced_testcase {
 
 
     /**
-     * Testing the functions get_coupon_value and mark_coupon_as_used
+     * Testing the functions get_coupon_value and mark_coupon_used
      * This is for fixed value coupons only.
+     *
+     * @covers ::get_coupon_value()
+     * @covers ::mark_coupon_used()
      */
     public function test_get_coupon_value() {
         global $CFG, $DB;
