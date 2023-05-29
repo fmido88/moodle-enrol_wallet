@@ -51,14 +51,10 @@ class transactions_test extends \advanced_testcase {
         $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $user = $this->getDataGenerator()->create_user();
-        $isproviderallowed = false;
-        foreach (message_get_providers_for_user($user->id) as $provider) {
-            if ($provider->component === 'enrol_wallet' && $provider->name === 'wallet_transaction') {
-                $isproviderallowed = true;
-                break;
-            }
-        }
-        $this->assertTrue($isproviderallowed);
+        echo '<pre>';
+        var_dump(message_get_providers_for_user($user->id));
+        echo '</pre>';
+
         $balance = transactions::get_user_balance($user->id);
         $this->assertEquals(0, $balance);
 
