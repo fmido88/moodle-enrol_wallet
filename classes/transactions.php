@@ -41,7 +41,7 @@ class transactions {
     public const SOURCE_MOODLE = 1;
     /**
      * Mocking the notification class, useful for phpunit test.
-     * @var 
+     * @var
      */
     public $notify = null;
     /**
@@ -50,7 +50,7 @@ class transactions {
      */
     private static function notify() {
         if (empty($notify)) {
-            $notify = new \enrol_wallet\notifications();
+            $notify = new notifications();
         }
         return $notify;
     }
