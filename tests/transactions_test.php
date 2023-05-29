@@ -57,10 +57,7 @@ class transactions_test extends \advanced_testcase {
         $this->resetAfterTest(true);
 
         $this->transactions = new \enrol_wallet\transactions();
-        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
-        $this->transactions->notify = $mocknotifications;
-        $mocknotifications->method('transaction_notify')
-            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
+
     }
     /**
      * Testing the functionalities of adding and deducting credits
@@ -72,6 +69,10 @@ class transactions_test extends \advanced_testcase {
      */
     public function test_credit_debit() {
         global $DB;
+        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
+        $this->transactions->notify = $mocknotifications;
+        $mocknotifications->method('transaction_notify')
+            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
 
         $user = $this->getDataGenerator()->create_user(['firstname' => 'Mo', 'lastname' => 'Farouk']);
 
