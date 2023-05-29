@@ -38,6 +38,31 @@ require_once($CFG->dirroot.'/enrol/wallet/lib.php');
  */
 class transactions_test extends \advanced_testcase {
     /**
+     * The transactions class.
+     * @var 
+     */
+    private $transactions;
+    /**
+     * mock_transaction_notify
+     * @param array $data
+     * @return bool
+     */
+    public static function mock_transaction_notify($data) {
+        return true;
+    }
+    /**
+     * Setup.
+     */
+    public function setUp(): void {
+        $this->resetAfterTest(true);
+
+        $this->transactions = new \enrol_wallet\transactions();
+        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
+        $this->transactions->notify = $mocknotifications;
+        $mocknotifications->method('transaction_notify')
+            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
+    }
+    /**
      * Testing the functionalities of adding and deducting credits
      * from user's wallet.
      *
@@ -47,29 +72,27 @@ class transactions_test extends \advanced_testcase {
      */
     public function test_credit_debit() {
         global $DB;
-        $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user(['firstname'=>'Mo', 'lastname' => 'Farouk']);
-        accesslib_clear_all_caches_for_unit_testing();
 
-        $balance = transactions::get_user_balance($user->id);
+        $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(0, $balance);
 
-        transactions::payment_topup(250, $user->id);
-        $balance = transactions::get_user_balance($user->id);
+        $this->transactions->payment_topup(250, $user->id);
+        $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(250, $balance);
 
-        $debit = transactions::debit($user->id, 50);
+        $debit = $this->transactions->debit($user->id, 50);
         $this->assertEquals('done', $debit);
 
         $count = $DB->count_records('enrol_wallet_transactions', ['userid' => $user->id]);
         $this->assertEquals(2, $count);
 
-        $balance = transactions::get_user_balance($user->id);
+        $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(200, $balance);
 
-        transactions::debit($user->id, 250);
-        $balance = transactions::get_user_balance($user->id);
+        $this->transactions->debit($user->id, 250);
+        $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(200, $balance);
     }
 
@@ -83,7 +106,6 @@ class transactions_test extends \advanced_testcase {
     public function test_get_coupon_value() {
         global $CFG, $DB;
 
-        $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $user = $this->getDataGenerator()->create_user();

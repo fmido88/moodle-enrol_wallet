@@ -39,7 +39,13 @@ class transactions {
      * If the wallet source is from this moodle site.
      */
     public const SOURCE_MOODLE = 1;
-
+    private $notify = null;
+    private static function notify() {
+        if (empty($notify)) {
+            $notify = new \enrol_wallet\notifications();
+        }
+        return $notify;
+    }
     /**
      * Function needed to topup the wallet in the corresponding wordpress website.
      * @param float $amount
@@ -81,7 +87,7 @@ class transactions {
 
         $DB->insert_record('enrol_wallet_transactions', $recorddata);
         $responsedata['success'] = true;
-        notifications::transaction_notify($recorddata);
+        self::notify()->transaction_notify($recorddata);
 
         return $responsedata['success'];
     }
@@ -141,7 +147,7 @@ class transactions {
             'timecreated' => time()
         ];
         $DB->insert_record('enrol_wallet_transactions', $recorddata);
-        notifications::transaction_notify($recorddata);
+        self::notify()->transaction_notify($recorddata);
 
         return $response;
     }

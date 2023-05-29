@@ -41,8 +41,7 @@ class notifications_test extends \advanced_testcase {
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
         $user = $this->getDataGenerator()->create_user();
-        $course = $this->getDataGenerator()->create_course();
-        $this->getDataGenerator()->enrol_user($user->id, $course->id);
+
         $data = [
             'userid' => $user->id,
             'type' => 'credit',
