@@ -48,17 +48,17 @@ class transactions_test extends \advanced_testcase {
     public function test_credit_debit() {
         global $DB;
         $this->resetAfterTest();
-        $this->preventResetByRollback(); // Messaging does not like transactions...
+
+        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
+
+        $mocknotifications->method('transaction_notify')
+            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
 
         $user = $this->getDataGenerator()->create_user();
-        echo '<pre>';
-        var_dump(message_get_providers_for_user($user->id));
-        echo '</pre>';
 
         $balance = transactions::get_user_balance($user->id);
         $this->assertEquals(0, $balance);
 
-        $sink = $this->redirectMessages();
         transactions::payment_topup(250, $user->id);
         $balance = transactions::get_user_balance($user->id);
         $this->assertEquals(250, $balance);
@@ -115,5 +115,13 @@ class transactions_test extends \advanced_testcase {
         $usage = $DB->get_record('enrol_wallet_coupons_usage', ['code' => 'test1']);
 
         $this->assertEquals($user->id, $usage->userid);
+    }
+    /**
+     * mock_transaction_notify
+     * @param array $data
+     * @return bool
+     */
+    public static function mock_transaction_notify($data) {
+        return true;
     }
 }

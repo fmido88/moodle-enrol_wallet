@@ -149,7 +149,10 @@ class service_provider_test extends \advanced_testcase {
     public function test_deliver_order_walletenrol() {
         global $DB;
         $this->resetAfterTest();
-        $this->preventResetByRollback(); // Messaging does not like transactions...
+        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
+
+        $mocknotifications->method('transaction_notify')
+            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $walletplugin = enrol_get_plugin('wallet');
@@ -188,7 +191,10 @@ class service_provider_test extends \advanced_testcase {
     public function test_deliver_order_wallettopup() {
         global $DB;
         $this->resetAfterTest();
-        $this->preventResetByRollback(); // Messaging does not like transactions...
+        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
+
+        $mocknotifications->method('transaction_notify')
+            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
 
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
@@ -208,5 +214,14 @@ class service_provider_test extends \advanced_testcase {
         $balance = \enrol_wallet\transactions::get_user_balance($user->id);
 
         $this->assertEquals(250, $balance);
+    }
+
+    /**
+     * mock_transaction_notify
+     * @param array $data
+     * @return bool
+     */
+    public static function mock_transaction_notify($data) {
+        return true;
     }
 }
