@@ -50,11 +50,10 @@ class transactions_test extends \advanced_testcase {
         $this->resetAfterTest();
 
         $mocknotifications = $this->createMock('\enrol_wallet\notifications');
-        echo '<pre>';
-        var_dump($mocknotifications);
-        echo '</pre>';
-        $mocknotifications->method('transaction_notify')
-            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
+        var_dump(
+            $mocknotifications->method('transaction_notify')
+            ->will($this->returnCallback([$this, 'mock_transaction_notify']))
+        );
 
         $user = $this->getDataGenerator()->create_user();
 
