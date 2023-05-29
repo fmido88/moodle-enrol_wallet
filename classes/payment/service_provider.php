@@ -108,7 +108,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
             // Check the balance because we only get paied for the difference.
             $balance = (float)\enrol_wallet\transactions::get_user_balance($userid);
             $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : null;
-            $_SESSION['coupon'] = ''; // Unset the coupon.
+            unset($_SESSION['coupon']); // Unset the coupon.
             $fee = (float)$plugin->get_cost_after_discount($userid, $instance, $coupon);
             $cost = $fee - $balance;
             // Deduct the user's balance.

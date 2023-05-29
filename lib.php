@@ -216,8 +216,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         // Get the name of the course.
         $coursename = get_course($instance->courseid)->fullname;
         $coupon = optional_param('coupon', null, PARAM_RAW);
+        $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : $coupon;
         // Get the final cost after discount (if there is no discount it return the full cost).
-        $costafter = $this->costafter;
+        $costafter = (!empty($this->costafter)) ? $this->costafter : $this->get_cost_after_discount($user->id, $instance, $coupon);
 
         $timestart = time();
         $timeend = ($instance->enrolperiod) ? $timestart + $instance->enrolperiod : 0;
