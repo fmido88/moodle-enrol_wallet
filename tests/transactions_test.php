@@ -49,10 +49,9 @@ class transactions_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
+        $mocknotifications = $this->getMockBuilder('\enrol_wallet\notifications')->getMock();
 
-        $mocknotifications->method('transaction_notify')
-            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
+        $mocknotifications->method('transaction_notify')->willReturn(true);
 
         $user = $this->getDataGenerator()->create_user();
 
@@ -116,13 +115,5 @@ class transactions_test extends \advanced_testcase {
 
         $this->assertEquals($user->id, $usage->userid);
     }
-    /**
-     * mock_transaction_notify
-     * @param array $data
-     * @return bool
-     */
-    public static function mock_transaction_notify($data) {
-        mtrace('mock notification has been called');
-        return true;
-    }
+
 }
