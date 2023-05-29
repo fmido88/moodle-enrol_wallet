@@ -39,7 +39,15 @@ class transactions {
      * If the wallet source is from this moodle site.
      */
     public const SOURCE_MOODLE = 1;
-    private $notify = null;
+    /**
+     * Mocking the notification class, useful for phpunit test.
+     * @var 
+     */
+    public $notify = null;
+    /**
+     * setup the notification.
+     * @return notifications
+     */
     private static function notify() {
         if (empty($notify)) {
             $notify = new \enrol_wallet\notifications();

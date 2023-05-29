@@ -39,7 +39,7 @@ require_once($CFG->dirroot.'/enrol/wallet/lib.php');
 class transactions_test extends \advanced_testcase {
     /**
      * The transactions class.
-     * @var 
+     * @var
      */
     private $transactions;
     /**
@@ -73,7 +73,7 @@ class transactions_test extends \advanced_testcase {
     public function test_credit_debit() {
         global $DB;
 
-        $user = $this->getDataGenerator()->create_user(['firstname'=>'Mo', 'lastname' => 'Farouk']);
+        $user = $this->getDataGenerator()->create_user(['firstname' => 'Mo', 'lastname' => 'Farouk']);
 
         $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(0, $balance);
