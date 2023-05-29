@@ -69,6 +69,13 @@ class transactions_test extends \advanced_testcase {
      */
     public function test_credit_debit() {
         global $DB;
+        $this->resetAfterTest();
+        $this->preventResetByRollback();
+
+        $this->assertTrue(enrol_is_enabled('wallet'));
+        $plugin = enrol_get_plugin('wallet');
+        $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
+
         $mocknotifications = $this->createMock('\enrol_wallet\notifications');
         $this->transactions->notify = $mocknotifications;
         $mocknotifications->method('transaction_notify')
