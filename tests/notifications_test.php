@@ -37,7 +37,7 @@ class notifications_test extends \advanced_testcase {
      * Test transaction_notifications
      * @covers ::transaction_notify()
      */
-    public function transaction_notifications_test() {
+    public function test_transaction_notifications() {
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
         $user = $this->getDataGenerator()->create_user();
