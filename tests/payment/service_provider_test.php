@@ -147,12 +147,14 @@ class service_provider_test extends \advanced_testcase {
      * @covers ::deliver_order()
      */
     public function test_deliver_order_walletenrol() {
-        global $DB;
+        global $DB, $CFG;
         $this->resetAfterTest();
-        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
-
-        $mocknotifications->method('transaction_notify')
-            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
+        $this->preventResetByRollback();
+        if (!enrol_is_enabled('wallet')) {
+            $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
+            $class::enable_plugin('wallet', true);
+        }
+        $this->assertTrue(enrol_is_enabled('wallet'));
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $walletplugin = enrol_get_plugin('wallet');
@@ -189,12 +191,14 @@ class service_provider_test extends \advanced_testcase {
      * @covers ::deliver_order()
      */
     public function test_deliver_order_wallettopup() {
-        global $DB;
+        global $DB, $CFG;
         $this->resetAfterTest();
-        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
-
-        $mocknotifications->method('transaction_notify')
-            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
+        $this->preventResetByRollback();
+        if (!enrol_is_enabled('wallet')) {
+            $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
+            $class::enable_plugin('wallet', true);
+        }
+        $this->assertTrue(enrol_is_enabled('wallet'));
 
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
@@ -216,12 +220,4 @@ class service_provider_test extends \advanced_testcase {
         $this->assertEquals(250, $balance);
     }
 
-    /**
-     * mock_transaction_notify
-     * @param array $data
-     * @return bool
-     */
-    public static function mock_transaction_notify($data) {
-        return true;
-    }
 }

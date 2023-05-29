@@ -79,11 +79,6 @@ class transactions_test extends \advanced_testcase {
         $plugin = enrol_get_plugin('wallet');
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
 
-        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
-        $this->transactions->notify = $mocknotifications;
-        $mocknotifications->method('transaction_notify')
-            ->will($this->returnCallback([$this, 'mock_transaction_notify']));
-
         $user = $this->getDataGenerator()->create_user(['firstname' => 'Mo', 'lastname' => 'Farouk']);
 
         $balance = $this->transactions->get_user_balance($user->id);

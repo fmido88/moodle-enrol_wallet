@@ -38,8 +38,15 @@ class notifications_test extends \advanced_testcase {
      * @covers ::transaction_notify()
      */
     public function test_transaction_notifications() {
+        global $DB, $CFG;
         $this->resetAfterTest();
-        $this->preventResetByRollback(); // Messaging does not like transactions...
+        $this->preventResetByRollback();
+        if (!enrol_is_enabled('wallet')) {
+            $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
+            $class::enable_plugin('wallet', true);
+        }
+        $this->assertTrue(enrol_is_enabled('wallet'));
+
         $user = $this->getDataGenerator()->create_user();
 
         $data = [
