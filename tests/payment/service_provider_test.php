@@ -23,7 +23,9 @@
  */
 
 namespace enrol_wallet\payment;
-
+defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 /**
  * Unit tests for the enrol_wallet's payment subsystem callback implementation.
  *
@@ -147,13 +149,11 @@ class service_provider_test extends \advanced_testcase {
      * @covers ::deliver_order()
      */
     public function test_deliver_order_walletenrol() {
-        global $DB, $CFG;
+        global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        if (!enrol_is_enabled('wallet')) {
-            $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
-            $class::enable_plugin('wallet', true);
-        }
+        enrol_wallet_enable_plugin();
+
         $this->assertTrue(enrol_is_enabled('wallet'));
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
@@ -194,10 +194,8 @@ class service_provider_test extends \advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        if (!enrol_is_enabled('wallet')) {
-            $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
-            $class::enable_plugin('wallet', true);
-        }
+        enrol_wallet_enable_plugin();
+
         $this->assertTrue(enrol_is_enabled('wallet'));
 
         $generator = $this->getDataGenerator();

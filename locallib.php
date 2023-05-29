@@ -54,6 +54,37 @@ function enrol_wallet_check_group_enrolment_key($courseid, $enrolpassword) {
 }
 
 /**
+ * Enable enrol Wallet plugin.
+ * @return void
+ */
+function enrol_wallet_enable_plugin() {
+    global $CFG;
+    if (!enrol_is_enabled('wallet')) {
+        $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
+        // This method isn't exist in 3.11.
+        if (method_exists($class, 'enable_plugin')) {
+            $class::enable_plugin('wallet', true);
+        } else {
+            $plugins = [];
+            if (!empty($CFG->enrol_plugins_enabled)) {
+                $plugins = array_flip(explode(',', $CFG->enrol_plugins_enabled));
+            }
+            if (!array_key_exists('wallet', $plugins)) {
+                $plugins['wallet'] = 'wallet';
+                $new = implode(',', array_flip($plugins));
+                add_to_config_log('enrol_plugins_enabled', false, true, 'wallet');
+                set_config('enrol_plugins_enabled', $new);
+                // Reset caches.
+                \core_plugin_manager::reset_caches();
+                // Resets all enrol caches.
+                $syscontext = \context_system::instance();
+                $syscontext->mark_dirty();
+            }
+        }
+    }
+}
+
+/**
  * Summary of enrol_wallet_get_random_coupon
  * @param int $length
  * @param array $options

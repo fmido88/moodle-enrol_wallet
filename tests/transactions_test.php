@@ -28,7 +28,7 @@ use enrol_wallet\transactions;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-
+require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 /**
  * Wallet enrolment tests.
  *
@@ -42,14 +42,7 @@ class transactions_test extends \advanced_testcase {
      * @var
      */
     private $transactions;
-    /**
-     * mock_transaction_notify
-     * @param array $data
-     * @return bool
-     */
-    public static function mock_transaction_notify($data) {
-        return true;
-    }
+
     /**
      * Setup.
      */
@@ -68,13 +61,11 @@ class transactions_test extends \advanced_testcase {
      * @covers ::get_user_balance()
      */
     public function test_credit_debit() {
-        global $DB, $CFG;
+        global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        if (!enrol_is_enabled('wallet')) {
-            $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
-            $class::enable_plugin('wallet', true);
-        }
+        enrol_wallet_enable_plugin();
+
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
