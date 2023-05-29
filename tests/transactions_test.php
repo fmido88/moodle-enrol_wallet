@@ -49,7 +49,7 @@ class transactions_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user(['firstname'=>'Mo', 'lastname' => 'Farouk']);
         accesslib_clear_all_caches_for_unit_testing();
 
         $balance = transactions::get_user_balance($user->id);
