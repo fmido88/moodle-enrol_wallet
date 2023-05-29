@@ -49,9 +49,9 @@ class transactions_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
-
-        message_update_providers('enrol_wallet');
-
+        $dbproviders = message_get_providers_from_db('enrol_wallet');
+        $fileproviders = message_get_providers_from_file('enrol_wallet');
+        $this->assertEquals($fileproviders, $dbproviders);
         $user = $this->getDataGenerator()->create_user();
 
         $balance = transactions::get_user_balance($user->id);
