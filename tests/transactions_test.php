@@ -68,10 +68,13 @@ class transactions_test extends \advanced_testcase {
      * @covers ::get_user_balance()
      */
     public function test_credit_debit() {
-        global $DB;
+        global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-
+        if (!enrol_is_enabled('wallet')) {
+            $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
+            $class::enable_plugin('wallet', true);
+        }
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
