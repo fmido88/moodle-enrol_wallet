@@ -49,11 +49,8 @@ class transactions_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
-
-        $mocknotifications->method('transaction_notify')->willReturn(true);
-
         $user = $this->getDataGenerator()->create_user();
+        accesslib_clear_all_caches_for_unit_testing();
 
         $balance = transactions::get_user_balance($user->id);
         $this->assertEquals(0, $balance);
@@ -75,7 +72,6 @@ class transactions_test extends \advanced_testcase {
         $balance = transactions::get_user_balance($user->id);
         $this->assertEquals(200, $balance);
     }
-
 
     /**
      * Testing the functions get_coupon_value and mark_coupon_used
