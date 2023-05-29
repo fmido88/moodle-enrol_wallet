@@ -280,20 +280,14 @@ class transactions {
             $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
             ) {
             $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
-            $fee = (float)enrol_wallet_plugin::get_cost_after_discount($userid, $instance);
-            $plugin = enrol_get_plugin('wallet');
+            $user = \core_user::get_user($userid);
 
-            if ($instance->enrolperiod) {
-                $timestart = time();
-                $timeend = $timestart + $instance->enrolperiod;
-            } else {
-                $timestart = 0;
-                $timeend = 0;
-            }
-            // Check if the coupon value is grater than or equel the fee.
+            $plugin = enrol_get_plugin('wallet');
+            $fee = (float)$plugin->get_cost_after_discount($userid, $instance);
+            // Check if the coupon value is grater than or equal the fee.
             // Enrol the user in the course.
             if ($coupondata['value'] >= $fee) {
-                $plugin->enrol_user($instance, $userid, $instance->roleid, $timestart, $timeend);
+                $plugin->enrol_self($instance, $user);
                 $coursename = get_course($instance->courseid)->fullname;
                 self::debit($userid, $fee, '('.$coursename.') by coupon');
             }

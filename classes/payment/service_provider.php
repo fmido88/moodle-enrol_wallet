@@ -35,7 +35,8 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
     /**
      * Callback function that returns the enrolment cost and the accountid
-     * for the course that $instanceid enrolment instance belongs to.
+     * for the course that $instanceid enrolment instance belongs to or itemid
+     * for fake item to topup wallet.
      *
      * @param string $paymentarea Payment area
      * @param int $itemid The enrolment instance id or fake item id
@@ -98,24 +99,17 @@ class service_provider implements \core_payment\local\callback\service_provider 
             $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $itemid], '*', MUST_EXIST);
 
             $plugin = enrol_get_plugin('wallet');
-
-            if ($instance->enrolperiod) {
-                $timestart = time();
-                $timeend = $timestart + $instance->enrolperiod;
-            } else {
-                $timestart = 0;
-                $timeend = 0;
-            }
+            $user = \core_user::get_user($userid);
             // Now enrol the user after successful payment.
-            $plugin->enrol_user($instance, $userid, $instance->roleid, $timestart, $timeend);
-            require_once(__DIR__.'/../../lib.php');
+            $plugin->enrol_self($instance, $user);
+
             $course = $DB->get_record('course', ['id' => $instance->courseid], '*', IGNORE_MISSING);
             $course ? $coursename = $course->fullname : $coursename = '';
             // Check the balance because we only get paied for the difference.
             $balance = (float)\enrol_wallet\transactions::get_user_balance($userid);
             $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : null;
             $_SESSION['coupon'] = ''; // Unset the coupon.
-            $fee = (float)\enrol_wallet_plugin::get_cost_after_discount($userid, $instance, $coupon);
+            $fee = (float)$plugin->get_cost_after_discount($userid, $instance, $coupon);
             $cost = $fee - $balance;
             // Deduct the user's balance.
             \enrol_wallet\transactions::debit($userid, $balance, '('.$coursename.') And '.$cost.' from payment');
