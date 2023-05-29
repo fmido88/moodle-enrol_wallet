@@ -49,7 +49,7 @@ class transactions_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $mocknotifications = $this->getMockBuilder('\enrol_wallet\notifications')->getMock();
+        $mocknotifications = $this->createMock('\enrol_wallet\notifications');
 
         $mocknotifications->method('transaction_notify')->willReturn(true);
 
