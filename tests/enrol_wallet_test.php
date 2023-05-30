@@ -1020,6 +1020,37 @@ class enrol_wallet_test extends \advanced_testcase {
         ];
         $DB->update_record('user_info_data', $dataupdate);
         $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
-        $this->assertEquals(200 * 20 / 100, $costafter);
+        $this->assertEquals(200 * 80 / 100, $costafter);
+
+        // Check coupon discounts.
+        $user2 = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(150, $user2->id);
+        $course2 = $this->getDataGenerator()->create_course();
+
+        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance2->customint6 = 1;
+        $instance2->cost = 200;
+        $DB->update_record('enrol', $instance2);
+        $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
+        // Create coupon.
+        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSALL, 'enrol_wallet');
+        $coupon = [
+            'code' => 'test1',
+            'type' => 'percent',
+            'value' => 50,
+            'maxusage' => 1,
+        ];
+        $DB->insert_record('enrol_wallet_coupons', $coupon);
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $this->assertEquals(100, $costafter);
+        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSDISCOUNT, 'enrol_wallet');
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $this->assertEquals(100, $costafter);
+        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSFIXED, 'enrol_wallet');
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $this->assertEquals(200, $costafter);
+        set_config('coupons', \enrol_wallet_plugin::WALLET_NOCOUPONS, 'enrol_wallet');
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $this->assertEquals(200, $costafter);
     }
 }
