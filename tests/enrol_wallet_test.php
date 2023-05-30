@@ -1032,7 +1032,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $instance2->cost = 200;
         $DB->update_record('enrol', $instance2);
         $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
-        // Create coupon.
+        // Create percent discount coupon.
         set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSALL, 'enrol_wallet');
         $coupon = [
             'code' => 'test1',
@@ -1041,16 +1041,40 @@ class enrol_wallet_test extends \advanced_testcase {
             'maxusage' => 1,
         ];
         $DB->insert_record('enrol_wallet_coupons', $coupon);
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
         $this->assertEquals(100, $costafter);
         set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSDISCOUNT, 'enrol_wallet');
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
         $this->assertEquals(100, $costafter);
         set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSFIXED, 'enrol_wallet');
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
         $this->assertEquals(200, $costafter);
         set_config('coupons', \enrol_wallet_plugin::WALLET_NOCOUPONS, 'enrol_wallet');
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
         $this->assertEquals(200, $costafter);
+        // Create fixed discount coupon.
+        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSALL, 'enrol_wallet');
+        $coupon = [
+            'code' => 'test2',
+            'type' => 'fixed',
+            'value' => 50,
+            'maxusage' => 1,
+        ];
+        $DB->insert_record('enrol_wallet_coupons', $coupon);
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test2');
+        $this->assertEquals(150, $costafter);
+        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSDISCOUNT, 'enrol_wallet');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test2');
+        $this->assertEquals(200, $costafter);
+        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSFIXED, 'enrol_wallet');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test2');
+        $this->assertEquals(150, $costafter);
+        set_config('coupons', \enrol_wallet_plugin::WALLET_NOCOUPONS, 'enrol_wallet');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test2');
+        $this->assertEquals(200, $costafter);
+        // Check both discounts works together.
+        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSDISCOUNT, 'enrol_wallet');
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
+        $this->assertEquals(80, $costafter);
     }
 }
