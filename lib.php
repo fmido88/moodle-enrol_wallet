@@ -633,7 +633,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $userid = $instance->userid;
             unset($instance->userid);
             $this->unenrol_user($instance, $userid);
-            $days = $instance->customint2 / 60 * 60 * 24;
+            $days = $instance->customint2 / DAYSECS;
             $trace->output("unenrolling user $userid from course $instance->courseid as they have did not log in for at
                 least $days days", 1);
         }
@@ -651,7 +651,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $userid = $instance->userid;
             unset($instance->userid);
             $this->unenrol_user($instance, $userid);
-                $days = $instance->customint2 / 60 * 60 * 24;
+                $days = $instance->customint2 / DAYSECS;
             $trace->output("unenrolling user $userid from course $instance->courseid as they have did not access course
                 for at least $days days", 1);
         }

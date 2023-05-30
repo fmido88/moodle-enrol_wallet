@@ -40,9 +40,11 @@ require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 class enrol_wallet_test extends \advanced_testcase {
     /**
      * Basic test for enrol wallet plugin
-     * @covers enrol_wallet_plugin
+     * @covers \enrol_wallet_plugin
      */
     public function test_basics() {
+        global $DB;
+        $this->resetAfterTest();
         enrol_wallet_enable_plugin();
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');
@@ -776,7 +778,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_get_welcome_email_contact() {
         global $DB;
         self::resetAfterTest(true);
-
+        enrol_wallet_enable_plugin();
         $user1 = $this->getDataGenerator()->create_user(['lastname' => 'Marsh']);
         $user2 = $this->getDataGenerator()->create_user(['lastname' => 'Victoria']);
         $user3 = $this->getDataGenerator()->create_user(['lastname' => 'Burch']);
