@@ -85,7 +85,7 @@ class observer_test extends \advanced_testcase {
 
         // Try to mark the assignment.
         $cm = get_coursemodule_from_instance('assign', $assign->id);
-        $usercm = cm_info::create($cm, $user1->id);
+        $usercm = \cm_info::create($cm, $user1->id);
 
         // Create a teacher account.
         $teacher = $this->getDataGenerator()->create_user();
