@@ -47,7 +47,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
-        set_config('defaultenrol', 1, 'enrol_wallet');
+        $plugin->set_config('defaultenrol', 1);
         $this->assertEquals(1, get_config('enrol_wallet', 'defaultenrol'));
         $this->assertEquals(ENROL_EXT_REMOVED_KEEP, get_config('enrol_wallet', 'expiredaction'));
     }
