@@ -973,7 +973,12 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertCount(2, $actions);
     }
 
-    public function get_cost_after_discount() {
+    /**
+     * Testing get cost after discount.
+     *
+     * @covers ::get_cost_after_discount()
+     */
+    public function test_get_cost_after_discount() {
         global $DB, $CFG;
         self::resetAfterTest(true);
         enrol_wallet_enable_plugin();
