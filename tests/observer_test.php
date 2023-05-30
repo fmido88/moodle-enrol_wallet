@@ -61,7 +61,7 @@ class observer_test extends \advanced_testcase {
         // Make an assignment.
         $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
         $params = [
-            'course' => $this->course1->id,
+            'course' => $course1->id,
             'completion' => COMPLETION_ENABLED,
             'completionusegrade' => 1,
         ];
