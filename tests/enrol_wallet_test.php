@@ -47,7 +47,6 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
-        $plugin->set_config('defaultenrol', 1);
         $this->assertEquals(1, get_config('enrol_wallet', 'defaultenrol'));
         $this->assertEquals(ENROL_EXT_REMOVED_KEEP, get_config('enrol_wallet', 'expiredaction'));
     }
@@ -75,7 +74,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_longtimnosee() {
         global $DB;
         $this->resetAfterTest();
-
+        enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
@@ -200,7 +199,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_expired() {
         global $DB;
         $this->resetAfterTest();
-
+        enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');
         $this->assertNotEmpty($walletplugin);
         $manualplugin = enrol_get_plugin('manual');
@@ -327,7 +326,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
-
+        enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');
         $manualplugin = enrol_get_plugin('manual');
         $now = time();
@@ -513,7 +512,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
-
+        enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');
 
         $user1 = $this->getDataGenerator()->create_user();
@@ -685,7 +684,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB, $CFG, $OUTPUT;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-
+        enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');
 
         $user1 = $this->getDataGenerator()->create_user();
