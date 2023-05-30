@@ -103,16 +103,6 @@ class service_provider implements \core_payment\local\callback\service_provider 
             // Now enrol the user after successful payment.
             $plugin->enrol_self($instance, $user);
 
-            $course = $DB->get_record('course', ['id' => $instance->courseid], '*', IGNORE_MISSING);
-            $course ? $coursename = $course->fullname : $coursename = '';
-            // Check the balance because we only get paied for the difference.
-            $balance = (float)\enrol_wallet\transactions::get_user_balance($userid);
-            $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : null;
-            unset($_SESSION['coupon']); // Unset the coupon.
-            $fee = (float)$plugin->get_cost_after_discount($userid, $instance, $coupon);
-            $cost = $fee - $balance;
-            // Deduct the user's balance.
-            \enrol_wallet\transactions::debit($userid, $balance, '('.$coursename.') And '.$cost.' from payment');
             return true;
         } else {
             // Get the fake item in case of topup the wallet.

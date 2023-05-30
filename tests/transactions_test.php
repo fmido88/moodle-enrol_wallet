@@ -102,7 +102,7 @@ class transactions_test extends \advanced_testcase {
      */
     public function test_get_coupon_value() {
         global $CFG, $DB;
-
+        $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $user = $this->getDataGenerator()->create_user();

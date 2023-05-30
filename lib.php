@@ -53,11 +53,11 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public const WALLET_COUPONSALL = 3;
     /**
-     * If the user has inssfficient balance.
+     * If the user has insufficient balance.
      */
     public const INSUFFICIENT_BALANCE = 2;
     /**
-     * If the user has inssfficient balance even after discount.
+     * If the user has insufficient balance even after discount.
      */
     public const INSUFFICIENT_BALANCE_DISCOUNTED = 3;
     /**
@@ -224,19 +224,22 @@ class enrol_wallet_plugin extends enrol_plugin {
         $timeend = ($instance->enrolperiod) ? $timestart + $instance->enrolperiod : 0;
 
         $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend);
-
+        $balance = transactions::get_user_balance($user->id);
+        $deduct = min($balance, $costafter);
         // Deduct fees from user's account after ensure that he got enroled.
-        transactions::debit($user->id, $costafter, $coursename);
+        transactions::debit($user->id, $deduct, $coursename);
         // Mark coupon as used (this is for percentage discount coupons only).
         if ($coupon != null && $costafter < $instance->cost) {
             transactions::mark_coupon_used($coupon, $user->id, $instance->id);
         }
-
-        // Now aplly the cashback if enabled.
+        if (isset($_SESSION['coupon'])) {
+            unset($_SESSION['coupon']);
+        }
+        // Now apply the cashback if enabled.
         $cashbackenabled = get_config('enrol_wallet', 'cashback');
         if ($cashbackenabled) {
             $percent = get_config('enrol_wallet', 'cashbackpercent');
-            $desc = 'added by cashback due to enrolment in'.$coursename;
+            $desc = 'added by cashback due to enrolment in '.$coursename;
             $value = $costafter * $percent / 100;
             transactions::payment_topup($value, $user->id, $desc, $user->id);
         }

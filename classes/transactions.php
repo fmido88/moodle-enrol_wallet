@@ -288,8 +288,6 @@ class transactions {
             // Enrol the user in the course.
             if ($coupondata['value'] >= $fee) {
                 $plugin->enrol_self($instance, $user);
-                $coursename = get_course($instance->courseid)->fullname;
-                self::debit($userid, $fee, '('.$coursename.') by coupon');
             }
         }
         return $coupondata;

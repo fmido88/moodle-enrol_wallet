@@ -1077,4 +1077,45 @@ class enrol_wallet_test extends \advanced_testcase {
         $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, 'test1');
         $this->assertEquals(80, $costafter);
     }
+
+    /**
+     * Test that enrol_self deduct the users credit and that cashback program works.
+     * @covers ::enrol_self()
+     */
+    public function test_enrol_self() {
+        global $DB, $CFG;
+        self::resetAfterTest(true);
+        enrol_wallet_enable_plugin();
+        $walletplugin = enrol_get_plugin('wallet');
+        $user1 = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(250, $user1->id);
+        $course1 = $this->getDataGenerator()->create_course();
+        $context = \context_course::instance($course1->id);
+
+        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance1->customint6 = 1;
+        $instance1->cost = 200;
+        $DB->update_record('enrol', $instance1);
+        $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
+
+        $this->setUser($user1);
+        // Enrol the user and makesure the cost deducted.
+        $walletplugin->enrol_self($instance1, $user1);
+
+        $balance1 = transactions::get_user_balance($user1->id);
+        $this->assertEquals(50, $balance1);
+        $this->assertTrue(is_enrolled($context));
+        // Now testing the functionality of cashbackprogram.
+        $walletplugin->set_config('cashback', 1);
+        $walletplugin->set_config('cashbackpercent', 20);
+        $user2 = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(250, $user2->id);
+        $this->setUser($user2);
+        // Enrol the user and makesure the cost deducted.
+        $walletplugin->enrol_self($instance1, $user2);
+
+        $balance2 = transactions::get_user_balance($user2->id);
+        $this->assertEquals(90, $balance2);
+        $this->assertTrue(is_enrolled($context));
+    }
 }
