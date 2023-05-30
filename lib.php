@@ -389,24 +389,23 @@ class enrol_wallet_plugin extends enrol_plugin {
                 return get_string('alreadyenroled', 'enrol_wallet');
             }
         }
-
+        // Disabled instance.
         if ($instance->status != ENROL_INSTANCE_ENABLED) {
             return get_string('canntenrol', 'enrol_wallet');
         }
-
+        // Cannot enrol early.
         if ($instance->enrolstartdate != 0 && $instance->enrolstartdate > time()) {
             return get_string('canntenrolearly', 'enrol_wallet', userdate($instance->enrolstartdate));
         }
-
+        // Cannot enrol late.
         if ($instance->enrolenddate != 0 && $instance->enrolenddate < time()) {
             return get_string('canntenrollate', 'enrol_wallet', userdate($instance->enrolenddate));
         }
-
+        // New enrols not allowed.
         if (!$instance->customint6) {
-            // New enrols not allowed.
             return get_string('canntenrol', 'enrol_wallet');
         }
-
+        // Max enrolments reached.
         if ($instance->customint3 > 0) {
             // Max enrol limit specified.
             $count = $DB->count_records('user_enrolments', ['enrolid' => $instance->id]);
@@ -436,10 +435,11 @@ class enrol_wallet_plugin extends enrol_plugin {
                 return markdown_to_html(get_string('cohortnonmemberinfo', 'enrol_wallet', $a));
             }
         }
-
-        if ($instance->cost < 0 || empty($instance->cost)) {
+        // Non valid cost.
+        if ($instance->cost < 0 || empty($instance->cost) || !is_numeric($instance->cost)) {
             return get_string('nocost', 'enrol_wallet');
         }
+        // Insufficient balance.
         $costafter = self::get_cost_after_discount($USER->id, $instance);
         $this->costafter = $costafter;
         $costbefore = $instance->cost;
