@@ -55,11 +55,11 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * If the user has inssfficient balance.
      */
-    private const INSUFFICIENT_BALANCE = 2;
+    public const INSUFFICIENT_BALANCE = 2;
     /**
      * If the user has inssfficient balance even after discount.
      */
-    private const INSUFFICIENT_BALANCE_DISCOUNTED = 3;
+    public const INSUFFICIENT_BALANCE_DISCOUNTED = 3;
     /**
      * lasternoller
      * @var array
