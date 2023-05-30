@@ -725,15 +725,90 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setUser($user1);
         $this->assertSame(get_string('alreadyenroled', 'enrol_wallet'), $walletplugin->can_self_enrol($instance1, true));
 
-        // Disabled instance.
-        // Cannot enrol early.
-        // Cannot enrol late.
-        // New enrols not allowed.
-        // Max enrolments reached.
-        // Check the restrictions upon other course enrollment.
-        // Check the cohorts restrictions.
-        // Non valid cost.
         // Insufficient balance.
+        $course2 = $this->getDataGenerator()->create_course();
+        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance2->customint6 = 1;
+        $instance2->cost = 500;
+        $DB->update_record('enrol', $instance2);
+        $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
+        $this->assertSame(enrol_wallet_plugin::INSUFFICIENT_BALANCE, $walletplugin->can_self_enrol($instance2, true));
+
+        // Disabled instance.
+        $course3 = $this->getDataGenerator()->create_course();
+        $instance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance3->customint6 = 1;
+        $instance3->cost = 50;
+        $DB->update_record('enrol', $instance3);
+        $walletplugin->update_status($instance3, ENROL_INSTANCE_DISABLED);
+        $this->assertSame(get_string('canntenrol', 'enrol_wallet'), $walletplugin->can_self_enrol($instance3, true));
+
+        // Cannot enrol early.
+        $course4 = $this->getDataGenerator()->create_course();
+        $instance4 = $DB->get_record('enrol', array('courseid' => $course4->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance4->customint6 = 1;
+        $instance4->cost = 50;
+        $instance4->enrolstartdate = time() + 3 * DAYSECS;
+        $DB->update_record('enrol', $instance4);
+        $walletplugin->update_status($instance4, ENROL_INSTANCE_ENABLED);
+        $msg = get_string('canntenrolearly', 'enrol_wallet', userdate($instance4->enrolstartdate));
+        $this->assertSame($msg, $walletplugin->can_self_enrol($instance4, true));
+
+        // Cannot enrol late.
+        $course5 = $this->getDataGenerator()->create_course();
+        $instance5 = $DB->get_record('enrol', array('courseid' => $course5->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance5->customint6 = 1;
+        $instance5->cost = 50;
+        $instance5->enrolenddate = time() - 3 * DAYSECS;
+        $DB->update_record('enrol', $instance5);
+        $walletplugin->update_status($instance5, ENROL_INSTANCE_ENABLED);
+        $msg = get_string('canntenrollate', 'enrol_wallet', userdate($instance5->enrolenddate));
+        $this->assertSame($msg, $walletplugin->can_self_enrol($instance5, true));
+
+        // New enrols not allowed.
+        $course6 = $this->getDataGenerator()->create_course();
+        $instance6 = $DB->get_record('enrol', array('courseid' => $course6->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance6->customint6 = 0;
+        $instance6->cost = 50;
+        $DB->update_record('enrol', $instance6);
+        $walletplugin->update_status($instance6, ENROL_INSTANCE_ENABLED);
+        $this->assertSame(get_string('canntenrol', 'enrol_wallet'), $walletplugin->can_self_enrol($instance6, true));
+
+        // Max enrolments reached.
+        $course7 = $this->getDataGenerator()->create_course();
+        $instance7 = $DB->get_record('enrol', array('courseid' => $course7->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance7->customint6 = 1;
+        $instance7->customint3 = 2;
+        $instance7->cost = 50;
+        $DB->update_record('enrol', $instance7);
+        $walletplugin->update_status($instance7, ENROL_INSTANCE_ENABLED);
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user();
+        $walletplugin->enrol_user($instance7, $user3->id);
+        $walletplugin->enrol_user($instance7, $user4->id);
+        $this->assertSame(get_string('maxenrolledreached', 'enrol_wallet'), $walletplugin->can_self_enrol($instance7, true));
+
+        // Check the restrictions upon other course enrollment.
+        $course8 = $this->getDataGenerator()->create_course(['fullname' => 'xcourse8']);
+        $course9 = $this->getDataGenerator()->create_course();
+        $instance9 = $DB->get_record('enrol', array('courseid' => $course9->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance9->customint6 = 1;
+        $instance9->customint7 = $course8->id;
+        $instance9->cost = 50;
+        $DB->update_record('enrol', $instance9);
+        $walletplugin->update_status($instance9, ENROL_INSTANCE_ENABLED);
+        $msg = get_string('othercourserestriction', 'enrol_wallet', 'xcourse8');
+        $this->assertSame($msg, $walletplugin->can_self_enrol($instance9, true));
+
+        // TODO Check the cohorts restrictions.
+
+        // Non valid cost.
+        $course10 = $this->getDataGenerator()->create_course();
+        $instance10 = $DB->get_record('enrol', array('courseid' => $course10->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance10->customint6 = 1;
+        $DB->update_record('enrol', $instance10);
+        $walletplugin->update_status($instance10, ENROL_INSTANCE_ENABLED);
+        $this->assertSame(get_string('nocost', 'enrol_wallet'), $walletplugin->can_self_enrol($instance10, true));
     }
 
     /**
@@ -896,5 +971,50 @@ class enrol_wallet_test extends \advanced_testcase {
         $actions = $plugin->get_user_enrolment_actions($manager, $ue);
         // Wallet enrol has 2 enrol actions -- edit and unenrol.
         $this->assertCount(2, $actions);
+    }
+
+    public function get_cost_after_discount() {
+        global $DB, $CFG;
+        self::resetAfterTest(true);
+        enrol_wallet_enable_plugin();
+        $walletplugin = enrol_get_plugin('wallet');
+        // Check that cost after discount return the original cost.
+        $user1 = $this->getDataGenerator()->create_user();
+        $course1 = $this->getDataGenerator()->create_course();
+
+        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance1->customint6 = 1;
+        $instance1->cost = 200;
+        $DB->update_record('enrol', $instance1);
+        $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
+
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
+        $this->assertEquals($costafter, $instance1->cost);
+        // Check the discounts according to user profile field.
+        // Create a custom profile field.
+        $fielddata = (object)[
+            'name' => 'discount',
+            'shortname' => 'discount',
+        ];
+        $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
+
+        $walletplugin->set_config('discount_field', $fieldid);
+        transactions::payment_topup(150, $user1->id);
+        $userfielddata = (object)[
+            'userid' => $user1->id,
+            'fieldid' => $fieldid,
+            'data' => 'free'
+        ];
+        $userdataid = $DB->insert_record('user_info_data', $userfielddata);
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
+        $this->assertEquals(0, $costafter);
+
+        $dataupdate = (object)[
+            'id' => $userdataid,
+            'data' => '20% discount'
+        ];
+        $DB->update_record('user_info_data', $dataupdate);
+        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
+        $this->assertEquals(200 * 20 / 100, $costafter);
     }
 }
