@@ -634,8 +634,8 @@ class enrol_wallet_plugin extends enrol_plugin {
             unset($instance->userid);
             $this->unenrol_user($instance, $userid);
             $days = $instance->customint2 / DAYSECS;
-            $trace->output("unenrolling user $userid from course $instance->courseid as they have did not log in for at
-                least $days days", 1);
+            $msg = "unenrolling user $userid from course $instance->courseid as they have did not log in for at least $days days";
+            $trace->output($msg, 1);
         }
         $rs->close();
 
@@ -651,9 +651,10 @@ class enrol_wallet_plugin extends enrol_plugin {
             $userid = $instance->userid;
             unset($instance->userid);
             $this->unenrol_user($instance, $userid);
-                $days = $instance->customint2 / DAYSECS;
-            $trace->output("unenrolling user $userid from course $instance->courseid as they have did not access course
-                for at least $days days", 1);
+            $days = $instance->customint2 / DAYSECS;
+            $msg = 'unenrolling user '.$userid.' from course '.$instance->courseid.
+            ' as they have did not access course for at least '.$days.' days';
+            $trace->output($msg, 1);
         }
         $rs->close();
 

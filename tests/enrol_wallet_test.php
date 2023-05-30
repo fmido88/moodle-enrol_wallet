@@ -71,7 +71,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test longtimnosee
-     * @covers sync
+     * @covers ::sync
      */
     public function test_longtimnosee() {
         global $DB;
@@ -180,13 +180,13 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance3->id, 'userid' => $user1->id)));
         $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance3->id, 'userid' => $user3->id)));
         $this->assertStringContainsString('unenrolling user ' . $user1->id . ' from course ' . $course1->id .
-            ' as they did not log in for at least 14 days', $output);
+            ' as they have did not log in for at least 14 days', $output);
         $this->assertStringContainsString('unenrolling user ' . $user1->id . ' from course ' . $course3->id .
-            ' as they did not log in for at least 50 days', $output);
+            ' as they have did not log in for at least 50 days', $output);
         $this->assertStringContainsString('unenrolling user ' . $user2->id . ' from course ' . $course1->id .
-            ' as they did not access the course for at least 14 days', $output);
+            ' as they have did not access course for at least 14 days', $output);
         $this->assertStringContainsString('unenrolling user ' . $user3->id . ' from course ' . $course3->id .
-            ' as they did not access the course for at least 50 days', $output);
+            ' as they have did not access course for at least 50 days', $output);
         $this->assertStringNotContainsString('unenrolling user ' . $user4->id, $output);
 
         $this->assertEquals(6, $DB->count_records('role_assignments'));
@@ -681,6 +681,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * This will check user enrolment only, rest has been tested in test_show_enrolme_link.
+     * @covers ::can_self_enrol()
      */
     public function test_can_self_enrol() {
         global $DB, $CFG, $OUTPUT;
@@ -737,6 +738,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test enrol_wallet_check_group_enrolment_key
+     * @covers ::enrol_wallet_check_group_enrolment_key()
      */
     public function test_enrol_wallet_check_group_enrolment_key() {
         global $DB;
@@ -774,6 +776,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test get_welcome_email_contact().
+     * @covers ::get_welcome_email_contact()
      */
     public function test_get_welcome_email_contact() {
         global $DB;
@@ -849,6 +852,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test for getting user enrolment actions.
+     * @covers ::get_user_enrolment_actions()
      */
     public function test_get_user_enrolment_actions() {
         global $CFG, $DB, $PAGE;
