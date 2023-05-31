@@ -1,5 +1,8 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.5 ##
+- Adding PHPUnit tests for the major functions.
+- Fixing a payment service provider bug.
 
 ## V 1.4 ##
 - Migrate function to different classes.
