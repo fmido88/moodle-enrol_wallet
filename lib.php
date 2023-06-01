@@ -444,6 +444,10 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         // Insufficient balance.
         $costafter = self::get_cost_after_discount($USER->id, $instance);
+        // Check if the discount gives acceptable cost.
+        if (!is_numeric($costafter) || $costafter < 0) {
+            return get_string('nocost', 'enrol_wallet');
+        }
         $this->costafter = $costafter;
         $costbefore = $instance->cost;
         $balance = transactions::get_user_balance($USER->id);
@@ -1303,17 +1307,19 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $costaftercoupon = $instance->cost;
 
-        if ($coupon != null) {
+        if (!empty($coupon) || $coupon != null) {
             $coupondata = transactions::get_coupon_value($coupon, $userid);
 
             $type = (is_array($coupondata)) ? $coupondata['type'] : '';
-            if ($type == 'percent' && $couponsetting != self::WALLET_COUPONSFIXED) {
+            if ($type == 'percent' && $couponsetting != self::WALLET_COUPONSFIXED && $coupondata['value'] <= 100) {
                 $costaftercoupon = $instance->cost * (1 - $coupondata['value'] / 100);
             } else if ($type == 'fixed' && $couponsetting != self::WALLET_COUPONSDISCOUNT) {
                 // There is no need for this condition as if the type is fixed.
                 // we add the value to the wallet then redirect to enrolment page again.
                 // I added id just in case of future change in the code.
-                $costaftercoupon = $instance->cost - $coupondata['value'];
+                $difference = $instance->cost - $coupondata['value'];
+                // Cannot allow negative cost.
+                $costaftercoupon = max(0, $difference);
             }
             // If we disabled the coupons it will not be appearing in the form.
             // This condition is just in case as a security reason.
@@ -1341,7 +1347,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         } else {
             // Get the integer from the data.
             preg_match('/\d+/', $data, $matches);
-            if (isset($matches[0])) {
+            if (isset($matches[0]) && intval($matches[0]) <= 100) {
+                // Cannot allow discount more than 100%.
                 $discount = intval($matches[0]);
                 $cost = $costaftercoupon * (100 - $discount) / 100;
                 return $cost;

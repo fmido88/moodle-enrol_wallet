@@ -144,6 +144,10 @@ function enrol_wallet_generate_coupons($options) {
     if (!$number) {
         return get_string('coupon_generator_nonumber', 'enrol_wallet');
     }
+    // Percentage discount coupons cannot be more than 100%.
+    if ($type == 'percent' && $value > 100) {
+        return get_string('invalidpercentcoupon', 'enrol_wallet');
+    }
     $ids = [];
     if (!empty($code)) {
         $recorddata->code = $code;

@@ -108,8 +108,6 @@ class service_provider implements \core_payment\local\callback\service_provider 
             // Get the fake item in case of topup the wallet.
             $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
             \enrol_wallet\transactions::payment_topup($item->cost, $userid);
-            // Deleting the fake item record for privacy.
-            $DB->delete_records('enrol_wallet_items', ['id' => $itemid]);
             return true;
         }
     }

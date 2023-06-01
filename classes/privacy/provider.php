@@ -24,13 +24,22 @@
 
 namespace enrol_wallet\privacy;
 
+use core_privacy\local\request\approved_contextlist;
+use core_privacy\local\request\approved_userlist;
+use core_privacy\local\request\transform;
+use core_privacy\local\request\userlist;
+use core_privacy\local\request\writer;
+use core_payment\helper as payment_helper;
+
 /**
  * Privacy Subsystem for enrol_wallet implementing null_provider.
  *
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class provider implements \core_privacy\local\metadata\null_provider {
+class provider implements
+    \core_privacy\local\metadata\null_provider,
+    \core_payment\privacy\consumer_provider {
     /**
      * Get the language string identifier with the component's language
      * file to explain why this plugin stores no data.
@@ -39,5 +48,306 @@ class provider implements \core_privacy\local\metadata\null_provider {
      */
     public static function get_reason() : string {
         return 'privacy:metadata';
+    }
+
+    /**
+     * Return contextid for the provided payment data
+     * @param string $paymentarea
+     * @param int $itemid
+     * @return int|null
+     */
+    public static function get_contextid_for_payment(string $paymentarea, int $itemid): ?int {
+        global $DB;
+        if ($paymentarea == 'walletenrol') {
+            $sql = "SELECT ctx.id
+                    FROM {enrol} e
+                    JOIN {context} ctx ON (e.courseid = ctx.instanceid AND ctx.contextlevel = :contextcourse)
+                    WHERE e.id = :enrolid AND e.enrol = :enrolname";
+            $params = [
+                'contextcourse' => CONTEXT_COURSE,
+                'enrolid' => $itemid,
+                'enrolname' => 'wallet',
+            ];
+            $contextid = $DB->get_field_sql($sql, $params);
+        } else if ($paymentarea == 'wallettopup') {
+            $contextid = \context_system::instance()->id;
+        }
+        return $contextid ?: null;
+    }
+
+    /**
+     * Get the list of users who have data within a context.
+     * @param \core_privacy\local\request\userlist $userlist
+     * @return void
+     */
+    public static function get_users_in_context(userlist $userlist) {
+        $context = $userlist->get_context();
+
+        if ($context instanceof \context_course) {
+            $sql = "SELECT p.userid
+                      FROM {payments} p
+                      JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
+                     WHERE e.courseid = :courseid";
+            $params = [
+                'component' => 'enrol_wallet',
+                'courseid' => $context->instanceid,
+            ];
+            $userlist->add_from_sql('userid', $sql, $params);
+        } else if ($context instanceof \context_system) {
+            // If context is system, then the enrolment belongs to a deleted enrolment.
+            $sql = "SELECT p.userid
+                      FROM {payments} p
+                 LEFT JOIN {enrol} e ON p.itemid = e.id
+                     WHERE p.component = :component AND e.id IS NULL";
+            $params = [
+                'component' => 'enrol_wallet',
+            ];
+            $userlist->add_from_sql('userid', $sql, $params);
+            // Also there if fake items for topping up the wallet.
+            $sql = "SELECT p.userid
+                      FROM {payments} p
+                 LEFT JOIN {enrol_wallet_items} it ON (p.itemid = it.id AND p.userid = it.userid)
+                     WHERE p.component = :component AND p.paymentarea = :paymentarea";
+            $params = [
+                'component' => 'enrol_wallet',
+                'paymentarea' => 'wallettopup',
+            ];
+            $userlist->add_from_sql('userid', $sql, $params);
+        }
+    }
+
+    /**
+     * Export all user data for the specified user, in the specified contexts.
+     *
+     * @param approved_contextlist $contextlist The approved contexts to export information for.
+     */
+    public static function export_user_data(approved_contextlist $contextlist) {
+        global $DB;
+
+        $subcontext = [
+            get_string('pluginname', 'enrol_wallet'),
+        ];
+        foreach ($contextlist as $context) {
+            if ($context instanceof \context_course) {
+                $paymentarea = 'walletenrol';
+            } else {
+                $paymentarea = 'wallettopup';
+            }
+            $walletplugins = $DB->get_records('enrol', ['courseid' => $context->instanceid, 'enrol' => 'wallet']);
+
+            foreach ($walletplugins as $walletplugin) {
+                \core_payment\privacy\provider::export_payment_data_for_user_in_context(
+                    $context,
+                    $subcontext,
+                    $contextlist->get_user()->id,
+                    'enrol_wallet',
+                    $paymentarea,
+                    $walletplugin->id
+                );
+            }
+        }
+
+        if (in_array(SYSCONTEXTID, $contextlist->get_contextids())) {
+            // Orphaned payments for deleted enrollments.
+            $sql = "SELECT p.*
+                      FROM {payments} p
+                 LEFT JOIN {enrol} e ON p.itemid = e.id
+                     WHERE p.userid = :userid AND p.component = :component AND e.id IS NULL";
+            $params = [
+                'component' => 'enrol_wallet',
+                'userid' => $contextlist->get_user()->id,
+            ];
+
+            $orphanedpayments = $DB->get_recordset_sql($sql, $params);
+            foreach ($orphanedpayments as $payment) {
+                \core_payment\privacy\provider::export_payment_data_for_user_in_context(
+                    \context_system::instance(),
+                    $subcontext,
+                    $payment->userid,
+                    $payment->component,
+                    $payment->paymentarea,
+                    $payment->itemid
+                );
+            }
+            $orphanedpayments->close();
+        }
+    }
+
+    /**
+     * Delete all data for all users in the specified context.
+     *
+     * @param context $context The specific context to delete data for.
+     */
+    public static function delete_data_for_all_users_in_context(\context $context) {
+        global $DB;
+        if ($context instanceof \context_course) {
+            $sql = "SELECT p.id
+                      FROM {payments} p
+                      JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
+                     WHERE e.courseid = :courseid";
+            $params = [
+                'component' => 'enrol_wallet',
+                'courseid' => $context->instanceid,
+            ];
+
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+        } else if ($context instanceof \context_system) {
+            // If context is system, then the enrolment belongs to a deleted enrolment.
+            $sql = "SELECT p.id
+                      FROM {payments} p
+                 LEFT JOIN {enrol} e ON p.itemid = e.id
+                     WHERE p.component = :component AND e.id IS NULL";
+            $params = [
+                'component' => 'enrol_wallet',
+            ];
+
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            // Also there if fake items for topping up the wallet.
+            $sql = "SELECT p.userid
+                      FROM {payments} p
+                 LEFT JOIN {enrol_wallet_items} it ON (p.itemid = it.id AND p.userid = it.userid)
+                     WHERE p.component = :component AND p.paymentarea = :paymentarea";
+            $params = [
+                'component' => 'enrol_wallet',
+                'paymentarea' => 'wallettopup',
+            ];
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            // Delete fake items.
+            $ids = $DB->get_records('payments', ['component' => 'enrol_wallet', 'paymentarea' => 'wallettopup']);
+            foreach ($ids as $payment) {
+                $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid, 'userid' => $payment->userid]);
+            }
+        }
+    }
+
+    /**
+     * Delete all user data for the specified user, in the specified contexts.
+     *
+     * @param approved_contextlist $contextlist The approved contexts and user information to delete information for.
+     */
+    public static function delete_data_for_user(approved_contextlist $contextlist) {
+        global $DB;
+
+        if (empty($contextlist->count())) {
+            return;
+        }
+
+        $contexts = $contextlist->get_contexts();
+
+        $courseids = [];
+        foreach ($contexts as $context) {
+            if ($context instanceof \context_course) {
+                $courseids[] = $context->instanceid;
+            }
+        }
+
+        [$insql, $inparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+
+        $sql = "SELECT p.id
+                  FROM {payments} p
+                  JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
+                 WHERE p.userid = :userid AND e.courseid $insql";
+        $params = $inparams + [
+            'component' => 'enrol_wallet',
+            'userid' => $contextlist->get_user()->id,
+        ];
+
+        \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+
+        if (in_array(SYSCONTEXTID, $contextlist->get_contextids())) {
+            // Orphaned payments.
+            // First deleted enrollments.
+            $sql = "SELECT p.id
+                      FROM {payments} p
+                 LEFT JOIN {enrol} e ON p.itemid = e.id
+                     WHERE p.component = :component AND p.userid = :userid AND e.id IS NULL";
+            $params = [
+                'component' => 'enrol_wallet',
+                'userid' => $contextlist->get_user()->id,
+            ];
+
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            // Also check for wallet topup.
+            $sql = "SELECT p.id
+                      FROM {payments} p
+                 LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                     WHERE p.component = :component AND p.paymentarea = :paymentarea AND p.userid = :userid";
+            $params = [
+                'component' => 'enrol_wallet',
+                'userid' => $contextlist->get_user()->id,
+                'paymentarea' => 'wallettopup',
+            ];
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            // Delete fake items.
+            $ids = $DB->get_records('payments', [
+                'component' => 'enrol_wallet',
+                'paymentarea' => 'wallettopup',
+                'userid' => $contextlist->get_user()->id]);
+            foreach ($ids as $payment) {
+                $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid, 'userid' => $payment->userid]);
+            }
+        }
+    }
+
+    /**
+     * Delete multiple users within a single context.
+     *
+     * @param approved_userlist $userlist The approved context and user information to delete information for.
+     */
+    public static function delete_data_for_users(approved_userlist $userlist) {
+        global $DB;
+
+        $context = $userlist->get_context();
+
+        if ($context instanceof \context_course) {
+            [$usersql, $userparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+            $sql = "SELECT p.id
+                      FROM {payments} p
+                      JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
+                     WHERE e.courseid = :courseid AND p.userid $usersql";
+            $params = $userparams + [
+                'component' => 'enrol_wallet',
+                'courseid' => $context->instanceid,
+            ];
+
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+        } else if ($context instanceof \context_system) {
+            // Orphaned payments.
+            // First deleted enrollments.
+            [$usersql, $userparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
+            $sql = "SELECT p.id
+                      FROM {payments} p
+                 LEFT JOIN {enrol} e ON p.itemid = e.id
+                     WHERE p.component = :component AND p.userid $usersql AND e.id IS NULL";
+            $params = $userparams + [
+                'component' => 'enrol_wallet',
+            ];
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            // Also check for wallet topup.
+            $sql = "SELECT p.id
+                      FROM {payments} p
+                 LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                     WHERE p.component = :component
+                       AND p.paymentarea = :paymentarea
+                       AND p.userid $usersql
+                       AND it.userid = p.userid";
+            $params = $userparams + [
+                'component' => 'enrol_wallet',
+                'paymentarea' => 'wallettopup',
+            ];
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            // Delete fake items.
+            $sql = "SELECT p.itemid
+                      FROM {payments} p
+                 LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                     WHERE p.component = :component
+                       AND p.paymentarea = :paymentarea
+                       AND p.userid $usersql
+                       AND it.userid = p.userid";
+            $ids = $DB->get_records_sql($sql, $params);
+            foreach ($ids as $payment) {
+                $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid]);
+            }
+        }
     }
 }

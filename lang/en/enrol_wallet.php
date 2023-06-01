@@ -168,6 +168,7 @@ $string['keyholder'] = 'You should have received this enrolment key from:';
 $string['insufficient_balance'] = 'You have insufficient wallet balance to enroll. {$a->cost_before} EGP are required, your balance is {$a->user_balance} EGP.';
 $string['insufficient_balance_discount'] = 'You have insufficient wallet balance to enroll. <del>{$a->cost_before}EGP</del> {$a->cost_after} EGP are required, your balance is {$a->user_balance} EGP.';
 $string['inyourwallet'] = 'in your wallet.';
+$string['invalidpercentcoupon'] = 'Invalid value for percentage coupon, cannot exceed 100.';
 
 $string['longtimenosee'] = 'Un-enrol inactive after';
 $string['longtimenosee_help'] = 'If users haven\'t accessed a course for a long time, then they are automatically unenrolled. This parameter specifies that time limit.';
