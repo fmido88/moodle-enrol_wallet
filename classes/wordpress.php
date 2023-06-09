@@ -234,10 +234,13 @@ class wordpress {
      * Creating wordpress user associative with the moodle user.
      * return wordpress user's id.
      * @param int $userid
-     * @return int
+     * @return int|bool
      */
     private function create_wordpress_user($userid) {
         $user = \core_user::get_user($userid);
+        if (!$user) {
+            return false;
+        }
         $data = [
             'username' => $user->username,
             'password' => random_string(12),

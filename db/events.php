@@ -50,7 +50,7 @@ $observers = array(
     // Logout user from wordpress.
     array(
         'eventname' => '\core\event\user_loggedout',
-        'callback' => 'enrol_wallet\observer::logout_to_wordpress',
+        'callback' => 'enrol_wallet\observer::logout_from_wordpress',
         'includefile' => '/enrol/wallet/classes/observer.php'
     ),
 );
