@@ -1,5 +1,16 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.6 ##
+- Enhance the security during connection with wordpress website.
+- Add conditional discounts rules
+- Add refunding policy and expiry date
+- Add the ability to login or out from wordpress when the user logged in or out from moodle
+
+## V 1.5.1 ##
+- Implant payment privacy API.
+- Prevent generation or use of percent discount coupons with value grater that 100.
+- Fix course discounted cost with negative value.
+
 ## V 1.5 ##
 - Adding PHPUnit tests for the major functions.
 - Fixing a payment service provider bug.

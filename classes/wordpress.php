@@ -43,16 +43,21 @@ class wordpress {
     public function request($method, $data) {
 
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
-
+        if (empty($wordpressurl)) {
+            return;
+        }
         $url = $wordpressurl . self::ENDPOINT . $method;
-
+        $encrypted = $this->encrypt_data($data);
+        $sendingdata = [
+            'encdata' => $encrypted,
+        ];
         $curl = curl_init();
         curl_setopt_array($curl, array(
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FAILONERROR => true,
             CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($data),
+            CURLOPT_POSTFIELDS => json_encode($sendingdata),
             CURLOPT_HTTPHEADER => array(
                 'Content-Type: application/json',
             ),
@@ -68,7 +73,30 @@ class wordpress {
 
         return json_decode($response, true);
     }
+    /**
+     * encrypt data before sent it.
+     * @param array $data data to encrypt (in form of an array)
+     * @return string
+     */
+    public static function encrypt_data($data) {
+        $key = get_config('enrol_wallet', 'wordpress_secretkey');
+        $data['sk'] = $key;
+        $query = http_build_query( $data, 'flags_' );
+        $token = $query;
 
+        $encryptmethod = 'AES-128-CTR';
+
+        $encryptkey = openssl_digest( $key, 'SHA256', true );
+
+        $encryptiv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($encryptmethod));
+        $crypttext = openssl_encrypt($token, $encryptmethod, $encryptkey, 0, $encryptiv) . "::" . bin2hex($encryptiv);
+
+        $encdata = base64_encode($crypttext);
+        $encdata = str_replace(array('+', '/', '='), array('-', '_', ''), $encdata);
+
+        $encrypteddata = trim($encdata);
+        return $encrypteddata;
+    }
     /**
      * Deduct amount from user's wallet.
      * @param int $userid
@@ -81,7 +109,7 @@ class wordpress {
         $data = array(
             'moodle_user_id' => $userid,
             'amount' => $amount,
-            'course' => $coursename, // COURSE name at which the request occured.
+            'course' => $coursename, // COURSE name at which the request occurred.
             'charger' => $charger
         );
 
@@ -107,6 +135,7 @@ class wordpress {
         );
 
         $responsedata = $this->request('wallet_topup', $data);
+        return $responsedata;
         if (!isset($responsedata['success'])) {
             if (!isset($responsedata['err'])) {
                 // Response format is incorrect.
@@ -202,7 +231,7 @@ class wordpress {
     }
 
     /**
-     * Creating wordpress user accociative with the moodle user.
+     * Creating wordpress user associative with the moodle user.
      * return wordpress user's id.
      * @param int $userid
      * @return int
@@ -217,6 +246,27 @@ class wordpress {
         ];
 
         return $this->request('create_user', $data);
+    }
+
+    /**
+     * Login and logout the user to the wordpress site.
+     * @param int $userid
+     * @param string $method either login or logout
+     * @return bool|string
+     */
+    public function login_logout_user_to_wordpress($userid, $method) {
+        $allowed = get_config('enrol_wallet', 'wordpressloggins');
+        if (!$allowed) {
+            return false;
+        }
+        $data = ['moodle_user_id' => $userid, 'method' => $method];
+        $response = $this->request('login_user', $data);
+        if ($response) {
+            return true;
+        } else {
+            $this->create_wordpress_user($userid);
+            return $this->request('login_user', $data);
+        }
     }
 }
 

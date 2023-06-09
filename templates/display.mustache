@@ -28,7 +28,9 @@
     {
         "balance": 50,
         "currency": "EGP",
-        "transaction": "<a href='https://your-moodle.com/enrol/wallet/extra/transactions.php'>Wallet transactions</a>"
+        "transaction": "<a href='https://your-moodle.com/enrol/wallet/extra/transactions.php'>Wallet transactions</a>",
+        "norefund": 30,
+        "policy": "something",
     }
 
 }}
@@ -38,7 +40,25 @@
     <p style="text-align: center; direction: ltr;">
         <span class="balance-card" style="text-align: center; direction: ltr;">{{# str }} youhavebalance, enrol_wallet {{/ str }}<br>
             <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
-            {{# str }} inyourwallet, enrol_wallet {{/ str }}</span>
-        <span class="transactions" style="text-align: center; direction: ltr;">{{{transactions}}}</span>
+            {{# str }} inyourwallet, enrol_wallet {{/ str }} <br>
+            <span class="wallet-ballance">{{# str }} notrefund, enrol_wallet {{/ str }} {{norefund}} {{currency}}</span><br>
+            {{# policy}}
+            <a href="#" id="enrol_wallet_transactions-policy-url" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
+            {{/ policy}}
+        </span>
+        <span class="transactions-url" style="text-align: center; direction: ltr;">{{{transactions}}}</span>
     </p>
 </div>
+<div id="enrol_wallet_transactions-policy" class="transactions-policy" style="display:none;">{{{policy}}}</div><br>
+
+{{#js}}
+    const policy = document.getElementById('enrol_wallet_transactions-policy');
+    const url = document.getElementById('enrol_wallet_transactions-policy-url');
+    url.addEventListener("click", function() {
+        if (policy.style.display === "none") {
+            policy.style.display = "block";
+        } else {
+            policy.style.display = "none";
+        }
+    })
+{{/js}}

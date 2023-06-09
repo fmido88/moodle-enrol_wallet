@@ -26,6 +26,7 @@ require_once(__DIR__.'/../../../config.php');
 global $USER, $DB, $CFG;
 
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
+require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 
 $context = context_system::instance();
 
@@ -41,7 +42,7 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     $err = '';
 
     $charger = $USER->id;
-    if ((empty($value) || !isset($value)) && ($op !== 'balance')) {
+    if (empty($value) && ($op !== 'balance')) {
         $err = 'No value';
         $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('error' => $err,
                                                                                    'op' => 'result'));
@@ -97,94 +98,14 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     $PAGE->set_url($CFG->wwwroot.'/enrol/wallet/extra/charger.php');
 
     echo $OUTPUT->header();
-
+    // Display the results.
     if ($op == 'result') {
-        $result = optional_param('result', '', PARAM_ALPHANUM);
-        $before = optional_param('before', '', PARAM_NUMBER);
-        $after = optional_param('after', '', PARAM_NUMBER);
-        $userid = optional_param('userid', '', PARAM_INT);
-        $err = optional_param('error', '', PARAM_TEXT);
-
-        if ($err !== '') {
-            $info = '<span style="text-align: center; width: 100%;"><h5>'
-            .$err.
-            '</h5></span>';
-            $errormsg = '<p style = "text-align: center;"><b> ERROR <br>'
-                        .$err.
-                        '<br> Please go back and check it again</b></p>';
-            echo $OUTPUT->notification($errormsg);
-
-        } else {
-
-            $user = \core_user::get_user($userid);
-            $userfull = $user->firstname.' '.$user->lastname.' ('.$user->email.')';
-            // Display the result to the user.
-            echo $OUTPUT->notification('<p>Balance Before: <b>' .$before.'</b></p>', 'notifysuccess').'<br>';
-
-            if (!empty($result) && is_numeric($result)  && false != $result) {
-                $result = 'success';
-            }
-
-            if ($after !== $before) {
-
-                echo $OUTPUT->notification('succession: ' .$result.' .', 'notifysuccess').'<br>';
-                $info = '<span style="text-align: center; width: 100%;"><h5>
-                    the user: '.$userfull.' is now having a balance of '.$after.' after charging him/her by '.( $after - $before).
-                    '</h5></span>';
-                if ($after !== '') {
-                    echo $OUTPUT->notification('<p>Balance After: <b>' .$after.'</b></p>', 'notifysuccess');
-                }
-                if ($after < 0) {
-                    echo $OUTPUT->notification('<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>');
-                }
-
-            } else {
-
-                $info = '<span style="text-align: center; width: 100%;"><h5>
-                the user: '.$userfull.' is having a balance of '.$before.
-                '</h5></span>';
-
-            }
-        }
-        // Display the results.
-        ob_start();
-        echo $info;
-        $output = ob_get_clean();
-        echo $OUTPUT->box($output);
+        $results = enrol_wallet_display_transaction_results();
+        echo $OUTPUT->box($results);
     }
-
-    require_once($CFG->libdir.'/formslib.php');
-
-    $mform = new \MoodleQuickForm('credit2', 'POST', $CFG->wwwroot.'/enrol/wallet/extra/charger.php');
-    $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
-
-    $mform->addElement('select', 'op', 'operation', ['credit' => 'credit', 'debit' => 'debit', 'balance' => 'balance']);
-
-    $options = array(
-        'ajax' => 'enrol_manual/form-potential-user-selector',
-        'multiple' => false,
-        'courseid' => SITEID,
-        'enrolid' => 0,
-        'perpage' => $CFG->maxusersperpage,
-        'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true))
-    );
-    $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), array(), $options);
-    $mform->addRule('userlist', 'select user', 'required');
-
-    $mform->addElement('text', 'value', 'Value');
-    $mform->setType('value', PARAM_INT);
-    $mform->hideIf('value', 'op', 'eq', 'balance');
-
-    $mform->addElement('submit', 'submit', 'submit');
-
-    $mform->addElement('hidden', 'sesskey');
-    $mform->setType('sesskey', PARAM_TEXT);
-    $mform->setDefault('sesskey', sesskey());
-
-    ob_start();
-    $mform->display();
-    $output = ob_get_clean();
-    echo $OUTPUT->box($output);
+    // Display the charger form.
+    $form = enrol_wallet_display_charger_form();
+    echo $OUTPUT->box($form);
 
     echo $OUTPUT->footer();
 }

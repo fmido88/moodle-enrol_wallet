@@ -196,10 +196,16 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (!has_capability('moodle/course:enrolconfig', $context) || !has_capability('enrol/wallet:config', $context)) {
             return false;
         }
-        if ($DB->record_exists('enrol', array('courseid' => $courseid, 'enrol' => 'wallet'))) {
-            // Only one instance allowed, sorry.
-            return false;
+
+        $count = $DB->count_records('enrol', array('courseid' => $courseid, 'enrol' => 'wallet'));
+        if ($multiple = get_config('enrol_wallet', 'allowmultipleinstances')) {
+            if (empty($multiple)) {
+                return true;
+            } else if ($count >= $multiple) {
+                return false;
+            }
         }
+
         return true;
     }
 
@@ -208,7 +214,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      *
      * @param stdClass $instance enrolment instance
      * @param stdClass $user User to enrol and deduct fees from
-     * @return bool|array true if enroled else eddor code and messege
+     * @return bool|array true if enrolled else error code and message
      * @throws \coding_exception
      * @since 1.0
      */
@@ -1417,23 +1423,14 @@ class enrol_wallet_plugin extends enrol_plugin {
  * @return void
  */
 function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
+    require_once(__DIR__.'/locallip.php');
     global $OUTPUT;
-    // Get the user balance.
-    $balance = transactions::get_user_balance($user->id);
+    // Only the user with capability could see other user's ballance.
+    if (!$iscurrentuser || !has_capability('enrol/wallet:viewotherbalance', context_system::instance())) {
+        return;
+    }
 
-    // Get the default currency.
-    $currency = get_config('enrol_wallet', 'currency');
-
-    // Prepare transaction URL to display.
-    $transactionsurl = new moodle_url('/enrol/wallet/extra/transaction.php');
-    $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));
-    $tempctx = new stdClass;
-    $tempctx->balance = $balance;
-    $tempctx->currency = $currency;
-    $tempctx->transactions = $transactions;
-
-    // Display the current user's balance in the wallet.
-    $render = $OUTPUT->render_from_template('enrol_wallet/display', $tempctx);
+    $render = enrol_wallet_display_current_user_balance();
 
     $wdcategory = new core_user\output\myprofile\category('walletcreditdisplay',
                                                     get_string('walletcredit', 'enrol_wallet'));

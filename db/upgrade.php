@@ -72,11 +72,11 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
     if ($oldversion < 2023050820) {
         $table = new xmldb_table('enrol_wallet_transactions');
-        $field = new xmldb_field('balbefore', XMLDB_TYPE_FLOAT, '10,5', null, null, null, 0, 'amount');
+        $field = new xmldb_field('balbefore', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, null, 0, 'amount');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
-        $field = new xmldb_field('balance', XMLDB_TYPE_FLOAT, '10,5', null, null, null, 0, 'before');
+        $field = new xmldb_field('balance', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, null, 0, 'before');
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -122,6 +122,16 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         }
         // ...enrol_wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2023051416, 'enrol', 'wallet');
+    }
+    if ($oldversion < 2023060608) {
+        $table = new xmldb_table('enrol_wallet_transactions');
+        $field = new xmldb_field('norefund', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, null, 0, 'balance');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // ...enrol_wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2023060608, 'enrol', 'wallet');
     }
     return true;
 }

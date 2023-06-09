@@ -181,3 +181,134 @@ function enrol_wallet_generate_coupons($options) {
     return $ids;
 }
 
+/**
+ * Display the form for charging other users.
+ * @return bool|string
+ */
+function enrol_wallet_display_charger_form() {
+    global $CFG;
+    require_once($CFG->libdir.'/formslib.php');
+    if (!has_capability('enrol/wallet:creditdebit', context_system::instance())) {
+        return '';
+    }
+
+    $mform = new \MoodleQuickForm('credit2', 'POST', $CFG->wwwroot.'/enrol/wallet/extra/charger.php');
+    $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
+
+    $mform->addElement('select', 'op', 'operation', ['credit' => 'credit', 'debit' => 'debit', 'balance' => 'balance']);
+    $context = context_system::instance();
+    $options = array(
+        'ajax' => 'enrol_manual/form-potential-user-selector',
+        'multiple' => false,
+        'courseid' => SITEID,
+        'enrolid' => 0,
+        'perpage' => $CFG->maxusersperpage,
+        'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true))
+    );
+    $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), array(), $options);
+    $mform->addRule('userlist', 'select user', 'required');
+
+    $mform->addElement('text', 'value', 'Value');
+    $mform->setType('value', PARAM_INT);
+    $mform->hideIf('value', 'op', 'eq', 'balance');
+
+    $mform->addElement('submit', 'submit', 'submit');
+
+    $mform->addElement('hidden', 'sesskey');
+    $mform->setType('sesskey', PARAM_TEXT);
+    $mform->setDefault('sesskey', sesskey());
+
+    ob_start();
+    $mform->display();
+    $output = ob_get_clean();
+
+    return $output;
+}
+
+/**
+ * Displaying the results after charging the wallet of other user.
+ * @return bool|string
+ */
+function enrol_wallet_display_transaction_results() {
+    global $OUTPUT;
+    if (!has_capability('enrol/wallet:viewotherbalance', context_system::instance())) {
+        return '';
+    }
+    $result = optional_param('result', '', PARAM_ALPHANUM);
+    $before = optional_param('before', '', PARAM_NUMBER);
+    $after = optional_param('after', '', PARAM_NUMBER);
+    $userid = optional_param('userid', '', PARAM_INT);
+    $err = optional_param('error', '', PARAM_TEXT);
+
+    if ($err !== '') {
+        $info = '<span style="text-align: center; width: 100%;"><h5>'
+        .$err.
+        '</h5></span>';
+        $errormsg = '<p style = "text-align: center;"><b> ERROR <br>'
+                    .$err.
+                    '<br> Please go back and check it again</b></p>';
+        echo $OUTPUT->notification($errormsg);
+
+    } else {
+
+        $user = \core_user::get_user($userid);
+        $userfull = $user->firstname.' '.$user->lastname.' ('.$user->email.')';
+        // Display the result to the user.
+        echo $OUTPUT->notification('<p>Balance Before: <b>' .$before.'</b></p>', 'notifysuccess').'<br>';
+
+        if (!empty($result) && is_numeric($result)  && false != $result) {
+            $result = 'success';
+        }
+
+        if ($after !== $before) {
+
+            echo $OUTPUT->notification('succession: ' .$result.' .', 'notifysuccess').'<br>';
+            $info = '<span style="text-align: center; width: 100%;"><h5>
+                the user: '.$userfull.' is now having a balance of '.$after.' after charging him/her by '.( $after - $before).
+                '</h5></span>';
+            if ($after !== '') {
+                echo $OUTPUT->notification('<p>Balance After: <b>' .$after.'</b></p>', 'notifysuccess');
+            }
+            if ($after < 0) {
+                echo $OUTPUT->notification('<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>');
+            }
+
+        } else {
+
+            $info = '<span style="text-align: center; width: 100%;"><h5>
+            the user: '.$userfull.' is having a balance of '.$before.
+            '</h5></span>';
+
+        }
+    }
+    // Display the results.
+    ob_start();
+    echo $info;
+    return ob_get_clean();
+}
+
+/**
+ * Return html string contains information about current user wallet balance.
+ * @return bool|string
+ */
+function enrol_wallet_display_current_user_balance() {
+    global $USER, $OUTPUT;
+    // Get the user balance.
+    $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
+    $norefund = \enrol_wallet\transactions::get_nonrefund_balance($USER->id);
+    // Get the default currency.
+    $currency = get_config('enrol_wallet', 'currency');
+    $policy = get_config('enrol_wallet', 'refundpolicy');
+    // Prepare transaction URL to display.
+    $transactionsurl = new moodle_url('/enrol/wallet/extra/transaction.php');
+    $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));
+    $tempctx = new stdClass;
+    $tempctx->balance = number_format($balance, 2);
+    $tempctx->currency = $currency;
+    $tempctx->norefund = number_format($norefund, 2);
+    $tempctx->transactions = $transactions;
+    $tempctx->policy = !empty($policy) ? $policy : false;
+    // Display the current user's balance in the wallet.
+    $render = $OUTPUT->render_from_template('enrol_wallet/display', $tempctx);
+    return $render;
+}

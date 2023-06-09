@@ -39,6 +39,12 @@ Admin can define either to totally use moodle for the wallet system and coupons,
 
 15- Discounts on courses for specific users depend on custom profile field.
 
+16- The ability to logging in or out the user from wordpress using moodle.
+
+17- Display refund policy and let the users know what amount in their wallets is refundable.
+
+18- Conditional discount when charging the wallet.
+
 
 ## Wallet block ##
 

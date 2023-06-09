@@ -41,5 +41,23 @@ $observers = array(
         'callback' => 'enrol_wallet\observer::wallet_gifting_new_user',
         'includefile' => '/enrol/wallet/classes/observer.php'
     ),
+    // Gifting new users.
+    array(
+        'eventname' => '\core\event\user_created',
+        'callback' => 'enrol_wallet\observer::wallet_gifting_new_user',
+        'includefile' => '/enrol/wallet/classes/observer.php'
+    ),
+    // Login user to wordpress.
+    array(
+        'eventname' => '\core\event\user_loggedin',
+        'callback' => 'enrol_wallet\observer::login_to_wordpress',
+        'includefile' => '/enrol/wallet/classes/observer.php'
+    ),
+    // Logout user from wordpress.
+    array(
+        'eventname' => '\core\event\user_loggedout',
+        'callback' => 'enrol_wallet\observer::logout_to_wordpress',
+        'includefile' => '/enrol/wallet/classes/observer.php'
+    ),
 );
 

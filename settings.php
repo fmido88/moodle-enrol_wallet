@@ -93,6 +93,10 @@ if ($ADMIN->fulltree) {
                                                 get_string('walletsource_help', 'enrol_wallet'),
                                                 enrol_wallet\transactions::SOURCE_MOODLE,
                                                 $sources));
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/wordpressloggins',
+                                                get_string('wordpressloggins', 'enrol_wallet'),
+                                                get_string('wordpressloggins_desc', 'enrol_wallet'),
+                                                0));
     // Define the WordPress site URL configuration setting.
     $settings->add(new admin_setting_configtext(
         'enrol_wallet/wordpress_url',
@@ -100,9 +104,16 @@ if ($ADMIN->fulltree) {
         get_string('wordpressurl_desc', 'enrol_wallet'),
         'https://example.com' // Default value for the WordPress site URL.
     ));
-
+    $key = get_config('enrol_wallet', 'wordpress_secretkey');
+    $default = empty($key) ? random_string(10) : $key;
+    $settings->add(new admin_setting_configtext(
+        'enrol_wallet/wordpress_secretkey',
+        get_string('wordpress_secretkey', 'enrol_wallet'),
+        get_string('wordpress_secretkey_help', 'enrol_wallet'),
+        $default
+    ));
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
-    // it describes what should happend when users are not supposed to be enerolled any more.
+    // it describes what should happened when users are not supposed to be enrolled any more.
     $options = array(
         ENROL_EXT_REMOVED_KEEP => get_string('extremovedkeep', 'enrol'),
         ENROL_EXT_REMOVED_SUSPENDNOROLES => get_string('extremovedsuspendnoroles', 'enrol'),
@@ -118,6 +129,23 @@ if ($ADMIN->fulltree) {
     }
     $settings->add(new admin_setting_configselect('enrol_wallet/expirynotifyhour',
         get_string('expirynotifyhour', 'core_enrol'), '', 6, $options));
+    // Options for multiple instances.
+    $settings->add(new admin_setting_configtext('enrol_wallet/allowmultipleinstances',
+                        get_string('allowmultiple', 'enrol_wallet'),
+                        get_string('allowmultiple_help', 'enrol_wallet'), 0, PARAM_INT));
+
+    // Refund policy.
+    $settings->add(new admin_setting_confightmleditor('enrol_wallet/refundpolicy',
+                        get_string('refundpolicy', 'enrol_wallet'),
+                        get_string('refundpolicy_help', 'enrol_wallet'),
+                        get_string('refundpolicy_default', 'enrol_wallet')));
+    $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/refundperiod',
+                        get_string('refundperiod', 'enrol_wallet'),
+                        get_string('refundperiod_desc', 'enrol_wallet'),
+                        14,
+                        PARAM_INT,
+                        null,
+                        3));
 
     // Adding discounts and coupons.
     $settings->add(new admin_setting_heading('enrol_wallet_discounts',
@@ -130,10 +158,10 @@ if ($ADMIN->fulltree) {
     ksort($menu);
     // Adding select menu for custom field related to discounts.
     $settings->add(new admin_setting_configselect('enrol_wallet/discount_field',
-        get_string('profile_field_map', 'enrol_wallet'),
-        get_string('profile_field_map_help', 'enrol_wallet'),
-        null,
-        $menu));
+                        get_string('profile_field_map', 'enrol_wallet'),
+                        get_string('profile_field_map_help', 'enrol_wallet'),
+                        null,
+                        $menu));
 
     // Adding options to enable and disable coupons.
     $choices = [
@@ -147,6 +175,18 @@ if ($ADMIN->fulltree) {
                                                 get_string('couponstype_help', 'enrol_wallet'),
                                                 enrol_wallet_plugin::WALLET_NOCOUPONS,
                                                 $choices));
+    // Add settings for conditional discount.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/conditionaldiscount_apply',
+                        get_string('conditionaldiscount_apply', 'enrol_wallet'),
+                        get_string('conditionaldiscount_apply_help', 'enrol_wallet'), 0));
+    $settings->add(new admin_setting_configtext('enrol_wallet/conditionaldiscount_condition',
+                        get_string('conditionaldiscount_condition', 'enrol_wallet'),
+                        get_string('conditionaldiscount_condition_help', 'enrol_wallet'),
+                        0, PARAM_INT));
+    $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/conditionaldiscount_percent',
+                        get_string('conditionaldiscount_percent', 'enrol_wallet'),
+                        get_string('conditionaldiscount_percent_help', 'enrol_wallet'),
+                        0, PARAM_INT, null, 2));
 
     // Adding settings for applying cashback.
     $settings->add(new admin_setting_heading('enrol_wallet_cashback',

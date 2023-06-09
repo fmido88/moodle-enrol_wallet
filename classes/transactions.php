@@ -39,20 +39,13 @@ class transactions {
      * If the wallet source is from this moodle site.
      */
     public const SOURCE_MOODLE = 1;
-    /**
-     * Mocking the notification class, useful for phpunit test.
-     * @var
-     */
-    public $notify = null;
+
     /**
      * setup the notification.
      * @return notifications
      */
     private static function notify() {
-        if (empty($notify)) {
-            $notify = new notifications();
-        }
-        return $notify;
+        return new notifications();
     }
     /**
      * Function needed to topup the wallet in the corresponding wordpress website.
@@ -60,9 +53,10 @@ class transactions {
      * @param int $userid
      * @param string $description the description of this transaction.
      * @param string|int $charger the user id who charged this amount.
+     * @param bool $refundable If this transaction is refundable or not.
      * @return array|string the response from the wordpress website.
      */
-    public static function payment_topup($amount, $userid, $description = '', $charger = '') {
+    public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true) {
         global $DB;
         if ($charger === '') {
             $charger = $userid;
@@ -82,21 +76,27 @@ class transactions {
         } else {
             $newbalance = $before + $amount;
         }
-
+        $oldnotrefund = self::get_nonrefund_balance($userid);
         $recorddata = [
             'userid' => $userid,
             'type' => 'credit',
             'amount' => $amount,
             'balbefore' => $before,
             'balance' => $newbalance,
+            'norefund' => $refundable ? $oldnotrefund : $amount + $oldnotrefund,
             'descripe' => $description.' by user with id '.$charger,
             'timecreated' => time()
         ];
 
-        $DB->insert_record('enrol_wallet_transactions', $recorddata);
-        $responsedata['success'] = true;
+        $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
+        if ($source == self::SOURCE_MOODLE) {
+            $responsedata['success'] = true;
+        }
+        self::triger_transaction_event($amount, 'credit', $charger, $userid, $description, $id, $refundable);
         self::notify()->transaction_notify($recorddata);
-
+        if ($refundable) {
+            self::quene_transaction_transformation($id);
+        }
         return $responsedata['success'];
     }
 
@@ -144,17 +144,20 @@ class transactions {
         } else {
             $description = get_string('debitdesc_user', 'enrol_wallet', $a);
         }
-
+        $oldnotrefund = self::get_nonrefund_balance($userid);
         $recorddata = [
             'userid' => $userid,
             'type' => 'debit',
             'amount' => $amount,
             'balbefore' => $before,
             'balance' => $newbalance,
+            'norefund' => ($newbalance >= $oldnotrefund) ? $oldnotrefund : $newbalance,
             'descripe' => $description,
             'timecreated' => time()
         ];
-        $DB->insert_record('enrol_wallet_transactions', $recorddata);
+
+        $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
+        self::triger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
         self::notify()->transaction_notify($recorddata);
 
         return $response;
@@ -181,7 +184,7 @@ class transactions {
 
             $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'id DESC', 'balance', 0, 1);
 
-            // Getting the balance form last transaction.
+            // Getting the balance from last transaction.
             $key = array_key_first($record);
             $balance = (!empty($record)) ? $record[$key]->balance : 0;
 
@@ -189,7 +192,24 @@ class transactions {
         } else {
             return false;
         }
+    }
 
+    /**
+     * Get the nonrefundable balance.
+     *
+     * @param int $userid
+     * @return float|false|string
+     */
+    public static function get_nonrefund_balance($userid) {
+        global $DB;
+
+        $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'id DESC', 'norefund', 0, 1);
+
+        // Getting the non refundable balance from last transaction.
+        $key = array_key_first($record);
+        $norefund = (!empty($record)) ? $record[$key]->norefund : 0;
+
+        return (float)$norefund;
     }
 
     /** Getting the value of the coupon.
@@ -328,7 +348,62 @@ class transactions {
             ];
             $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
         }
+    }
 
+    /**
+     * Triggering transactions event.
+     * @param float $amount amount of the transaction.
+     * @param string $type credit or debit
+     * @param int $charger id of the charger user
+     * @param int $userid id of the user related to the transaction
+     * @param string $desc reason of the transaction
+     * @param int $id id of the record in the transaction table
+     * @param bool $refundable is the transaction is refundable
+     * @return void
+     */
+    private static function triger_transaction_event($amount, $type, $charger, $userid, $desc, $id, $refundable) {
+        require_once(__DIR__.'/event/transactions_triggered.php');
+        $context = \context_system::instance();
+        $eventarray = [
+            'context' => $context,
+            'objectid' => $id,
+            'userid' => $charger,
+            'relateduserid' => $userid,
+            'other' => [
+                'type' => $type,
+                'amount' => $amount,
+                'desc' => $desc,
+                'refunable' => $refundable,
+                        ],
+        ];
+        $event = \enrol_wallet\event\transactions_triggered::create($eventarray);
+        $event->trigger();
+    }
+
+    /**
+     * Quene the tast to Transform the amount of a certain credit transaction to be nonrefundable
+     * after the grace period is over.
+     * @param int $id the id of the transaction record.
+     * @return void
+     */
+    private static function quene_transaction_transformation($id) {
+        global $DB;
+        $record = $DB->get_record('enrol_wallet_transactions', ['id' => $id]);
+        $period = get_config('enrol_wallet', 'refundperiod');
+        if (empty($period) || $period == 0) {
+            return;
+        }
+        $runtime = time() + $period * DAYSECS;
+        $task = new \enrol_wallet\task\turn_non_refundable;
+        $task->set_custom_data(
+                [
+                    'id' => $id,
+                    'userid' => $record->userid,
+                    'amount' => $record->amount,
+                ]
+            );
+        $task->set_next_run_time($runtime);
+        \core\task\manager::queue_adhoc_task($task, true);
     }
 }
 

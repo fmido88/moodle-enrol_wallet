@@ -23,6 +23,8 @@
  */
 $string['alreadyenroled'] = 'You are already enrolled in this course, may be your time is out or you got suspended <br> contact your TA or TS for more assistance';
 $string['allusers'] = 'transactions for all users selected';
+$string['allowmultiple'] = 'Number of allowed instances';
+$string['allowmultiple_help'] = 'Select the number of instances allowed in a single course, 0 means unlimited.';
 $string['applycoupon'] = 'Apply Coupon';
 $string['applycoupon_help'] = 'Apply Coupon code to get discount or have a fixed value to charge your wallet. <br>
 If the coupon is a fixed value and it is greater than the fee of the course you will get enrolled.';
@@ -55,6 +57,13 @@ $string['chargingoptions'] = 'Charging user\'s wallet';
 $string['cohortnonmemberinfo'] = 'Only members of cohort \'{$a}\' can enrol.';
 $string['cohortonly'] = 'Only cohort members';
 $string['cohortonly_help'] = 'Enrolment may be restricted to members of a specified cohort only. Note that changing this setting has no effect on existing enrollments.';
+$string['conditionaldiscount_apply'] = 'Conditional discounts';
+$string['conditionaldiscount_apply_help'] = 'Enable conditional discount for the whole website';
+$string['conditionaldiscount_condition'] = 'Condition for applying discount';
+$string['conditionaldiscount_condition_help'] = 'Discounts won\'t be applied unless the user\'s wallet charged by more than or equal the value entered here.';
+$string['conditionaldiscount_percent'] = 'The percentage amount of discount';
+$string['conditionaldiscount_percent_help'] = 'The users get credited by this percent. (Applied only for charging the wallet)<br>
+Important note: This isn\'t actually a discount. If the user choose to top-up the wallet by 400 and the discount percent set to 15%, the user pay only 340 and then a 60 will be add automatically.';
 $string['confirmbulkdeleteenrolment'] = 'Are you sure you want to delete these user enrollments?';
 $string['confirmdeletecoupon'] = 'Are you sure you want to delete coupons with ids {$a}. This operation is irreversible.';
 $string['confirmpayment'] = 'Confirm payment of {$a->value} {$a->currency}';
@@ -136,6 +145,13 @@ $string['enrolperiod_desc'] = 'Default length of time that the enrolment is vali
 $string['enrolperiod_help'] = 'Length of time that the enrolment is valid, starting with the moment the user enrols themselves. If disabled, the enrolment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can enrol themselves from this date onward only.';
+$string['event_transactions'] = 'Wallet Transaction Event';
+$string['event_transaction_debit_description'] = 'The wallet balance of the user with id {$a->relateduserid} deducted by {$a->amount} {$a->refundable) by user of id {$a->userid} <br> more info: {$a->reason}';
+$string['event_transaction_credit_description'] = 'The wallet balance of the user with id {$a->relateduserid} charged by {$a->amount} {$a->refundable) by user of id {$a->userid} <br> more info: {$a->reason}';
+$string['event_award'] = 'Wallet award received';
+$string['event_cashback'] = 'Wallet cashback';
+$string['event_coupon'] = 'Wallet Coupon used';
+$string['event_newuser_gifted'] = 'New user gifted';
 $string['expiredaction'] = 'Enrolment expiry action';
 $string['expiredaction_help'] = 'Select action to carry out when user enrolment expires. Please note that some user data and settings are purged from course during course un-enrolment.';
 $string['expirymessageenrollersubject'] = 'Enrolment expiry notification';
@@ -205,6 +221,7 @@ $string['newusergift_desc'] = 'Apply wallet gift for new user in moodle website'
 $string['newusergift_enable'] = 'Enable new user gifts';
 $string['newusergift_enable_help'] = 'If enabled, new users will have the gift you decided in their wallet.';
 $string['not_set'] = 'Not set';
+$string['notrefund'] = ' but this amount is nonrefundable: ';
 $string['nocost'] = 'this course has invalid cost';
 $string['nocoupons'] = 'Disable coupons';
 
@@ -224,6 +241,16 @@ $string['profile_field_map_help'] = 'Select the profile field that stores inform
 $string['privacy:metadata'] = 'The Wallet enrolment plugin does not store any personal data.';
 
 $string['randomcoupons'] = 'Random Coupons';
+$string['refundpolicy'] = 'Refund Policy';
+$string['refundpolicy_help'] = 'Define custom refund policy for users to be aware of the condition of how they get back their money or not before they topping up their wallet. This policy will be displayed to users in any form to recharge their wallet, or displying their balance.';
+$string['refundpolicy_default'] = '<h5>Refund Policy</h5>
+please note that:<br>
+Payment to top-up your wallet cannot be refunded in the following cases:<br>
+1- If this amount is due to new user gift, reward or a cashback.<br>
+2- If the grace of refund period expired (14 days).<br>
+When charging your wallet by any method means you agreed to this policy.';
+$string['refundperiod'] = 'Refunding grace period';
+$string['refundperiod_desc'] = 'The time in days after which user\'s cannot refunded for what they pay to top-up their wallets. 0 mean refund any time.';
 $string['role'] = 'Default assigned role';
 
 $string['sendcoursewelcomemessage'] = 'Send course welcome message';
@@ -267,6 +294,7 @@ $string['wallet:unenrol'] = 'Unenrol users from course';
 $string['wallet:unenrolself'] = 'Unenrol self from the course';
 $string['wallet:transaction'] = 'View the transaction table';
 $string['wallet:viewcoupon'] = 'View wallet coupons table';
+$string['wallet:viewotherbalance'] = 'View the wallet balance of others';
 $string['walletcashback'] = 'Cashback for using wallet';
 $string['walletcashback_desc'] = 'Enables the cashback program across the whole site';
 $string['walletcredit'] = 'Wallet Credit';
@@ -281,7 +309,10 @@ If you have not done so already, you should edit your profile page so that we ca
   {$a->profileurl}';
 $string['wordpressurl'] = 'wordpress url';
 $string['wordpressurl_desc'] = 'wordpress url with woo-wallet (tera wallet) plugin on it';
-
+$string['wordpressloggins'] = 'Login/logout user from wordpress';
+$string['wordpressloggins_desc'] = 'If enabled users is logged in and out from wordpress website when they logged in or out from moodle. (note that is one way only)';
+$string['wordpress_secretkey'] = 'Secret Key';
+$string['wordpress_secretkey_help'] = 'Admin must add any value here and the same value in moo-wallet setting in wordpress site.';
 $string['validfrom'] = 'Valid from';
 $string['validto'] = 'Valid to';
 

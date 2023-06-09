@@ -35,7 +35,7 @@ use enrol_wallet_plugin;
 class observer {
 
     /**
-     * This is a callback function after a user completed a couse with an instance of wallet enrollment.
+     * This is a callback function after a user completed a course with an instance of wallet enrollment.
      * the student will be awarded with a certain amount according to its grade also if exceeds a certain grade.
      *
      * @param \core\event\course_completed $event
@@ -44,7 +44,7 @@ class observer {
     public static function wallet_completion_awards(\core\event\course_completed $event) {
         $userid = $event->relateduserid;
         $courseid = $event->courseid;
-        // Geting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
+        // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
         $instances = enrol_get_instances($courseid, true);
         $instance = null;
         foreach ($instances as $inst) {
@@ -72,12 +72,12 @@ class observer {
             if ($percentage < $condition) {
                 return;
             }
-            // If the user alreadey rewarded for this course, ignore the event.
+            // If the user already rewarded for this course, ignore the event.
             if ($DB->record_exists('enrol_wallet_awards', ['userid' => $userid, 'courseid' => $courseid])) {
                 return;
             }
             $awardper = $instance->customdec2;
-            // Recieving the award per each grade.
+            // Receiving the award per each grade.
             $award = ($percentage - $condition) * $maxgrade * $awardper / 100;
             $coursename = get_course($courseid)->shortname;
             $a = new \stdClass;
@@ -87,7 +87,7 @@ class observer {
             $a->maxgrade = $maxgrade;
 
             $desc = get_string('awardingdesc', 'enrol_wallet', $a);
-            transactions::payment_topup($award , $userid , $desc , $userid);
+            transactions::payment_topup($award , $userid , $desc , $userid, false);
 
             $data = [
                 'userid' => $userid,
@@ -123,8 +123,77 @@ class observer {
         $a->amount = $giftvalue;
         $desc = get_string('giftdesc', 'enrol_wallet', $a);
 
-        transactions::payment_topup($giftvalue, $userid, $desc, $userid);
+        transactions::payment_topup($giftvalue, $userid, $desc, $userid, false);
         // TODO Adding gifts event.
+    }
+
+    /**
+     * Callback function to apply conditional discount rule.
+     * @param \enrol_wallet\event\transactions_triggered $event
+     * @return void
+     */
+    public static function conditional_discount_charging(\enrol_wallet\event\transactions_triggered $event) {
+        $charger = $event->userid;
+        $userid = $event->relateduserid;
+        $amount = $event->other['amount'];
+        $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+        $condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
+        if (empty($enabled) || $amount < $condition || $event->other['type'] != 'credit') {
+            return;
+        }
+        $discount = get_config('enrol_wallet', 'conditionaldiscount_percent') / 100;
+        $rest = $amount * $discount / (1 - $discount);
+        $desc = 'charge wallet due to condition discounts by '.$rest.' for charging wallet for more than '.$condition;
+        transactions::payment_topup($rest, $userid, $desc, $charger, false);
+    }
+
+    /**
+     * This is a callback function after a user is logged in successfully
+     * to login user in wordpress website.
+     *
+     * @param \core\event\user_loggedin $event
+     * @return void
+     */
+    public static function login_to_wordpress(\core\event\user_loggedin $event) {
+        $userid = $event->userid;
+
+        $user = \core_user::get_user($userid);
+        if (!$user || isguestuser($user) || !empty($user->deleted) || !empty($user->suspended)) {
+            return;
+        }
+
+        $usernameevent = $event->other['username'];
+        $username = $user->username;
+        if ($username != $usernameevent) {
+            return;
+        }
+        $wordpress = new \enrol_wallet\wordpress;
+        $response = $wordpress->login_logout_user_to_wordpress($userid, 'login');
+
+    }
+
+    /**
+     * This is a callback function after a user is logged in successfully
+     * to login user in wordpress website.
+     *
+     * @param \core\event\user_loggedout $event
+     * @return void
+     */
+    public static function logout_from_wordpress(\core\event\user_loggedout $event) {
+        $userid = $event->userid;
+
+        $user = \core_user::get_user($userid);
+        if (!$user || isguestuser($user) || !empty($user->deleted) || !empty($user->suspended)) {
+            return;
+        }
+
+        $usernameevent = $event->other['username'];
+        $username = $user->username;
+        if ($username != $usernameevent) {
+            return;
+        }
+        $wordpress = new \enrol_wallet\wordpress;
+        $wordpress->login_logout_user_to_wordpress($userid, 'logout');
     }
 }
 

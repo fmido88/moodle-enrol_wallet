@@ -25,7 +25,7 @@
 namespace enrol_wallet\task;
 
 /**
- * Sync enrolments task.
+ * Sync enrollments task.
  */
 class sync_enrolments extends \core\task\scheduled_task {
 
@@ -39,7 +39,7 @@ class sync_enrolments extends \core\task\scheduled_task {
     }
 
     /**
-     * Run task for syncing enrolments.
+     * Run task for syncing enrollments.
      */
     public function execute() {
         $enrol = enrol_get_plugin('wallet');

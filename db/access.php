@@ -89,6 +89,14 @@ $capabilities = [
             'manager' => CAP_ALLOW,
         ]
     ],
+    // View pages for transaction.
+    'enrol/wallet:viewotherbalance' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ]
+    ],
     // Creating coupons.
     'enrol/wallet:createcoupon' => [
         'captype' => 'write',
