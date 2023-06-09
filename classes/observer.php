@@ -101,7 +101,6 @@ class observer {
 
             $id = $DB->insert_record('enrol_wallet_awards', $data);
             // Trigger award event.
-            $event = new \enrol_wallet\event\award_granted;
             $eventdata = [
                 'context' => \context_course::instance($courseid),
                 'userid' => $userid,
@@ -113,7 +112,7 @@ class observer {
                     'amount' => $award,
                 ],
             ];
-            $event->create($eventdata);
+            $event = \enrol_wallet\event\award_granted::create($eventdata);
             $event->trigger();
         }
     }
@@ -139,7 +138,6 @@ class observer {
 
         $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false);
         // Trigger gifts event.
-        $event = new \enrol_wallet\event\newuser_gifted;
         $eventdata = [
             'context' => \context_system::instance(),
             'userid' => $userid,
@@ -149,7 +147,7 @@ class observer {
                 'amount' => $giftvalue,
             ],
         ];
-        $event->create($eventdata);
+        $event = \enrol_wallet\event\newuser_gifted::create($eventdata);
         $event->trigger();
     }
 

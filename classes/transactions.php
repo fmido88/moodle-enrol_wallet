@@ -347,7 +347,6 @@ class transactions {
                 'timeused' => time(),
             ];
             $id = $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
-            $event = new \enrol_wallet\event\coupon_used;
             $eventdata = [
                 'userid' => $userid,
                 'relateduserid' => $userid,
@@ -362,7 +361,7 @@ class transactions {
                 $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
                 $eventdata['courseid'] = $instance->courseid;
             }
-            $event->create($eventdata);
+            $event = \enrol_wallet\event\coupon_used::create($eventdata);
             $event->trigger();
         }
     }

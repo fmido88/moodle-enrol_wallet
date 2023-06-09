@@ -260,8 +260,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                     'original' => $costafter,
                 ],
             ];
-            $event = new \enrol_wallet\event\cashback_applied;
-            $event->create($eventdata);
+            $event = \enrol_wallet\event\cashback_applied::create($eventdata);
             $event->trigger();
 
         }
