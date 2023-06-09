@@ -41,7 +41,7 @@ class award_granted extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
-        $this->data['objecttable'] = 'enrol_wallet_transactions';
+        $this->data['objecttable'] = 'enrol_wallet_awards';
     }
 
     /**
@@ -50,7 +50,7 @@ class award_granted extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('event_transactions', 'enrol_wallet');
+        return get_string('event_award', 'enrol_wallet');
     }
 
     /**
@@ -60,8 +60,10 @@ class award_granted extends \core\event\base {
      */
     public function get_description() {
         $a = new \stdClass;
-        $a->relateduserid = $this->relateduserid;
-        $a->charger = $this->userid;
-
+        $a->userid = $this->userid;
+        $a->courseid = $this->courseid;
+        $a->grade = $this->other['grade'];
+        $a->amount = $this->other['amount'];
+        return get_string('event_award_desc', 'enrol_wallet', $a);
     }
 }

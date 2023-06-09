@@ -50,7 +50,7 @@ class newuser_gifted extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('event_transactions', 'enrol_wallet');
+        return get_string('event_newuser_gifted', 'enrol_wallet');
     }
 
     /**
@@ -60,18 +60,10 @@ class newuser_gifted extends \core\event\base {
      */
     public function get_description() {
         $a = new \stdClass;
-        $a->relateduserid = $this->relateduserid;
-        $a->charger = $this->userid;
+        $a->userid = $this->userid;
         $a->amount = $this->other['amount'];
-        $a->refundable = $this->other['refundable'];
-        $a->reason = $this->other['desc'];
-        $type = $this->other['type'];
-        if ($type == 'debit') {
-            return get_string('event_transaction_debit_description', 'enrol_wallet', $a);
-        } else if ($type == 'credit') {
-            return get_string('event_transaction_credit_description', 'enrol_wallet', $a);
-        } else {
-            return null;
-        }
+
+        return get_string('event_newuser_gifted_desc', 'enrol_wallet', $a);
+
     }
 }

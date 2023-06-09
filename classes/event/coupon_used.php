@@ -41,7 +41,7 @@ class coupon_used extends \core\event\base {
     protected function init() {
         $this->data['crud'] = 'c';
         $this->data['edulevel'] = self::LEVEL_OTHER;
-        $this->data['objecttable'] = 'enrol_wallet_transactions';
+        $this->data['objecttable'] = 'enrol_wallet_coupons_usage';
     }
 
     /**
@@ -50,7 +50,7 @@ class coupon_used extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('event_transactions', 'enrol_wallet');
+        return get_string('event_coupon', 'enrol_wallet');
     }
 
     /**
@@ -60,18 +60,11 @@ class coupon_used extends \core\event\base {
      */
     public function get_description() {
         $a = new \stdClass;
-        $a->relateduserid = $this->relateduserid;
-        $a->charger = $this->userid;
-        $a->amount = $this->other['amount'];
-        $a->refundable = $this->other['refundable'];
-        $a->reason = $this->other['desc'];
-        $type = $this->other['type'];
-        if ($type == 'debit') {
-            return get_string('event_transaction_debit_description', 'enrol_wallet', $a);
-        } else if ($type == 'credit') {
-            return get_string('event_transaction_credit_description', 'enrol_wallet', $a);
-        } else {
-            return null;
-        }
+        $a->userid = $this->userid;
+        $a->value = $this->other['value'];
+        $a->code = $this->other['code'];
+        $a->type = $this->other['type'];
+
+        return get_string('event_coupon_desc', 'enrol_wallet', $a);
     }
 }

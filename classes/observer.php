@@ -99,8 +99,22 @@ class observer {
                 'timecreated' => time()
             ];
 
-            $DB->insert_record('enrol_wallet_awards', $data);
-            // TODO Adding award event.
+            $id = $DB->insert_record('enrol_wallet_awards', $data);
+            // Trigger award event.
+            $event = new \enrol_wallet\event\award_granted;
+            $eventdata = [
+                'context' => \context_course::instance($courseid),
+                'userid' => $userid,
+                'relateduserid' => $userid,
+                'objectid' => $id,
+                'courseid' => $courseid,
+                'other' => [
+                    'grade' => number_format($percent, 2),
+                    'amount' => $award,
+                ],
+            ];
+            $event->create($eventdata);
+            $event->trigger();
         }
     }
 
@@ -123,8 +137,20 @@ class observer {
         $a->amount = $giftvalue;
         $desc = get_string('giftdesc', 'enrol_wallet', $a);
 
-        transactions::payment_topup($giftvalue, $userid, $desc, $userid, false);
-        // TODO Adding gifts event.
+        $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false);
+        // Trigger gifts event.
+        $event = new \enrol_wallet\event\newuser_gifted;
+        $eventdata = [
+            'context' => \context_system::instance(),
+            'userid' => $userid,
+            'relateduserid' => $userid,
+            'objectid' => $id,
+            'other' => [
+                'amount' => $giftvalue,
+            ],
+        ];
+        $event->create($eventdata);
+        $event->trigger();
     }
 
     /**

@@ -5,6 +5,7 @@
 - Add conditional discounts rules
 - Add refunding policy and expiry date
 - Add the ability to login or out from wordpress when the user logged in or out from moodle
+- Add events for transaction, awards, gifts, using coupons and cashback.
 
 ## V 1.5.1 ##
 - Implant payment privacy API.

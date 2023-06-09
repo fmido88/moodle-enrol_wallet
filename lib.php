@@ -247,7 +247,23 @@ class enrol_wallet_plugin extends enrol_plugin {
             $percent = get_config('enrol_wallet', 'cashbackpercent');
             $desc = 'added by cashback due to enrolment in '.$coursename;
             $value = $costafter * $percent / 100;
-            transactions::payment_topup($value, $user->id, $desc, $user->id);
+            $id = transactions::payment_topup($value, $user->id, $desc, $user->id, false);
+            // Trigger cashback event.
+            $eventdata = [
+                'context' => \context_course::instance($instance->courseid),
+                'courseid' => $instance->courseid,
+                'objectid' => $id,
+                'userid' => $user->id,
+                'relateduserid' => $user->id,
+                'other' => [
+                    'amount' => $value,
+                    'original' => $costafter,
+                ],
+            ];
+            $event = new \enrol_wallet\event\cashback_applied;
+            $event->create($eventdata);
+            $event->trigger();
+
         }
 
         // Send welcome message.

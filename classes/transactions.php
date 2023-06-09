@@ -97,7 +97,7 @@ class transactions {
         if ($refundable) {
             self::quene_transaction_transformation($id);
         }
-        return $responsedata['success'];
+        return $id;
     }
 
     /** Function to deduct the credit from wallet balance.
@@ -264,10 +264,6 @@ class transactions {
                 'type' => $couponrecord->type,
             ];
 
-            if ($apply) {
-                // Mark the coupon as used.
-                self::mark_coupon_used($coupon, $userid, $instanceid);
-            }
         }
 
         // Check if we applying the coupon.
@@ -310,6 +306,10 @@ class transactions {
                 $plugin->enrol_self($instance, $user);
             }
         }
+        if ($apply) {
+            // Mark the coupon as used.
+            self::mark_coupon_used($coupon, $userid, $instanceid);
+        }
         return $coupondata;
     }
 
@@ -346,7 +346,24 @@ class transactions {
                 'instanceid' => $instanceid,
                 'timeused' => time(),
             ];
-            $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
+            $id = $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
+            $event = new \enrol_wallet\event\coupon_used;
+            $eventdata = [
+                'userid' => $userid,
+                'relateduserid' => $userid,
+                'objectid' => $id,
+                'other' => [
+                    'value' => $couponrecord->value,
+                    'code' => $coupon,
+                    'type' => $couponrecord->type,
+                ]
+            ];
+            if (!empty($instanceid) && $instanceid != 0) {
+                $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
+                $eventdata['courseid'] = $instance->courseid;
+            }
+            $event->create($eventdata);
+            $event->trigger();
         }
     }
 
