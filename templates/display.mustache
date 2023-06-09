@@ -52,8 +52,8 @@
 <div id="enrol_wallet_transactions-policy" class="transactions-policy" style="display:none;">{{{policy}}}</div><br>
 
 {{#js}}
-    const policy = document.getElementById('enrol_wallet_transactions-policy');
-    const url = document.getElementById('enrol_wallet_transactions-policy-url');
+    var policy = document.getElementById('enrol_wallet_transactions-policy');
+    var url = document.getElementById('enrol_wallet_transactions-policy-url');
     url.addEventListener("click", function() {
         if (policy.style.display === "none") {
             policy.style.display = "block";
