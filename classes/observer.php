@@ -108,7 +108,7 @@ class observer {
                 'objectid' => $id,
                 'courseid' => $courseid,
                 'other' => [
-                    'grade' => number_format($percent, 2),
+                    'grade' => number_format($percentage, 2),
                     'amount' => $award,
                 ],
             ];

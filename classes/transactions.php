@@ -360,6 +360,9 @@ class transactions {
             if (!empty($instanceid) && $instanceid != 0) {
                 $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
                 $eventdata['courseid'] = $instance->courseid;
+                $eventdata['context'] = \context_course::instance($instance->courseid);
+            } else {
+                $eventdata['context'] = \context_system::instance();
             }
             $event = \enrol_wallet\event\coupon_used::create($eventdata);
             $event->trigger();
