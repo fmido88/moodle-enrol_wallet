@@ -22,11 +22,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-require_once("$CFG->libdir/formslib.php");
-require_once($CFG->dirroot . '/enrol/locallib.php');
-
 /**
  * Check if the given password match a group enrolment key in the specified course.
  *
@@ -37,7 +32,6 @@ require_once($CFG->dirroot . '/enrol/locallib.php');
  */
 function enrol_wallet_check_group_enrolment_key($courseid, $enrolpassword) {
     global $DB;
-
     $found = false;
     $groups = $DB->get_records('groups', array('courseid' => $courseid), 'id ASC', 'id, enrolmentkey');
 
@@ -289,13 +283,17 @@ function enrol_wallet_display_transaction_results() {
 
 /**
  * Return html string contains information about current user wallet balance.
+ * @param int $userid the user id, if not defined the id of current user used.
  * @return bool|string
  */
-function enrol_wallet_display_current_user_balance() {
+function enrol_wallet_display_current_user_balance($userid = 0) {
     global $USER, $OUTPUT;
+    if (empty($user)) {
+        $userid = $USER->id;
+    }
     // Get the user balance.
-    $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
-    $norefund = \enrol_wallet\transactions::get_nonrefund_balance($USER->id);
+    $balance = \enrol_wallet\transactions::get_user_balance($userid);
+    $norefund = \enrol_wallet\transactions::get_nonrefund_balance($userid);
     // Get the default currency.
     $currency = get_config('enrol_wallet', 'currency');
     $policy = get_config('enrol_wallet', 'refundpolicy');

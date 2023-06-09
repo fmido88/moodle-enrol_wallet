@@ -22,6 +22,35 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+/**
+ * To add the category and node information into the my profile page.
+ * THIS FUNCTION IS NOT WORKING ON ENROLLMENT PLUGINS. DON'T KNOW WHY.
+ * @param core_user\output\myprofile\tree $tree The myprofile tree to add categories and nodes to.
+ * @param stdClass                        $user The user object that the profile page belongs to.
+ * @param bool                            $iscurrentuser If the $user object is the current user.
+ * @param stdClass                        $course The course to determine if we are in a course context or system context.
+ * @return void
+ */
+function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
+    require_once(__DIR__.'/locallib.php');
+    global $OUTPUT;
+    // Only the user with capability could see other user's ballance.
+    if (!$iscurrentuser && !has_capability('enrol/wallet:viewotherbalance', context_system::instance())) {
+        return;
+    }
+
+    $render = enrol_wallet_display_current_user_balance($user->id);
+
+    $wdcategory = new core_user\output\myprofile\category('walletcreditdisplay',
+                                                    get_string('walletcredit', 'enrol_wallet'));
+    $tree->add_category($wdcategory);
+
+    $creditdisplay = '';
+
+    $node = new core_user\output\myprofile\node('walletcreditdisplay', 'walletcreditnode', $creditdisplay, null, null, $render);
+    $tree->add_node($node);
+}
+
 use enrol_wallet\form\enrol_form;
 use enrol_wallet\form\empty_form;
 use enrol_wallet\form\applycoupon_form;
@@ -1426,33 +1455,4 @@ class enrol_wallet_plugin extends enrol_plugin {
         return $OUTPUT->render_from_template('enrol_wallet/payment_region', $data);
     }
 
-}
-
-/**
- * To add the category and node information into the my profile page.
- * THIS FUNCTION IS NOT WORKING ON ENROLLMENT PLUGINS. DON'T KNOW WHY.
- * @param core_user\output\myprofile\tree $tree The myprofile tree to add categories and nodes to.
- * @param stdClass                        $user The user object that the profile page belongs to.
- * @param bool                            $iscurrentuser If the $user object is the current user.
- * @param stdClass                        $course The course to determine if we are in a course context or system context.
- * @return void
- */
-function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    require_once(__DIR__.'/locallip.php');
-    global $OUTPUT;
-    // Only the user with capability could see other user's ballance.
-    if (!$iscurrentuser || !has_capability('enrol/wallet:viewotherbalance', context_system::instance())) {
-        return;
-    }
-
-    $render = enrol_wallet_display_current_user_balance();
-
-    $wdcategory = new core_user\output\myprofile\category('walletcreditdisplay',
-                                                    get_string('walletcredit', 'enrol_wallet'));
-    $tree->add_category($wdcategory);
-
-    $creditdisplay = '';
-
-    $node = new core_user\output\myprofile\node('walletcreditdisplay', 'walletcreditnode', $creditdisplay, null, null, $render);
-    $tree->add_node($node);
 }
