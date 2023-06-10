@@ -135,7 +135,14 @@ class transactions_test extends \advanced_testcase {
         $this->assertEquals(50, $coupondata['value']);
         $this->assertEquals('fixed', $coupondata['type']);
 
+        $sink = $this->redirectEvents();
         transactions::mark_coupon_used('test1', $user->id, 0);
+        // Check the event triggered.
+        $events = $sink->get_events();
+        $sink->close();
+        $this->assertEquals(1, count($events));
+        $this->assertInstanceOf('\enrol_wallet\event\coupon_used', $events[0]);
+        $this->assertEquals('test1', $events[0]->other['code']);
 
         $coupondata = transactions::get_coupon_value('test1', $user->id);
 
