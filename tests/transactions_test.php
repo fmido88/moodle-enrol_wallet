@@ -77,8 +77,8 @@ class transactions_test extends \advanced_testcase {
 
         $sink = $this->redirectEvents();
         $this->transactions->payment_topup(250, $user->id);
-        $sink->clear();
         $events = $sink->get_events();
+        $sink->clear();
 
         $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(250, $balance);
@@ -88,8 +88,8 @@ class transactions_test extends \advanced_testcase {
         $this->assertEquals('credit', $events[0]->other['type']);
 
         $this->transactions->debit($user->id, 50);
-        $sink->close();
         $events = $sink->get_events();
+        $sink->close();
 
         $this->assertEquals(1, count($events));
         $this->assertInstanceOf('\enrol_wallet\event\transaction_triggered', $events[0]);
