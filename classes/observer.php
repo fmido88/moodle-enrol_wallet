@@ -192,7 +192,7 @@ class observer {
             return;
         }
         $wordpress = new \enrol_wallet\wordpress;
-        $response = $wordpress->login_logout_user_to_wordpress($userid, 'login');
+        $wordpress->login_logout_user_to_wordpress($userid, 'login');
 
     }
 
@@ -211,11 +211,6 @@ class observer {
             return;
         }
 
-        $usernameevent = $event->other['username'];
-        $username = $user->username;
-        if ($username != $usernameevent) {
-            return;
-        }
         $wordpress = new \enrol_wallet\wordpress;
         $wordpress->login_logout_user_to_wordpress($userid, 'logout');
     }
