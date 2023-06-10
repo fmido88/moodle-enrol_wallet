@@ -172,7 +172,8 @@ class observer_test extends \advanced_testcase {
 
         $this->assertEquals(200, $balance1);
         $this->assertEquals(0, $norefund1);
-        $this->assertEquals(500 * 1.20, $balance2);
-        $this->assertEquals(500 * 0.20, $norefund2);
+        $extra = 500 * 0.2 / 0.8;
+        $this->assertEquals(500 + $extra, $balance2);
+        $this->assertEquals($extra, $norefund2);
     }
 }

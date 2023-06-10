@@ -82,7 +82,8 @@ class transactions_test extends \advanced_testcase {
 
         $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(250, $balance);
-        $this->assertEquals(1, count($events));
+        // Two events: transaction_triggered and notification_sent.
+        $this->assertEquals(2, count($events));
         $this->assertInstanceOf('\enrol_wallet\event\transaction_triggered', $events[0]);
         $this->assertEquals(250, $events[0]->other['amount']);
         $this->assertEquals('credit', $events[0]->other['type']);
@@ -91,7 +92,7 @@ class transactions_test extends \advanced_testcase {
         $events = $sink->get_events();
         $sink->close();
 
-        $this->assertEquals(1, count($events));
+        $this->assertEquals(2, count($events));
         $this->assertInstanceOf('\enrol_wallet\event\transaction_triggered', $events[0]);
         $this->assertEquals(50, $events[0]->other['amount']);
         $this->assertEquals('debit', $events[0]->other['type']);
