@@ -66,7 +66,8 @@ $string['conditionaldiscount_percent_help'] = 'The users get credited by this pe
 Important note: This isn\'t actually a discount. If the user choose to top-up the wallet by 400 and the discount percent set to 15%, the user pay only 340 and then a 60 will be add automatically.';
 $string['confirmbulkdeleteenrolment'] = 'Are you sure you want to delete these user enrollments?';
 $string['confirmdeletecoupon'] = 'Are you sure you want to delete coupons with ids {$a}. This operation is irreversible.';
-$string['confirmpayment'] = 'Confirm payment of {$a->value} {$a->currency}';
+$string['confirmpayment'] = 'Confirm payment of {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
+$string['confirmpayment_discounted'] = 'Confirm payment of <del>{$a->before} {$a->currency}</del> {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
 $string['coupon_applyfilter'] = 'Apply filter';
 $string['coupon_exceedusage'] = 'This coupon exceeds the maximum usage';
 $string['coupon_expired'] = 'This coupon is expired';

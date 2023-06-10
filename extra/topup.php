@@ -26,9 +26,20 @@ require(__DIR__.'/../lib.php');
 $instanceid = required_param('instanceid', PARAM_INT);
 $courseid = required_param('courseid', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
-$value = optional_param('value', 0, PARAM_NUMBER);
 $account = required_param('account', PARAM_INT);
 $currency = required_param('currency', PARAM_TEXT);
+$val = optional_param('value', 0, PARAM_NUMBER);
+
+// Check the conditional discount.
+$enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+$condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
+$discount = get_config('enrol_wallet', 'conditionaldiscount_percent');
+
+if (!empty($enabled) && !empty($condition) && !empty($discount) && $val >= $condition) {
+    $value = (float)($val * (1 - $discount / 100));
+} else {
+    $value = $val;
+}
 
 require_login();
 $context = context_course::instance($courseid);
@@ -74,11 +85,20 @@ if (confirm_sesskey()) {
 
         $buttoncancel = new single_button($url, get_string('no'), 'get');
 
+        $policy = get_config('enrol_wallet', 'refundpolicy');
         $a = (object) [
             'value' => $value,
+            'before' => $val,
             'currency' => $currency,
         ];
-        $message = get_string('confirmpayment', 'enrol_wallet', $a);
+        if (!empty($policy)) {
+            $a->policy = $policy;
+        }
+        if ($val == $value) {
+            $message = get_string('confirmpayment', 'enrol_wallet', $a);
+        } else {
+            $message = get_string('confirmpayment_discounted', 'enrol_wallet', $a);
+        }
 
         // This code is required for payment button.
         $code = 'require([\'core_payment/gateways_modal\'], function(modal) {

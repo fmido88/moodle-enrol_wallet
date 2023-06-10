@@ -185,11 +185,31 @@ function enrol_wallet_display_charger_form() {
     if (!has_capability('enrol/wallet:creditdebit', context_system::instance())) {
         return '';
     }
+    // Check the conditional discount.
+    $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+    $condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
+    $discount = get_config('enrol_wallet', 'conditionaldiscount_percent');
+
+    if (!empty($enabled) && !empty($condition) && !empty($discount)) {
+        $discount = $discount / 100;
+    } else {
+        $discount = 0;
+    }
 
     $mform = new \MoodleQuickForm('credit2', 'POST', $CFG->wwwroot.'/enrol/wallet/extra/charger.php');
     $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
 
-    $mform->addElement('select', 'op', 'operation', ['credit' => 'credit', 'debit' => 'debit', 'balance' => 'balance']);
+    $operations = [
+        'credit' => 'credit',
+        'debit' => 'debit',
+        'balance' => 'balance'
+    ];
+    $mform->addElement('select', 'op', 'operation', $operations, ['id' => 'charge-operation', 'onchange' => 'calculateCharge()']);
+
+    $mform->addElement('text', 'value', 'Value', ['id' => 'charge-value', 'onchange' => 'calculateCharge()']);
+    $mform->setType('value', PARAM_INT);
+    $mform->hideIf('value', 'op', 'eq', 'balance');
+
     $context = context_system::instance();
     $options = array(
         'ajax' => 'enrol_manual/form-potential-user-selector',
@@ -202,9 +222,7 @@ function enrol_wallet_display_charger_form() {
     $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), array(), $options);
     $mform->addRule('userlist', 'select user', 'required');
 
-    $mform->addElement('text', 'value', 'Value');
-    $mform->setType('value', PARAM_INT);
-    $mform->hideIf('value', 'op', 'eq', 'balance');
+    $mform->addElement('html', '<div id="calculated-value"></div>');
 
     $mform->addElement('submit', 'submit', 'submit');
 
@@ -212,10 +230,37 @@ function enrol_wallet_display_charger_form() {
     $mform->setType('sesskey', PARAM_TEXT);
     $mform->setDefault('sesskey', sesskey());
 
+    $mform->addElement('hidden', 'discount', '', ['id' => 'discounted-value']);
+    $mform->setType('discount', PARAM_NUMBER);
+    $mform->setDefault('discount', $discount);
+
+    $mform->addElement('hidden', 'condition', '', ['id' => 'discount-condition']);
+    $mform->setType('condition', PARAM_NUMBER);
+    $mform->setDefault('condition', $condition);
+    // Add some js code to display the actual value to charge the wallet with.
+    $js = <<<JS
+            function calculateCharge() {
+                var value = parseFloat(document.getElementById("charge-value").value);
+                var discount = parseFloat(document.getElementById("discounted-value").value);
+                var condition = parseFloat(document.getElementById("discount-condition").value);
+                var op = document.getElementById("charge-operation").value;
+                if (op == 'credit') {
+                    if (value >= condition) {
+                        var calculatedValue = value + (value * discount / (1 - discount));
+                    } else {
+                        var calculatedValue = value;
+                    }
+                    document.getElementById("calculated-value").innerHTML = "Charging Value: " + calculatedValue;
+                } else {
+                    document.getElementById("calculated-value").innerHTML = "";
+                }
+            }
+            JS;
+    $mform->addElement('html', '<script>'.$js.'</script>');
+
     ob_start();
     $mform->display();
     $output = ob_get_clean();
-
     return $output;
 }
 
