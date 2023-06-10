@@ -289,6 +289,7 @@ $string['value'] = 'Amount per transaction';
 
 $string['wallet:bulkedit'] = 'Bulk edit the enrolments in all courses';
 $string['wallet:config'] = 'Configure Wallet enrol instances';
+$string['wallet:creditdebit'] = 'Credit and Debit other users';
 $string['wallet:createcoupon'] = 'Creating wallet coupons';
 $string['wallet:deletecoupon'] = 'Deleting wallet coupon';
 $string['wallet:downloadcoupon'] = 'Downloading wallet coupons';

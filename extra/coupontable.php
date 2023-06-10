@@ -25,6 +25,7 @@
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 require_once($CFG->libdir.'/tablelib.php');
+require_once($CFG->libdir.'/formslib.php');
 global $OUTPUT, $PAGE;
 
 // Adding some security.
@@ -61,8 +62,8 @@ $PAGE->set_url($url);
 $PAGE->set_title("coupons");
 $PAGE->set_heading('Coupons');
 
-// Setup the filteration form.
-$mform = new MoodleQuickForm('couponfilter', 'get', $url);
+// Setup the filtration form.
+$mform = new \MoodleQuickForm('couponfilter', 'get', $url);
 
 $mform->addElement('text', 'code', get_string('coupon_code', 'enrol_wallet'));
 $mform->setType('code', PARAM_TEXT);

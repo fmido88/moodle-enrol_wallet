@@ -24,7 +24,7 @@
 
 /**
  * To add the category and node information into the my profile page.
- * THIS FUNCTION IS NOT WORKING ON ENROLLMENT PLUGINS. DON'T KNOW WHY.
+ *
  * @param core_user\output\myprofile\tree $tree The myprofile tree to add categories and nodes to.
  * @param stdClass                        $user The user object that the profile page belongs to.
  * @param bool                            $iscurrentuser If the $user object is the current user.

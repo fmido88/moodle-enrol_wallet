@@ -132,7 +132,7 @@ if ($ADMIN->fulltree) {
     // Options for multiple instances.
     $settings->add(new admin_setting_configtext('enrol_wallet/allowmultipleinstances',
                         get_string('allowmultiple', 'enrol_wallet'),
-                        get_string('allowmultiple_help', 'enrol_wallet'), 0, PARAM_INT));
+                        get_string('allowmultiple_help', 'enrol_wallet'), 1, PARAM_INT));
 
     // Refund policy.
     $settings->add(new admin_setting_confightmleditor('enrol_wallet/refundpolicy',

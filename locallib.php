@@ -288,7 +288,7 @@ function enrol_wallet_display_transaction_results() {
  */
 function enrol_wallet_display_current_user_balance($userid = 0) {
     global $USER, $OUTPUT;
-    if (empty($user)) {
+    if (empty($userid)) {
         $userid = $USER->id;
     }
     // Get the user balance.
