@@ -1115,7 +1115,9 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->enrol_self($instance1, $user2);
 
         $balance2 = transactions::get_user_balance($user2->id);
+        $norefund = transactions::get_nonrefund_balance($user2->id);
         $this->assertEquals(90, $balance2);
+        $this->assertEquals(40, $norefund);
         $this->assertTrue(is_enrolled($context));
     }
 }

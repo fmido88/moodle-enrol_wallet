@@ -160,7 +160,7 @@ class transactions {
         self::triger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
         self::notify()->transaction_notify($recorddata);
 
-        return $response;
+        return $id;
     }
 
     /**
@@ -198,16 +198,24 @@ class transactions {
      * Get the nonrefundable balance.
      *
      * @param int $userid
-     * @return float|false|string
+     * @return float
      */
     public static function get_nonrefund_balance($userid) {
         global $DB;
-
+        $balance = self::get_user_balance($userid);
         $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'id DESC', 'norefund', 0, 1);
 
         // Getting the non refundable balance from last transaction.
-        $key = array_key_first($record);
-        $norefund = (!empty($record)) ? $record[$key]->norefund : 0;
+        if (!empty($record)) {
+            $key = array_key_first($record);
+            $norefund = $record[$key]->norefund;
+        } else {
+            $norefund = 0;
+        }
+
+        if ($balance < $norefund) {
+            $norefund = $balance;
+        }
 
         return (float)$norefund;
     }
@@ -347,26 +355,25 @@ class transactions {
                 'timeused' => time(),
             ];
             $id = $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
-            $eventdata = [
-                'userid' => $userid,
-                'relateduserid' => $userid,
-                'objectid' => $id,
-                'other' => [
-                    'value' => $couponrecord->value,
-                    'code' => $coupon,
-                    'type' => $couponrecord->type,
-                ]
-            ];
-            if (!empty($instanceid) && $instanceid != 0) {
-                $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
-                $eventdata['courseid'] = $instance->courseid;
-                $eventdata['context'] = \context_course::instance($instance->courseid);
-            } else {
-                $eventdata['context'] = \context_system::instance();
-            }
-            $event = \enrol_wallet\event\coupon_used::create($eventdata);
-            $event->trigger();
         }
+
+        $eventdata = [
+            'userid' => $userid,
+            'relateduserid' => $userid,
+            'objectid' => !empty($id) ? $id : null,
+            'other' => [
+                'code' => $coupon,
+            ]
+        ];
+        if (!empty($instanceid) && $instanceid != 0) {
+            $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
+            $eventdata['courseid'] = $instance->courseid;
+            $eventdata['context'] = \context_course::instance($instance->courseid);
+        } else {
+            $eventdata['context'] = \context_system::instance();
+        }
+        $event = \enrol_wallet\event\coupon_used::create($eventdata);
+        $event->trigger();
     }
 
     /**

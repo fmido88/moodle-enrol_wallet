@@ -108,13 +108,24 @@ class observer_test extends \advanced_testcase {
 
         $this->setAdminUser();
         $ccompletion = new \completion_completion(array('course' => $course1->id, 'userid' => $user1->id));
-
+        $sink = $this->redirectEvents();
         // Mark course as complete.
         $ccompletion->mark_complete();
         // The event should be triggered and caught by our observer.
         $balance3 = transactions::get_user_balance($user1->id);
+        $norefund = transactions::get_nonrefund_balance($user1->id);
         $this->assertEquals(70, $balance3);
+        $this->assertEquals(20, $norefund);
+        // Three events triggered: course completion, transaction and award.
+        $events = $sink->get_events();
+        $sink->close();
+        $this->assertEquals(3, count($events));
+        $this->assertInstanceOf('\enrol_wallet\event\award_granted', $events[1]);
+        $this->assertEquals(20, $events[1]->other['amount']);
+        $this->assertEquals(90, $events[1]->other['grade']);
+        $this->assertInstanceOf('\enrol_wallet\event\transactions_triggered', $events[2]);
     }
+
     /**
      * Testing event observer gifting new users.
      * @covers ::wallet_gifting_new_user()
@@ -134,10 +145,49 @@ class observer_test extends \advanced_testcase {
         // Enable gifting.
         $walletplugin->set_config('newusergift', 1);
         $walletplugin->set_config('newusergiftvalue', 20);
+
+        $sink = $this->redirectEvents();
         // Create another user.
         $user2 = $this->getDataGenerator()->create_user();
         $balance2 = transactions::get_user_balance($user2->id);
-
+        $norefund = transactions::get_nonrefund_balance($user2->id);
         $this->assertEquals(20, $balance2);
+        $this->assertEquals(20, $norefund);
+        $events = $sink->get_events();
+        $sink->close();
+        $this->assertEquals(3, count($events));
+        $this->assertInstanceOf('\enrol_wallet\event\newuser_gifted', $events[1]);
+        $this->assertEquals(20, $events[1]->other['amount']);
+        $this->assertInstanceOf('\enrol_wallet\event\transactions_triggered', $events[2]);
+    }
+
+    /**
+     * Test conditional discounts.
+     * @covers ::conditional_discount_charging()
+     * @return void
+     */
+    public function test_conditional_discount_charging() {
+        $this->resetAfterTest();
+        enrol_wallet_enable_plugin();
+
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+
+        set_config('conditionaldiscount_apply', 1, 'enrol_wallet');
+        set_config('conditionaldiscount_condition', 400, 'enrol_wallet');
+        set_config('conditionaldiscount_percent', 20, 'enrol_wallet');
+
+        transactions::payment_topup(200, $user1->id);
+        transactions::payment_topup(500, $user2->id);
+
+        $balance1 = transactions::get_user_balance($user1->id);
+        $norefund1 = transactions::get_nonrefund_balance($user1->id);
+        $balance2 = transactions::get_user_balance($user2->id);
+        $norefund2 = transactions::get_nonrefund_balance($user2->id);
+
+        $this->assertEquals(200, $balance1);
+        $this->assertEquals(0, $norefund1);
+        $this->assertEquals(500 * 1.15, $balance2);
+        $this->assertEquals(500 * 0.15, $norefund2);
     }
 }

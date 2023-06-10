@@ -25,7 +25,7 @@ namespace enrol_wallet;
 use enrol_wallet_plugin;
 
 /**
- * The class containing  the function which handls wordpress requests.
+ * The class containing  the function which handles wordpress requests.
  *
  */
 class wordpress {
@@ -135,7 +135,7 @@ class wordpress {
         );
 
         $responsedata = $this->request('wallet_topup', $data);
-        return $responsedata;
+
         if (!isset($responsedata['success'])) {
             if (!isset($responsedata['err'])) {
                 // Response format is incorrect.

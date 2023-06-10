@@ -220,6 +220,28 @@ function enrol_wallet_display_charger_form() {
 }
 
 /**
+ * Display links to generate and view coupons.
+ * @return string
+ */
+function enrol_wallet_display_coupon_urls() {
+    $context = context_system::instance();
+    $canviewcoupons = has_capability('enrol/wallet:viewcoupon', $context);
+    $cangeneratecoupon = has_capability('enrol/wallet:createcoupon', $context);
+    $render = '';
+    // Check if the user can view and generate coupons.
+    if ($canviewcoupons) {
+        $url = new moodle_url('/enrol/wallet/extra/coupontable.php');
+        $render .= html_writer::link($url, get_string('coupon_table', 'enrol_wallet')).'<br>';
+
+        if ($cangeneratecoupon) {
+            $url = new moodle_url('/enrol/wallet/extra/coupon.php');
+            $render .= html_writer::link($url, get_string('coupon_generation', 'enrol_wallet'));
+        }
+    }
+    return $render;
+}
+
+/**
  * Displaying the results after charging the wallet of other user.
  * @return bool|string
  */
@@ -309,4 +331,58 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
     // Display the current user's balance in the wallet.
     $render = $OUTPUT->render_from_template('enrol_wallet/display', $tempctx);
     return $render;
+}
+
+/**
+ * Display top-up form by payments gateway and\or coupons.
+ * @return string
+ */
+function enrol_wallet_display_topup_options() {
+    global $CFG, $OUTPUT;
+    require_once($CFG->dirroot.'/enrol/wallet/classes/form/topup_form.php');
+    // Get the default currency.
+    $currency = get_config('enrol_wallet', 'currency');
+    // Get the default payment account.
+    $account = get_config('enrol_wallet', 'paymentaccount');
+    // Get coupons settings.
+    $couponsetting = get_config('enrol_wallet', 'coupons');
+    // Set the data we want to send to forms.
+    $instance = new \stdClass;
+    $data = new \stdClass;
+
+    $instance->id = 0;
+    $instance->courseid = SITEID;
+    $instance->currency = $currency;
+    $instance->customint1 = $account;
+
+    $data->instance = $instance;
+    $render = '';
+    // First check if payments is enabled.
+    if (!empty($account)) {
+        // If the user don't have capability to charge others.
+        // Display options to charge with coupons or other payment methods.
+        $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
+        $topupform = new \enrol_wallet\form\topup_form($topupurl, $data);
+        ob_start();
+        $topupform->display();
+        $render .= ob_get_clean();
+    }
+
+    // Check if fixed coupons enabled.
+    if ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSFIXED ||
+        $couponsetting == enrol_wallet_plugin::WALLET_COUPONSALL) {
+            // Display the coupon form to enable user to topup wallet using fixed coupon.
+            require_once($CFG->dirroot.'/enrol/wallet/classes/form/applycoupon_form.php');
+            $action = new moodle_url('/enrol/wallet/extra/action.php');
+            $couponform = new \enrol_wallet\form\applycoupon_form($action, $data);
+            ob_start();
+            $couponform->display();
+            $render .= ob_get_clean();
+    }
+
+    if (!empty($render)) {
+        return $OUTPUT->box($render);
+    } else {
+        return '';
+    }
 }

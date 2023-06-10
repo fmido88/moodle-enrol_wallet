@@ -75,12 +75,24 @@ class transactions_test extends \advanced_testcase {
         $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(0, $balance);
 
+        $sink = $this->redirectEvents();
         $this->transactions->payment_topup(250, $user->id);
         $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(250, $balance);
+        $events = $sink->get_events();
+        $sink->clear();
+        $this->assertEquals(1, count($events));
+        $this->assertInstanceOf('\enrol_wallet\event\transaction_triggered', $events[0]);
+        $this->assertEquals(250, $events[0]->other['amount']);
+        $this->assertEquals('credit', $events[0]->other['type']);
 
-        $debit = $this->transactions->debit($user->id, 50);
-        $this->assertEquals('done', $debit);
+        $this->transactions->debit($user->id, 50);
+        $events = $sink->get_events();
+        $sink->close();
+        $this->assertEquals(1, count($events));
+        $this->assertInstanceOf('\enrol_wallet\event\transaction_triggered', $events[0]);
+        $this->assertEquals(50, $events[0]->other['amount']);
+        $this->assertEquals('debit', $events[0]->other['type']);
 
         $count = $DB->count_records('enrol_wallet_transactions', ['userid' => $user->id]);
         $this->assertEquals(2, $count);
