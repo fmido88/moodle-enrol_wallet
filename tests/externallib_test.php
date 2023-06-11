@@ -109,7 +109,7 @@ class externallib_test extends externallib_advanced_testcase {
         $this->assertTrue($instanceinfo1['status']);
 
         // Enable the instance.
-        $instance2 = $DB->get_record('enrol', array('id' => $instance2id), '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', array('id' => $instanceid2), '*', MUST_EXIST);
         $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
         $instanceinfo2 = enrol_wallet_external::get_instance_info($instanceid2);
         $instanceinfo2 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
