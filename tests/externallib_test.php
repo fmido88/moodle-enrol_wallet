@@ -34,6 +34,7 @@ require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
  * @package   enrol_wallet
  * @copyright 2023 Mohammad Farouk
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @runTestsInSeparateProcesses
  */
 class externallib_test extends externallib_advanced_testcase {
 
