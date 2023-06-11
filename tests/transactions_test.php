@@ -84,18 +84,18 @@ class transactions_test extends \advanced_testcase {
         $this->assertEquals(250, $balance);
         // Two events: transaction_triggered and notification_sent.
         $this->assertEquals(2, count($events));
-        $this->assertInstanceOf('\enrol_wallet\event\transactions_triggered', $events[0]);
-        $this->assertEquals(250, $events[0]->other['amount']);
-        $this->assertEquals('credit', $events[0]->other['type']);
+        $this->assertInstanceOf('\enrol_wallet\event\transactions_triggered', $events[1]);
+        $this->assertEquals(250, $events[1]->other['amount']);
+        $this->assertEquals('credit', $events[1]->other['type']);
 
         $this->transactions->debit($user->id, 50);
         $events = $sink->get_events();
         $sink->close();
 
         $this->assertEquals(2, count($events));
-        $this->assertInstanceOf('\enrol_wallet\event\transactions_triggered', $events[0]);
-        $this->assertEquals(50, $events[0]->other['amount']);
-        $this->assertEquals('debit', $events[0]->other['type']);
+        $this->assertInstanceOf('\enrol_wallet\event\transactions_triggered', $events[1]);
+        $this->assertEquals(50, $events[1]->other['amount']);
+        $this->assertEquals('debit', $events[1]->other['type']);
 
         $count = $DB->count_records('enrol_wallet_transactions', ['userid' => $user->id]);
         $this->assertEquals(2, $count);

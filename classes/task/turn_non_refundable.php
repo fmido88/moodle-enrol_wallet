@@ -45,7 +45,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         $data = $this->get_custom_data();
         if ($transform = $this->check_transform_validation($data)) {
-            $userid = $data['userid'];
+            $userid = $data->userid;
             $this->apply_transformation($userid, $transform);
         }
 
@@ -53,13 +53,13 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
     /**
      * Check if transformation is valid or not.
-     * @param array $data custom data of the task
+     * @param object $data custom data of the task
      * @return bool|float
      */
     public function check_transform_validation($data) {
         global $DB;
-        $userid = $data['userid'];
-        $amount = $data['amount'];
+        $userid = $data->userid;
+        $amount = $data->amount;
         $balance = transactions::get_user_balance($userid);
         $period = get_config('enrol_wallet', 'refundperiod');
         $norefund = transactions::get_nonrefund_balance($userid);
