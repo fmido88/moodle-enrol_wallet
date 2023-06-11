@@ -80,7 +80,7 @@ class externallib_test extends externallib_advanced_testcase {
         $this->assertEquals('wallet', $instanceinfo1['type']);
         $this->assertEquals('Test instance 1', $instanceinfo1['name']);
         $this->assertEquals(50, $instanceinfo1['cost']);
-        $this->assertTrue($instanceinfo1['status']);
+        $this->assertEquals(\enrol_wallet_plugin::INSUFFICIENT_BALANCE, $instanceinfo1['status']);
 
         $instanceinfo2 = enrol_wallet_external::get_instance_info($instanceid2);
         $instanceinfo2 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
@@ -100,6 +100,14 @@ class externallib_test extends externallib_advanced_testcase {
         } catch (\moodle_exception $e) {
             $this->assertEquals('coursehidden', $e->errorcode);
         }
+        // Can enrol in instance 1 but not in 2.
+        $instanceinfo1 = enrol_wallet_external::get_instance_info($instanceid1);
+        $instanceinfo1 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo1);
+        $this->assertTrue($instanceinfo1['status']);
+
+        $instanceinfo2 = enrol_wallet_external::get_instance_info($instanceid2);
+        $instanceinfo2 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
+        $this->assertEquals(\enrol_wallet_plugin::INSUFFICIENT_BALANCE, $instanceinfo2['status']);
     }
 
     /**

@@ -187,9 +187,11 @@ class enrol_wallet_external extends external_api {
                 $costafter = $enrol->get_cost_after_discount($USER->id, $instance);
                 $cost = $instance->cost;
                 $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
-                $a = ['cost_before' => $costbefore,
+                $a = [
+                    'cost_before' => $cost,
                     'cost_after' => $costafter,
-                    'user_balance' => $balance];
+                    'user_balance' => $balance,
+                ];
                 if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE) {
                     $enrolstatus = get_string('insufficient_balance', 'enrol_wallet', $a);
                 } else if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE_DISCOUNTED) {
