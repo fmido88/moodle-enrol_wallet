@@ -22,12 +22,6 @@ use enrol_wallet\transactions;
 
 defined('MOODLE_INTERNAL') || die();
 
-global $CFG;
-
-require_once($CFG->dirroot . '/webservice/tests/helpers.php');
-require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
-require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
-
 /**
  * wallet enrol external PHPunit tests
  *
@@ -43,7 +37,10 @@ class externallib_test extends externallib_advanced_testcase {
      * @covers ::get_instance_info()
      */
     public function test_get_instance_info() {
-        global $DB;
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/webservice/tests/helpers.php');
+        require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
+        require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 
         $this->resetAfterTest(true);
         enrol_wallet_enable_plugin();
@@ -109,7 +106,10 @@ class externallib_test extends externallib_advanced_testcase {
      * @covers ::enrol_user()
      */
     public function test_enrol_user() {
-        global $DB;
+        global $DB, $CFG;
+        require_once($CFG->dirroot . '/webservice/tests/helpers.php');
+        require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
+        require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 
         $this->resetAfterTest(true);
         enrol_wallet_enable_plugin();
