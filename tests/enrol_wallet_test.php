@@ -43,7 +43,6 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers \enrol_wallet_plugin
      */
     public function test_basics() {
-        global $DB;
         $this->resetAfterTest();
         enrol_wallet_enable_plugin();
         $this->assertTrue(enrol_is_enabled('wallet'));
@@ -325,7 +324,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::send_expiry_notification()
      */
     public function test_send_expiry_notifications() {
-        global $DB, $CFG;
+        global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
         enrol_wallet_enable_plugin();
@@ -372,7 +371,6 @@ class enrol_wallet_test extends \advanced_testcase {
         $instance1->status = ENROL_INSTANCE_ENABLED;
         $DB->update_record('enrol', $instance1);
 
-        $maninstance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'manual'), '*', MUST_EXIST);
         $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
         $instance2->expirythreshold = 60 * 60 * 24 * 1;
         $instance2->expirynotify = 1;
@@ -684,7 +682,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::can_self_enrol()
      */
     public function test_can_self_enrol() {
-        global $DB, $CFG, $OUTPUT;
+        global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback();
         enrol_wallet_enable_plugin();
@@ -930,7 +928,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::get_user_enrolment_actions()
      */
     public function test_get_user_enrolment_actions() {
-        global $CFG, $DB, $PAGE;
+        global $CFG, $PAGE;
         $this->resetAfterTest();
 
         // Set page URL to prevent debugging messages.
@@ -979,7 +977,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::get_cost_after_discount()
      */
     public function test_get_cost_after_discount() {
-        global $DB, $CFG;
+        global $DB;
         self::resetAfterTest(true);
         enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');
@@ -1083,7 +1081,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::enrol_self()
      */
     public function test_enrol_self() {
-        global $DB, $CFG;
+        global $DB;
         self::resetAfterTest(true);
         enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');

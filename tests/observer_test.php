@@ -123,7 +123,6 @@ class observer_test extends \advanced_testcase {
      * @covers ::wallet_gifting_new_user()
      */
     public function test_wallet_gifting_new_user() {
-        global $DB;
         $this->resetAfterTest();
         enrol_wallet_enable_plugin();
         $walletplugin = enrol_get_plugin('wallet');

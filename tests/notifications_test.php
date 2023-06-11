@@ -40,7 +40,6 @@ class notifications_test extends \advanced_testcase {
      * @covers ::transaction_notify()
      */
     public function test_transaction_notifications() {
-        global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
         enrol_wallet_enable_plugin();

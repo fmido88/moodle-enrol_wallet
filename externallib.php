@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 require_once("$CFG->libdir/externallib.php");
+require_once("$CFG->dirroot/enrol/wallet/lib.php");
 
 /**
  * wallet enrolment external functions.
@@ -95,6 +96,7 @@ class enrol_wallet_external extends external_api {
                 'type' => new external_value(PARAM_PLUGIN, 'type of enrolment plugin'),
                 'name' => new external_value(PARAM_RAW, 'name of enrolment plugin'),
                 'status' => new external_value(PARAM_RAW, 'status of enrolment plugin'),
+                'cost' => new external_value(PARAM_NUMBER, 'The cost of the course'),
             )
         );
     }
@@ -124,7 +126,7 @@ class enrol_wallet_external extends external_api {
      * @throws moodle_exception
      */
     public static function enrol_user($courseid, $instanceid = 0) {
-        global $CFG;
+        global $CFG, $USER;
 
         require_once($CFG->libdir . '/enrollib.php');
 
@@ -182,6 +184,17 @@ class enrol_wallet_external extends external_api {
                 $enrolled = true;
                 break;
             } else {
+                $costafter = $enrol->get_cost_after_discount($USER->id, $instance);
+                $cost = $instance->cost;
+                $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
+                $a = ['cost_before' => $costbefore,
+                    'cost_after' => $costafter,
+                    'user_balance' => $balance];
+                if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE) {
+                    $enrolstatus = get_string('insufficient_balance', 'enrol_wallet', $a);
+                } else if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE_DISCOUNTED) {
+                    $enrolstatus = get_string('insufficient_balance_discount', 'enrol_wallet', $a);
+                }
                 $warnings[] = array(
                     'item' => 'instance',
                     'itemid' => $instance->id,

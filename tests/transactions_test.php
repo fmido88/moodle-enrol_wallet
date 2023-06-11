@@ -116,7 +116,7 @@ class transactions_test extends \advanced_testcase {
      * @covers ::mark_coupon_used()
      */
     public function test_get_coupon_value() {
-        global $CFG, $DB;
+        global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
 

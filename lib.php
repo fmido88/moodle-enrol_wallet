@@ -567,6 +567,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @since 1.0
      */
     public function get_enrol_info(stdClass $instance) {
+        global $USER;
+        $coupon = optional_param('coupon', null, PARAM_RAW);
+        $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : $coupon;
 
         $instanceinfo = new stdClass();
         $instanceinfo->id = $instance->id;
@@ -574,6 +577,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $instanceinfo->type = $this->get_name();
         $instanceinfo->name = $this->get_instance_name($instance);
         $instanceinfo->status = $this->can_self_enrol($instance);
+        $instanceinfo->cost = $this->get_cost_after_discount($USER->id, $instance, $coupon);
 
         return $instanceinfo;
     }

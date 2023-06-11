@@ -191,7 +191,7 @@ class service_provider_test extends \advanced_testcase {
      * @covers ::deliver_order()
      */
     public function test_deliver_order_wallettopup() {
-        global $DB, $CFG;
+        global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
         enrol_wallet_enable_plugin();
