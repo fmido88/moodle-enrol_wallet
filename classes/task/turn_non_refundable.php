@@ -67,7 +67,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
             return false;
         }
         // Get all transactions in this time.
-        $sql = "SELECT type, amount
+        $sql = "SELECT id, type, amount
                 FROM {enrol_wallet_transactions}
                 WHERE userid = :userid
                 AND timecreated >= :checktime";
