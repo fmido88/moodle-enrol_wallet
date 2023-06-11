@@ -1,5 +1,15 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.6.2 ##
+- Add automate PHPUnit test for external service.
+- Add cost to external services info.
+- Wallet balance now displayed in users profiles.
+- Fix task to automatically convert balance to nonrefundable after grace period is over.
+
+## V 1.6.1 ##
+- Enhance the calculation of conditional discount.
+- Slight improvements.
+
 ## V 1.6 ##
 - Enhance the security during connection with wordpress website.
 - Add conditional discounts rules
