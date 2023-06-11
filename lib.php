@@ -24,6 +24,9 @@
 
 /**
  * To add the category and node information into the my profile page.
+ * If is a regular user, it show the balance, refund policy and topping up options.
+ * Regular users can't see the balance of others unless they have the capability 'enrol/wallet:viewotherbalance'.
+ * If the user has the capability to credit others, the charger form appears in his own profile.
  *
  * @param core_user\output\myprofile\tree $tree The myprofile tree to add categories and nodes to.
  * @param stdClass                        $user The user object that the profile page belongs to.
@@ -75,6 +78,7 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
             $tree->add_node($node2);
         }
     } else {
+        // Node 3 to display charger form and coupon view and generation pages links.
         $render3 = '';
         $form = enrol_wallet_display_charger_form();
         $render3 .= $OUTPUT->box($form);
@@ -89,7 +93,6 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
                                                     'enrol_wallet_display_node');
         $tree->add_node($node3);
     }
-
 }
 
 use enrol_wallet\form\enrol_form;

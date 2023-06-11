@@ -177,7 +177,7 @@ function enrol_wallet_generate_coupons($options) {
 
 /**
  * Display the form for charging other users.
- * @return bool|string
+ * @return string
  */
 function enrol_wallet_display_charger_form() {
     global $CFG;

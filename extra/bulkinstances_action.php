@@ -24,6 +24,8 @@
 
 require_once('../../../config.php');
 require_login();
+$frontpagectx = context_course::instance(SITEID);
+require_capability('enrol/wallet:manage', $frontpagectx);
 // Initialize the data object.
 $data = new stdClass;
 // Get all parameters form the form.
@@ -135,41 +137,48 @@ if (!empty($enrolenddate)) {
         $enrolenddate['year'],
     );
 }
-
-// Initalize the counting variables.
-$i = 0; // For updated instances.
-$y = 0; // For added instances.
-global $DB;
-require_once(__DIR__.'/lib.php');
-foreach ($courses as $courseid) {
-    $context = context_course::instance($courseid);
-    $wallet = new enrol_wallet_plugin;
-    if (!has_capability('enrol/wallet:manage', $context)) {
-        continue;
-    }
-    $enrolinstances = enrol_get_instances($courseid, true);
-    $count = 0;
-    foreach ($enrolinstances as $instance) {
-        if ($instance->enrol != 'wallet') {
+if (confirm_sesskey()) {
+    // Initialize the counting variables.
+    $i = 0; // For updated instances.
+    $y = 0; // For added instances.
+    global $DB;
+    require_once(__DIR__.'/lib.php');
+    foreach ($courses as $courseid) {
+        $context = context_course::instance($courseid);
+        $wallet = new enrol_wallet_plugin;
+        if (!has_capability('enrol/wallet:manage', $context)) {
             continue;
         }
-        $data->timemodified = time();
-        $count++;
-        $i++;
-        $wallet->update_instance($instance, $data);
+        $enrolinstances = enrol_get_instances($courseid, true);
+        $count = 0;
+        foreach ($enrolinstances as $instance) {
+            if ($instance->enrol != 'wallet') {
+                continue;
+            }
+            $data->timemodified = time();
+            $count++;
+            $i++;
+            $wallet->update_instance($instance, $data);
+        }
+        if ($count < 1) {
+            $data->timecreated = time();
+            $course = get_course($courseid);
+            $wallet->add_instance($course, (array)$data);
+            $y++;
+        }
     }
-    if ($count < 1) {
-        $data->timecreated = time();
-        $course = get_course($courseid);
-        $wallet->add_instance($course, (array)$data);
-        $y++;
+    $url = new moodle_url('/enrol/wallet/extra/bulkinstances.php');
+    if ($i == 0 && $y == 0) {
+        $msg = get_string('bulk_instancesno', 'enrol_wallet');
+        redirect($url, $msg, null, 'warning');
+    } else {
+        $a = [
+            'updated' => $i,
+            'created' => $y,
+        ];
+        $msg = get_string('bulk_instancesyes', 'enrol_wallet', $a);
+        redirect($url, $msg, null, 'info');
     }
 }
 
-if ($i == 0 && $y == 0) {
-    redirect(new moodle_url('/'), 'No instances created or updated', null, 'warning');
-} else {
-    $msg = $i.' enrol instances has been updated AND '. $y .' has been created';
-    redirect(new moodle_url('/'), $msg, null, 'info');
-}
 

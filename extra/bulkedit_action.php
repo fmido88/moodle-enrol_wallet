@@ -23,8 +23,9 @@
  */
 
 require_once('../../../config.php');
-
 require_login();
+$frontpagectx = context_course::instance(SITEID);
+require_capability('enrol/wallet:manage', $frontpagectx);
 
 $courses = required_param_array('courses', PARAM_INT);
 $timeend = optional_param_array('timeend', [], PARAM_INT);

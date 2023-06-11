@@ -38,12 +38,8 @@ course_require_view_participants($frontpagectx);
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
 $PAGE->set_url(new moodle_url('/enrol/wallet/bulkedit.php'));
-$PAGE->set_title("bulk enrollment edit");
-$PAGE->set_heading('Bulk Enrollment Edit (for all users in selected courses)');
-$PAGE->set_pagetype('course-view-participants');
-$PAGE->set_docs_path('enrol/users');
-$PAGE->add_body_class('path-user'); // So we can style it independently.
-$PAGE->set_other_editing_capability('moodle/course:manageactivities');
+$PAGE->set_title(get_string('bulkeditor', 'enrol_wallet'));
+$PAGE->set_heading(get_string('bulkeditor_head', 'enrol_wallet'));
 
 echo $OUTPUT->header();
 $form = new MoodleQuickForm('courses', 'post', 'bulkedit_action.php');
@@ -67,11 +63,12 @@ foreach ($courses as $course) {
     $options[$course->id] = $parentname.$course->fullname;
 }
 
-$select = $form->addElement('select', 'courses', 'Courses', $options);
+$select = $form->addElement('select', 'courses', get_string('courses'), $options);
 $select->setMultiple(true);
 
 // Prepare enrollment plugins selectors.
 $enrolplugins = enrol_get_plugins(true);
+$plugoptions = [];
 foreach ($enrolplugins as $name => $object) {
     if ($name == 'guest' || $name == 'cohort' || $name == 'category') {
         continue;
@@ -79,7 +76,7 @@ foreach ($enrolplugins as $name => $object) {
     $plugoptions[$name] = $name;
 }
 
-$selectenrol = $form->addElement('select', 'plugins', 'Enrollment Plugins', $plugoptions);
+$selectenrol = $form->addElement('select', 'plugins', get_string('type_enrol_plural'), $plugoptions);
 $selectenrol->setMultiple(true);
 
 $statusoptions = array(-1 => get_string('nochange', 'enrol'),
@@ -90,9 +87,13 @@ $form->addElement('select', 'status', get_string('alterstatus', 'enrol_manual'),
 $form->addElement('date_time_selector', 'timestart', get_string('altertimestart', 'enrol_manual'), array('optional' => true));
 $form->addElement('date_time_selector', 'timeend', get_string('altertimeend', 'enrol_manual'), array('optional' => true));
 
-$form->addElement('submit' , 'submit', 'submit');
+$form->addElement('submit' , 'submit', get_string('submit'));
 $form->disabledIf('submit', 'courses[]', 'noitemselected');
 $form->disabledIf('submit', 'plugins[]', 'noitemselected');
+
+$mform->addElement('hidden', 'sesskey');
+$mform->setType('sesskey', PARAM_TEXT);
+$mform->setDefault('sesskey', sesskey());
 
 // Now let's display the form.
 ob_start();

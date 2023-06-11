@@ -125,7 +125,7 @@ class transactions {
             if ($newbalance < 0) {
                 // This is mean that value to debit is greater than the balance and the new balance is negative.
                 // TODO throw error.
-                return null;
+                return false;
             }
             $response = 'done';
         }
@@ -157,8 +157,8 @@ class transactions {
         ];
 
         $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
-        self::triger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
         self::notify()->transaction_notify($recorddata);
+        self::triger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
 
         return $id;
     }

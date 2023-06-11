@@ -30,7 +30,7 @@ $captransactions = has_capability('enrol/wallet:transaction', $context);
 $capbulkedit = has_capability('enrol/wallet:bulkedit', $context);
 
 // Adding these pages for only users with required capability.
-// Don't know why these aren't appear to user's with capablities? Only admins!
+// Don't know why these aren't appear to user's with capabilities? Only admins!
 // I added these to the wallet block.
 if ($hassiteconfig || $captransactions || $capbulkedit) {
     // Adding new admin category.
@@ -98,20 +98,17 @@ if ($ADMIN->fulltree) {
                                                 get_string('wordpressloggins_desc', 'enrol_wallet'),
                                                 0));
     // Define the WordPress site URL configuration setting.
-    $settings->add(new admin_setting_configtext(
-        'enrol_wallet/wordpress_url',
-        get_string('wordpressurl', 'enrol_wallet'),
-        get_string('wordpressurl_desc', 'enrol_wallet'),
-        'https://example.com' // Default value for the WordPress site URL.
-    ));
-    $key = get_config('enrol_wallet', 'wordpress_secretkey');
-    $default = empty($key) ? random_string(10) : $key;
-    $settings->add(new admin_setting_configtext(
-        'enrol_wallet/wordpress_secretkey',
-        get_string('wordpress_secretkey', 'enrol_wallet'),
-        get_string('wordpress_secretkey_help', 'enrol_wallet'),
-        $default
-    ));
+    $settings->add(new admin_setting_configtext('enrol_wallet/wordpress_url',
+                                                get_string('wordpressurl', 'enrol_wallet'),
+                                                get_string('wordpressurl_desc', 'enrol_wallet'),
+                                                'https://example.com' // Default value for the WordPress site URL.
+                                                ));
+    // Secret shared key.
+    $settings->add(new admin_setting_configtext('enrol_wallet/wordpress_secretkey',
+                                                get_string('wordpress_secretkey', 'enrol_wallet'),
+                                                get_string('wordpress_secretkey_help', 'enrol_wallet'),
+                                                'S0mTh1ng/123'
+                                                ));
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
     // it describes what should happened when users are not supposed to be enrolled any more.
     $options = array(

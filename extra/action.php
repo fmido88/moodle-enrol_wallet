@@ -26,7 +26,6 @@ require_once('../../../config.php');
 require(__DIR__.'/../lib.php');
 global $DB, $USER;
 
-// Call require_login() to ensure that the user is authenticated.
 require_login();
 
 $cancel = optional_param('cancel', '', PARAM_TEXT);
@@ -35,7 +34,6 @@ $redirecturl = !empty($url) ? new moodle_url('/'.$url) : new moodle_url('/');
 
 if ($cancel) {
     redirect($redirecturl);
-    exit;
 }
 
 $userid = required_param('userid', PARAM_INT);
@@ -48,11 +46,9 @@ if (confirm_sesskey()) {
     // Get the coupon data.
     $coupondata = enrol_wallet\transactions::get_coupon_value($coupon, $userid, $instanceid, false);
     if (is_string($coupondata) || $coupondata === false) {
-        $errormessage = 'ERROR invalid coupon code';
-        $errormessage .= '<br>'.$coupondata;
+        $errormessage = get_string('coupon_applyerror', 'enrol_wallet', $coupondata);
         // This mean that the function return error.
         redirect($redirecturl, $errormessage);
-        exit;
     } else {
         $value = $coupondata['value'];
         $type = $coupondata['type'];
@@ -64,10 +60,13 @@ if (confirm_sesskey()) {
             // Apply the coupon code to add his value to the user's wallet.
             enrol_wallet\transactions::get_coupon_value($coupon, $userid, $instanceid, true);
             $currency = get_config('enrol_wallet', 'currency');
-            $msg = 'Coupon code applied successfully with value of '.$value.' '.$currency.'.';
+            $a = [
+                'value' => $value,
+                'currency' => $currency,
+            ];
+            $msg = get_string('coupon_applyfixed', 'enrol_wallet', $a);
 
             redirect($redirecturl, $msg, null, 'success');
-            exit;
         } else if ($type == 'percent' &&
                 ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
                 || $couponsetting == enrol_wallet_plugin::WALLET_COUPONSALL)
@@ -77,22 +76,18 @@ if (confirm_sesskey()) {
 
             if ($id) {
                 $redirecturl = new moodle_url('/enrol/index.php', ['id' => $id, 'coupon' => $coupon]);
-                $msg = 'You now have discounted by '. $value.'%';
+                $msg = get_string('coupon_applydiscount', 'enrol_wallet', $value);
                 redirect($redirecturl, $msg, null, 'success');
-                exit;
             } else {
-                $msg = 'Error during applying coupon, course not found.';
+                $msg = get_string('coupon_applynocourse', 'enrol_wallet');
                 redirect($redirecturl, $msg);
-                exit;
             }
         } else if ($type == 'percent' && empty($instanceid)) {
-            $msg = 'Cannot apply discount coupon here.';
+            $msg = get_string('coupon_applynothere', 'enrol_wallet');
             redirect($redirecturl, $msg);
-            exit;
         } else {
             $msg = 'Invalid Action.';
             redirect($redirecturl, $msg);
-            exit;
         }
     }
 }

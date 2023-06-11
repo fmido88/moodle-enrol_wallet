@@ -243,7 +243,7 @@ if (!empty($conditions)) {
 }
 if (!empty($orderby)) {
     $sql .= ' ORDER BY '.$orderby;
-};
+}
 // The sql for counting.
 $sqlc = 'SELECT COUNT(id) '.$sql;
 
@@ -260,7 +260,7 @@ $sqlr = 'SELECT * '. $sql;
 $records = $DB->get_records_sql($sqlr, [], $limitfrom, $limitnum);
 
 if (!$table->is_downloading()) {
-    $pages = intval($count / $limitnum) + 1;
+    $pages = intval($count / $limitnum);
     $content = '<p>Page: </p>';
     for ($i = 0; $i <= $pages; $i++) {
         $params = [
@@ -327,7 +327,6 @@ foreach ($records as $record) {
 if (!$table->is_downloading()) {
     echo $OUTPUT->box($pageslinks);
 }
-
 
 $table->finish_output();
 if (!$table->is_downloading($download, 'walletcoupons') && $candelete && $operation == 'delete') {

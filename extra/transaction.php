@@ -137,18 +137,20 @@ $columns = array(
     'type' => 'Type of transaction',
     'balbefore' => 'balance before',
     'balance' => 'balance after',
+    'norefund' => 'Non refundable',
     'descripe' => 'description',
 );
 
-$table = new flexible_table('stack_answertests');
+$table = new flexible_table('wallet_transactions');
 $table->define_columns(array_keys($columns));
 $table->define_headers(array_values($columns));
-$table->set_attribute('class', 'generaltable generalbox stacktestsuite');
+$table->set_attribute('class', 'generaltable generalbox wallet-transactions');
 $table->define_baseurl($PAGE->url);
 
 // Setup up the sorting properties.
 $table->sortable(true);
 $table->no_sorting('user');
+$table->no_sorting('norefund');
 $table->setup();
 
 // Work out direction of sort required.
@@ -172,7 +174,7 @@ if (!empty($sort)) {
 
 $records = $DB->get_records('enrol_wallet_transactions', $conditions, $orderby);
 foreach ($records as $record) {
-    // I'm just to lazy to rebuilt it get_records_sql.
+    // I'm just to lazy to rebuilt it using get_records_sql.
     // TODO use get_records_sql instate of these conditions.
     if (isset($timeto) && $record->timecreated > $timeto) {
         continue;
@@ -188,6 +190,7 @@ foreach ($records as $record) {
     $amount = number_format($record->amount, 2);
     $before = number_format($record->balbefore, 2);
     $after = number_format($record->balance, 2);
+    $norefund = number_format($record->norefund, 2);
     $desc = $record->descripe;
 
     $row = [
@@ -197,6 +200,7 @@ foreach ($records as $record) {
         'type' => $record->type,
         'balbefore' => $before,
         'balance' => $after,
+        'norefund' => $norefund,
         'descripe' => $desc,
     ];
 

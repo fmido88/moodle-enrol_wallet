@@ -59,7 +59,7 @@ if (confirm_sesskey()) {
 
         echo $OUTPUT->header();
 
-        $desc = 'Payment to topup the wallet';
+        $desc = get_string('paymenttopup_desc', 'enrol_wallet');
         $url = ($courseid == SITEID) ? new \moodle_url('/') : new \moodle_url('/course/view.php', ['id' => $courseid]);
 
         // Set a fake item form payment.

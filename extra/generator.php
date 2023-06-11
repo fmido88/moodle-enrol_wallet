@@ -94,13 +94,13 @@ $options->code = $code;
 // Generate coupons with the options specified.
 if (confirm_sesskey()) {
     $ids = enrol_wallet_generate_coupons($options);
-}
 
-if (is_string($ids)) {
-    $msg = $ids;
-} else {
-    $count = count($ids);
-    $msg = get_string('coupons_generation_success', 'enrol_wallet', $count);
-}
+    if (is_string($ids)) {
+        $msg = $ids;
+    } else {
+        $count = count($ids);
+        $msg = get_string('coupons_generation_success', 'enrol_wallet', $count);
+    }
 
-redirect($redirecturl, $msg);
+    redirect($redirecturl, $msg);
+}

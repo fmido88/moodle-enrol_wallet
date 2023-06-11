@@ -67,7 +67,7 @@ class notifications {
         }
 
         $message->fullmessage = $messagebody;
-        $message->fullmessageformat = FORMAT_MARKDOWN;
+        $message->fullmessageformat = FORMAT_HTML;
         $message->fullmessagehtml = "<p>$messagebody</p>";
         $message->smallmessage = $desc;
         $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message.

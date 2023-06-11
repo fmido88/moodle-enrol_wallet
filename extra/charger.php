@@ -43,44 +43,43 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
 
     $charger = $USER->id;
     if (empty($value) && ($op !== 'balance')) {
-        $err = 'No value';
+        $err = get_string('charger_novalue', 'enrol_wallet');
         $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('error' => $err,
                                                                                    'op' => 'result'));
         redirect($redirecturl, $err);
-        exit;
     }
 
     if (empty($userid)) {
-        $err = 'No user selected';
+        $err = get_string('charger_nouser', 'enrol_wallet');
         $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('error' => $err,
                                                                                    'op' => 'result'));
         redirect($redirecturl, $err);
-        exit;
     }
     $transactions = new enrol_wallet\transactions;
     $before = $transactions->get_user_balance($userid);
     if ($op === 'credit') {
-        $desc = 'charging from wallet block by '.fullname($USER);
+        $desc = get_string('charger_credit_desc', 'enrol_wallet', fullname($USER));
         // Process the transaction.
         $result = $transactions->payment_topup($value, $userid, $desc, $charger);
         $after = $transactions->get_user_balance($userid);
     } else if ($op === 'debit') {
         if ($value > $before) {
-            $err = 'The value ('.$value.') is greater that the user\'s balance ('.$before.')';
+            $a = ['value' => $value, 'before' => $before];
+            $err = get_string('charger_debit_err', 'enrol_wallet', $a);
             $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('error' => $err,
                                                                                        'op' => 'result'));
             redirect($redirecturl);
-            exit;
         } else {
             // Process the payment.
-            $result = $transactions->debit($userid, $value, '(deduct from wallet block by '.fullname($USER).')', $charger);
+            $debitdesc = get_string('charger_debit_desc', 'enrol_wallet', fullname($USER));
+            $result = $transactions->debit($userid, $value, $debitdesc, $charger);
             $after = $transactions->get_user_balance($userid);
         }
 
-    } else if ($op = 'balance') {
+    } else if ($op === 'balance') {
         $result = $before;
     } else {
-        $result = 'invalid operation';
+        $result = get_string('charger_invalid_operation', 'enrol_wallet');
     }
 
     // Redirect to same page to show results.

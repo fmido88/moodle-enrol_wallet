@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * wallet enrolment plugin settings and presets.
+ * Page for generating wallet coupons in moodle.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
@@ -35,8 +35,8 @@ require_capability('enrol/wallet:createcoupon', $systemcontext);
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
 $PAGE->set_url(new moodle_url('/enrol/wallet/extra/coupon.php'));
-$PAGE->set_title("generate coupons");
-$PAGE->set_heading('Add new coupons');
+$PAGE->set_title(get_string('coupon_generation_title', 'enrol_wallet'));
+$PAGE->set_heading(get_string('coupon_generation_heading', 'enrol_wallet'));
 
 echo $OUTPUT->header();
 

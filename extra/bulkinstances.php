@@ -38,13 +38,9 @@ course_require_view_participants($frontpagectx);
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
-$PAGE->set_url(new moodle_url('/enrol/wallet/bulkedit.php'));
-$PAGE->set_title("bulk wallet enrol instances edit");
-$PAGE->set_heading('Bulk Enrollment Edit (for all instances courses)');
-$PAGE->set_pagetype('course-view-participants');
-$PAGE->set_docs_path('enrol/users');
-$PAGE->add_body_class('path-user'); // So we can style it independently.
-$PAGE->set_other_editing_capability('moodle/course:manageactivities');
+$PAGE->set_url(new moodle_url('/enrol/wallet/bulkinstances.php'));
+$PAGE->set_title(get_string('bulk_instancestitle', 'enrol_wallet'));
+$PAGE->set_heading(get_string('bulk_instanceshead', 'enrol_wallet'));
 
 echo $OUTPUT->header();
 
@@ -206,12 +202,14 @@ $mform->setDefault('customint8', false);
 $mform->addHelpButton('customint8', 'awards', 'enrol_wallet');
 $mform->disabledIf('customint8', 'awards', 'notchecked');
 
-$mform->addElement('float', 'customdec1', get_string('awardcreteria', 'enrol_wallet'));
+$mform->addElement('text', 'customdec1', get_string('awardcreteria', 'enrol_wallet'));
+$mform->setType('customdec1', PARAM_NUMBER);
 $mform->disabledIf('customdec1', 'customint8', 'notchecked');
 $mform->addHelpButton('customdec1', 'awardcreteria', 'enrol_wallet');
 $mform->hideIf('customdec1', 'awards', 'notchecked');
 
-$mform->addElement('float', 'customdec2', get_string('awardvalue', 'enrol_wallet'));
+$mform->addElement('text', 'customdec2', get_string('awardvalue', 'enrol_wallet'));
+$mform->setType('customdec2', PARAM_NUMBER);
 $mform->disabledIf('customdec2', 'customint8', 'notchecked');
 $mform->addHelpButton('customdec2', 'awardvalue', 'enrol_wallet');
 $mform->hideIf('customdec2', 'awards', 'notchecked');
@@ -219,6 +217,9 @@ $mform->hideIf('customdec2', 'awards', 'notchecked');
 $mform->addElement('submit' , 'submit', 'submit');
 $mform->disabledIf('submit', 'courses[]', 'noitemselected');
 
+$mform->addElement('hidden', 'sesskey');
+$mform->setType('sesskey', PARAM_TEXT);
+$mform->setDefault('sesskey', sesskey());
 
 // Now let's display the form.
 ob_start();

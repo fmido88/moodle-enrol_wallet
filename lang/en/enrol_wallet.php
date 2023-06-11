@@ -40,7 +40,12 @@ $string['awardsalter'] = 'Alter awards';
 $string['awardsalter_help'] = 'Alter the status of awards program';
 
 $string['bulkfolder'] = 'Extra by wallet enrollments';
-$string['bulkeditor'] = 'Bulk change for enrollments';
+$string['bulkeditor'] = 'Bulk edit for enrollments';
+$string['bulkeditor_head'] = 'Bulk Enrollment Edit (for all users in selected courses)';
+$string['bulk_instancestitle'] = 'Bulk wallet enrol instances edit';
+$string['bulk_instanceshead'] = 'Bulk Enrollment Edit (for all instances courses)';
+$string['bulk_instancesno'] = 'No instances created or updated';
+$string['bulk_instancesyes'] = '{$a->updated} enrol instances has been updated AND {$a->created} has been created.';
 
 $string['cashbackenable'] = 'Enable cashback';
 $string['cashbackenable_desc'] = 'When this is enabled the student will receive a percentage cashback amount each time he uses the wallet to buy a course.';
@@ -53,6 +58,12 @@ $string['checkout'] = '{$a->credit_cost} EGP will be deducted from your balance 
 $string['checkout_discounted'] = '<del>{$a->credit_cost} EGP</del> {$a->after_discount} EGP will be deducted from your balance of {$a->user_balance} EGP.';
 $string['characters'] = 'Characters in code.';
 $string['characters_help'] = 'Choose the type of characters in the generated codes.';
+$string['charger_novalue'] = 'No valid value entered.';
+$string['charger_nouser'] = 'No user selected';
+$string['charger_credit_desc'] = 'charging manually by {$a}';
+$string['charger_debit_desc'] = '(deduct manually by {$a})';
+$string['charger_debit_err'] = 'The value ({$a->value}) is greater that the user\'s balance ({$a->before})';
+$string['charger_invalid_operation'] = 'Invalid operation.';
 $string['chargingoptions'] = 'Charging user\'s wallet';
 $string['chargingoperation'] = 'Operation';
 $string['chargingvalue'] = 'Value';
@@ -65,17 +76,24 @@ $string['conditionaldiscount_condition'] = 'Condition for applying discount';
 $string['conditionaldiscount_condition_help'] = 'Discounts won\'t be applied unless the user\'s wallet charged by more than or equal the value entered here.';
 $string['conditionaldiscount_percent'] = 'The percentage amount of discount';
 $string['conditionaldiscount_percent_help'] = 'The users get credited by this percent. (Applied only for charging the wallet)<br>
-Important note: This isn\'t actually a discount. If the user choose to top-up the wallet by 400 and the discount percent set to 15%, the user pay only 340 and then a 60 will be add automatically.';
+Important note: If the user choose to top-up the wallet by 400 and the discount percent set to 15%, the user pay only 340 and then a 60 will be add automatically.';
 $string['confirmbulkdeleteenrolment'] = 'Are you sure you want to delete these user enrollments?';
 $string['confirmdeletecoupon'] = 'Are you sure you want to delete coupons with ids {$a}. This operation is irreversible.';
 $string['confirmpayment'] = 'Confirm payment of {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
 $string['confirmpayment_discounted'] = 'Confirm payment of <del>{$a->before} {$a->currency}</del> {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
+$string['coupon_applydiscount'] = 'You now have discounted by {$a}%';
+$string['coupon_applyerror'] = 'ERROR invalid coupon code: <br> {$a}';
 $string['coupon_applyfilter'] = 'Apply filter';
+$string['coupon_applyfixed'] = 'Coupon code applied successfully with value of {$a->value} {$a->currency}.';
+$string['coupon_applynocourse'] = 'Error during applying coupon, course not found.';
+$string['coupon_applynothere'] = 'Cannot apply discount coupon here.';
 $string['coupon_exceedusage'] = 'This coupon exceeds the maximum usage';
 $string['coupon_expired'] = 'This coupon is expired';
 $string['coupon_code'] = 'Coupon code';
 $string['coupon_code_help'] = 'Enter the coupon code you want.';
 $string['coupon_generation'] = 'Create coupons';
+$string['coupon_generation_title'] = 'generate coupons';
+$string['coupon_generation_heading'] = 'Add new coupons';
 $string['coupon_generation_method'] = 'Generation method';
 $string['coupon_generation_method_help'] = 'Choose if you need to create a single coupon with a code of your choice or generate a number of random coupons';
 $string['coupons_generation_success'] = '{$a} coupon codes successfully generated.';
@@ -315,8 +333,8 @@ $string['welcometocoursetext'] = 'Welcome to {$a->coursename}!
 If you have not done so already, you should edit your profile page so that we can learn more about you:
 
   {$a->profileurl}';
-$string['wordpressurl'] = 'wordpress url';
-$string['wordpressurl_desc'] = 'wordpress url with woo-wallet (tera wallet) plugin on it';
+$string['wordpressurl'] = 'Wordpress url';
+$string['wordpressurl_desc'] = 'Wordpress url with woo-wallet (tera wallet) plugin on it';
 $string['wordpressloggins'] = 'Login/logout user from wordpress';
 $string['wordpressloggins_desc'] = 'If enabled users is logged in and out from wordpress website when they logged in or out from moodle. (note that is one way only)';
 $string['wordpress_secretkey'] = 'Secret Key';
