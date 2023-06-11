@@ -61,6 +61,11 @@ class transactions {
         if ($charger === '') {
             $charger = $userid;
         }
+        // Turn all credit operations to nonrefundable if refund settings not enabled.
+        $refundenabled = get_config('enrol_wallet', 'enablerefund');
+        if (empty($refundenabled)) {
+            $refundable = false;
+        }
         $before = self::get_user_balance($userid);
         $source = get_config('enrol_wallet', 'walletsource');
         if ($source == self::SOURCE_WORDPRESS) {

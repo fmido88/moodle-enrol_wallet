@@ -136,11 +136,15 @@ if ($ADMIN->fulltree) {
                         get_string('refundpolicy', 'enrol_wallet'),
                         get_string('refundpolicy_help', 'enrol_wallet'),
                         get_string('refundpolicy_default', 'enrol_wallet')));
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/enablerefund',
+                        get_string('enablerefund', 'enrol_wallet'),
+                        get_string('enablerefund_desc', 'enrol_wallet'),
+                        1));
     $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/refundperiod',
                         get_string('refundperiod', 'enrol_wallet'),
                         get_string('refundperiod_desc', 'enrol_wallet'),
                         14,
-                        PARAM_INT,
+                        PARAM_NUMBER,
                         null,
                         3));
 

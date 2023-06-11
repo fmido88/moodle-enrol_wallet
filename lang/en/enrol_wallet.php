@@ -154,6 +154,8 @@ Also, applying coupons for this plugin.';
 $string['discountcoupondisabled'] = 'Discount coupons disabled in this website.';
 
 $string['editselectedusers'] = 'Edit selected user enrollments';
+$string['enablerefund'] = 'Enable refund';
+$string['enablerefund_desc'] = 'If not checked, all credits from now on will be nonrefundable, don\'t forget to clear that to users in refund policy';
 $string['endpoint_error'] = 'endpoint return error';
 $string['endpoint_incorrect'] = 'incorrect response';
 $string['enrol_wallet'] = 'Enrol with wallet balance';

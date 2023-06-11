@@ -103,8 +103,14 @@ class turn_non_refundable extends \core\task\adhoc_task {
      */
     public function apply_transformation($userid, $transform) {
         global $DB;
+
         $balance = transactions::get_user_balance($userid);
         $norefund = transactions::get_nonrefund_balance($userid);
+        // If refunding is disable, transform all balance to non-refundable.
+        $refundenabled = get_config('enrol_wallet', 'enablerefund');
+        if (empty($refundenabled)) {
+            $transform = $balance;
+        }
         $recorddata = [
             'userid' => $userid,
             'amount' => 0,
