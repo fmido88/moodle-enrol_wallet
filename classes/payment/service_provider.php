@@ -25,6 +25,7 @@
 
 namespace enrol_wallet\payment;
 
+use enrol_wallet\transactions;
 /**
  * Payment subsystem callback implementation for enrol_wallet.
  *
@@ -46,16 +47,18 @@ class service_provider implements \core_payment\local\callback\service_provider 
         global $DB, $USER;
         // Check if the payment is for enrolment or topup the wallet.
         if ($paymentarea == 'walletenrol') {
-            $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $itemid], '*', MUST_EXIST);
-            require_once(__DIR__.'/../../lib.php');
-            $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : null;
-            $fee = (float)\enrol_wallet_plugin::get_cost_after_discount($USER->id, $instance, $coupon);
-            $balance = (float)\enrol_wallet\transactions::get_user_balance($USER->id);
+            $enrolwallet = enrol_get_plugin('wallet');
+            $instance = $enrolwallet->get_instance_by_id($itemid);
+            // See if there is discount coupon.
+            $coupon = $enrolwallet->check_discount_coupon();
+            // Get the cost and the balance.
+            $fee = (float)$enrolwallet->get_cost_after_discount($USER->id, $instance, $coupon);
+            $balance = (float)transactions::get_user_balance($USER->id);
             $cost = $fee - $balance;
             return new \core_payment\local\entities\payable((float)$cost, $instance->currency, (int)$instance->customint1);
         } else {
             global $DB;
-            // Get the fake item in case of topup the wallet.
+            // Get the fake item in case of topping up the wallet.
             $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
             // In this case we get the default settings.
             $account = get_config('enrol_wallet', 'paymentaccount');
@@ -96,18 +99,18 @@ class service_provider implements \core_payment\local\callback\service_provider 
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
         // Check if the payment is for enrolment or topup the wallet.
         if ($paymentarea == 'walletenrol') {
-            $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $itemid], '*', MUST_EXIST);
-
             $plugin = enrol_get_plugin('wallet');
+            $instance = $plugin->get_instance_by_id($itemid);
+
             $user = \core_user::get_user($userid);
             // Now enrol the user after successful payment.
             $plugin->enrol_self($instance, $user);
 
             return true;
         } else {
-            // Get the fake item in case of topup the wallet.
+            // Get the fake item in case of topping up the wallet.
             $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
-            \enrol_wallet\transactions::payment_topup($item->cost, $userid);
+            transactions::payment_topup($item->cost, $userid);
             return true;
         }
     }
