@@ -89,7 +89,7 @@ if ($accounts) {
 }
 $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
 
-$enrol = new enrol_wallet_plugin;
+$enrol = enrol_get_plugin('wallet');
 $supportedcurrencies = $enrol->get_possible_currencies();
 $supportedcurrencies = [ '-1' => 'No change' ] + $supportedcurrencies;
 $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'), $supportedcurrencies, ['optional' => true]);
@@ -139,20 +139,8 @@ $mform->addElement('date_time_selector', 'enrolenddate', get_string('enrolenddat
 $mform->setDefault('enrolenddate', 0);
 $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_wallet');
 
-$options = [-1 => 'No change',
-            0 => get_string('never'),
-            1800 * 3600 * 24 => get_string('numdays', '', 1800),
-            1000 * 3600 * 24 => get_string('numdays', '', 1000),
-            365 * 3600 * 24 => get_string('numdays', '', 365),
-            180 * 3600 * 24 => get_string('numdays', '', 180),
-            150 * 3600 * 24 => get_string('numdays', '', 150),
-            120 * 3600 * 24 => get_string('numdays', '', 120),
-            90 * 3600 * 24 => get_string('numdays', '', 90),
-            60 * 3600 * 24 => get_string('numdays', '', 60),
-            30 * 3600 * 24 => get_string('numdays', '', 30),
-            21 * 3600 * 24 => get_string('numdays', '', 21),
-            14 * 3600 * 24 => get_string('numdays', '', 14),
-            7 * 3600 * 24 => get_string('numdays', '', 7)];
+$options = [-1 => 'No change'];
+$options[] = $enrol->get_longtimenosee_options();
 $mform->addElement('select', 'customint2', get_string('longtimenosee', 'enrol_wallet'), $options);
 $mform->addHelpButton('customint2', 'longtimenosee', 'enrol_wallet');
 

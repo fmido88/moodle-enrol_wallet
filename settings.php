@@ -79,7 +79,7 @@ if ($hassiteconfig || $captransactions || $capbulkedit) {
 
 if ($ADMIN->fulltree) {
     global $DB;
-
+    $walletplugin = enrol_get_plugin('wallet');
     // General settings.
     $settings->add(new admin_setting_heading('enrol_wallet_settings', '',
         get_string('pluginname_desc', 'enrol_wallet')));
@@ -233,8 +233,7 @@ if ($ADMIN->fulltree) {
     }
 
     // Add default currency.
-    $wallet = new \enrol_wallet_plugin;
-    $supportedcurrencies = $wallet->get_possible_currencies();
+    $supportedcurrencies = $walletplugin->get_possible_currencies();
     $settings->add(new admin_setting_configselect('enrol_wallet/currency', get_string('currency', 'enrol_wallet'),
                                             get_string('currency_help', 'enrol_wallet'), '', $supportedcurrencies));
 
@@ -273,19 +272,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configduration('enrol_wallet/expirythreshold',
         get_string('expirythreshold', 'core_enrol'), get_string('expirythreshold_help', 'core_enrol'), 86400, 86400));
 
-    $options = array(0 => get_string('never'),
-                     1800 * 3600 * 24 => get_string('numdays', '', 1800),
-                     1000 * 3600 * 24 => get_string('numdays', '', 1000),
-                     365 * 3600 * 24 => get_string('numdays', '', 365),
-                     180 * 3600 * 24 => get_string('numdays', '', 180),
-                     150 * 3600 * 24 => get_string('numdays', '', 150),
-                     120 * 3600 * 24 => get_string('numdays', '', 120),
-                     90 * 3600 * 24 => get_string('numdays', '', 90),
-                     60 * 3600 * 24 => get_string('numdays', '', 60),
-                     30 * 3600 * 24 => get_string('numdays', '', 30),
-                     21 * 3600 * 24 => get_string('numdays', '', 21),
-                     14 * 3600 * 24 => get_string('numdays', '', 14),
-                     7 * 3600 * 24 => get_string('numdays', '', 7));
+    $options = $walletplugin->get_longtimenosee_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/longtimenosee',
         get_string('longtimenosee', 'enrol_wallet'), get_string('longtimenosee_help', 'enrol_wallet'), 0, $options));
 

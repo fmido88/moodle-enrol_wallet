@@ -908,7 +908,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      *
      * @return array
      */
-    protected function get_longtimenosee_options() {
+    public function get_longtimenosee_options() {
         $options = [0 => get_string('never'),
                     1800 * DAYSECS => get_string('numdays', '', 1800),
                     1000 * DAYSECS => get_string('numdays', '', 1000),
@@ -1051,6 +1051,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $options = $this->get_status_options();
         $mform->addElement('select', 'status', get_string('status', 'enrol_wallet'), $options);
         $mform->addHelpButton('status', 'status', 'enrol_wallet');
+
+        // TODO add password as an optional restriction.
 
         $options = $this->get_newenrols_options();
         $mform->addElement('select', 'customint6', get_string('newenrols', 'enrol_wallet'), $options);

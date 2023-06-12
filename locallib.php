@@ -24,11 +24,12 @@
 
 /**
  * Check if the given password match a group enrolment key in the specified course.
+ * This function has no use now in this plugin, I'm leaving it here because in future version may adding
+ * password restrictions and this function will be useful.
  *
  * @param  int $courseid            course id
  * @param  string $enrolpassword    enrolment password
  * @return bool                     True if match
- * @since  Moodle 3.0
  */
 function enrol_wallet_check_group_enrolment_key($courseid, $enrolpassword) {
     global $DB;
