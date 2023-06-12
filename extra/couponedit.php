@@ -29,9 +29,7 @@ require_login();
 $select = optional_param_array('select', [], PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
 $ids = optional_param('ids', '', PARAM_TEXT);
-echo '<pre>';
-var_dump($select, $_POST);
-echo '</pre>';
+
 require_login();
 require_capability('enrol/wallet:deletecoupon', context_system::instance());
 // TODO adding options to edit coupons.
