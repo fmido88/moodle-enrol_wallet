@@ -57,7 +57,7 @@ class observer {
         if (null == $instance) {
             return;
         }
-        if ($instance->customint8) {
+        if (!empty($instance->customint8)) {
             global $CFG, $DB;
             require_once($CFG->dirroot.'/grade/querylib.php');
             require_once($CFG->libdir . '/gradelib.php');

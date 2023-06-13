@@ -277,7 +277,7 @@ Payment to top-up your wallet cannot be refunded in the following cases:<br>
 2- If the grace of refund period expired (14 days).<br>
 When charging your wallet by any method means you agreed to this policy.';
 $string['refundperiod'] = 'Refunding grace period';
-$string['refundperiod_desc'] = 'The time in days after which user\'s cannot refunded for what they pay to top-up their wallets. 0 mean refund any time.';
+$string['refundperiod_desc'] = 'The time after which user\'s cannot refunded for what they pay to top-up their wallets. 0 mean refund any time.';
 $string['role'] = 'Default assigned role';
 
 $string['sendcoursewelcomemessage'] = 'Send course welcome message';

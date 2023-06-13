@@ -42,13 +42,17 @@ class turn_non_refundable extends \core\task\adhoc_task {
      * Run task turn the transaction to not refundable.
      */
     public function execute() {
-
+        mtrace('Starting the task...');
         $data = $this->get_custom_data();
         if ($transform = $this->check_transform_validation($data)) {
+            mtrace('Transform validation success...');
             $userid = $data->userid;
             $this->apply_transformation($userid, $transform);
+            mtrace('Transformation done ...');
+        } else {
+            mtrace('Transformation validation failed ....');
         }
-
+        mtrace('Task Completed');
     }
 
     /**
@@ -64,6 +68,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $period = get_config('enrol_wallet', 'refundperiod');
         $norefund = transactions::get_nonrefund_balance($userid);
         if ($norefund >= $balance) {
+            mtrace('Non refundable amount grater than user\'s balance');
             return false;
         }
         // Get all transactions in this time.
@@ -73,7 +78,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
                 AND timecreated >= :checktime";
         $params = [
             'userid' => $userid,
-            'checktime' => time() - ($period * DAYSECS),
+            'checktime' => time() - $period,
         ];
         $records = $DB->get_records_sql($sql, $params);
         $credit = 0;
@@ -88,6 +93,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         }
         // Check if the user spent more than the amount of the transform transaction.
         if ($amount <= $debit) {
+            mtrace('user spent this amount in the grace period already...');
             return false;
         } else {
             $transform = $amount - $debit;
@@ -109,6 +115,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         // If refunding is disable, transform all balance to non-refundable.
         $refundenabled = get_config('enrol_wallet', 'enablerefund');
         if (empty($refundenabled)) {
+            mtrace('Refunding is disabled in this website, all of user\'s balance will transform');
             $transform = $balance;
         }
         $recorddata = [

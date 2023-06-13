@@ -421,10 +421,10 @@ class transactions {
         global $DB;
         $record = $DB->get_record('enrol_wallet_transactions', ['id' => $id]);
         $period = get_config('enrol_wallet', 'refundperiod');
-        if (empty($period) || $period == 0) {
+        if (empty($period)) {
             return;
         }
-        $runtime = time() + $period * DAYSECS;
+        $runtime = time() + $period;
         $task = new \enrol_wallet\task\turn_non_refundable;
         $task->set_custom_data(
                 [

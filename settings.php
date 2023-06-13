@@ -140,13 +140,11 @@ if ($ADMIN->fulltree) {
                         get_string('enablerefund', 'enrol_wallet'),
                         get_string('enablerefund_desc', 'enrol_wallet'),
                         1));
-    $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/refundperiod',
+    $settings->add(new admin_setting_configduration('enrol_wallet/refundperiod',
                         get_string('refundperiod', 'enrol_wallet'),
                         get_string('refundperiod_desc', 'enrol_wallet'),
-                        14,
-                        PARAM_NUMBER,
-                        null,
-                        3));
+                        14 * DAYSECS,
+                        DAYSECS));
 
     // Adding discounts and coupons.
     $settings->add(new admin_setting_heading('enrol_wallet_discounts',

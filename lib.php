@@ -963,7 +963,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return array<string>
      */
     protected function get_cohorts_options($instance, $context) {
-        global $CFG;
+        global $CFG, $DB;
         require_once($CFG->dirroot.'/cohort/lib.php');
 
         $cohorts = [0 => get_string('no')];
@@ -1015,7 +1015,6 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param context $context
      */
     public function edit_instance_form($instance, MoodleQuickForm $mform, $context) {
-        global $CFG, $DB;
 
         // Merge these two settings to one value for the single selection element.
         if ($instance->notifyall && $instance->expirynotify) {
@@ -1393,11 +1392,12 @@ class enrol_wallet_plugin extends enrol_plugin {
         if ($coupon == null) {
             $coupon = self::check_discount_coupon();
         }
+        // Save coupon in session.
         $_SESSION['coupon'] = $coupon;
 
         $costaftercoupon = $instance->cost;
 
-        if (!empty($coupon) || $coupon != null) {
+        if (!empty($coupon) && $couponsetting != self::WALLET_NOCOUPONS) {
             $coupondata = transactions::get_coupon_value($coupon, $userid);
 
             $type = (is_array($coupondata)) ? $coupondata['type'] : '';
@@ -1410,11 +1410,6 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $difference = $instance->cost - $coupondata['value'];
                 // Cannot allow negative cost.
                 $costaftercoupon = max(0, $difference);
-            }
-            // If we disabled the coupons it will not be appearing in the form.
-            // This condition is just in case as a security reason.
-            if ($couponsetting == self::WALLET_NOCOUPONS) {
-                $costaftercoupon = $instance->cost;
             }
         }
 
