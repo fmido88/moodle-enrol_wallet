@@ -46,7 +46,7 @@ class turn_non_refundable_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
 
         $period = get_config('enrol_wallet', 'refundperiod');
-        $this->assertEquals(14 *DAYSECS, $period);
+        $this->assertEquals(14 * DAYSECS, $period);
 
         transactions::payment_topup(200, $user->id);
         $balance = transactions::get_user_balance($user->id);
