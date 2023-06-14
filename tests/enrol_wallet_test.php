@@ -75,7 +75,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_longtimnosee() {
         global $DB;
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
@@ -200,7 +200,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_expired() {
         global $DB;
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
         $this->assertNotEmpty($walletplugin);
         $manualplugin = enrol_get_plugin('manual');
@@ -327,7 +327,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
         $manualplugin = enrol_get_plugin('manual');
         $now = time();
@@ -512,7 +512,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
 
         $user1 = $this->getDataGenerator()->create_user();
@@ -685,7 +685,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
 
         $user1 = $this->getDataGenerator()->create_user();
@@ -854,7 +854,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_get_welcome_email_contact() {
         global $DB;
         self::resetAfterTest(true);
-        enrol_wallet_enable_plugin();
+
         $user1 = $this->getDataGenerator()->create_user(['lastname' => 'Marsh']);
         $user2 = $this->getDataGenerator()->create_user(['lastname' => 'Victoria']);
         $user3 = $this->getDataGenerator()->create_user(['lastname' => 'Burch']);
@@ -979,7 +979,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_get_cost_after_discount() {
         global $DB;
         self::resetAfterTest(true);
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
         // Check that cost after discount return the original cost.
         $user1 = $this->getDataGenerator()->create_user();
@@ -1083,7 +1083,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_enrol_self() {
         global $DB;
         self::resetAfterTest(true);
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
         $user1 = $this->getDataGenerator()->create_user();
         transactions::payment_topup(250, $user1->id);

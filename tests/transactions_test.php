@@ -28,7 +28,7 @@ use enrol_wallet\transactions;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+
 /**
  * Wallet enrolment tests.
  *
@@ -64,7 +64,6 @@ class transactions_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        enrol_wallet_enable_plugin();
 
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');

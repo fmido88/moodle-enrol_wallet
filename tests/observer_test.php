@@ -29,7 +29,7 @@ use enrol_wallet_plugin;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+
 /**
  * Wallet enrolment tests.
  *
@@ -45,7 +45,7 @@ class observer_test extends \advanced_testcase {
     public function test_wallet_completion_awards() {
         global $DB, $CFG;
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;
@@ -124,7 +124,7 @@ class observer_test extends \advanced_testcase {
      */
     public function test_wallet_gifting_new_user() {
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
+
         $walletplugin = enrol_get_plugin('wallet');
 
         // Create user and check that there is no balance.
@@ -152,7 +152,6 @@ class observer_test extends \advanced_testcase {
      */
     public function test_conditional_discount_charging() {
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
 
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();

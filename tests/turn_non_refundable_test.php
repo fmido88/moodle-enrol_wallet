@@ -25,9 +25,7 @@ namespace enrol_wallet;
 
 use enrol_wallet\transactions;
 use enrol_wallet\task\turn_non_refundable;
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+
 /**
  * Testing the adhoc task to transform certain amount to nonrefundable.
  *
@@ -42,7 +40,7 @@ class turn_non_refundable_test extends \advanced_testcase {
      */
     public function test_turn_non_refundable() {
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
+
         $user = $this->getDataGenerator()->create_user();
 
         $period = get_config('enrol_wallet', 'refundperiod');
@@ -115,7 +113,7 @@ class turn_non_refundable_test extends \advanced_testcase {
      */
     public function test_check_transform_validation() {
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
+
         $user = $this->getDataGenerator()->create_user();
         // Charge the wallet with already nonrefundable balance.
         transactions::payment_topup(200, $user->id, '', '', false);

@@ -24,9 +24,7 @@
 namespace enrol_wallet;
 
 use enrol_wallet\notifications;
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+
 /**
  * Wallet transactions notifications test.
  *
@@ -42,7 +40,6 @@ class notifications_test extends \advanced_testcase {
     public function test_transaction_notifications() {
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        enrol_wallet_enable_plugin();
 
         $this->assertTrue(enrol_is_enabled('wallet'));
 

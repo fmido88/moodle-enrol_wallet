@@ -41,10 +41,9 @@ class externallib_test extends externallib_advanced_testcase {
     public function test_get_instance_info() {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
-        require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 
         $this->resetAfterTest(true);
-        enrol_wallet_enable_plugin();
+
         // Check if wallet enrolment plugin is enabled.
         $walletplugin = enrol_get_plugin('wallet');
         $this->assertNotEmpty($walletplugin);
@@ -123,10 +122,8 @@ class externallib_test extends externallib_advanced_testcase {
     public function test_enrol_user() {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
-        require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 
         $this->resetAfterTest(true);
-        enrol_wallet_enable_plugin();
 
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
