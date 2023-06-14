@@ -79,7 +79,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
             'userid' => $userid,
             'checktime' => time() - $period,
         ];
-        $records = $DB->get_record_select('enrol_wallet_transactions', $where, $params);
+        $records = $DB->get_records_select('enrol_wallet_transactions', $where, $params);
         $credit = 0;
         $debit = 0;
         // Collect all credit and debit through this time.
