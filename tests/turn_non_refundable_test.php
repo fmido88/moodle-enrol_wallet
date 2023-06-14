@@ -137,7 +137,7 @@ class turn_non_refundable_test extends \advanced_testcase {
         $output3 = $task->check_transform_validation($data);
         $this->assertEquals($output3, 150);
 
-        $data->vaule = 40;
+        $data->amount = 40;
         $output4 = $task->check_transform_validation($data);
         $this->assertStringContainsString('user spent this amount in the grace period already', $output4);
     }

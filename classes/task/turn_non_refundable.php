@@ -74,15 +74,12 @@ class turn_non_refundable extends \core\task\adhoc_task {
             return 'Non refundable amount grater than or equal user\'s balance'."\n";
         }
         // Get all transactions in this time.
-        $sql = "SELECT id, type, amount
-                FROM {enrol_wallet_transactions}
-                WHERE userid = :userid
-                AND timecreated >= :checktime";
+        $where = "userid = :userid AND timecreated >= :checktime";
         $params = [
             'userid' => $userid,
             'checktime' => time() - $period,
         ];
-        $records = $DB->get_records_sql($sql, $params);
+        $records = $DB->get_record_select('enrol_wallet_transactions', $where, $params);
         $credit = 0;
         $debit = 0;
         // Collect all credit and debit through this time.
