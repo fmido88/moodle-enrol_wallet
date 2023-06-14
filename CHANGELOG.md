@@ -1,5 +1,9 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.6.3 ##
+- Some code improvement
+- Enable plugin upon installation
+
 ## V 1.6.2 ##
 - Add automate PHPUnit test for external service.
 - Add cost to external services info.
