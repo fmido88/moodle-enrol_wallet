@@ -23,7 +23,7 @@
  */
 
 require_once('../../../config.php');
-require(__DIR__.'/../lib.php');
+require_once(__DIR__.'/../lib.php');
 global $DB, $USER;
 
 require_login();

@@ -80,10 +80,10 @@ function enrol_wallet_enable_plugin() {
 }
 
 /**
- * Summary of enrol_wallet_get_random_coupon
- * @param int $length
- * @param array $options
- * @return string
+ * Creating a random coupon according to the options and length provided.
+ * @param int $length length of the coupon
+ * @param array $options characters options
+ * @return string the random coupon generated.
  */
 function enrol_wallet_get_random_coupon($length, $options) {
     $randomcoupon = '';

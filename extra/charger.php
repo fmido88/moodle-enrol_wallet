@@ -25,7 +25,6 @@
 require_once(__DIR__.'/../../../config.php');
 global $USER, $DB, $CFG;
 
-require_once($CFG->dirroot.'/enrol/wallet/lib.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 
 $context = context_system::instance();

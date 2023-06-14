@@ -259,6 +259,7 @@ if ($table->is_downloading()) {
 $sqlr = 'SELECT * '. $sql;
 $records = $DB->get_records_sql($sqlr, [], $limitfrom, $limitnum);
 
+// Pages links.
 if (!$table->is_downloading()) {
     $pages = intval($count / $limitnum);
     $content = '<p>Page: </p>';

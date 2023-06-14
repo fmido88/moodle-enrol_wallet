@@ -44,7 +44,7 @@ class enrol_wallet_test extends \advanced_testcase {
      */
     public function test_basics() {
         $this->resetAfterTest();
-        enrol_wallet_enable_plugin();
+
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
