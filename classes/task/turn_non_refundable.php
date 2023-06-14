@@ -71,7 +71,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $period = get_config('enrol_wallet', 'refundperiod');
         $norefund = transactions::get_nonrefund_balance($userid);
         if ($norefund >= $balance) {
-            return 'Non refundable amount grater than user\'s balance'."\n";
+            return 'Non refundable amount grater than or equal user\'s balance'."\n";
         }
         // Get all transactions in this time.
         $sql = "SELECT id, type, amount

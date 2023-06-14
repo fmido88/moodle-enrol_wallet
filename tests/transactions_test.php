@@ -81,7 +81,9 @@ class transactions_test extends \advanced_testcase {
         $sink->clear();
 
         $balance = $this->transactions->get_user_balance($user->id);
+        $norefund = $this->transactions->get_nonrefund_balance($user->id);
         $this->assertEquals(250, $balance);
+        $this->assertEquals(0, $norefund);
         // Two events: transaction_triggered and notification_sent.
         $this->assertEquals(2, count($events));
         $this->assertInstanceOf('\enrol_wallet\event\transactions_triggered', $events[1]);
@@ -106,6 +108,44 @@ class transactions_test extends \advanced_testcase {
         $this->transactions->debit($user->id, 250);
         $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(200, $balance);
+        // Check that the value is nonrefundable.
+        $user2 = $this->getDataGenerator()->create_user();
+        $this->transactions->payment_topup(50, $user2->id, '', '', false);
+        $balance = $this->transactions->get_user_balance($user2->id);
+        $norefund = $this->transactions->get_nonrefund_balance($user2->id);
+        $this->assertEquals(50, $balance);
+        $this->assertEquals(50, $norefund);
+
+        // Check disable refund will make all values nonrefundable.
+        set_config('enablerefund', 0, 'enrol_wallet');
+        $user3 = $this->getDataGenerator()->create_user();
+        $this->transactions->payment_topup(100, $user3->id);
+        $balance = $this->transactions->get_user_balance($user3->id);
+        $norefund = $this->transactions->get_nonrefund_balance($user3->id);
+        $this->assertEquals(100, $balance);
+        $this->assertEquals(100, $norefund);
+
+        // Testing that debit process will deduct from the refundable credit first.
+        set_config('enablerefund', 1, 'enrol_wallet');
+        $user4 = $this->getDataGenerator()->create_user();
+        $this->transactions->payment_topup(100, $user4->id);
+        $this->transactions->payment_topup(100, $user4->id, '', '', false);
+        $balance = $this->transactions->get_user_balance($user4->id);
+        $norefund = $this->transactions->get_nonrefund_balance($user4->id);
+        $this->assertEquals(200, $balance);
+        $this->assertEquals(100, $norefund);
+
+        $this->transactions->debit($user4->id, 50);
+        $balance = $this->transactions->get_user_balance($user4->id);
+        $norefund = $this->transactions->get_nonrefund_balance($user4->id);
+        $this->assertEquals(150, $balance);
+        $this->assertEquals(100, $norefund);
+
+        $this->transactions->debit($user4->id, 100);
+        $balance = $this->transactions->get_user_balance($user4->id);
+        $norefund = $this->transactions->get_nonrefund_balance($user4->id);
+        $this->assertEquals(50, $balance);
+        $this->assertEquals(50, $norefund);
     }
 
     /**

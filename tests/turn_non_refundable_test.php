@@ -62,7 +62,10 @@ class turn_non_refundable_test extends \advanced_testcase {
 
         $task = new turn_non_refundable;
         $task->set_custom_data($taskdata);
+
+        ob_start();
         $task->execute();
+        ob_end_clean();
 
         $balance = transactions::get_user_balance($user->id);
         $norefund = transactions::get_nonrefund_balance($user->id);
@@ -77,7 +80,10 @@ class turn_non_refundable_test extends \advanced_testcase {
 
         $task = new turn_non_refundable;
         $task->set_custom_data($taskdata);
+
+        ob_start();
         $task->execute();
+        ob_end_clean();
 
         $balance = transactions::get_user_balance($user->id);
         $norefund = transactions::get_nonrefund_balance($user->id);
@@ -90,12 +96,49 @@ class turn_non_refundable_test extends \advanced_testcase {
 
         $task = new turn_non_refundable;
         $task->set_custom_data($taskdata);
+
+        ob_start();
         $task->execute();
+        ob_end_clean();
 
         $balance = transactions::get_user_balance($user->id);
         $norefund = transactions::get_nonrefund_balance($user->id);
 
         $this->assertEquals(160, $balance);
         $this->assertEquals(160, $norefund);
+    }
+
+    /**
+     * test_check_transform_validation
+     * @covers ::check_transform_validation()
+     * @return void
+     */
+    public function test_check_transform_validation() {
+        $this->resetAfterTest();
+        enrol_wallet_enable_plugin();
+        $user = $this->getDataGenerator()->create_user();
+        // Charge the wallet with already nonrefundable balance.
+        transactions::payment_topup(200, $user->id, '', '', false);
+        $data = (object)[
+            'userid' => $user->id,
+            'amount' => 200,
+        ];
+        $task = new turn_non_refundable;
+        $output1 = $task->check_transform_validation($data);
+        $this->assertStringContainsString('Non refundable amount grater than or equal user\'s balance', $output1);
+
+        // Charge more with refundable balance.
+        transactions::payment_topup(100, $user->id);
+        $output2 = $task->check_transform_validation($data);
+        $this->assertEquals($output2, 200);
+
+        // Not transform what already used.
+        transactions::debit($user->id, 50);
+        $output3 = $task->check_transform_validation($data);
+        $this->assertEquals($output3, 150);
+
+        $data->vaule = 40;
+        $output4 = $task->check_transform_validation($data);
+        $this->assertStringContainsString('user spent this amount in the grace period already', $output4);
     }
 }
