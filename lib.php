@@ -160,21 +160,8 @@ class enrol_wallet_plugin extends enrol_plugin {
      *
      * @param array $instances all enrol instances of this type in one course
      * @return array of pix_icon
-     * @throws \coding_exception
-     * @throws \dml_exception
-     * @since 1.0
      */
     public function get_info_icons(array $instances) {
-        foreach ($instances as $instance) {
-            if ($this->can_self_enrol($instance, false) !== true) {
-                // User can not enrol himself.
-                // Note that we do not check here if user is already enrolled for performance reasons -
-                // such check would execute extra queries for each course in the list of courses and
-                // would hide wallet-enrolment icons from guests.
-                continue;
-            }
-        }
-
         return [new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet')];
     }
 
@@ -306,7 +293,10 @@ class enrol_wallet_plugin extends enrol_plugin {
         if ($coupon != null && $costafter < $instance->cost) {
             transactions::mark_coupon_used($coupon, $user->id, $instance->id);
         }
+        // Unset the session coupon to make sure not used again.
+        // This is a double check, already included in mark_coupon_used()
         if (isset($_SESSION['coupon'])) {
+            $_SESSION['coupon'] = '';
             unset($_SESSION['coupon']);
         }
         // Now apply the cashback if enabled.
@@ -422,7 +412,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
 
             // If the payment enbled in this instance, display the payment button.
-            if ($instance->customint1 != null && $instance->customint1 != '' && $instance->currency != null) {
+            if (!empty($instance->customint1) && !empty($instance->currency)) {
                 $output .= self::show_payment_info($instance, $costafter);
             }
 
@@ -437,7 +427,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
 
         } else {
-            // This user can not enrol using this instance. Using an empty form to keep
+            // This user cannot enrol using this instance. Using an empty form to keep
             // the UI consistent with other enrolment plugins that returns a form.
             $data = new stdClass();
             $data->header = $this->get_instance_name($instance);
@@ -555,8 +545,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function get_enrol_info(stdClass $instance) {
         global $USER;
-        $coupon = optional_param('coupon', null, PARAM_RAW);
-        $coupon = isset($_SESSION['coupon']) ? $_SESSION['coupon'] : $coupon;
+        $coupon = $this->check_discount_coupon();
 
         $instanceinfo = new stdClass();
         $instanceinfo->id = $instance->id;

@@ -334,7 +334,11 @@ class transactions {
      * @return void
      */
     public static function mark_coupon_used($coupon, $userid, $instanceid) {
-
+        // Unset the session coupon to make sure not used again.
+        if (isset($_SESSION['coupon'])) {
+            $_SESSION['coupon'] = '';
+            unset($_SESSION['coupon']);
+        }
         $source = get_config('enrol_wallet', 'walletsource');
 
         if ($source == self::SOURCE_WORDPRESS) {

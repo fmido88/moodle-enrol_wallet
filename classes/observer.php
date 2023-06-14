@@ -197,8 +197,8 @@ class observer {
     }
 
     /**
-     * This is a callback function after a user is logged in successfully
-     * to login user in wordpress website.
+     * This is a callback function after a user is logged out successfully
+     * to logout user from wordpress website.
      *
      * @param \core\event\user_loggedout $event
      * @return void
@@ -207,7 +207,7 @@ class observer {
         $userid = $event->userid;
 
         $user = \core_user::get_user($userid);
-        if (!$user || isguestuser($user) || !empty($user->deleted) || !empty($user->suspended)) {
+        if (!$user || isguestuser($user)) {
             return;
         }
 
