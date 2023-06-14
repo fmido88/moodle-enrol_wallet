@@ -44,12 +44,15 @@ class turn_non_refundable extends \core\task\adhoc_task {
     public function execute() {
         mtrace('Starting the task...');
         $data = $this->get_custom_data();
-        if ($transform = $this->check_transform_validation($data)) {
+        $transform = $this->check_transform_validation($data);
+        if (is_numeric($transform)) {
             mtrace('Transform validation success...');
             $userid = $data->userid;
-            $this->apply_transformation($userid, $transform);
+            $trace = $this->apply_transformation($userid, $transform);
+            mtrace($trace);
             mtrace('Transformation done ...');
         } else {
+            mtrace($transform);
             mtrace('Transformation validation failed ....');
         }
         mtrace('Task Completed');
@@ -58,7 +61,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
     /**
      * Check if transformation is valid or not.
      * @param object $data custom data of the task
-     * @return bool|float
+     * @return string|float
      */
     public function check_transform_validation($data) {
         global $DB;
@@ -68,8 +71,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $period = get_config('enrol_wallet', 'refundperiod');
         $norefund = transactions::get_nonrefund_balance($userid);
         if ($norefund >= $balance) {
-            mtrace('Non refundable amount grater than user\'s balance');
-            return false;
+            return 'Non refundable amount grater than user\'s balance'."\n";
         }
         // Get all transactions in this time.
         $sql = "SELECT id, type, amount
@@ -93,8 +95,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         }
         // Check if the user spent more than the amount of the transform transaction.
         if ($amount <= $debit) {
-            mtrace('user spent this amount in the grace period already...');
-            return false;
+            return 'user spent this amount in the grace period already...'."\n";
         } else {
             $transform = $amount - $debit;
             return $transform;
@@ -105,18 +106,19 @@ class turn_non_refundable extends \core\task\adhoc_task {
      * Apply transformation
      * @param int $userid user's id
      * @param float $transform the amount that should be transformed to nonrefundable
-     * @return void
+     * @return string
      */
     public function apply_transformation($userid, $transform) {
         global $DB;
 
+        $trace = '';
         $balance = transactions::get_user_balance($userid);
         $norefund = transactions::get_nonrefund_balance($userid);
         // If refunding is disable, transform all balance to non-refundable.
         $refundenabled = get_config('enrol_wallet', 'enablerefund');
         if (empty($refundenabled)) {
-            mtrace('Refunding is disabled in this website, all of user\'s balance will transform');
             $transform = $balance;
+            $trace = 'Refunding is disabled in this website, all of user\'s balance will transform...'."\n";
         }
         $recorddata = [
             'userid' => $userid,
@@ -125,9 +127,12 @@ class turn_non_refundable extends \core\task\adhoc_task {
             'balbefore' => $balance,
             'balance' => $balance,
             'norefund' => min($norefund + $transform, $balance),
-            'descripe' => 'Transform the transaction to nonrefundable due to expiring of refund period.',
+            'descripe' => 'Transform the transaction to nonrefundable due to expiring of refund period.'."\n",
             'timecreated' => time(),
         ];
         $DB->insert_record('enrol_wallet_transactions', $recorddata);
+        $trace .= "User with id $userid now has a ".
+                    $recorddata['norefund']." nonrefundabel balance in his\her wallet out of $balance total balance...\n";
+        return $trace;
     }
 }

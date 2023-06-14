@@ -842,7 +842,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function restore_role_assignment($instance, $roleid, $userid, $contextid) {
         // This is necessary only because we may migrate other types to this instance,
-        // we do not use component in manual or self enrol.
+        // we do not use component in wallet enrol.
         role_assign($roleid, $userid, $contextid, '', 0);
     }
 
@@ -853,8 +853,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool
      */
     public function can_delete_instance($instance) {
-        $context = context_course::instance($instance->courseid);
-        return has_capability('enrol/wallet:config', $context);
+        return $this->can_hide_show_instance($instance);
     }
 
     /**
@@ -863,7 +862,6 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param stdClass $instance
      * @return bool
      * @throws \coding_exception
-     * @since 1.0
      */
     public function can_hide_show_instance($instance) {
         $context = context_course::instance($instance->courseid);
