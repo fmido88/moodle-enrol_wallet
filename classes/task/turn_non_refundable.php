@@ -82,6 +82,9 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $records = $DB->get_records_select('enrol_wallet_transactions', $where, $params);
         $credit = 0;
         $debit = 0;
+        if (empty($records)) {
+            return $amount;
+        }
         // Collect all credit and debit through this time.
         foreach ($records as $record) {
             if ($record->type == 'credit') {
