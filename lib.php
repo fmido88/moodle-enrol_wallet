@@ -294,7 +294,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             transactions::mark_coupon_used($coupon, $user->id, $instance->id);
         }
         // Unset the session coupon to make sure not used again.
-        // This is a double check, already included in mark_coupon_used()
+        // This is a double check, already included in mark_coupon_used().
         if (isset($_SESSION['coupon'])) {
             $_SESSION['coupon'] = '';
             unset($_SESSION['coupon']);
