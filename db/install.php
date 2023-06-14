@@ -29,7 +29,7 @@
  */
 function xmldb_enrol_wallet_install() {
     global $CFG;
-    require_once($CFG->dirroot.'\enrol\wallet\locallib.php');
+    require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
     enrol_wallet_enable_plugin();
 
     return true;
