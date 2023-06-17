@@ -130,6 +130,9 @@ class externallib_test extends externallib_advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
 
+        // In this test we will add instances manually.
+        $walletplugin->set_config('defaultenrol', 0);
+
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
         $user1 = $this->getDataGenerator()->create_user();
