@@ -960,6 +960,10 @@ class enrol_wallet_plugin extends enrol_plugin {
         return $options;
     }
 
+    /**
+     * Return an array of valid send welcome email options.
+     * @return array<string>
+     */
     protected function get_send_welcome_email_option() {
         $options = [
             ENROL_DO_NOT_SEND_EMAIL                 => get_string('no'),
