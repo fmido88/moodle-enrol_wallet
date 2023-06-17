@@ -54,20 +54,26 @@ class transactions {
      * @param string $description the description of this transaction.
      * @param string|int $charger the user id who charged this amount.
      * @param bool $refundable If this transaction is refundable or not.
-     * @return array|string the response from the wordpress website.
+     * @return int|string the id of transaction record or error string response from the wordpress website.
      */
     public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true) {
         global $DB;
-        if ($charger === '') {
+
+        if (empty($charger)) {
             $charger = $userid;
         }
+
         // Turn all credit operations to nonrefundable if refund settings not enabled.
         $refundenabled = get_config('enrol_wallet', 'enablerefund');
+
         if (empty($refundenabled)) {
             $refundable = false;
         }
+
         $before = self::get_user_balance($userid);
+
         $source = get_config('enrol_wallet', 'walletsource');
+
         if ($source == self::SOURCE_WORDPRESS) {
 
             $wordpress = new \enrol_wallet\wordpress;
@@ -78,10 +84,14 @@ class transactions {
             }
 
             $newbalance = self::get_user_balance($userid);
+
         } else {
+
             $newbalance = $before + $amount;
         }
+
         $oldnotrefund = self::get_nonrefund_balance($userid);
+
         $recorddata = [
             'userid' => $userid,
             'type' => 'credit',
@@ -89,18 +99,18 @@ class transactions {
             'balbefore' => $before,
             'balance' => $newbalance,
             'norefund' => $refundable ? $oldnotrefund : $amount + $oldnotrefund,
-            'descripe' => $description.' by user with id '.$charger,
+            'descripe' => $description,
             'timecreated' => time()
         ];
 
         $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
+
         if ($refundable) {
-            self::quene_transaction_transformation($id);
+            self::queue_transaction_transformation($id);
         }
-        if ($source == self::SOURCE_MOODLE) {
-            $responsedata['success'] = true;
-        }
+
         self::notify()->transaction_notify($recorddata);
+
         self::triger_transaction_event($amount, 'credit', $charger, $userid, $description, $id, $refundable);
 
         return $id;
@@ -114,18 +124,25 @@ class transactions {
      * @return mixed
      */
     public static function debit($userid, float $amount, $coursename = '', $charger = '') {
-        if ($charger === '') {
+
+        if (empty($charger)) {
             $charger = $userid;
         }
+
         $before = self::get_user_balance($userid);
+
         $source = get_config('enrol_wallet', 'walletsource');
+
         if ($source == self::SOURCE_WORDPRESS) {
+
             $wordpress = new \enrol_wallet\wordpress;
 
             $response = $wordpress->debit($userid, $amount, $coursename, $charger);
 
             $newbalance = self::get_user_balance($userid);
+
         } else if ($source == self::SOURCE_MOODLE) {
+
             $newbalance = $before - $amount;
 
             if ($newbalance < 0) {
@@ -133,6 +150,7 @@ class transactions {
                 // TODO throw error.
                 return false;
             }
+
             $response = 'done';
         }
 
@@ -145,12 +163,14 @@ class transactions {
             'coursename' => $coursename,
         ];
 
-        if ($coursename !== '') {
+        if (!empty($coursename)) {
             $description = get_string('debitdesc_course', 'enrol_wallet', $a);
         } else {
             $description = get_string('debitdesc_user', 'enrol_wallet', $a);
         }
+
         $oldnotrefund = self::get_nonrefund_balance($userid);
+
         $recorddata = [
             'userid' => $userid,
             'type' => 'debit',
@@ -163,7 +183,9 @@ class transactions {
         ];
 
         $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
+
         self::notify()->transaction_notify($recorddata);
+
         self::triger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
 
         return $id;
@@ -177,25 +199,36 @@ class transactions {
      * @return float|false|string
      */
     public static function get_user_balance($userid) {
+
         $source = get_config('enrol_wallet', 'walletsource');
+
         if ($source == self::SOURCE_WORDPRESS) {
             $wordpress = new \enrol_wallet\wordpress;
             $response = $wordpress->get_user_balance($userid);
+
             if (!is_numeric($response)) {
+                // This mean error or user not exist yet.
                 return 0;
             }
-            return $response;
-        } else if ($source == self::SOURCE_MOODLE) {
-            global $DB;
 
+            return $response;
+    
+        } else if ($source == self::SOURCE_MOODLE) {
+
+            global $DB;
+            // Get the balance from the last transaction.
             $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'id DESC', 'balance', 0, 1);
 
             // Getting the balance from last transaction.
             $key = array_key_first($record);
+            // User with no records of any transactions means no balance yet.
             $balance = (!empty($record)) ? $record[$key]->balance : 0;
 
             return (float)$balance;
+
         } else {
+
+            // Not likely, because this means settings error.
             return false;
         }
     }
@@ -260,18 +293,22 @@ class transactions {
             if (!$couponrecord) {
                 return get_string('coupon_notexist', 'enrol_wallet');
             }
+
             // Make sure that the coupon didn't exceed the max usage (0 mean unlimited).
             if ($couponrecord->maxusage <= $couponrecord->usetimes && $couponrecord->maxusage != 0) {
                 return get_string('coupon_exceedusage', 'enrol_wallet');
             }
+
             // Make sure that this coupon is within validation time (0 mean any time).
             if ($couponrecord->validfrom > time() && $couponrecord->validfrom != 0) {
                 $date = userdate($couponrecord->validfrom);
                 return get_string('coupon_notvalidyet', 'enrol_wallet', $date);
             }
+
             if ($couponrecord->validto < time() && $couponrecord->validto != 0) {
                 return get_string('coupon_expired', 'enrol_wallet');
             }
+
             // Set the returning coupon data.
             $coupondata = [
                 'value' => $couponrecord->value,
@@ -280,25 +317,41 @@ class transactions {
 
         }
 
-        // Check if we applying the coupon.
-        if ($apply) {
-            if ($coupondata['type'] == 'fixed' && $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT) {
-                $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
-                self::payment_topup($coupondata['value'], $userid, $desc, $userid);
-            }
-        }
-
         // Check if the coupon type is enabled in this site.
-        if ($coupondata['type'] == 'percent' &&
-            ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSFIXED ||
-            $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS)) {
+        if (
+            $coupondata['type'] == 'percent' &&
+            (
+                $couponsetting == enrol_wallet_plugin::WALLET_COUPONSFIXED ||
+                $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS
+            )
+            ) {
+
             return get_string('discountcoupondisabled', 'enrol_wallet');
         }
 
-        if ($coupondata['type'] == 'fixed' &&
-            ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT ||
-            $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS)) {
+        if (
+            $coupondata['type'] == 'fixed' &&
+            (
+                $couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT ||
+                $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS
+            )
+            ) {
+
             return get_string('fixedcoupondisabled', 'enrol_wallet');
+        }
+
+        // Check if we applying the coupon (fixed value coupons) charge the wallet directly.
+        if (
+            $apply
+            && $coupondata['type'] == 'fixed'
+            && $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
+            ) {
+
+            $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
+            self::payment_topup($coupondata['value'], $userid, $desc, $userid);
+
+            // Mark the coupon as used.
+            self::mark_coupon_used($coupon, $userid, $instanceid);
         }
 
         // After we get the coupon data now we check if this coupon used from enrolment page.
@@ -309,21 +362,21 @@ class transactions {
             $coupondata['type'] == 'fixed' &&
             $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
             ) {
+
             $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
             $user = \core_user::get_user($userid);
 
             $plugin = enrol_get_plugin('wallet');
             $fee = (float)$plugin->get_cost_after_discount($userid, $instance);
+
             // Check if the coupon value is grater than or equal the fee.
             // Enrol the user in the course.
             if ($coupondata['value'] >= $fee) {
                 $plugin->enrol_self($instance, $user);
+                // And the coupon will be marked as used in enrol_self() function.
             }
         }
-        if ($apply) {
-            // Mark the coupon as used.
-            self::mark_coupon_used($coupon, $userid, $instanceid);
-        }
+
         return $coupondata;
     }
 
@@ -340,13 +393,16 @@ class transactions {
             $_SESSION['coupon'] = '';
             unset($_SESSION['coupon']);
         }
+
         $source = get_config('enrol_wallet', 'walletsource');
 
         if ($source == self::SOURCE_WORDPRESS) {
             // It is already included in the wordpress plugin code.
-            self::get_coupon_value($coupon, $userid, $instanceid, true);
+            $couponrecord = (object)self::get_coupon_value($coupon, $userid, $instanceid, true);
+
         } else {
             global $DB;
+
             $couponrecord = $DB->get_record('enrol_wallet_coupons', ['code' => $coupon]);
             $usage = $couponrecord->usetimes + 1;
             $data = (object)[
@@ -355,17 +411,18 @@ class transactions {
                 'usetimes' => $usage,
             ];
             $DB->update_record('enrol_wallet_coupons', $data);
-            // Logging the usage in the coupon usage table.
-            $logdata = (object)[
-                'code' => $coupon,
-                'type' => $couponrecord->type,
-                'value' => $couponrecord->value,
-                'userid' => $userid,
-                'instanceid' => $instanceid,
-                'timeused' => time(),
-            ];
-            $id = $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
         }
+
+        // Logging the usage in the coupon usage table.
+        $logdata = (object)[
+            'code' => $coupon,
+            'type' => $couponrecord->type,
+            'value' => $couponrecord->value,
+            'userid' => $userid,
+            'instanceid' => $instanceid,
+            'timeused' => time(),
+        ];
+        $id = $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
 
         $eventdata = [
             'userid' => $userid,
@@ -375,13 +432,19 @@ class transactions {
                 'code' => $coupon,
             ]
         ];
+
         if (!empty($instanceid) && $instanceid != 0) {
             $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
+
             $eventdata['courseid'] = $instance->courseid;
             $eventdata['context'] = \context_course::instance($instance->courseid);
+
         } else {
+
             $eventdata['context'] = \context_system::instance();
+
         }
+
         $event = \enrol_wallet\event\coupon_used::create($eventdata);
         $event->trigger();
     }
@@ -400,6 +463,7 @@ class transactions {
     private static function triger_transaction_event($amount, $type, $charger, $userid, $desc, $id, $refundable) {
         require_once(__DIR__.'/event/transactions_triggered.php');
         $context = \context_system::instance();
+
         $eventarray = [
                         'context' => $context,
                         'objectid' => $id,
@@ -412,6 +476,7 @@ class transactions {
                                     'desc' => $desc,
                                     ],
                     ];
+
         $event = \enrol_wallet\event\transactions_triggered::create($eventarray);
         $event->trigger();
     }
@@ -422,14 +487,17 @@ class transactions {
      * @param int $id the id of the transaction record.
      * @return void
      */
-    private static function quene_transaction_transformation($id) {
+    private static function queue_transaction_transformation($id) {
         global $DB;
         $record = $DB->get_record('enrol_wallet_transactions', ['id' => $id]);
         $period = get_config('enrol_wallet', 'refundperiod');
+
         if (empty($period)) {
             return;
         }
+
         $runtime = time() + $period;
+
         $task = new \enrol_wallet\task\turn_non_refundable;
         $task->set_custom_data(
                 [
@@ -438,7 +506,9 @@ class transactions {
                     'amount' => $record->amount,
                 ]
             );
+
         $task->set_next_run_time($runtime);
+
         \core\task\manager::queue_adhoc_task($task);
     }
 }

@@ -160,14 +160,18 @@ class observer {
         $charger = $event->userid;
         $userid = $event->relateduserid;
         $amount = $event->other['amount'];
+
         $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
         $condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
+
         if (empty($enabled) || $amount < $condition || $event->other['type'] != 'credit') {
             return;
         }
+
         $discount = get_config('enrol_wallet', 'conditionaldiscount_percent') / 100;
         $rest = $amount * $discount / (1 - $discount);
-        $desc = 'charge wallet due to condition discounts by '.$rest.' for charging wallet for more than '.$condition;
+
+        $desc = get_string('conditionaldiscount_desc', 'enrol_wallet', ['rest' => $rest, 'condition' => $condition]);
         transactions::payment_topup($rest, $userid, $desc, $charger, false);
     }
 
@@ -206,6 +210,7 @@ class observer {
         $userid = $event->userid;
 
         $user = \core_user::get_user($userid);
+
         if (!$user || isguestuser($user)) {
             return;
         }

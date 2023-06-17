@@ -268,13 +268,17 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool|array true if enrolled else error code and message
      */
     public function enrol_self(stdClass $instance, \stdClass $user = null) {
+
         if ($user === null) {
             global $USER;
             $user = $USER;
         }
+
         // Get the name of the course.
         $coursename = get_course($instance->courseid)->fullname;
+
         $coupon = $this->check_discount_coupon();
+
         // Get the final cost after discount (if there is no discount it return the full cost).
         $costafter = (!empty($this->costafter)) ? $this->costafter : $this->get_cost_after_discount($user->id, $instance, $coupon);
 
@@ -287,23 +291,28 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $balance = transactions::get_user_balance($user->id);
         $deduct = min($balance, $costafter);
+
         // Deduct fees from user's account after ensure that he got enroled.
         transactions::debit($user->id, $deduct, $coursename);
+
         // Mark coupon as used (this is for percentage discount coupons only).
         if ($coupon != null && $costafter < $instance->cost) {
             transactions::mark_coupon_used($coupon, $user->id, $instance->id);
         }
+
         // Unset the session coupon to make sure not used again.
         // This is a double check, already included in mark_coupon_used().
         if (isset($_SESSION['coupon'])) {
             $_SESSION['coupon'] = '';
             unset($_SESSION['coupon']);
         }
+
         // Now apply the cashback if enabled.
         $cashbackenabled = get_config('enrol_wallet', 'cashback');
+
         if ($cashbackenabled) {
             $percent = get_config('enrol_wallet', 'cashbackpercent');
-            $desc = 'added by cashback due to enrolment in '.$coursename;
+            $desc = get_string('cashbackdesc', 'enrol_wallet', $coursename);
             $value = $costafter * $percent / 100;
             $id = transactions::payment_topup($value, $user->id, $desc, $user->id, false);
             // Trigger cashback event.
@@ -339,13 +348,18 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function enrol_page_hook(stdClass $instance) {
         global $OUTPUT, $USER;
-        $coupon = $this->check_discount_coupon();
-        $enrolstatus = $this->can_self_enrol($instance);
-        $this->costafter = self::get_cost_after_discount($USER->id, $instance, $coupon);
 
+        $coupon = $this->check_discount_coupon();
+        $couponsetting = get_config('enrol_wallet', 'coupons');
+
+        $enrolstatus = $this->can_self_enrol($instance);
+
+        $this->costafter = self::get_cost_after_discount($USER->id, $instance, $coupon);
         $costafter = $this->costafter;
         $costbefore = $instance->cost;
+
         $balance = transactions::get_user_balance($USER->id);
+
         $output = '';
         if (true === $enrolstatus) {
 
@@ -358,12 +372,13 @@ class enrol_wallet_plugin extends enrol_plugin {
                     $this->enrol_self($instance, $USER);
                 }
             }
+
             ob_start();
             $form->display();
             $output .= ob_get_clean();
+
             // Now prepare the coupon form.
             // Check the coupons settings first.
-            $couponsetting = get_config('enrol_wallet', 'coupons');
             if ($couponsetting != self::WALLET_NOCOUPONS) {
                 $data = new stdClass();
                 $data->header = $this->get_instance_name($instance);
@@ -379,6 +394,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         } else if (self::INSUFFICIENT_BALANCE == $enrolstatus ||
             self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus
             ) {
+
             // This user has insufficient wallet balance to be directly enrolled.
             // So we will show him several ways for payments or recharge his wallet.
             $data = new stdClass();
@@ -406,6 +422,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             if ($couponsetting != self::WALLET_NOCOUPONS) {
                 $action = new moodle_url('/enrol/wallet/extra/action.php');
                 $couponform = new applycoupon_form($action, $data);
+
                 ob_start();
                 $couponform->display();
                 $output .= ob_get_clean();
@@ -943,6 +960,15 @@ class enrol_wallet_plugin extends enrol_plugin {
         return $options;
     }
 
+    protected function get_send_welcome_email_option() {
+        $options = [
+            ENROL_DO_NOT_SEND_EMAIL                 => get_string('no'),
+            ENROL_SEND_EMAIL_FROM_COURSE_CONTACT    => get_string('sendfromcoursecontact', 'enrol'),
+            ENROL_SEND_EMAIL_FROM_NOREPLY           => get_string('sendfromnoreply', 'enrol')
+        ];
+
+        return $options;
+    }
     /**
      * Get availabe cohorts options for cohort restriction options.
      * @param stdClass $instance
@@ -1094,8 +1120,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $select->setMultiple(false);
         $mform->addHelpButton('customint7', 'coursesrestriction', 'enrol_wallet');
 
-        $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'),
-                enrol_send_welcome_email_options());
+        $options = $this->get_send_welcome_email_option();
+        $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
         $mform->addHelpButton('customint4', 'sendcoursewelcomemessage', 'enrol_wallet');
 
         $options = ['cols' => '60', 'rows' => '8'];
@@ -1146,7 +1172,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         uasort($currencies, function($a, $b) {
             return strcmp($a, $b);
         });
-
+        if (empty($currencies)) {
+            $currencies = ['' => ''];
+        }
         return $currencies;
     }
 
@@ -1184,7 +1212,11 @@ class enrol_wallet_plugin extends enrol_plugin {
         $validroles = array_keys($this->extend_assignable_roles($context, $instance->roleid));
         $validexpirynotify = array_keys($this->get_expirynotify_options());
         $validlongtimenosee = array_keys($this->get_longtimenosee_options());
+        $validswep = array_keys($this->get_send_welcome_email_option());
+        $cohorts = $this->get_cohorts_options($instance, $context);
+        $validcohorts = array_keys($cohorts);
         $validcurrencies = array_keys($this->get_possible_currencies());
+        $validcourses = array_keys($this->get_courses_options());
         $tovalidate = array(
             'enrolstartdate' => PARAM_INT,
             'enrolenddate' => PARAM_INT,
@@ -1193,10 +1225,9 @@ class enrol_wallet_plugin extends enrol_plugin {
             'cost' => PARAM_NUMBER,
             'customint2' => $validlongtimenosee,
             'customint3' => PARAM_INT,
-            'customint4' => PARAM_INT,
-            'customint5' => PARAM_INT,
+            'customint4' => $validswep,
             'customint6' => $validnewenrols,
-            'customint7' => PARAM_INT,
+            'customint7' => $validcourses,
             'customint8' => PARAM_BOOL,
             'customdec1' => PARAM_NUMBER,
             'customdec2' => PARAM_NUMBER,
@@ -1205,9 +1236,17 @@ class enrol_wallet_plugin extends enrol_plugin {
             'expirynotify' => $validexpirynotify,
             'roleid' => $validroles
         );
+
+        if (count($cohorts) > 0) {
+            $tovalidate['customint5'] = $validcohorts;
+        } else {
+            $tovalidate['customint5'] = 0;
+        }
+
         if ($data['expirynotify'] != 0) {
             $tovalidate['expirythreshold'] = PARAM_INT;
         }
+
         $typeerrors = $this->validate_param_types($data, $tovalidate);
         $errors = array_merge($errors, $typeerrors);
 

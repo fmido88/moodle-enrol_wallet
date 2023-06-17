@@ -57,11 +57,14 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     $transactions = new enrol_wallet\transactions;
     $before = $transactions->get_user_balance($userid);
     if ($op === 'credit') {
+
         $desc = get_string('charger_credit_desc', 'enrol_wallet', fullname($USER));
         // Process the transaction.
         $result = $transactions->payment_topup($value, $userid, $desc, $charger);
         $after = $transactions->get_user_balance($userid);
+
     } else if ($op === 'debit') {
+
         if ($value > $before) {
             $a = ['value' => $value, 'before' => $before];
             $err = get_string('charger_debit_err', 'enrol_wallet', $a);
@@ -70,14 +73,15 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
             redirect($redirecturl);
         } else {
             // Process the payment.
-            $debitdesc = get_string('charger_debit_desc', 'enrol_wallet', fullname($USER));
-            $result = $transactions->debit($userid, $value, $debitdesc, $charger);
+            $result = $transactions->debit($userid, $value, '', $charger);
             $after = $transactions->get_user_balance($userid);
         }
 
     } else if ($op === 'balance') {
+
         $result = $before;
     } else {
+
         $result = get_string('charger_invalid_operation', 'enrol_wallet');
     }
 
@@ -91,6 +95,7 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     redirect($redirecturl);
 
 } else {
+    global $OUTPUT;
 
     $PAGE->set_context($context);
     $PAGE->set_url($CFG->wwwroot.'/enrol/wallet/extra/charger.php');
@@ -101,6 +106,7 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
         $results = enrol_wallet_display_transaction_results();
         echo $OUTPUT->box($results);
     }
+
     // Display the charger form.
     $form = enrol_wallet_display_charger_form();
     echo $OUTPUT->box($form);

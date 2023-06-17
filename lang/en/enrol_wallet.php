@@ -47,6 +47,7 @@ $string['bulk_instanceshead'] = 'Bulk Enrollment Edit (for all instances courses
 $string['bulk_instancesno'] = 'No instances created or updated';
 $string['bulk_instancesyes'] = '{$a->updated} enrol instances has been updated AND {$a->created} has been created.';
 
+$string['cashbackdesc'] = 'added by cashback due to enrolment in {$a}';
 $string['cashbackenable'] = 'Enable cashback';
 $string['cashbackenable_desc'] = 'When this is enabled the student will receive a percentage cashback amount each time he uses the wallet to buy a course.';
 $string['cashbackpercent'] = 'Percentage amount for cashback';
@@ -74,6 +75,7 @@ $string['conditionaldiscount_apply'] = 'Conditional discounts';
 $string['conditionaldiscount_apply_help'] = 'Enable conditional discount for the whole website';
 $string['conditionaldiscount_condition'] = 'Condition for applying discount';
 $string['conditionaldiscount_condition_help'] = 'Discounts won\'t be applied unless the user\'s wallet charged by more than or equal the value entered here.';
+$string['conditionaldiscount_desc'] = 'charge wallet due to conditional discounts by {$a->rest} for charging wallet for more than {$a->condition}';
 $string['conditionaldiscount_percent'] = 'The percentage amount of discount';
 $string['conditionaldiscount_percent_help'] = 'The users get credited by this percent. (Applied only for charging the wallet)<br>
 Important note: If the user choose to top-up the wallet by 400 and the discount percent set to 15%, the user pay only 340 and then a 60 will be add automatically.';
@@ -291,6 +293,7 @@ $string['transactions'] = 'Wallet Transactions';
 $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
+$string['topuppayment_desc'] = 'Topping up the wallet by payment of {$a} using payment gateway.';
 $string['transaction_type'] = 'Type of transaction';
 $string['turn_not_refundable_task'] = 'Turn balance to non-refundable.';
 
