@@ -1,5 +1,9 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.6.4 ##
+- Adding some translatable language strings.
+- some code improvement.
+
 ## V 1.6.3 ##
 - Some code improvement
 - Enable plugin upon installation
