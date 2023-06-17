@@ -1336,13 +1336,6 @@ class enrol_wallet_plugin extends enrol_plugin {
             if ($rusers) {
                 $contact = array_values($rusers)[0];
             }
-        } else if ($sendoption == ENROL_SEND_EMAIL_FROM_KEY_HOLDER) {
-            // Send as the first user with enrol/wallet:holdkey capability assigned in the course.
-            list($sort) = users_order_by_sql('u');
-            $keyholders = get_users_by_capability($context, 'enrol/wallet:holdkey', 'u.*', $sort);
-            if (!empty($keyholders)) {
-                $contact = array_values($keyholders)[0];
-            }
         }
 
         // If send welcome email option is set to no reply or if none of the previous options have

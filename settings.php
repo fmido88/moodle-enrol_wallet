@@ -279,11 +279,16 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('enrol_wallet/maxenrolled',
         get_string('maxenrolled', 'enrol_wallet'), get_string('maxenrolled_help', 'enrol_wallet'), 0, PARAM_INT));
     // Send welcome message.
+    $weloptions = [
+        ENROL_DO_NOT_SEND_EMAIL                 => get_string('no'),
+        ENROL_SEND_EMAIL_FROM_COURSE_CONTACT    => get_string('sendfromcoursecontact', 'enrol'),
+        ENROL_SEND_EMAIL_FROM_NOREPLY           => get_string('sendfromnoreply', 'enrol')
+    ];
     $settings->add(new admin_setting_configselect('enrol_wallet/sendcoursewelcomemessage',
             get_string('sendcoursewelcomemessage', 'enrol_wallet'),
             get_string('sendcoursewelcomemessage_help', 'enrol_wallet'),
             ENROL_SEND_EMAIL_FROM_COURSE_CONTACT,
-            enrol_send_welcome_email_options()));
+            $weloptions));
     // Adding default settings for awards program.
     // Enable awards.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/awards',

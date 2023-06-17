@@ -857,27 +857,6 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals($user1->username, $contact->username);
         $this->assertEquals($user1->email, $contact->email);
 
-        // Get manager role, and enrol user as manager.
-        $managerrole = $DB->get_record('role', ['shortname' => 'manager']);
-        $this->assertNotEmpty($managerrole);
-        $instance1->customint4 = ENROL_SEND_EMAIL_FROM_KEY_HOLDER;
-        $DB->update_record('enrol', $instance1);
-        $walletplugin->enrol_user($instance1, $user3->id, $managerrole->id);
-
-        // Give manager role holdkey capability.
-        assign_capability('enrol/wallet:holdkey', CAP_ALLOW, $managerrole->id, $context);
-
-        // We should get the manager email contact.
-        $contact = $walletplugin->get_welcome_email_contact(ENROL_SEND_EMAIL_FROM_KEY_HOLDER, $context);
-        $this->assertEquals($user3->username, $contact->username);
-        $this->assertEquals($user3->email, $contact->email);
-
-        // Now let's enrol another manager.
-        $walletplugin->enrol_user($instance1, $user4->id, $managerrole->id);
-        $contact = $walletplugin->get_welcome_email_contact(ENROL_SEND_EMAIL_FROM_KEY_HOLDER, $context);
-        $this->assertEquals($user3->username, $contact->username);
-        $this->assertEquals($user3->email, $contact->email);
-
         $instance1->customint4 = ENROL_SEND_EMAIL_FROM_NOREPLY;
         $DB->update_record('enrol', $instance1);
 

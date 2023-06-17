@@ -47,6 +47,8 @@ class externallib_test extends externallib_advanced_testcase {
         // Check if wallet enrolment plugin is enabled.
         $walletplugin = enrol_get_plugin('wallet');
         $this->assertNotEmpty($walletplugin);
+        // In this test we will add instances manually.
+        $walletplugin->set_config('defaultenrol', 0);
 
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
         $this->assertNotEmpty($studentrole);
