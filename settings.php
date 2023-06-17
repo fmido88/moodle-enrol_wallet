@@ -31,7 +31,6 @@ $capbulkedit = has_capability('enrol/wallet:bulkedit', $context);
 
 // Adding these pages for only users with required capability.
 // Don't know why these aren't appear to user's with capabilities? Only admins!
-// I added these to the wallet block.
 if ($hassiteconfig || $captransactions || $capbulkedit) {
     // Adding new admin category.
     $ADMIN->add('root', new admin_category('enrol_wallet_settings',
@@ -119,7 +118,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('enrol_wallet/expiredaction',
         get_string('expiredaction', 'enrol_wallet'), get_string('expiredaction_help', 'enrol_wallet'),
         ENROL_EXT_REMOVED_KEEP, $options));
-
+    // Expiry notifications.
     $options = array();
     for ($i = 0; $i < 24; $i++) {
         $options[$i] = $i;
@@ -136,16 +135,17 @@ if ($ADMIN->fulltree) {
                         get_string('refundpolicy', 'enrol_wallet'),
                         get_string('refundpolicy_help', 'enrol_wallet'),
                         get_string('refundpolicy_default', 'enrol_wallet')));
+    // Enable refunding.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/enablerefund',
                         get_string('enablerefund', 'enrol_wallet'),
                         get_string('enablerefund_desc', 'enrol_wallet'),
                         1));
+    // Refunding grace period.
     $settings->add(new admin_setting_configduration('enrol_wallet/refundperiod',
                         get_string('refundperiod', 'enrol_wallet'),
                         get_string('refundperiod_desc', 'enrol_wallet'),
                         14 * DAYSECS,
                         DAYSECS));
-
     // Adding discounts and coupons.
     $settings->add(new admin_setting_heading('enrol_wallet_discounts',
                                             get_string('discountscopouns', 'enrol_wallet'),
@@ -175,13 +175,16 @@ if ($ADMIN->fulltree) {
                                                 enrol_wallet_plugin::WALLET_NOCOUPONS,
                                                 $choices));
     // Add settings for conditional discount.
+    // Enable conditional discount.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/conditionaldiscount_apply',
                         get_string('conditionaldiscount_apply', 'enrol_wallet'),
                         get_string('conditionaldiscount_apply_help', 'enrol_wallet'), 0));
+    // Condtion for applying conditional discount.
     $settings->add(new admin_setting_configtext('enrol_wallet/conditionaldiscount_condition',
                         get_string('conditionaldiscount_condition', 'enrol_wallet'),
                         get_string('conditionaldiscount_condition_help', 'enrol_wallet'),
                         0, PARAM_INT));
+    // Percentage discount.
     $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/conditionaldiscount_percent',
                         get_string('conditionaldiscount_percent', 'enrol_wallet'),
                         get_string('conditionaldiscount_percent_help', 'enrol_wallet'),
@@ -190,9 +193,10 @@ if ($ADMIN->fulltree) {
     // Adding settings for applying cashback.
     $settings->add(new admin_setting_heading('enrol_wallet_cashback',
         get_string('walletcashback', 'enrol_wallet'), get_string('walletcashback_desc', 'enrol_wallet')));
-
+    // Enable cashback.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/cashback',
         get_string('cashbackenable', 'enrol_wallet'), get_string('cashbackenable_desc', 'enrol_wallet'), 0));
+    // Cashback percentage value.
     $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/cashbackpercent',
         get_string('cashbackpercent', 'enrol_wallet'), get_string('cashbackpercent_help', 'enrol_wallet'), 0, PARAM_INT, null, 2));
 
@@ -200,10 +204,12 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('enrol_wallet_newusergift',
                                             get_string('newusergift', 'enrol_wallet'),
                                             get_string('newusergift_desc', 'enrol_wallet')));
+    // Enable new user gifts.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/newusergift',
                                             get_string('newusergift_enable', 'enrol_wallet'),
                                             get_string('newusergift_enable_help', 'enrol_wallet'),
                                             0));
+    // New user gift value.
     $settings->add(new admin_setting_configtext('enrol_wallet/newusergiftvalue',
                                             get_string('giftvalue', 'enrol_wallet'),
                                             get_string('giftvalue_help', 'enrol_wallet'),
@@ -213,7 +219,7 @@ if ($ADMIN->fulltree) {
     // Enrol instance defaults.
     $settings->add(new admin_setting_heading('enrol_wallet_defaults',
         get_string('enrolinstancedefaults', 'admin'), get_string('enrolinstancedefaults_desc', 'admin')));
-
+    // Adding wallet instance automatically upon course creation.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/defaultenrol',
         get_string('defaultenrol', 'enrol'), get_string('defaultenrol_desc', 'enrol'), 1));
 
@@ -234,22 +240,18 @@ if ($ADMIN->fulltree) {
     $supportedcurrencies = $walletplugin->get_possible_currencies();
     $settings->add(new admin_setting_configselect('enrol_wallet/currency', get_string('currency', 'enrol_wallet'),
                                             get_string('currency_help', 'enrol_wallet'), '', $supportedcurrencies));
-
+    // Is instance enabled.
     $options = array(ENROL_INSTANCE_ENABLED => get_string('yes'),
                      ENROL_INSTANCE_DISABLED => get_string('no'));
     $settings->add(new admin_setting_configselect('enrol_wallet/status',
-        get_string('status', 'enrol_wallet'), get_string('status_desc', 'enrol_wallet'), ENROL_INSTANCE_DISABLED,
+        get_string('status', 'enrol_wallet'), get_string('status_desc', 'enrol_wallet'), ENROL_INSTANCE_ENABLED,
         $options));
-
+    // Allow users to enrol into new courses by default.
     $options = array(1 => get_string('yes'), 0 => get_string('no'));
     $settings->add(new admin_setting_configselect('enrol_wallet/newenrols',
         get_string('newenrols', 'enrol_wallet'), get_string('newenrols_desc', 'enrol_wallet'), 1, $options));
 
-    $options = array(1 => get_string('yes'),
-                     0 => get_string('no'));
-    $settings->add(new admin_setting_configselect('enrol_wallet/groupkey',
-        get_string('groupkey', 'enrol_wallet'), get_string('groupkey_desc', 'enrol_wallet'), 0, $options));
-
+    // Default role.
     if (!during_initial_install()) {
         $options = get_default_enrol_roles(context_system::instance());
         $student = get_archetype_roles('student');
@@ -258,36 +260,37 @@ if ($ADMIN->fulltree) {
             get_string('defaultrole', 'enrol_wallet'), get_string('defaultrole_desc', 'enrol_wallet'), $student->id,
             $options));
     }
-
+    // Enrolment period.
     $settings->add(new admin_setting_configduration('enrol_wallet/enrolperiod',
         get_string('enrolperiod', 'enrol_wallet'), get_string('enrolperiod_desc', 'enrol_wallet'), 0));
-
+    // Expiry notification.
     $options = array(0 => get_string('no'), 1 => get_string('expirynotifyenroller', 'core_enrol'), 2 =>
         get_string('expirynotifyall', 'core_enrol'));
     $settings->add(new admin_setting_configselect('enrol_wallet/expirynotify',
         get_string('expirynotify', 'core_enrol'), get_string('expirynotify_help', 'core_enrol'), 0, $options));
-
+    // Expiry threshold.
     $settings->add(new admin_setting_configduration('enrol_wallet/expirythreshold',
         get_string('expirythreshold', 'core_enrol'), get_string('expirythreshold_help', 'core_enrol'), 86400, 86400));
-
+    // Un-enrol inactive duration.
     $options = $walletplugin->get_longtimenosee_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/longtimenosee',
         get_string('longtimenosee', 'enrol_wallet'), get_string('longtimenosee_help', 'enrol_wallet'), 0, $options));
-
+    // Max enrolled users.
     $settings->add(new admin_setting_configtext('enrol_wallet/maxenrolled',
         get_string('maxenrolled', 'enrol_wallet'), get_string('maxenrolled_help', 'enrol_wallet'), 0, PARAM_INT));
-
+    // Send welcome message.
     $settings->add(new admin_setting_configselect('enrol_wallet/sendcoursewelcomemessage',
             get_string('sendcoursewelcomemessage', 'enrol_wallet'),
             get_string('sendcoursewelcomemessage_help', 'enrol_wallet'),
             ENROL_SEND_EMAIL_FROM_COURSE_CONTACT,
             enrol_send_welcome_email_options()));
     // Adding default settings for awards program.
+    // Enable awards.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/awards',
                                                     get_string('awards', 'enrol_wallet'),
                                                     get_string('awards_help', 'enrol_wallet'),
                                                     0));
-
+    // Awards conditions.
     $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/awardcreteria',
                                                                 get_string('awardcreteria', 'enrol_wallet'),
                                                                 get_string('awardcreteria_help', 'enrol_wallet'),
@@ -295,7 +298,7 @@ if ($ADMIN->fulltree) {
                                                                 PARAM_NUMBER,
                                                                 null,
                                                                 2));
-
+    // Award value.
     $settings->add(new admin_setting_configtext('enrol_wallet/awardvalue', get_string('awardvalue', 'enrol_wallet'),
                                                     get_string('awardvalue_help', 'enrol_wallet'), 0, PARAM_NUMBER));
 

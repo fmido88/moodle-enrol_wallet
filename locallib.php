@@ -23,32 +23,6 @@
  */
 
 /**
- * Check if the given password match a group enrolment key in the specified course.
- * This function has no use now in this plugin, I'm leaving it here because in future version may adding
- * password restrictions and this function will be useful.
- *
- * @param  int $courseid            course id
- * @param  string $enrolpassword    enrolment password
- * @return bool                     True if match
- */
-function enrol_wallet_check_group_enrolment_key($courseid, $enrolpassword) {
-    global $DB;
-    $found = false;
-    $groups = $DB->get_records('groups', array('courseid' => $courseid), 'id ASC', 'id, enrolmentkey');
-
-    foreach ($groups as $group) {
-        if (empty($group->enrolmentkey)) {
-            continue;
-        }
-        if ($group->enrolmentkey === $enrolpassword) {
-            $found = true;
-            break;
-        }
-    }
-    return $found;
-}
-
-/**
  * Enable enrol Wallet plugin.
  * @return void
  */

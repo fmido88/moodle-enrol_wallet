@@ -810,44 +810,6 @@ class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
-     * Test enrol_wallet_check_group_enrolment_key
-     * @covers ::enrol_wallet_check_group_enrolment_key()
-     */
-    public function test_enrol_wallet_check_group_enrolment_key() {
-        global $DB;
-        self::resetAfterTest(true);
-
-        // Test in course with groups.
-        $course = self::getDataGenerator()->create_course(array('groupmode' => SEPARATEGROUPS, 'groupmodeforce' => 1));
-
-        $group1 = $this->getDataGenerator()->create_group(array('courseid' => $course->id));
-        $group2 = $this->getDataGenerator()->create_group(array('courseid' => $course->id, 'enrolmentkey' => 'thepassword'));
-
-        $result = enrol_wallet_check_group_enrolment_key($course->id, 'invalidpassword');
-        $this->assertFalse($result);
-
-        $result = enrol_wallet_check_group_enrolment_key($course->id, 'thepassword');
-        $this->assertTrue($result);
-
-        // Test disabling group options.
-        $course->groupmode = NOGROUPS;
-        $course->groupmodeforce = 0;
-        $DB->update_record('course', $course);
-
-        $result = enrol_wallet_check_group_enrolment_key($course->id, 'invalidpassword');
-        $this->assertFalse($result);
-
-        $result = enrol_wallet_check_group_enrolment_key($course->id, 'thepassword');
-        $this->assertTrue($result);
-
-        // Test without groups.
-        $othercourse = self::getDataGenerator()->create_course();
-        $result = enrol_wallet_check_group_enrolment_key($othercourse->id, 'thepassword');
-        $this->assertFalse($result);
-
-    }
-
-    /**
      * Test get_welcome_email_contact().
      * @covers ::get_welcome_email_contact()
      */

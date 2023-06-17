@@ -193,7 +193,6 @@ class observer {
         }
         $wordpress = new \enrol_wallet\wordpress;
         $wordpress->login_logout_user_to_wordpress($userid, 'login');
-
     }
 
     /**

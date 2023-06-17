@@ -169,8 +169,8 @@ $string['enrolperiod_help'] = 'Length of time that the enrolment is valid, start
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can enrol themselves from this date onward only.';
 $string['event_transactions'] = 'Wallet Transaction Event';
-$string['event_transaction_debit_description'] = 'The wallet balance of the user with id {$a->relateduserid} deducted by {$a->amount} {$a->refundable) by user of id {$a->userid} <br> more info: {$a->reason}';
-$string['event_transaction_credit_description'] = 'The wallet balance of the user with id {$a->relateduserid} charged by {$a->amount} {$a->refundable) by user of id {$a->userid} <br> more info: {$a->reason}';
+$string['event_transaction_debit_description'] = 'The wallet balance of the user with id {$a->relateduserid} has been deducted by {$a->amount} by user of id {$a->userid} <br> more info: {$a->reason}';
+$string['event_transaction_credit_description'] = 'The wallet balance of the user with id {$a->relateduserid} charged by {$a->amount} {$a->refundable} by user of id {$a->userid} <br> more info: {$a->reason}';
 $string['event_award'] = 'Wallet award received';
 $string['event_award_desc'] = 'User with id {$a->userid} get awarded by {$a->amount} due to getting a grade {$a->grade}% in course of id {$a->courseid}';
 $string['event_cashback'] = 'Wallet cashback';
@@ -200,13 +200,6 @@ $string['fixedcoupondisabled'] = 'Fixed value coupons are disabled in this websi
 $string['giftdesc'] = 'New user with id {$a->userid} at {$a->time} had a gift of amount {$a->amount} on his wallet.';
 $string['giftvalue'] = 'New users gift value';
 $string['giftvalue_help'] = 'The value which will be added to new users wallet.';
-$string['groupkey'] = 'Use group enrolment keys';
-$string['groupkey_desc'] = 'Use group enrolment keys by default.';
-$string['groupkey_help'] = 'In addition to restricting access to the course to only those who know the key, use of group enrolment keys means users are automatically added to groups when they enrol in the course.
-
-Note: An enrolment key for the course must be specified in the enrolment settings as well as group enrolment keys in the group settings.';
-
-$string['keyholder'] = 'You should have received this enrolment key from:';
 
 $string['insufficient_balance'] = 'You have insufficient wallet balance to enroll. {$a->cost_before} EGP are required, your balance is {$a->user_balance} EGP.';
 $string['insufficient_balance_discount'] = 'You have insufficient wallet balance to enroll. <del>{$a->cost_before}EGP</del> {$a->cost_after} EGP are required, your balance is {$a->user_balance} EGP.';
@@ -284,8 +277,6 @@ $string['sendcoursewelcomemessage'] = 'Send course welcome message';
 $string['sendcoursewelcomemessage_help'] = 'When a user enrols in the course, they may be sent a welcome message email. If sent from the course contact (by default the teacher), and more than one user has this role, the email is sent from the first user to be assigned the role.';
 $string['sendexpirynotificationstask'] = "Wallet enrolment send expiry notifications task";
 $string['sendpaymentbutton'] = 'direct payment';
-$string['showhint'] = 'Show hint';
-$string['showhint_desc'] = 'Show first letter of the guest access key.';
 $string['singlecoupon'] = 'Single coupon';
 $string['status'] = 'Allow existing enrolments';
 $string['status_desc'] = 'Enable Wallet enrolment method in new courses.';
@@ -301,6 +292,7 @@ $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
 $string['transaction_type'] = 'Type of transaction';
+$string['turn_not_refundable_task'] = 'Turn balance to non-refundable.';
 
 $string['unenrol'] = 'Unenrol user';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
@@ -316,7 +308,6 @@ $string['wallet:creditdebit'] = 'Credit and Debit other users';
 $string['wallet:createcoupon'] = 'Creating wallet coupons';
 $string['wallet:deletecoupon'] = 'Deleting wallet coupon';
 $string['wallet:downloadcoupon'] = 'Downloading wallet coupons';
-$string['wallet:holdkey'] = 'Appear as the Wallet enrolment key holder';
 $string['wallet:manage'] = 'Manage enrolled users';
 $string['wallet:unenrol'] = 'Unenrol users from course';
 $string['wallet:unenrolself'] = 'Unenrol self from the course';

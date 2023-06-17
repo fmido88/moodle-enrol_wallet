@@ -48,12 +48,6 @@ $capabilities = [
         )
     ),
 
-    'enrol/wallet:holdkey' => array(
-
-        'captype' => 'write',
-        'contextlevel' => CONTEXT_COURSE,
-    ),
-
     /* Voluntarily unenrol self from course - watch out for data loss. */
     'enrol/wallet:unenrolself' => array(
         'captype' => 'write',

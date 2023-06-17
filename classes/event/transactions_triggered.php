@@ -59,19 +59,24 @@ class transactions_triggered extends \core\event\base {
      * @return string
      */
     public function get_description() {
+
         $a = new \stdClass;
         $a->relateduserid = $this->relateduserid;
-        $a->charger = $this->userid;
+        $a->userid = $this->userid;
         $a->amount = $this->other['amount'];
-        $a->refundable = $this->other['refundable'] ? 'refundable' : 'not refundable';
         $a->reason = $this->other['desc'];
+
         $type = $this->other['type'];
         if ($type == 'debit') {
             return get_string('event_transaction_debit_description', 'enrol_wallet', $a);
         } else if ($type == 'credit') {
+            $refundable = clean_param($this->other['refundable'], PARAM_BOOL);
+            $a->refundable = $refundable ? 'refundable' : 'not refundable';
+
             return get_string('event_transaction_credit_description', 'enrol_wallet', $a);
         } else {
             return null;
         }
+
     }
 }

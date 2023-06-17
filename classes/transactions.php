@@ -94,14 +94,15 @@ class transactions {
         ];
 
         $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
+        if ($refundable) {
+            self::quene_transaction_transformation($id);
+        }
         if ($source == self::SOURCE_MOODLE) {
             $responsedata['success'] = true;
         }
         self::notify()->transaction_notify($recorddata);
         self::triger_transaction_event($amount, 'credit', $charger, $userid, $description, $id, $refundable);
-        if ($refundable) {
-            self::quene_transaction_transformation($id);
-        }
+
         return $id;
     }
 
@@ -400,17 +401,17 @@ class transactions {
         require_once(__DIR__.'/event/transactions_triggered.php');
         $context = \context_system::instance();
         $eventarray = [
-            'context' => $context,
-            'objectid' => $id,
-            'userid' => $charger,
-            'relateduserid' => $userid,
-            'other' => [
-                'type' => $type,
-                'amount' => $amount,
-                'desc' => $desc,
-                'refunable' => $refundable,
-                        ],
-        ];
+                        'context' => $context,
+                        'objectid' => $id,
+                        'userid' => $charger,
+                        'relateduserid' => $userid,
+                        'other' => [
+                                    'type' => $type,
+                                    'amount' => $amount,
+                                    'refundable' => $refundable,
+                                    'desc' => $desc,
+                                    ],
+                    ];
         $event = \enrol_wallet\event\transactions_triggered::create($eventarray);
         $event->trigger();
     }
@@ -438,7 +439,7 @@ class transactions {
                 ]
             );
         $task->set_next_run_time($runtime);
-        \core\task\manager::queue_adhoc_task($task, true);
+        \core\task\manager::queue_adhoc_task($task);
     }
 }
 

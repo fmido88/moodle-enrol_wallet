@@ -52,16 +52,22 @@ class wordpress {
             'encdata' => $encrypted,
         ];
         $curl = curl_init();
-        curl_setopt_array($curl, array(
+        $curlsetopt = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FAILONERROR => true,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => json_encode($sendingdata),
-            CURLOPT_HTTPHEADER => array(
-                'Content-Type: application/json',
-            ),
-        ));
+            CURLOPT_POST => ($method == 'login_logout') ? false : true,
+
+        ];
+        if ($method !== 'login_logout') {
+            $curlsetopt[CURLOPT_POSTFIELDS] = json_encode($sendingdata);
+            $curlsetopt[CURLOPT_HTTPHEADER] = array('Content-Type: application/json');
+        } else {
+            // I need to send the data here using get method.
+            $curlsetopt[CURLOPT_URL] = $url.'?'.http_build_query($sendingdata);
+            $curlsetopt[CURLOPT_HTTPGET] = true;
+        }
+        curl_setopt_array($curl, $curlsetopt);
         $response = curl_exec($curl);
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
         curl_close($curl);
@@ -69,6 +75,9 @@ class wordpress {
         if ($httpcode != 200) {
             // Endpoint returned an error.
             return get_string('endpoint_error', 'enrol_wallet');
+        }
+        if ($method !== 'login_logout') {
+            return json_decode($response, true);
         }
 
         return json_decode($response, true);
@@ -262,13 +271,16 @@ class wordpress {
         if (!$allowed) {
             return false;
         }
-        $data = ['moodle_user_id' => $userid, 'method' => $method];
-        $response = $this->request('login_user', $data);
+        $data = [
+            'moodle_user_id' => $userid,
+            'method' => $method,
+            'url' => $_SERVER['HTTP_REFERER']];
+        $response = $this->request('login_logout', $data);
         if ($response) {
             return true;
         } else {
             $this->create_wordpress_user($userid);
-            return $this->request('login_user', $data);
+            return $this->request('login_logout', $data);
         }
     }
 }
