@@ -130,6 +130,8 @@ class externallib_test extends externallib_advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
 
+        $walletplugin = enrol_get_plugin('wallet');
+
         // In this test we will add instances manually.
         $walletplugin->set_config('defaultenrol', 0);
 
@@ -141,7 +143,6 @@ class externallib_test extends externallib_advanced_testcase {
         $context1 = \context_course::instance($course1->id);
         $context2 = \context_course::instance($course2->id);
 
-        $walletplugin = enrol_get_plugin('wallet');
         $studentrole = $DB->get_record('role', array('shortname' => 'student'));
         $instance1id = $walletplugin->add_instance($course1, array('status' => ENROL_INSTANCE_ENABLED,
                                                                 'name' => 'Test instance 1',
