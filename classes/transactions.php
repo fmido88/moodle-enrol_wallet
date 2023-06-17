@@ -212,7 +212,7 @@ class transactions {
             }
 
             return $response;
-    
+
         } else if ($source == self::SOURCE_MOODLE) {
 
             global $DB;

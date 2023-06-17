@@ -128,7 +128,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
             } else {
                 return false;
             }
-            
+
         } else {
             // Get the fake item in case of topping up the wallet.
             $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
