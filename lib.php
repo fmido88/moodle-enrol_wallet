@@ -511,9 +511,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         // Check the restrictions upon other course enrollment.
         if (!empty($instance->customchar3) && !empty($instance->customint7)) {
             $courses = explode(',', $instance->customchar3);
-            $coursesnames = '(';
             $restrict = false;
             $count = 0;
+            $notenrolled = [];
             foreach ($courses as $courseid) {
                 if (!$DB->record_exists('course', ['id' => $courseid])) {
                     continue;
@@ -523,10 +523,11 @@ class enrol_wallet_plugin extends enrol_plugin {
                     $restrict = true;
                     $count++;
                     // The user is not enrolled in the required course.
-                    $coursesnames .= get_course($courseid)->fullname . ', ';
+                    $notenrolled[] = get_course($courseid)->fullname;
                 }
             }
-            $coursesnames .= ')';
+
+            $coursesnames = '(' . implode(', ', $notenrolled) . ')';
             if ($restrict && $count >= $instance->customint7) {
                 return get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
             }
