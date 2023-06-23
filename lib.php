@@ -509,12 +509,26 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
         // Check the restrictions upon other course enrollment.
-        if (!empty($instance->customint7) && $DB->record_exists('course', ['id' => $instance->customint7])) {
-            $coursectx = context_course::instance($instance->customint7);
-            if (!is_enrolled($coursectx)) {
-                // The user is not enrolled in the required course.
-                $coursename = get_course($instance->customint7)->fullname;
-                return get_string('othercourserestriction', 'enrol_wallet', $coursename);
+        if (!empty($instance->customchar3) & !empty($instance->customint7)) {
+            $courses = explode(',', $instance->customchar3);
+            $coursesnames = '(';
+            $restrict = false;
+            $count = 0;
+            foreach ($courses as $courseid) {
+                if (!$DB->record_exists('course', ['id' => $courseid])) {
+                    continue;
+                }
+                $coursectx = context_course::instance($instance->$courseid);
+                if (!is_enrolled($coursectx)) {
+                    $restrict = true;
+                    $count++;
+                    // The user is not enrolled in the required course.
+                    $coursesnames .= get_course($instance->$courseid)->fullname . ', ';
+                }
+            }
+            $coursesnames .= ')';
+            if  ($restrict && $count >= $instance->customint7) {
+                return get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
             }
         }
         // Check the cohorts restrictions.
@@ -584,47 +598,6 @@ class enrol_wallet_plugin extends enrol_plugin {
         $fields = $this->get_instance_defaults();
 
         return $this->add_instance($course, $fields);
-    }
-
-    /**
-     * Returns defaults for new instances.
-     * @return array
-     */
-    public function get_instance_defaults() {
-        $expirynotify = $this->get_config('expirynotify');
-        if ($expirynotify == 2) {
-            $expirynotify = 1;
-            $notifyall = 1;
-        } else {
-            $notifyall = 0;
-        }
-
-        $fields = [];
-        $fields['status'] = $this->get_config('status');
-        $fields['roleid'] = $this->get_config('roleid');
-        $fields['enrolperiod'] = $this->get_config('enrolperiod');
-        $fields['expirynotify'] = $expirynotify;
-        $fields['notifyall'] = $notifyall;
-        $fields['expirythreshold'] = $this->get_config('expirythreshold');
-        $fields['currency'] = $this->get_config('currency');
-        $fields['customint1'] = $this->get_config('paymentaccount');
-        $fields['customint2'] = $this->get_config('longtimenosee');
-        $fields['customint3'] = $this->get_config('maxenrolled');
-        $fields['customint4'] = $this->get_config('sendcoursewelcomemessage');
-        $fields['customint5'] = 0;
-        $fields['customint6'] = $this->get_config('newenrols');
-        $fields['customint7'] = 0;
-        $awards = $this->get_config('awards');
-        $fields['customint8'] = !empty($awards) ? $awards : 0;
-        if (!empty($awards)) {
-            $fields['customdec1'] = $this->get_config('awardcreteria');
-            $fields['customdec2'] = $this->get_config('awardvalue');
-        } else {
-            $fields['customdec1'] = 0;
-            $fields['customdec2'] = 0;
-        }
-
-        return $fields;
     }
 
     /**
@@ -931,17 +904,17 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Get all available courses for restriction by another course enrolment.
+     * @param $courseid Current course id of exceptions.
      * @return array<string>
      */
-    protected function get_courses_options() {
+    protected function get_courses_options($courseid) {
         // Adding restriction upon another course enrolment.
         // Prepare the course selector.
         $courses = get_courses();
         $options = [];
-        $options[0] = get_string('none');
         foreach ($courses as $course) {
             // We don't check enrolment in home page.
-            if ($course->id == SITEID) {
+            if ($course->id == SITEID || $course->id == $courseid) {
                 continue;
             }
 
@@ -1121,10 +1094,36 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->setConstant('customint5', 0);
         }
 
-        $options = $this->get_courses_options();
-        $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction', 'enrol_wallet'), $options);
-        $select->setMultiple(false);
-        $mform->addHelpButton('customint7', 'coursesrestriction', 'enrol_wallet');
+        $coursesoptions = $this->get_courses_options($instance->courseid);
+        if (!empty($coursesoptions)) {
+            $options = [];
+            for($i = 0; $i <= 50; $i++) {
+                $options[$i] = $i;
+            }
+            $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction_num', 'enrol_wallet'), $options);
+            $select->setMultiple(false);
+            $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
+
+            $mform->addElement('hidden', 'customchar3', '',['id' => 'wallet_customchar3']);
+            $mform->setType('customchar3', PARAM_ALPHANUMEXT);
+    
+            $params = [
+                'id' => 'wallet_courserestriction',
+                'onChange' => 'restrictByCourse()'
+            ];
+            $select = $mform->addElement('select', 'courserestriction', get_string('coursesrestriction', 'enrol_wallet'), $coursesoptions, $params);
+            $select->setMultiple(true);
+            $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
+            $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
+        } else {
+            $mform->addElement('hidden', 'customint7');
+            $mform->setType('customint7', PARAM_INT);
+            $mform->setConstant('customint7', 0);
+
+            $mform->addElement('hidden', 'customchar3');
+            $mform->setType('customchar3', PARAM_ALPHANUMEXT);
+            $mform->setConstant('customchar3', '');
+        }
 
         $options = $this->get_send_welcome_email_option();
         $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
@@ -1151,37 +1150,23 @@ class enrol_wallet_plugin extends enrol_plugin {
             $warntext = get_string('instanceeditselfwarningtext', 'core_enrol');
             $mform->addElement('static', 'selfwarn', get_string('instanceeditselfwarning', 'core_enrol'), $warntext);
         }
-    }
 
-    /**
-     * We are a good plugin and don't invent our own UI/validation code path.
-     *
-     * @return boolean
-     */
-    public function use_standard_editing_ui() {
-        return true;
-    }
-
-    /**
-     * Returns the list of currencies that the payment subsystem supports and therefore we can work with.
-     *
-     * @return array[currencycode => currencyname]
-     */
-    public function get_possible_currencies(): array {
-        $codes = \core_payment\helper::get_supported_currencies();
-
-        $currencies = [];
-        foreach ($codes as $c) {
-            $currencies[$c] = new lang_string($c, 'core_currencies');
+        if (!empty($coursesoptions)) {
+            // Add some js code to set the value of customchar3 element for the restriction course enrolment.
+            $js = <<<JS
+                    function restrictByCourse() {
+                        var textelement = document.getElementById("wallet_customchar3");
+                        var courseArray = document.getElementById("wallet_courserestriction").selectedOptions;
+                        var selectedValues = [];
+                        for (var i = 0; i < courseArray.length; i++) {
+                            selectedValues.push(courseArray[i].value);
+                        }
+                        // Set the value of the hidden input field to the comma-separated string of selected values.
+                        textelement.value = selectedValues.join(",");
+                    }
+                JS;
+            $mform->addElement('html', '<script>'.$js.'</script>');
         }
-
-        uasort($currencies, function($a, $b) {
-            return strcmp($a, $b);
-        });
-        if (empty($currencies)) {
-            $currencies = ['' => ''];
-        }
-        return $currencies;
     }
 
     /**
@@ -1223,7 +1208,6 @@ class enrol_wallet_plugin extends enrol_plugin {
         $cohorts = $this->get_cohorts_options($instance, $context);
         $validcohorts = array_keys($cohorts);
         $validcurrencies = array_keys($this->get_possible_currencies());
-        $validcourses = array_keys($this->get_courses_options());
         $tovalidate = array(
             'enrolstartdate' => PARAM_INT,
             'enrolenddate' => PARAM_INT,
@@ -1234,7 +1218,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             'customint3' => PARAM_INT,
             'customint4' => $validswep,
             'customint6' => $validnewenrols,
-            'customint7' => $validcourses,
+            'customint7' => PARAM_INT,
             'customint8' => PARAM_BOOL,
             'customdec1' => PARAM_NUMBER,
             'customdec2' => PARAM_NUMBER,
@@ -1258,6 +1242,78 @@ class enrol_wallet_plugin extends enrol_plugin {
         $errors = array_merge($errors, $typeerrors);
 
         return $errors;
+    }
+
+    /**
+     * Returns defaults for new instances.
+     * @return array
+     */
+    public function get_instance_defaults() {
+        $expirynotify = $this->get_config('expirynotify');
+        if ($expirynotify == 2) {
+            $expirynotify = 1;
+            $notifyall = 1;
+        } else {
+            $notifyall = 0;
+        }
+
+        $fields = [];
+        $fields['status'] = $this->get_config('status');
+        $fields['roleid'] = $this->get_config('roleid');
+        $fields['enrolperiod'] = $this->get_config('enrolperiod');
+        $fields['expirynotify'] = $expirynotify;
+        $fields['notifyall'] = $notifyall;
+        $fields['expirythreshold'] = $this->get_config('expirythreshold');
+        $fields['currency'] = $this->get_config('currency');
+        $fields['customint1'] = $this->get_config('paymentaccount');
+        $fields['customint2'] = $this->get_config('longtimenosee');
+        $fields['customint3'] = $this->get_config('maxenrolled');
+        $fields['customint4'] = $this->get_config('sendcoursewelcomemessage');
+        $fields['customint5'] = 0;
+        $fields['customint6'] = $this->get_config('newenrols');
+        $fields['customint7'] = 0;
+        $awards = $this->get_config('awards');
+        $fields['customint8'] = !empty($awards) ? $awards : 0;
+        if (!empty($awards)) {
+            $fields['customdec1'] = $this->get_config('awardcreteria');
+            $fields['customdec2'] = $this->get_config('awardvalue');
+        } else {
+            $fields['customdec1'] = 0;
+            $fields['customdec2'] = 0;
+        }
+
+        return $fields;
+    }
+
+    /**
+     * We are a good plugin and don't invent our own UI/validation code path.
+     *
+     * @return boolean
+     */
+    public function use_standard_editing_ui() {
+        return true;
+    }
+
+    /**
+     * Returns the list of currencies that the payment subsystem supports and therefore we can work with.
+     *
+     * @return array[currencycode => currencyname]
+     */
+    public function get_possible_currencies(): array {
+        $codes = \core_payment\helper::get_supported_currencies();
+
+        $currencies = [];
+        foreach ($codes as $c) {
+            $currencies[$c] = new lang_string($c, 'core_currencies');
+        }
+
+        uasort($currencies, function($a, $b) {
+            return strcmp($a, $b);
+        });
+        if (empty($currencies)) {
+            $currencies = ['' => ''];
+        }
+        return $currencies;
     }
 
     /**

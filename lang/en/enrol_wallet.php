@@ -125,7 +125,9 @@ $string['couponsfixed'] = 'Fixed amount coupons only';
 $string['couponstype'] = 'Allow coupons';
 $string['couponstype_help'] = 'Choose either to disable coupons, allow certain type or allow all.';
 $string['coursesrestriction'] = 'Another course restriction';
-$string['coursesrestriction_help'] = 'Only users enrolled in the selected course could purchase this course.';
+$string['coursesrestriction_help'] = 'Only users enrolled in more than or equal the required number from the selected courses could purchase this course.';
+$string['coursesrestriction_num'] = 'Number of required courses';
+$string['coursesrestriction_num_help'] = 'Select the minimum required courses that the user must be enrolled in to purchase this course using this instance.';
 $string['createdfrom'] = 'Created after';
 $string['createdto'] = 'Created before';
 $string['credit_cost'] = 'Cost';
@@ -248,7 +250,7 @@ $string['notrefund'] = ' but this amount is nonrefundable: ';
 $string['nocost'] = 'this course has invalid cost';
 $string['nocoupons'] = 'Disable coupons';
 
-$string['othercourserestriction'] = 'Unable to enrol your self in this course unless you are enrolled in {$a}';
+$string['othercourserestriction'] = 'Unable to enrol your self in this course unless you are enrolled in these courses {$a}';
 
 $string['paymentaccount'] = 'Payment account';
 $string['paymentaccount_help'] = 'choose the payment account in which you will accept payments';

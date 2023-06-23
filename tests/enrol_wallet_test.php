@@ -638,7 +638,8 @@ class enrol_wallet_test extends \advanced_testcase {
         // Enrolment restricted by enrolment in another course.
         $instance13 = $DB->get_record('enrol', array('courseid' => $course12->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
         $instance13->customint6 = 1;
-        $instance13->customint7 = $course1->id;
+        $instance13->customint7 = 1;
+        $instance13->customchar3 = $course1->id;
         $instance13->cost = 250;
         $DB->update_record('enrol', $instance13);
         $walletplugin->update_status($instance13, ENROL_INSTANCE_ENABLED);
@@ -791,11 +792,12 @@ class enrol_wallet_test extends \advanced_testcase {
         $course9 = $this->getDataGenerator()->create_course();
         $instance9 = $DB->get_record('enrol', array('courseid' => $course9->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
         $instance9->customint6 = 1;
-        $instance9->customint7 = $course8->id;
+        $instance9->customchar3 = $course8->id;
+        $instance9->customint7 = 1;
         $instance9->cost = 50;
         $DB->update_record('enrol', $instance9);
         $walletplugin->update_status($instance9, ENROL_INSTANCE_ENABLED);
-        $msg = get_string('othercourserestriction', 'enrol_wallet', 'xcourse8');
+        $msg = get_string('othercourserestriction', 'enrol_wallet', '(xcourse8)');
         $this->assertSame($msg, $walletplugin->can_self_enrol($instance9, true));
 
         // TODO Check the cohorts restrictions.
