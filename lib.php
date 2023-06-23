@@ -509,7 +509,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
         // Check the restrictions upon other course enrollment.
-        if (!empty($instance->customchar3) & !empty($instance->customint7)) {
+        if (!empty($instance->customchar3) && !empty($instance->customint7)) {
             $courses = explode(',', $instance->customchar3);
             $coursesnames = '(';
             $restrict = false;
@@ -518,16 +518,16 @@ class enrol_wallet_plugin extends enrol_plugin {
                 if (!$DB->record_exists('course', ['id' => $courseid])) {
                     continue;
                 }
-                $coursectx = context_course::instance($instance->$courseid);
+                $coursectx = context_course::instance($courseid);
                 if (!is_enrolled($coursectx)) {
                     $restrict = true;
                     $count++;
                     // The user is not enrolled in the required course.
-                    $coursesnames .= get_course($instance->$courseid)->fullname . ', ';
+                    $coursesnames .= get_course($courseid)->fullname . ', ';
                 }
             }
             $coursesnames .= ')';
-            if  ($restrict && $count >= $instance->customint7) {
+            if ($restrict && $count >= $instance->customint7) {
                 return get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
             }
         }
@@ -904,7 +904,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Get all available courses for restriction by another course enrolment.
-     * @param $courseid Current course id of exceptions.
+     * @param int $courseid Current course id of exceptions.
      * @return array<string>
      */
     protected function get_courses_options($courseid) {
@@ -1097,21 +1097,22 @@ class enrol_wallet_plugin extends enrol_plugin {
         $coursesoptions = $this->get_courses_options($instance->courseid);
         if (!empty($coursesoptions)) {
             $options = [];
-            for($i = 0; $i <= 50; $i++) {
+            for ($i = 0; $i <= 50; $i++) {
                 $options[$i] = $i;
             }
             $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction_num', 'enrol_wallet'), $options);
             $select->setMultiple(false);
             $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
 
-            $mform->addElement('hidden', 'customchar3', '',['id' => 'wallet_customchar3']);
+            $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
             $mform->setType('customchar3', PARAM_ALPHANUMEXT);
-    
+
             $params = [
                 'id' => 'wallet_courserestriction',
                 'onChange' => 'restrictByCourse()'
             ];
-            $select = $mform->addElement('select', 'courserestriction', get_string('coursesrestriction', 'enrol_wallet'), $coursesoptions, $params);
+            $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
+            $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $params);
             $select->setMultiple(true);
             $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
             $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
