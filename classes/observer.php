@@ -183,6 +183,7 @@ class observer {
      * @return void
      */
     public static function login_to_wordpress(\core\event\user_loggedin $event) {
+        global $SESSION;
         $userid = $event->userid;
 
         $user = \core_user::get_user($userid);
@@ -195,8 +196,15 @@ class observer {
         if ($username != $usernameevent) {
             return;
         }
-        $wordpress = new \enrol_wallet\wordpress;
-        $wordpress->login_logout_user_to_wordpress($userid, 'login');
+        $params = [];
+        if (isset($SESSION->wantsurl)) {
+            $params['wantsurl'] = $SESSION->wantsurl;
+            unset($SESSION->wantsurl);
+        }
+        $params['userid'] = $userid;
+        $params['action'] = 'login';
+
+        $SESSION->wantsurl = (new \moodle_url('/enrol/wallet/wplogin.php', $params))->out();
     }
 
     /**
@@ -207,6 +215,8 @@ class observer {
      * @return void
      */
     public static function logout_from_wordpress(\core\event\user_loggedout $event) {
+        global  $redirect;
+
         $userid = $event->userid;
 
         $user = \core_user::get_user($userid);
@@ -214,9 +224,14 @@ class observer {
         if (!$user || isguestuser($user)) {
             return;
         }
+        $params = [];
+        if (!empty($redirect)) {
+            $params['redirect'] = $redirect;
+        }
+        $params['userid'] = $userid;
+        $params['action'] = 'logout';
 
-        $wordpress = new \enrol_wallet\wordpress;
-        $wordpress->login_logout_user_to_wordpress($userid, 'logout');
+        $redirect = new \moodle_url('/enrol/wallet/wplogin.php', $params);
     }
 }
 

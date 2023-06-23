@@ -33,7 +33,6 @@ require_once("$CFG->dirroot/enrol/wallet/lib.php");
  * @package   enrol_wallet
  * @copyright 2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @since     Moodle 2.6
  */
 class enrol_wallet_external extends external_api {
 
@@ -44,7 +43,9 @@ class enrol_wallet_external extends external_api {
      */
     public static function get_instance_info_parameters() {
         return new external_function_parameters(
-                array('instanceid' => new external_value(PARAM_INT, 'instance id of wallet enrolment plugin.'))
+                [
+                    'instanceid' => new external_value(PARAM_INT, 'instance id of wallet enrolment plugin.')
+                ]
             );
     }
 
@@ -90,14 +91,14 @@ class enrol_wallet_external extends external_api {
      */
     public static function get_instance_info_returns() {
         return new external_single_structure(
-            array(
+            [
                 'id' => new external_value(PARAM_INT, 'id of course enrolment instance'),
                 'courseid' => new external_value(PARAM_INT, 'id of course'),
                 'type' => new external_value(PARAM_PLUGIN, 'type of enrolment plugin'),
                 'name' => new external_value(PARAM_RAW, 'name of enrolment plugin'),
                 'status' => new external_value(PARAM_RAW, 'status of enrolment plugin'),
                 'cost' => new external_value(PARAM_NUMBER, 'The cost of the course'),
-            )
+            ]
         );
     }
 
@@ -105,14 +106,13 @@ class enrol_wallet_external extends external_api {
      * Returns description of method parameters
      *
      * @return external_function_parameters
-     * @since Moodle 3.0
      */
     public static function enrol_user_parameters() {
         return new external_function_parameters(
-            array(
+            [
                 'courseid' => new external_value(PARAM_INT, 'Id of the course'),
                 'instanceid' => new external_value(PARAM_INT, 'Instance id of wallet enrolment plugin.', VALUE_DEFAULT, 0)
-            )
+            ]
         );
     }
 
@@ -122,7 +122,6 @@ class enrol_wallet_external extends external_api {
      * @param int $courseid id of course
      * @param int $instanceid instance id of wallet enrolment plugin
      * @return array of warnings and status result
-     * @since Moodle 3.0
      * @throws moodle_exception
      */
     public static function enrol_user($courseid, $instanceid = 0) {
@@ -136,7 +135,7 @@ class enrol_wallet_external extends external_api {
                                                 'instanceid' => $instanceid
                                             ));
 
-        $warnings = array();
+        $warnings = [];
 
         $course = get_course($params['courseid']);
         $context = context_course::instance($course->id);
@@ -153,7 +152,7 @@ class enrol_wallet_external extends external_api {
         }
 
         // We can expect multiple wallet-enrolment instances.
-        $instances = array();
+        $instances = [];
         $enrolinstances = enrol_get_instances($course->id, true);
         foreach ($enrolinstances as $courseenrolinstance) {
             if ($courseenrolinstance->enrol == "wallet") {
@@ -166,9 +165,9 @@ class enrol_wallet_external extends external_api {
                 } else {
                     $instances[] = $courseenrolinstance;
                 }
-
             }
         }
+
         if (empty($instances)) {
             throw new moodle_exception('canntenrol', 'enrol_wallet');
         }
@@ -197,16 +196,17 @@ class enrol_wallet_external extends external_api {
                 } else if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE_DISCOUNTED) {
                     $enrolstatus = get_string('insufficient_balance_discount', 'enrol_wallet', $a);
                 }
-                $warnings[] = array(
+
+                $warnings[] = [
                     'item' => 'instance',
                     'itemid' => $instance->id,
                     'warningcode' => '1',
                     'message' => $enrolstatus
-                );
+                ];
             }
         }
 
-        $result = array();
+        $result = [];
         $result['status'] = $enrolled;
         $result['warnings'] = $warnings;
         return $result;
@@ -216,14 +216,13 @@ class enrol_wallet_external extends external_api {
      * Returns description of method result value
      *
      * @return external_description
-     * @since Moodle 3.0
      */
     public static function enrol_user_returns() {
         return new external_single_structure(
-            array(
+            [
                 'status' => new external_value(PARAM_BOOL, 'status: true if the user is enrolled, false otherwise'),
                 'warnings' => new external_warnings()
-            )
+            ]
         );
     }
 

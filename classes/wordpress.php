@@ -55,32 +55,24 @@ class wordpress {
         $curlsetopt = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FAILONERROR => true,
-            CURLOPT_POST => ($method == 'login_logout') ? false : true,
-
+            CURLOPT_FAILONERROR => false,
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $sendingdata,
         ];
-        if ($method !== 'login_logout') {
-            $curlsetopt[CURLOPT_POSTFIELDS] = json_encode($sendingdata);
-            $curlsetopt[CURLOPT_HTTPHEADER] = array('Content-Type: application/json');
-        } else {
-            // I need to send the data here using get method.
-            $curlsetopt[CURLOPT_URL] = $url.'?'.http_build_query($sendingdata);
-            $curlsetopt[CURLOPT_HTTPGET] = true;
-        }
+
         curl_setopt_array($curl, $curlsetopt);
         $response = curl_exec($curl);
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
         curl_close($curl);
 
         if ($httpcode != 200) {
             // Endpoint returned an error.
             return get_string('endpoint_error', 'enrol_wallet');
         }
-        if ($method !== 'login_logout') {
-            return json_decode($response, true);
-        }
 
-        return json_decode($response, true);
+        $return = json_decode($response, true);
+        return $return;
     }
     /**
      * encrypt data before sent it.
@@ -262,26 +254,34 @@ class wordpress {
 
     /**
      * Login and logout the user to the wordpress site.
-     * @param int $userid
+     * @param int $userid moodle user id
      * @param string $method either login or logout
+     * @param string $redirect redirection url after login or logout from wordpress website
      * @return bool|string
      */
-    public function login_logout_user_to_wordpress($userid, $method) {
+    public function login_logout_user_to_wordpress($userid, $method, $redirect) {
         $allowed = get_config('enrol_wallet', 'wordpressloggins');
-        if (!$allowed) {
-            return false;
+        $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+
+        if (empty($allowed) || empty($wordpressurl) || !filter_var($wordpressurl, FILTER_VALIDATE_URL)) {
+            redirect(new \moodle_url('/'));
         }
+
+        $user = \core_user::get_user($userid);
+        if (!$user || isguestuser($user)) {
+            redirect(new \moodle_url('/'));
+        }
+
         $data = [
             'moodle_user_id' => $userid,
             'method' => $method,
-            'url' => $_SERVER['HTTP_REFERER']];
-        $response = $this->request('login_logout', $data);
-        if ($response) {
-            return true;
-        } else {
-            $this->create_wordpress_user($userid);
-            return $this->request('login_logout', $data);
-        }
+            'url' => $redirect,
+            'email' => $user->email,
+            'username' => $user->username,
+        ];
+
+        $encdata = $this->encrypt_data($data);
+        redirect($wordpressurl . '?encdata=' . $encdata . '&moodleurl=' . (new \moodle_url('/'))->out());
     }
 }
 

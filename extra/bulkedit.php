@@ -76,7 +76,7 @@ foreach ($enrolplugins as $name => $object) {
     $plugoptions[$name] = $name;
 }
 
-$selectenrol = $form->addElement('select', 'plugins', get_string('type_enrol_plural'), $plugoptions);
+$selectenrol = $form->addElement('select', 'plugins', get_string('enrol_type', 'enrol_wallet'), $plugoptions);
 $selectenrol->setMultiple(true);
 
 $statusoptions = array(-1 => get_string('nochange', 'enrol'),
@@ -91,9 +91,9 @@ $form->addElement('submit' , 'submit', get_string('submit'));
 $form->disabledIf('submit', 'courses[]', 'noitemselected');
 $form->disabledIf('submit', 'plugins[]', 'noitemselected');
 
-$mform->addElement('hidden', 'sesskey');
-$mform->setType('sesskey', PARAM_TEXT);
-$mform->setDefault('sesskey', sesskey());
+$form->addElement('hidden', 'sesskey');
+$form->setType('sesskey', PARAM_TEXT);
+$form->setDefault('sesskey', sesskey());
 
 // Now let's display the form.
 ob_start();

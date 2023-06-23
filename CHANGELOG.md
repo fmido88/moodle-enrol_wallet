@@ -1,5 +1,9 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.6.5 ##
+- Fix the functionality of logging in and logging out from wordpress website.
+- Fix bug in bulkedit page
+
 ## V 1.6.4 ##
 - Adding some translatable language strings.
 - some code improvement.

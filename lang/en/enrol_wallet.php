@@ -161,6 +161,7 @@ $string['enablerefund_desc'] = 'If not checked, all credits from now on will be 
 $string['endpoint_error'] = 'endpoint return error';
 $string['endpoint_incorrect'] = 'incorrect response';
 $string['enrol_wallet'] = 'Enrol with wallet balance';
+$string['enrol_type'] = 'Enrolment type';
 $string['enrolenddate'] = 'End date';
 $string['enrolenddate_help'] = 'If enabled, users can enrol themselves until this date only.';
 $string['enrolenddaterror'] = 'Enrolment end date cannot be earlier than start date';

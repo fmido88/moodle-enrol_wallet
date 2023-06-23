@@ -509,7 +509,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
         // Check the restrictions upon other course enrollment.
-        if (!empty($instance->customint7)) {
+        if (!empty($instance->customint7) && $DB->record_exists('course', ['id' => $instance->customint7])) {
             $coursectx = context_course::instance($instance->customint7);
             if (!is_enrolled($coursectx)) {
                 // The user is not enrolled in the required course.
@@ -615,8 +615,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $fields['customint6'] = $this->get_config('newenrols');
         $fields['customint7'] = 0;
         $awards = $this->get_config('awards');
-        $fields['customint8'] = isset($awards) ? $awards : 0;
-        if ($awards) {
+        $fields['customint8'] = !empty($awards) ? $awards : 0;
+        if (!empty($awards)) {
             $fields['customdec1'] = $this->get_config('awardcreteria');
             $fields['customdec2'] = $this->get_config('awardvalue');
         } else {
@@ -973,6 +973,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         return $options;
     }
+
     /**
      * Get availabe cohorts options for cohort restriction options.
      * @param stdClass $instance
@@ -1007,6 +1008,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         return $cohorts;
     }
+
     /**
      * The wallet enrollment plugin has several bulk operations that can be performed.
      * @param course_enrolment_manager $manager
@@ -1209,6 +1211,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (core_text::strlen($data['name']) > 255) {
             $errors['name'] = get_string('err_maxlength', 'form', 255);
         }
+
         $validstatus = array_keys($this->get_status_options());
         $validnewenrols = array_keys($this->get_newenrols_options());
 
@@ -1292,6 +1295,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             } else {
                 $data->notifyall = 0;
             }
+
             // Keep previous/default value of disabled expirythreshold option.
             if (!$data->expirynotify) {
                 $data->expirythreshold = $instance->expirythreshold;
@@ -1346,6 +1350,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $roles[$defaultrole] = role_get_name($role, $context, ROLENAME_BOTH);
             }
         }
+
         return $roles;
     }
 
