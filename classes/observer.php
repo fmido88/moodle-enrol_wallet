@@ -44,6 +44,7 @@ class observer {
     public static function wallet_completion_awards(\core\event\course_completed $event) {
         $userid = $event->relateduserid;
         $courseid = $event->courseid;
+
         // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
         $instances = enrol_get_instances($courseid, true);
         $instance = null;
@@ -54,67 +55,75 @@ class observer {
             }
         }
 
-        if (null == $instance) {
+        // Check if wallet enrolment instance found in this course.
+        // Check if awards enabled in this instance.
+        if (null === $instance || empty($instance->customint8)) {
             return;
         }
-        if (!empty($instance->customint8)) {
-            global $CFG, $DB;
-            require_once($CFG->dirroot.'/grade/querylib.php');
-            require_once($CFG->libdir . '/gradelib.php');
 
-            $grades = grade_get_course_grade($userid, $courseid);
-            $maxgrade = (float)$grades->item->grademax;
-            $usergrade = (float)$grades->grade;
-            $percentage = ($usergrade / $maxgrade) * 100;
+        global $CFG, $DB;
+        require_once($CFG->dirroot.'/grade/querylib.php');
+        require_once($CFG->libdir . '/gradelib.php');
 
-            $condition = $instance->customdec1;
-            // Check if the condition applied.
-            if ($percentage < $condition) {
-                return;
-            }
-            // If the user already rewarded for this course, ignore the event.
-            if ($DB->record_exists('enrol_wallet_awards', ['userid' => $userid, 'courseid' => $courseid])) {
-                return;
-            }
-            $awardper = $instance->customdec2;
-            // Receiving the award per each grade.
-            $award = ($percentage - $condition) * $maxgrade * $awardper / 100;
-            $coursename = get_course($courseid)->shortname;
-            $a = new \stdClass;
-            $a->courseshortname = $coursename;
-            $a->amount = $award;
-            $a->usergrade = $usergrade;
-            $a->maxgrade = $maxgrade;
+        $grades = grade_get_course_grade($userid, $courseid);
+        $maxgrade = (float)$grades->item->grademax;
+        $usergrade = (float)$grades->grade;
+        $percentage = ($usergrade / $maxgrade) * 100;
 
-            $desc = get_string('awardingdesc', 'enrol_wallet', $a);
-            transactions::payment_topup($award , $userid , $desc , $userid, false);
-
-            $data = [
-                'userid' => $userid,
-                'courseid' => $courseid,
-                'grade' => $usergrade,
-                'maxgrade' => $maxgrade,
-                'percent' => $percentage,
-                'amount' => $award,
-                'timecreated' => time()
-            ];
-
-            $id = $DB->insert_record('enrol_wallet_awards', $data);
-            // Trigger award event.
-            $eventdata = [
-                'context' => \context_course::instance($courseid),
-                'userid' => $userid,
-                'relateduserid' => $userid,
-                'objectid' => $id,
-                'courseid' => $courseid,
-                'other' => [
-                    'grade' => number_format($percentage, 2),
-                    'amount' => $award,
-                ],
-            ];
-            $event = \enrol_wallet\event\award_granted::create($eventdata);
-            $event->trigger();
+        $condition = $instance->customdec1;
+        // Check if the condition applied and the student deserve the award.
+        if ($percentage < $condition) {
+            return;
         }
+        // If the user already rewarded for this course, ignore the event.
+        if ($DB->record_exists('enrol_wallet_awards', ['userid' => $userid, 'courseid' => $courseid])) {
+            return;
+        }
+        // Award per each grade.
+        $awardper = $instance->customdec2;
+
+        // Calculating the total award.
+        $award = ($percentage - $condition) * $maxgrade * $awardper / 100;
+        $coursename = get_course($courseid)->shortname;
+
+        $a = new \stdClass;
+        $a->courseshortname = $coursename;
+        $a->amount = $award;
+        $a->usergrade = $usergrade;
+        $a->maxgrade = $maxgrade;
+
+        $desc = get_string('awardingdesc', 'enrol_wallet', $a);
+
+        // Award the student.
+        transactions::payment_topup($award , $userid , $desc , $userid, false);
+
+        // Insert the record.
+        $data = [
+            'userid' => $userid,
+            'courseid' => $courseid,
+            'grade' => $usergrade,
+            'maxgrade' => $maxgrade,
+            'percent' => $percentage,
+            'amount' => $award,
+            'timecreated' => time()
+        ];
+        $id = $DB->insert_record('enrol_wallet_awards', $data);
+
+        // Trigger award event.
+        $eventdata = [
+            'context' => \context_course::instance($courseid),
+            'userid' => $userid,
+            'relateduserid' => $userid,
+            'objectid' => $id,
+            'courseid' => $courseid,
+            'other' => [
+                'grade' => number_format($percentage, 2),
+                'amount' => $award,
+            ],
+        ];
+        $event = \enrol_wallet\event\award_granted::create($eventdata);
+        $event->trigger();
+
     }
 
     /** This is a callback function when user created,
@@ -123,11 +132,14 @@ class observer {
      * @return void
      */
     public static function wallet_gifting_new_user(\core\event\user_created $event) {
-        $userid = $event->relateduserid;
-        $time = $event->timecreated;
-        if (!get_config('enrol_wallet', 'newusergift')) {
+
+        $giftenabled = get_config('enrol_wallet', 'newusergift');
+        if (empty($giftenabled)) {
             return;
         }
+
+        $userid = $event->relateduserid;
+        $time = $event->timecreated;
         $giftvalue = get_config('enrol_wallet', 'newusergiftvalue');
 
         $a = new \stdClass;
@@ -137,6 +149,7 @@ class observer {
         $desc = get_string('giftdesc', 'enrol_wallet', $a);
 
         $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false);
+
         // Trigger gifts event.
         $eventdata = [
             'context' => \context_system::instance(),
@@ -153,6 +166,9 @@ class observer {
 
     /**
      * Callback function to apply conditional discount rule.
+     * The conditional discount acts like this, for example a discount 25% for 200 cost
+     * the user pay 150 then this function credit him by 50.
+     *
      * @param \enrol_wallet\event\transactions_triggered $event
      * @return void
      */
@@ -163,15 +179,26 @@ class observer {
 
         $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
         $condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
+        $percentdiscount = get_config('enrol_wallet', 'conditionaldiscount_percent');
 
-        if (empty($enabled) || $amount < $condition || $event->other['type'] != 'credit') {
+        if (
+            empty($enabled) // If the discount enabled.
+            || empty($percentdiscount) // If there is a value for discount.
+            || !is_numeric($percentdiscount) // If it is a valid value.
+            || $amount < $condition // If the amount fulfill the criteria.
+            || $event->other['type'] != 'credit' // Only apply to credit transaction.
+            ) {
             return;
         }
 
-        $discount = get_config('enrol_wallet', 'conditionaldiscount_percent') / 100;
+        // Discount more than 100 is not acceptable.
+        $percentdiscount = max(100, $percentdiscount);
+        $discount = $percentdiscount / 100;
+        // The rest of the amount after subtract the part the user paid.
         $rest = $amount * $discount / (1 - $discount);
 
         $desc = get_string('conditionaldiscount_desc', 'enrol_wallet', ['rest' => $rest, 'condition' => $condition]);
+        // Credit the user with the rest amount.
         transactions::payment_topup($rest, $userid, $desc, $charger, false);
     }
 
@@ -191,19 +218,24 @@ class observer {
             return;
         }
 
+        // Double check that is the same user.
         $usernameevent = $event->other['username'];
         $username = $user->username;
         if ($username != $usernameevent) {
             return;
         }
+
+        // Clone the old wantsurl.
         $params = [];
         if (isset($SESSION->wantsurl)) {
             $params['wantsurl'] = $SESSION->wantsurl;
             unset($SESSION->wantsurl);
         }
+
         $params['userid'] = $userid;
         $params['action'] = 'login';
 
+        // Using the observer to set redirect page so the operation done on foreground client side.
         $SESSION->wantsurl = (new \moodle_url('/enrol/wallet/wplogin.php', $params))->out();
     }
 
@@ -224,13 +256,16 @@ class observer {
         if (!$user || isguestuser($user)) {
             return;
         }
+
         $params = [];
         if (!empty($redirect)) {
             $params['redirect'] = $redirect;
         }
+
         $params['userid'] = $userid;
         $params['action'] = 'logout';
 
+        // Using the observer to set redirect page so the operation done on foreground client side.
         $redirect = new \moodle_url('/enrol/wallet/wplogin.php', $params);
     }
 }

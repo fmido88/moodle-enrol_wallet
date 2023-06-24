@@ -23,9 +23,12 @@
  */
 
 require_once('../../../config.php');
+// Some security.
 require_login();
+
 $frontpagectx = context_course::instance(SITEID);
 require_capability('enrol/wallet:manage', $frontpagectx);
+
 // Initialize the data object.
 $data = new stdClass;
 // Get all parameters form the form.
@@ -100,7 +103,8 @@ if ($awards) {
     if ($customint8 >= 0) {
         $data->customint8 = $customint8;
     }
-    if ($customint8) {
+
+    if (!empty($customint8)) {
         $customdec1 = required_param('customdec1', PARAM_NUMBER);
         $customdec2 = required_param('customdec2', PARAM_NUMBER);
         $data->customdec1 = $customdec1;
@@ -207,5 +211,3 @@ if (confirm_sesskey()) {
         redirect($url, $msg, null, 'info');
     }
 }
-
-

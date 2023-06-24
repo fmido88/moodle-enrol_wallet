@@ -24,7 +24,6 @@
 
 require_once(__DIR__.'/../../config.php');
 require_once("$CFG->dirroot/login/lib.php");
-global $SESSION;
 
 $wantsurl = optional_param('wantsurl', '', PARAM_URL);
 $newredirect = optional_param('redirect', '', PARAM_URL);
@@ -32,6 +31,7 @@ $userid = required_param('userid', PARAM_INT);
 $action = required_param('action', PARAM_TEXT);
 
 if ($action == 'login') {
+    global $SESSION;
     require_login();
 
     if (!empty($wantsurl)) {

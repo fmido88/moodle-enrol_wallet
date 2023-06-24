@@ -338,6 +338,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         return true;
     }
+
     /**
      * Check for other enrol_wallet instances, return true if there is a cheaper one.
      * @param int $thisid the id of this instances.
@@ -361,6 +362,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $othercost = $this->get_cost_after_discount($USER->id, $instance, $coupon);
 
             if ($othercost < $thiscost) {
+
                 $hide = true;
                 break;
             }
@@ -368,6 +370,46 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         return $hide;
     }
+
+    /**
+     * Check if there is restriction according to other courses enrolment.
+     * @param stdClass $instance
+     * @return bool|string
+     */
+    public function is_course_enrolment_restriction($instance) {
+        global $DB;
+        if (!empty($instance->customchar3) && !empty($instance->customint7)) {
+            $courses = explode(',', $instance->customchar3);
+            $restrict = false;
+            $count = 0;
+            $total = 0;
+            $notenrolled = [];
+            foreach ($courses as $courseid) {
+                if (!$DB->record_exists('course', ['id' => $courseid])) {
+                    continue;
+                }
+                $total++;
+                $coursectx = context_course::instance($courseid);
+                if (!is_enrolled($coursectx)) {
+                    $restrict = true;
+                    // The user is not enrolled in the required course.
+                    $notenrolled[] = get_course($courseid)->fullname;
+                } else {
+                    // Count the courses which the user enrolled in.
+                    $count++;
+                }
+            }
+
+            $coursesnames = '(' . implode(', ', $notenrolled) . ')';
+            // In case that the course creator choose a higher number than the selected courses.
+            $limit = min($total, $instance->customint7);
+            if ($restrict && $count < $limit) {
+                return $coursesnames;
+            }
+        }
+        return false;
+    }
+
     /**
      * Creates course enrol form, checks if form submitted
      * and enrols user if necessary. It can also redirect.
@@ -389,8 +431,9 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $balance = transactions::get_user_balance($USER->id);
 
+        $hide = $this->hide_due_cheaper_instance($instance->id, $costafter, $instance->courseid);
         $output = '';
-        if (true === $enrolstatus) {
+        if (true === $enrolstatus && !$hide) {
 
             // This user can self enrol using this instance.
             $form = new enrol_form(null, $instance);
@@ -420,14 +463,11 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $output .= ob_get_clean();
             }
 
-        } else if (self::INSUFFICIENT_BALANCE == $enrolstatus ||
-            self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus
+        } else if (
+                (self::INSUFFICIENT_BALANCE == $enrolstatus
+                || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus)
+                && !$hide
             ) {
-
-            // Check for cheaper instance.
-            if ($this->hide_due_cheaper_instance($instance->id, $costafter, $instance->courseid)) {
-                return '';
-            }
 
             // This user has insufficient wallet balance to be directly enrolled.
             // So we will show him several ways for payments or recharge his wallet.
@@ -435,14 +475,24 @@ class enrol_wallet_plugin extends enrol_plugin {
             $data->header = $this->get_instance_name($instance);
             $data->instance = $instance;
             if ($enrolstatus == self::INSUFFICIENT_BALANCE) {
-                $data->info = get_string('insufficient_balance', 'enrol_wallet', [
-                    'cost_before' => $costbefore,
-                    'user_balance' => $balance]);
+
+                $data->info = get_string('insufficient_balance',
+                                        'enrol_wallet',
+                                        [
+                                            'cost_before' => $costbefore,
+                                            'user_balance' => $balance
+                                        ]);
+
             } else {
-                $data->info = get_string('insufficient_balance_discount', 'enrol_wallet', [
-                    'cost_before' => $costbefore,
-                    'cost_after' => $costafter,
-                    'user_balance' => $balance]);
+
+                $data->info = get_string('insufficient_balance_discount',
+                                        'enrol_wallet',
+                                        [
+                                            'cost_before' => $costbefore,
+                                            'cost_after' => $costafter,
+                                            'user_balance' => $balance
+                                        ]);
+
             }
 
             $form = new insuf_form(null, $data);
@@ -451,9 +501,8 @@ class enrol_wallet_plugin extends enrol_plugin {
             $output .= ob_get_clean();
 
             // Now prepare the coupon form.
-            // Check the coupons settings first.
-            $couponsetting = get_config('enrol_wallet', 'coupons');
             if ($couponsetting != self::WALLET_NOCOUPONS) {
+
                 $action = new moodle_url('/enrol/wallet/extra/action.php');
                 $couponform = new applycoupon_form($action, $data);
 
@@ -470,27 +519,34 @@ class enrol_wallet_plugin extends enrol_plugin {
             // If payment is enabled in general, adding topup option.
             $account = get_config('enrol_wallet', 'paymentaccount');
             if (!empty($account) && $account > 0) {
+
                 $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
                 $topupform = new topup_form($topupurl, $data);
+
                 ob_start();
                 $topupform->display();
                 $output .= ob_get_clean();
             }
 
-        } else {
+        } else if (!$hide) {
             // This user cannot enrol using this instance. Using an empty form to keep
             // the UI consistent with other enrolment plugins that returns a form.
             $data = new stdClass();
             $data->header = $this->get_instance_name($instance);
             $data->info = $enrolstatus;
             $data->instance = $instance;
+
             // The can_self_enrol call returns a button to the login page if the user is a
             // guest, setting the login url to the form if that is the case.
             $url = isguestuser() ? get_login_url() : null;
             $form = new empty_form($url, $data);
+
             ob_start();
             $form->display();
             $output .= ob_get_clean();
+
+        } else {
+            return '';
         }
 
         return $OUTPUT->box($output);
@@ -543,34 +599,8 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
         // Check the restrictions upon other courses enrollment.
-        if (!empty($instance->customchar3) && !empty($instance->customint7)) {
-            $courses = explode(',', $instance->customchar3);
-            $restrict = false;
-            $count = 0;
-            $total = 0;
-            $notenrolled = [];
-            foreach ($courses as $courseid) {
-                if (!$DB->record_exists('course', ['id' => $courseid])) {
-                    continue;
-                }
-                $total++;
-                $coursectx = context_course::instance($courseid);
-                if (!is_enrolled($coursectx)) {
-                    $restrict = true;
-                    // The user is not enrolled in the required course.
-                    $notenrolled[] = get_course($courseid)->fullname;
-                } else {
-                    // Count the courses which the user enrolled in.
-                    $count++;
-                }
-            }
-
-            $coursesnames = '(' . implode(', ', $notenrolled) . ')';
-            // In case that the course creator choose a higher number than the selected courses.
-            $limit = min($total, $instance->customint7);
-            if ($restrict && $count < $limit) {
-                return get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
-            }
+        if ($coursesnames = $this->is_course_enrolment_restriction($instance)) {
+            return get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
         }
         // Check the cohorts restrictions.
         if ($instance->customint5) {
@@ -585,7 +615,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
         // Non valid cost.
-        if (empty($instance->cost) || !is_numeric($instance->cost) || $instance->cost < 0) {
+        if (!isset($instance->cost) || !is_numeric($instance->cost) || $instance->cost < 0) {
             return get_string('nocost', 'enrol_wallet');
         }
         // Insufficient balance.
@@ -594,6 +624,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (!is_numeric($costafter) || $costafter < 0) {
             return get_string('nocost', 'enrol_wallet');
         }
+
         $this->costafter = $costafter;
         $costbefore = $instance->cost;
         $balance = transactions::get_user_balance($USER->id);

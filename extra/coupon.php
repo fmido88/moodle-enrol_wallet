@@ -24,11 +24,11 @@
 
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+require_once($CFG->libdir.'/formslib.php');
 // Adding some security.
 require_login();
 
 $systemcontext = context_system::instance();
-
 require_capability('enrol/wallet:createcoupon', $systemcontext);
 
 // Setup the page.
@@ -37,8 +37,6 @@ $PAGE->set_context($systemcontext);
 $PAGE->set_url(new moodle_url('/enrol/wallet/extra/coupon.php'));
 $PAGE->set_title(get_string('coupon_generation_title', 'enrol_wallet'));
 $PAGE->set_heading(get_string('coupon_generation_heading', 'enrol_wallet'));
-
-echo $OUTPUT->header();
 
 $mform = new MoodleQuickForm('wallet_coupons', 'post', 'generator.php');
 
@@ -89,12 +87,14 @@ $group = [];
 $group[] = $mform->createElement('checkbox', 'upper', get_string('upperletters', 'enrol_wallet'));
 $group[] = $mform->createElement('checkbox', 'lower', get_string('lowerletters', 'enrol_wallet'));
 $group[] = $mform->createElement('checkbox', 'digits', get_string('digits', 'enrol_wallet'));
-$mform->setDefault('lower', 'checked');
-$mform->setDefault('digits', 1);
 
 $mform->addGroup($group, 'characters', get_string('characters', 'enrol_wallet'), '-');
 $mform->addHelpButton('characters', 'characters', 'enrol_wallet');
 $mform->hideIf('characters' , 'method', 'eq', 'single');
+
+$mform->setDefault('characters[upper]', 1);
+$mform->setDefault('characters[lower]', 1);
+$mform->setDefault('characters[digits]', 1);
 
 $mform->addElement('submit', 'submit', get_string('submit_coupongenerator', 'enrol_wallet'));
 $mform->disabledIf('submit', 'value', 'eq', 0);
@@ -104,11 +104,10 @@ $mform->addElement('hidden', 'sesskey');
 $mform->setType('sesskey', PARAM_TEXT);
 $mform->setDefault('sesskey', sesskey());
 
-// Now let's display the form.
-ob_start();
-$mform->display();
-$output = ob_get_clean();
 
-echo $OUTPUT->box($output);
+
+echo $OUTPUT->header();
+
+$mform->display();
 
 echo $OUTPUT->footer();
