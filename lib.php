@@ -338,7 +338,36 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         return true;
     }
+    /**
+     * Check for other enrol_wallet instances, return true if there is a cheaper one.
+     * @param int $thisid the id of this instances.
+     * @param mixed $thiscost the cost after discount for this instance.
+     * @param mixed $courseid
+     * @return bool
+     */
+    public function hide_due_cheaper_instance($thisid, $thiscost, $courseid) {
+        global $DB, $USER;
+        $coupon = $this->check_discount_coupon();
+        // Get the other instances.
+        $instances = $DB->get_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet']);
 
+        $hide = false;
+        foreach ($instances as $instance) {
+            // Don't compare the instance with itself.
+            if ($thisid == $instance->id) {
+                continue;
+            }
+
+            $othercost = $this->get_cost_after_discount($USER->id, $instance, $coupon);
+
+            if ($othercost < $thiscost) {
+                $hide = true;
+                break;
+            }
+        }
+
+        return $hide;
+    }
     /**
      * Creates course enrol form, checks if form submitted
      * and enrols user if necessary. It can also redirect.
@@ -394,6 +423,11 @@ class enrol_wallet_plugin extends enrol_plugin {
         } else if (self::INSUFFICIENT_BALANCE == $enrolstatus ||
             self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus
             ) {
+
+            // Check for cheaper instance.
+            if ($this->hide_due_cheaper_instance($instance->id, $costafter, $instance->courseid)) {
+                return '';
+            }
 
             // This user has insufficient wallet balance to be directly enrolled.
             // So we will show him several ways for payments or recharge his wallet.
@@ -508,7 +542,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 return get_string('maxenrolledreached', 'enrol_wallet');
             }
         }
-        // Check the restrictions upon other course enrollment.
+        // Check the restrictions upon other courses enrollment.
         if (!empty($instance->customchar3) && !empty($instance->customint7)) {
             $courses = explode(',', $instance->customchar3);
             $restrict = false;
@@ -1106,7 +1140,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
 
             $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
-            $mform->setType('customchar3', PARAM_ALPHANUMEXT);
+            $mform->setType('customchar3', PARAM_TEXT);
 
             $params = [
                 'id' => 'wallet_courserestriction',
@@ -1123,7 +1157,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->setConstant('customint7', 0);
 
             $mform->addElement('hidden', 'customchar3');
-            $mform->setType('customchar3', PARAM_ALPHANUMEXT);
+            $mform->setType('customchar3', PARAM_TEXT);
             $mform->setConstant('customchar3', '');
         }
 
