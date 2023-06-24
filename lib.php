@@ -547,23 +547,28 @@ class enrol_wallet_plugin extends enrol_plugin {
             $courses = explode(',', $instance->customchar3);
             $restrict = false;
             $count = 0;
+            $total = 0;
             $notenrolled = [];
             foreach ($courses as $courseid) {
                 if (!$DB->record_exists('course', ['id' => $courseid])) {
                     continue;
                 }
+                $total++;
                 $coursectx = context_course::instance($courseid);
                 if (!is_enrolled($coursectx)) {
                     $restrict = true;
                     // The user is not enrolled in the required course.
                     $notenrolled[] = get_course($courseid)->fullname;
                 } else {
+                    // Count the courses which the user enrolled in.
                     $count++;
                 }
             }
 
             $coursesnames = '(' . implode(', ', $notenrolled) . ')';
-            if ($restrict && $count < $instance->customint7) {
+            // In case that the course creator choose a higher number than the selected courses.
+            $limit = min($total, $instance->customint7);
+            if ($restrict && $count < $limit) {
                 return get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
             }
         }
