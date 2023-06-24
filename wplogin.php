@@ -46,6 +46,8 @@ if ($action == 'login') {
 
 } else if ($action == 'logout') {
     global $redirect;
+    require_logout();
+
     if (!empty($newredirect)) {
         $redirect = $newredirect;
     } else {
