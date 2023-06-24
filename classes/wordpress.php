@@ -280,7 +280,7 @@ class wordpress {
             'method' => $method,
             'url' => $redirect,
             'email' => $user->email,
-            'username' => $user->username, // username and email used for login only in case user need to be created.
+            'username' => $user->username, // ...username and email used for login only in case user need to be created.
         ];
 
         $encdata = $this->encrypt_data($data);
