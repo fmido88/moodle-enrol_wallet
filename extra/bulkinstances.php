@@ -33,7 +33,6 @@ $systemcontext = context_system::instance();
 
 $frontpagectx = context_course::instance(SITEID);
 require_capability('enrol/wallet:manage', $frontpagectx);
-course_require_view_participants($frontpagectx);
 
 // Setup the page.
 $PAGE->set_pagelayout('admin');
