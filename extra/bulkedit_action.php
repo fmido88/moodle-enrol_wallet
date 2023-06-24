@@ -56,7 +56,7 @@ if (!empty($timestart)) {
     $start = [];
 }
 
-$status = optional_param('status', '-1', PARAM_INT);
+$status = optional_param('status', -1, PARAM_INT);
 $plugins = optional_param_array('plugins', [], PARAM_TEXT);
 $i = 0;
 global $DB, $USER;
@@ -67,36 +67,50 @@ if (confirm_sesskey()) {
         if (!has_capability('enrol/wallet:manage', $context)) {
             continue;
         }
+
         $enrolusers = enrol_get_course_users($courseid);
 
         foreach ($enrolusers as $euser) {
             $enrol = $DB->get_record('enrol', ['id' => $euser->ueenrolid], 'enrol');
+
             if (!in_array($enrol->enrol , $plugins)) {
                 continue;
             }
+
+            if ($euser->uestatus == $status
+                && $euser->uetimestart == $start
+                && $euser->uetimeend == $end) {
+                // No change.
+                continue;
+            }
+
+            $plugin = enrol_get_plugin($enrol->enrol);
 
             $data = new stdClass;
             $data->id = $euser->ueid;
             if ($status !== -1) {
                 $data->status = $status;
             }
+
             if (!empty($start) && $euser->uetimestart > $start) {
                 $data->timestart = $start;
             }
+
             if (!empty($end) && $euser->uetimeend < $end && $euser->uetimeend !== 0) {
                 $data->timeend = $end;
             }
 
-            $data->modifierid = $USER->id;
-            $data->timemodified = time();
+            $plugin->update_user_enrol($enrol, $euser->id, $data->status, $data->timestart, $data->timeend);
 
-            $result = $DB->update_record('user_enrolments', $data);
             $i++;
         }
     }
+
+    $url = new moodle_url('/enrol/wallet/extra/bulkedit.php');
+    $msg = get_string('enrollmentupdated', 'enrol_wallet');
     if ($i == 0) {
-        redirect(new moodle_url('/'), $i.' enrollment has been updated', null, 'warning');
+        redirect($url, $i . $msg, null, 'warning');
     } else {
-        redirect(new moodle_url('/'), $i.' enrollments has been updated', null, 'info');
+        redirect($url, $i . ' '. $msg, null, 'info');
     }
 }

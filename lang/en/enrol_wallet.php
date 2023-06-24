@@ -156,8 +156,8 @@ $string['discountscopouns'] = 'Discounts & Coupons';
 $string['discountscopouns_desc'] = 'Choose if you want to apply percentage discounts to users using a custom profile field. <br>
 Also, applying coupons for this plugin.';
 $string['discountcoupondisabled'] = 'Discount coupons disabled in this website.';
-
 $string['editselectedusers'] = 'Edit selected user enrollments';
+
 $string['enablerefund'] = 'Enable refund';
 $string['enablerefund_desc'] = 'If not checked, all credits from now on will be nonrefundable, don\'t forget to clear that to users in refund policy';
 $string['endpoint_error'] = 'endpoint return error';
@@ -167,6 +167,7 @@ $string['enrol_type'] = 'Enrolment type';
 $string['enrolenddate'] = 'End date';
 $string['enrolenddate_help'] = 'If enabled, users can enrol themselves until this date only.';
 $string['enrolenddaterror'] = 'Enrolment end date cannot be earlier than start date';
+$string['enrollmentupdated'] = 'enrollment(s) has been updated';
 $string['enrolme'] = 'Enrol me';
 $string['enrolperiod'] = 'Enrolment duration';
 $string['enrolperiod_desc'] = 'Default length of time that the enrolment is valid. If set to zero, the enrolment duration will be unlimited by default.';

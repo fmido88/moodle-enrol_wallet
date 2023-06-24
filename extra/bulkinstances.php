@@ -170,6 +170,41 @@ if (count($cohorts) > 1) {
     $mform->setConstant('customint5', 0);
 }
 
+// Add course restriction options.
+$coursesoptions = $enrol->get_courses_options($instance->courseid);
+if (!empty($coursesoptions)) {
+    $options = [-1 => 'no change'];
+    for ($i = 0; $i <= 50; $i++) {
+        $options[$i] = $i;
+    }
+    $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction_num', 'enrol_wallet'), $options);
+    $select->setMultiple(false);
+    $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
+
+    $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
+    $mform->setType('customchar3', PARAM_TEXT);
+
+    $params = [
+        'id' => 'wallet_courserestriction',
+        'onChange' => 'restrictByCourse()'
+    ];
+    $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
+    $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $params);
+    $select->setMultiple(true);
+    $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
+    $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
+    $mform->hideIf('courserestriction', 'customint7', 'eq', -1);
+
+} else {
+    $mform->addElement('hidden', 'customint7');
+    $mform->setType('customint7', PARAM_INT);
+    $mform->setConstant('customint7', 0);
+
+    $mform->addElement('hidden', 'customchar3');
+    $mform->setType('customchar3', PARAM_TEXT);
+    $mform->setConstant('customchar3', '');
+}
+
 $options = [-1 => 'no change'] + enrol_send_welcome_email_options();
 $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
 $mform->addHelpButton('customint4', 'sendcoursewelcomemessage', 'enrol_wallet');
@@ -208,6 +243,23 @@ $mform->disabledIf('submit', 'courses[]', 'noitemselected');
 $mform->addElement('hidden', 'sesskey');
 $mform->setType('sesskey', PARAM_TEXT);
 $mform->setDefault('sesskey', sesskey());
+
+if (!empty($coursesoptions)) {
+    // Add some js code to set the value of customchar3 element for the restriction course enrolment.
+    $js = <<<JS
+            function restrictByCourse() {
+                var textelement = document.getElementById("wallet_customchar3");
+                var courseArray = document.getElementById("wallet_courserestriction").selectedOptions;
+                var selectedValues = [];
+                for (var i = 0; i < courseArray.length; i++) {
+                    selectedValues.push(courseArray[i].value);
+                }
+                // Set the value of the hidden input field to the comma-separated string of selected values.
+                textelement.value = selectedValues.join(",");
+            }
+        JS;
+    $mform->addElement('html', '<script>'.$js.'</script>');
+}
 
 // Now let's display the form.
 ob_start();
