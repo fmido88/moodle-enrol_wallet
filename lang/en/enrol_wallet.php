@@ -83,6 +83,7 @@ $string['confirmbulkdeleteenrolment'] = 'Are you sure you want to delete these u
 $string['confirmdeletecoupon'] = 'Are you sure you want to delete coupons with ids {$a}. This operation is irreversible.';
 $string['confirmpayment'] = 'Confirm payment of {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
 $string['confirmpayment_discounted'] = 'Confirm payment of <del>{$a->before} {$a->currency}</del> {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
+$string['coupons'] = 'Coupons';
 $string['coupon_applydiscount'] = 'You now have discounted by {$a}%';
 $string['coupon_applyerror'] = 'ERROR invalid coupon code: <br> {$a}';
 $string['coupon_applyfilter'] = 'Apply filter';
@@ -300,6 +301,7 @@ $string['topupvalue_help'] = 'Value to topup your wallet by using payment method
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
 $string['topuppayment_desc'] = 'Topping up the wallet by payment of {$a} using payment gateway.';
 $string['transaction_type'] = 'Type of transaction';
+$string['transaction_perpage'] = 'Trasactions per page';
 $string['turn_not_refundable_task'] = 'Turn balance to non-refundable.';
 
 $string['unenrol'] = 'Unenrol user';

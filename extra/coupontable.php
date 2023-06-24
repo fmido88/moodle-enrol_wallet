@@ -59,8 +59,8 @@ $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
 $url = new moodle_url('/enrol/wallet/extra/coupontable.php');
 $PAGE->set_url($url);
-$PAGE->set_title("coupons");
-$PAGE->set_heading('Coupons');
+$PAGE->set_title(get_string('coupons', 'enrol_wallet'));
+$PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
 
 // Setup the filtration form.
 $mform = new \MoodleQuickForm('couponfilter', 'get', $url);
@@ -174,7 +174,7 @@ if (!empty($cratedto)) {
 }
 
 $table = new flexible_table('walletcouponstable');
-$table->define_baseurl($PAGE->url);
+$table->define_baseurl($url->out());
 
 if (!$table->is_downloading($download, 'walletcoupons')) {
     echo $OUTPUT->header();
@@ -200,10 +200,9 @@ $columns = array(
     'timecreated' => 'timecreated',
 );
 
-
 $table->define_columns(array_keys($columns));
 $table->define_headers(array_values($columns));
-$table->set_attribute('class', 'generaltable generalbox stacktestsuite');
+$table->set_attribute('class', 'generaltable generalbox');
 
 // Setup the sorting properties.
 $table->sortable(true);
