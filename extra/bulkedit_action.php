@@ -68,16 +68,17 @@ global $DB, $USER;
 if (confirm_sesskey()) {
     foreach ($courses as $courseid) {
         $context = context_course::instance($courseid);
-        if (!has_capability('enrol/wallet:manage', $context)) {
-            continue;
-        }
 
         $enrolusers = enrol_get_course_users($courseid);
 
         foreach ($enrolusers as $euser) {
-            $enrol = $DB->get_record('enrol', ['id' => $euser->ueenrolid]);
+            $instance = $DB->get_record('enrol', ['id' => $euser->ueenrolid]);
 
-            if (!in_array($enrol->enrol , $plugins)) {
+            if (!in_array($instance->enrol , $plugins)) {
+                continue;
+            }
+
+            if (!has_capability("enrol/$instance->enrol:manage", $context)) {
                 continue;
             }
 
@@ -87,8 +88,6 @@ if (confirm_sesskey()) {
                 // No change.
                 continue;
             }
-
-            $plugin = $enrol->enrol;
 
             $data = new stdClass;
             if ($status !== -1) {
@@ -109,7 +108,8 @@ if (confirm_sesskey()) {
                 $data->timeend = $euser->uetimeend;
             }
 
-            $$plugin->update_user_enrol($enrol, $euser->id, $data->status, $data->timestart, $data->timeend);
+            $plugin = $instance->enrol;
+            $$plugin->update_user_enrol($instance, $euser->id, $data->status, $data->timestart, $data->timeend);
 
             $i++;
         }
