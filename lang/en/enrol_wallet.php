@@ -248,6 +248,7 @@ $string['newusergift_enable'] = 'Enable new user gifts';
 $string['newusergift_enable_help'] = 'If enabled, new users will have the gift you decided in their wallet.';
 $string['not_set'] = 'Not set';
 $string['notrefund'] = ' but this amount is nonrefundable: ';
+$string['nochange'] = 'No change';
 $string['nocost'] = 'this course has invalid cost';
 $string['nocoupons'] = 'Disable coupons';
 

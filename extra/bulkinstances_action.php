@@ -88,7 +88,7 @@ if ($customint6 >= 0) {
 }
 
 $customint7 = required_param('customint6', PARAM_INT);
-$customchar3 = optional_param_array('customchar3', '', PARAM_TEXT);
+$customchar3 = optional_param('customchar3', '', PARAM_TEXT);
 if ($customint7 >= 0 && !empty($customchar3)) {
     $data->customint7 = $customint6;
     $data->customchar3 = $customchar3;

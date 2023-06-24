@@ -24,6 +24,7 @@
 
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->libdir.'/formslib.php');
 require_once(__DIR__.'/../lib.php');
 
 // Adding some security.
@@ -37,13 +38,11 @@ require_capability('enrol/wallet:manage', $frontpagectx);
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
-$PAGE->set_url(new moodle_url('/enrol/wallet/bulkinstances.php'));
+$PAGE->set_url(new moodle_url('/enrol/wallet/extra/bulkinstances.php'));
 $PAGE->set_title(get_string('bulk_instancestitle', 'enrol_wallet'));
 $PAGE->set_heading(get_string('bulk_instanceshead', 'enrol_wallet'));
 
-echo $OUTPUT->header();
-
-$mform = new MoodleQuickForm('courses', 'post', 'bulkinstances_action.php');
+$mform = new MoodleQuickForm('bulkinstances_edit', 'post', 'bulkinstances_action.php');
 
 // Prepare the course selector.
 $courses = get_courses();
@@ -64,8 +63,10 @@ foreach ($courses as $course) {
     $options[$course->id] = $parentname.$course->fullname;
 }
 
-$select = $mform->addElement('select', 'courses', 'Courses', $options);
+$select = $mform->addElement('select', 'courses', get_string('courses'), $options);
 $select->setMultiple(true);
+
+$nochange = get_string('nochange', 'enrol_wallet');
 
 $nameattribs = ['size' => '20', 'maxlength' => '255', 'optional' => true];
 $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'), $nameattribs);
@@ -90,16 +91,16 @@ $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
 
 $enrol = enrol_get_plugin('wallet');
 $supportedcurrencies = $enrol->get_possible_currencies();
-$supportedcurrencies = [ '-1' => 'No change' ] + $supportedcurrencies;
+$supportedcurrencies = [ '-1' => $nochange ] + $supportedcurrencies;
 $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'), $supportedcurrencies, ['optional' => true]);
 
-$options = ['-1' => 'No Change',
+$options = ['-1' => $nochange,
             ENROL_INSTANCE_ENABLED => get_string('yes'),
             ENROL_INSTANCE_DISABLED => get_string('no')];
 $mform->addElement('select', 'status', get_string('status', 'enrol_wallet'), $options, ['optional' => true]);
 $mform->addHelpButton('status', 'status', 'enrol_wallet');
 
-$options = [-1 => 'No change',
+$options = [-1 => $nochange,
             1 => get_string('yes'),
             0 => get_string('no')];
 $mform->addElement('select', 'customint6', get_string('newenrols', 'enrol_wallet'), $options, ['optional' => true]);
@@ -107,15 +108,15 @@ $mform->addHelpButton('customint6', 'newenrols', 'enrol_wallet');
 $mform->disabledIf('customint6', 'status', 'eq', ENROL_INSTANCE_DISABLED);
 
 $roles = $enrol->extend_assignable_roles($frontpagectx, 5);
-$roles = [-1 => 'No change'] + $roles;
+$roles = [-1 => $nochange] + $roles;
 $mform->addElement('select', 'roleid', get_string('role', 'enrol_wallet'), $roles, ['optional' => true]);
-$mform->setDefault('roleid', 5);
+$mform->setDefault('roleid', -1);
 
 $options = ['optional' => true, 'defaultunit' => 86400];
 $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_wallet'), $options);
 $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_wallet');
 
-$options = [-1 => 'No change',
+$options = [-1 => $nochange,
             0 => get_string('no'),
             1 => get_string('expirynotifyenroller', 'core_enrol'),
             2 => get_string('expirynotifyall', 'core_enrol')];
@@ -138,8 +139,7 @@ $mform->addElement('date_time_selector', 'enrolenddate', get_string('enrolenddat
 $mform->setDefault('enrolenddate', 0);
 $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_wallet');
 
-$options = [-1 => 'No change'];
-$options[] = $enrol->get_longtimenosee_options();
+$options = [-1 => $nochange] + $enrol->get_longtimenosee_options();
 $mform->addElement('select', 'customint2', get_string('longtimenosee', 'enrol_wallet'), $options);
 $mform->addHelpButton('customint2', 'longtimenosee', 'enrol_wallet');
 
@@ -149,7 +149,7 @@ $mform->setType('customint3', PARAM_INT);
 
 require_once($CFG->dirroot.'/cohort/lib.php');
 
-$cohorts = [-1 => 'No change',
+$cohorts = [-1 => $nochange,
             0 => get_string('no')];
 $allcohorts = cohort_get_all_cohorts();
 
@@ -170,9 +170,9 @@ if (count($cohorts) > 1) {
 }
 
 // Add course restriction options.
-$coursesoptions = $enrol->get_courses_options($instance->courseid);
+$coursesoptions = $enrol->get_courses_options(SITEID);
 if (!empty($coursesoptions)) {
-    $options = [-1 => 'no change'];
+    $options = [-1 => $nochange];
     for ($i = 0; $i <= 50; $i++) {
         $options[$i] = $i;
     }
@@ -204,7 +204,12 @@ if (!empty($coursesoptions)) {
     $mform->setConstant('customchar3', '');
 }
 
-$options = [-1 => 'no change'] + enrol_send_welcome_email_options();
+$options = [
+        -1 => $nochange,
+        ENROL_DO_NOT_SEND_EMAIL => get_string('no'),
+        ENROL_SEND_EMAIL_FROM_COURSE_CONTACT => get_string('sendfromcoursecontact', 'enrol'),
+        ENROL_SEND_EMAIL_FROM_NOREPLY => get_string('sendfromnoreply', 'enrol')
+    ];
 $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
 $mform->addHelpButton('customint4', 'sendcoursewelcomemessage', 'enrol_wallet');
 
@@ -260,11 +265,9 @@ if (!empty($coursesoptions)) {
     $mform->addElement('html', '<script>'.$js.'</script>');
 }
 
-// Now let's display the form.
-ob_start();
-$mform->display();
-$output = ob_get_clean();
+echo $OUTPUT->header();
 
-echo $OUTPUT->box($output);
+// Now let's display the form.
+$mform->display();
 
 echo $OUTPUT->footer();

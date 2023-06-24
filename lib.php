@@ -948,7 +948,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param int $courseid Current course id of exceptions.
      * @return array<string>
      */
-    protected function get_courses_options($courseid) {
+    public function get_courses_options($courseid) {
         // Adding restriction upon another course enrolment.
         // Prepare the course selector.
         $courses = get_courses();
