@@ -58,6 +58,10 @@ if (!empty($timestart)) {
 
 $status = optional_param('status', -1, PARAM_INT);
 $plugins = optional_param_array('plugins', [], PARAM_TEXT);
+foreach ($plugins as $plugin) {
+    $$plugin = enrol_get_plugin($plugin);
+}
+
 $i = 0;
 global $DB, $USER;
 // Check the sesskey before action.
@@ -84,10 +88,9 @@ if (confirm_sesskey()) {
                 continue;
             }
 
-            $plugin = enrol_get_plugin($enrol->enrol);
+            $plugin = $$enrol->enrol;
 
             $data = new stdClass;
-            $data->id = $euser->ueid;
             if ($status !== -1) {
                 $data->status = $status;
             }
