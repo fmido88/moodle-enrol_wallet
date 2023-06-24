@@ -67,12 +67,11 @@ class notifications {
         }
 
         $message->fullmessage = $messagebody;
-        $message->fullmessageformat = FORMAT_HTML;
+        $message->fullmessageformat = FORMAT_MOODLE;
         $message->fullmessagehtml = "<p>$messagebody</p>";
         $message->smallmessage = $desc;
         $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message.
-        $message->contexturl = ''; // A relevant URL for the notification.
-        $message->contexturlname = ''; // Link title explaining where users get to for the contexturl.
+
         $content = array('*' => array('header' => ' Wallet Transaction ', 'footer' => '')); // Extra content for specific processor.
         $message->set_additional_content('email', $content);
 

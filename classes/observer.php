@@ -192,7 +192,7 @@ class observer {
         }
 
         // Discount more than 100 is not acceptable.
-        $percentdiscount = max(100, $percentdiscount);
+        $percentdiscount = min(100, $percentdiscount);
         $discount = $percentdiscount / 100;
         // The rest of the amount after subtract the part the user paid.
         $rest = $amount * $discount / (1 - $discount);

@@ -262,22 +262,25 @@ class wordpress {
     public function login_logout_user_to_wordpress($userid, $method, $redirect) {
         $allowed = get_config('enrol_wallet', 'wordpressloggins');
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
-
-        if (empty($allowed) || empty($wordpressurl) || !filter_var($wordpressurl, FILTER_VALIDATE_URL)) {
-            redirect(new \moodle_url('/'));
-        }
-
         $user = \core_user::get_user($userid);
-        if (!$user || isguestuser($user)) {
+
+        if (
+            empty($allowed) // Check if this option allowed in the settings.
+            || empty($wordpressurl) // If the wp url is not set.
+            || !filter_var($wordpressurl, FILTER_VALIDATE_URL) // If the wp url is valid url.
+            || !$user // If this is a valid user.
+            || isguestuser($user) // Not guest.
+            ) {
+            // Redirect to the home page.
             redirect(new \moodle_url('/'));
         }
-
+        // The data to send to wordpress.
         $data = [
             'moodle_user_id' => $userid,
             'method' => $method,
             'url' => $redirect,
             'email' => $user->email,
-            'username' => $user->username,
+            'username' => $user->username, // username and email used for login only in case user need to be created.
         ];
 
         $encdata = $this->encrypt_data($data);
