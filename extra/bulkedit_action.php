@@ -75,7 +75,7 @@ if (confirm_sesskey()) {
         $enrolusers = enrol_get_course_users($courseid);
 
         foreach ($enrolusers as $euser) {
-            $enrol = $DB->get_record('enrol', ['id' => $euser->ueenrolid], 'enrol');
+            $enrol = $DB->get_record('enrol', ['id' => $euser->ueenrolid]);
 
             if (!in_array($enrol->enrol , $plugins)) {
                 continue;
@@ -88,22 +88,28 @@ if (confirm_sesskey()) {
                 continue;
             }
 
-            $plugin = $$enrol->enrol;
+            $plugin = $enrol->enrol;
 
             $data = new stdClass;
             if ($status !== -1) {
                 $data->status = $status;
+            } else {
+                $data->status = $euser->uestatus;
             }
 
             if (!empty($start) && $euser->uetimestart > $start) {
                 $data->timestart = $start;
+            } else {
+                $data->timestart = $euser->uetimestart;
             }
 
             if (!empty($end) && $euser->uetimeend < $end && $euser->uetimeend !== 0) {
                 $data->timeend = $end;
+            } else {
+                $data->timeend = $euser->uetimeend;
             }
 
-            $plugin->update_user_enrol($enrol, $euser->id, $data->status, $data->timestart, $data->timeend);
+            $$plugin->update_user_enrol($enrol, $euser->id, $data->status, $data->timestart, $data->timeend);
 
             $i++;
         }
