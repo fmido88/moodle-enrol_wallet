@@ -555,14 +555,15 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $coursectx = context_course::instance($courseid);
                 if (!is_enrolled($coursectx)) {
                     $restrict = true;
-                    $count++;
                     // The user is not enrolled in the required course.
                     $notenrolled[] = get_course($courseid)->fullname;
+                } else {
+                    $count++;
                 }
             }
 
             $coursesnames = '(' . implode(', ', $notenrolled) . ')';
-            if ($restrict && $count >= $instance->customint7) {
+            if ($restrict && $count < $instance->customint7) {
                 return get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
             }
         }
