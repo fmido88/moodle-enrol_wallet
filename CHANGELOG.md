@@ -1,5 +1,8 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.6.7 ##
+- Fix and enhance coupons and transaction pages.
+
 ## V 1.6.6 ##
 - Rebuilt the restrictions according to other course enrolment so that to check minimum number from multiple selected courses to check.
 - Hide instance in case of existence of a cheaper one in the same course.
