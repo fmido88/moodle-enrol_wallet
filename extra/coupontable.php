@@ -38,7 +38,7 @@ $candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
 
 require_capability('enrol/wallet:viewcoupon', $systemcontext);
 
-$limitnum = optional_param('perpage', 50, PARAM_INT);
+// Parameters.
 $code = optional_param('code', '', PARAM_TEXT);
 $value = optional_param('value', '', PARAM_NUMBER);
 $type = optional_param('type', '', PARAM_TEXT);
@@ -48,22 +48,101 @@ $createdtoarray = optional_param_array('createdto', [], PARAM_INT);
 $createdfromarray = optional_param_array('createdfrom', [], PARAM_INT);
 $sort = optional_param('tsort', 'userid', PARAM_ALPHA);
 $download = optional_param('download', '', PARAM_ALPHA);
+$limitfrom = optional_param('page', 0, PARAM_INT);
+$limitnum = optional_param('perpage', 50, PARAM_INT);
 
 $defaultop = (!$candownload) ? 'delete' : 'download';
 $operation = optional_param('operation', $defaultop, PARAM_TEXT);
 
-$limitfrom = optional_param('page', 0, PARAM_INT);
+// Sterilize the parameters and conditions.
+$conditions = '';
+$urlparams = [];
+if (!empty($sort)) {
+    $urlparams['tsort'] = $sort;
+}
+if (!empty($limitfrom)) {
+    $urlparams['page'] = $limitfrom;
+}
+if (!empty($limitnum)) {
+    $urlparams['perpage'] = $limitnum;
+}
+$arraydates = [
+    'createdfrom' => $createdfromarray,
+    'createdto' => $createdtoarray,
+    'validfrom' => $validfromarray,
+    'validto' => $validtoarray,
+];
+
+// ...mktime all dates.
+foreach ($arraydates as $key => $date) {
+    if (!empty($date)) {
+        $$key = mktime(
+            $date['hour'],
+            $date['minute'],
+            0,
+            $date['month'],
+            $date['day'],
+            $date['year'],
+        );
+
+        foreach ($date as $k => $value) {
+            $urlparams[$key."[$k]"] = $value;
+        }
+
+    } else {
+        $$key = '';
+    }
+}
+
+if (!empty($code)) {
+    $conditions .= ' code = '.$code;
+    $urlparams['code'] = $code;
+}
+
+if (!empty($value)) {
+    $conditions .= (!empty($conditions)) ? ' AND' : '';
+    $conditions .= ' value = \''.$value.'\'';
+    $urlparams['value'] = $value;
+}
+
+if (!empty($type)) {
+    $conditions .= (!empty($conditions)) ? ' AND' : '';
+    $conditions .= ' type = \''.$type.'\'';
+    $urlparams['type'] = $type;
+}
+
+if (!empty($validto)) {
+    $conditions .= (!empty($conditions)) ? ' AND' : '';
+    $conditions .= ' validto = \''.$validto.'\'';
+}
+
+if (!empty($validfrom)) {
+    $conditions .= (!empty($conditions)) ? ' AND' : '';
+    $conditions .= ' validfrom = \''.$validfrom.'\'';
+}
+
+if (!empty($cratedfrom)) {
+    $conditions .= (!empty($conditions)) ? ' AND' : '';
+    $conditions .= ' timecreated <= \''.$createdfrom.'\'';
+}
+
+if (!empty($cratedto)) {
+    $conditions .= (!empty($conditions)) ? ' AND' : '';
+    $conditions .= ' timecreated >= \''.$createdto.'\'';
+}
 
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
-$url = new moodle_url('/enrol/wallet/extra/coupontable.php');
+$url = new moodle_url('/enrol/wallet/extra/coupontable.php', $urlparams);
 $PAGE->set_url($url);
 $PAGE->set_title(get_string('coupons', 'enrol_wallet'));
 $PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
 
+// --------------------------------------------------------------------------------------
+// Form.
 // Setup the filtration form.
-$mform = new \MoodleQuickForm('couponfilter', 'get', $url);
+$mform = new \MoodleQuickForm('couponfilter', 'get', $PAGE->url);
 
 $mform->addElement('text', 'code', get_string('coupon_code', 'enrol_wallet'));
 $mform->setType('code', PARAM_TEXT);
@@ -113,65 +192,8 @@ ob_start();
 $mform->display();
 $filterform = ob_get_clean();
 
-$arraydates = [
-    'createdfrom' => $createdfromarray,
-    'createdto' => $createdtoarray,
-    'validfrom' => $validfromarray,
-    'validto' => $validtoarray,
-];
-
-// ...mktime all dates.
-foreach ($arraydates as $key => $date) {
-    if (!empty($date)) {
-        $$key = mktime(
-            $date['hour'],
-            $date['minute'],
-            0,
-            $date['month'],
-            $date['day'],
-            $date['year'],
-        );
-    } else {
-        $$key = '';
-    }
-}
-
-// Setting up the conditions.
-$conditions = '';
-
-if (!empty($code)) {
-    $conditions .= ' code = '.$code;
-}
-
-if (!empty($value)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' value = \''.$value.'\'';
-}
-
-if (!empty($type)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' type = \''.$type.'\'';
-}
-
-if (!empty($validto)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' validto = \''.$validto.'\'';
-}
-
-if (!empty($validfrom)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' validfrom = \''.$validfrom.'\'';
-}
-
-if (!empty($cratedfrom)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' timecreated <= \''.$createdfrom.'\'';
-}
-
-if (!empty($cratedto)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' timecreated >= \''.$createdto.'\'';
-}
+// ----------------------------------------------------------------------------------------------
+// Table.
 
 $table = new flexible_table('walletcouponstable');
 $table->define_baseurl($url->out());
@@ -219,8 +241,8 @@ $table->setup();
 
 // Work out direction of sort required.
 $sortcolumns = $table->get_sort_columns();
-// Now do sorting if specified.
 
+// Now do sorting if specified.
 // Sanity check $sort var before including in sql. Make sure it matches a known column.
 $allowedsort = array_diff(array_keys($table->columns), $table->column_nosort);
 if (!in_array($sort, $allowedsort)) {
@@ -235,19 +257,20 @@ if (!empty($sort)) {
     }
     $orderby = " $sort $direction";
 }
+
+// SQL.
 $sql = '';
 $sql = ' FROM {enrol_wallet_coupons} ';
 if (!empty($conditions)) {
-    $sql .= 'WHERE '.$conditions;
+    $sql .= 'WHERE ' . $conditions;
 }
+
 if (!empty($orderby)) {
-    $sql .= ' ORDER BY '.$orderby;
+    $sql .= ' ORDER BY ' . $orderby;
 }
-// The sql for counting.
-$sqlc = 'SELECT COUNT(id) '.$sql;
 
 // Count all data to get the number of pages later.
-$count = $DB->count_records_sql($sqlc);
+$count = $DB->count_records_select('enrol_wallet_coupons', $conditions, []);
 
 // If we download the table we need all the pages.
 if ($table->is_downloading()) {
@@ -260,35 +283,18 @@ $records = $DB->get_records_sql($sqlr, [], $limitfrom, $limitnum);
 
 // Pages links.
 if (!$table->is_downloading()) {
-    $pages = intval($count / $limitnum);
+    $pages = $count / $limitnum;
+    $decimal = fmod($pages, 1);
+    $pages = ($decimal > 0) ? intval($pages) + 1 : intval($pages);
+
     $content = '<p>Page: </p>';
-    for ($i = 0; $i <= $pages; $i++) {
-        $params = [
-            'perpage' => $limitnum,
-            'code' => $code,
-            'value' => $value,
-            'type' => $type,
-            'sort' => $sort,
-            'download' => $download,
-            'operation' => $operation,
-            'page' => $i * $limitnum,
-        ];
-        if (isset($validtoarray) && !empty($validtoarray)) {
-            $params['validto'] = http_build_query($validtoarray);
-        }
-        if (isset($validfromarray) && !empty($validfromarray)) {
-            $params['validfrom'] = http_build_query($validfromarray);
-        }
-        if (isset($createdtoarray) && !empty($createdtoarray)) {
-            $params['createdto'] = http_build_query($createdtoarray);
-        }
-        if (isset($createdfromarray) && !empty($createdfromarray)) {
-            $params['createdfrom'] = http_build_query($createdfromarray);
-        }
-        if ($params['page'] == $limitfrom) {
+    for ($i = 1; $i <= $pages; $i++) {
+        $urlparams['page'] = ($i - 1) * $limitnum;
+
+        if ($urlparams['page'] == $limitfrom) {
             $content .= $i;
         } else {
-            $url = new moodle_url('/enrol/wallet/extra/coupontable.php', $params);
+            $url = new moodle_url('/enrol/wallet/extra/coupontable.php', $urlparams);
             $content .= html_writer::link($url, $i);
         }
 
@@ -309,14 +315,14 @@ foreach ($records as $record) {
         'checkbox' => $chkbox,
         'id' => $record->id,
         'code' => $record->code,
-        'value' => $record->value,
+        'value' => number_format($record->value, 2),
         'type' => $record->type,
         'maxusage' => $record->maxusage,
         'usetimes' => $record->usetimes,
-        'validfrom' => $record->validfrom != 0 ? userdate($record->validfrom) : '',
-        'validto' => $record->validto != 0 ? userdate($record->validto) : '',
-        'lastuse' => $record->lastuse != 0 ? userdate($record->lastuse) : '',
-        'timecreated' => $record->timecreated != 0 ? userdate($record->timecreated) : '',
+        'validfrom' => !empty($record->validfrom) ? userdate($record->validfrom) : '',
+        'validto' => !empty($record->validto) ? userdate($record->validto) : '',
+        'lastuse' => !empty($record->lastuse) ? userdate($record->lastuse) : '',
+        'timecreated' => !empty($record->timecreated) ? userdate($record->timecreated) : '',
     ];
 
     $table->add_data_keyed($row);
