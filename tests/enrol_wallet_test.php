@@ -1107,5 +1107,26 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setUser($user3);
         $this->assertTrue($walletplugin->hide_due_cheaper_instance($instance1));
         $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
+
+        // Cheaper but cannot enrol late.
+        $data2['enrolenddate'] = time() - 3 * DAYSECS;
+        $walletplugin->update_instance($instance2, (object) $data2);
+
+        $this->setUser($user1);
+        // Sufficient balance.
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance1));
+        // Cheaper but cannot enrol.
+        $this->assertTrue($walletplugin->hide_due_cheaper_instance($instance2));
+
+        $this->setUser($user2);
+        // Insufficient.
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance1));
+        // Cheaper but cannot enrol.
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
+
+        // Sufficient for one but not the other, cannot enrol in any so we show both to view all reasons.
+        $this->setUser($user3);
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance1));
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
     }
 }
