@@ -342,16 +342,14 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Check for other enrol_wallet instances, return true if there is a cheaper one.
      *
-     * @param int $thisid the id of this instances.
-     * @param mixed $thiscost the cost after discount for this instance.
-     * @param mixed $courseid
+     * @param stdClass $thisinstance the id of this instances.
      * @return bool
      */
     public function hide_due_cheaper_instance($thisinstance) {
         // TODO create a PHPUnit test for this function.
         global $DB, $USER;
         $coupon = $this->check_discount_coupon();
-        $courseid = $thisinstance->coursrid;
+        $courseid = $thisinstance->courseid;
 
         // Check the status of this instance.
         $thisid = $thisinstance->id;

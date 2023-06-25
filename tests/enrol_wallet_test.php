@@ -1062,6 +1062,10 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(is_enrolled($context));
     }
 
+    /**
+     * test for hide_due_cheaper_instance function
+     * @covers ::hide_due_cheaper_instance()
+     */
     public function test_hide_due_cheaper_instance() {
         global $DB;
         self::resetAfterTest(true);
