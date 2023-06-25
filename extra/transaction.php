@@ -1,4 +1,5 @@
 <?php
+use Google\Type\Decimal;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -53,20 +54,17 @@ $urlparams = [
     'value' => $value,
 ];
 if (!empty($datefrom)) {
-    $urlparams['datefrom[hour]'] = $datefrom['hour'];
-    $urlparams['datefrom[minute]'] = $datefrom['minute'];
-    $urlparams['datefrom[month]'] = $datefrom['month'];
-    $urlparams['datefrom[day]'] = $datefrom['day'];
-    $urlparams['datefrom[year]'] = $datefrom['year'];
+    foreach ($datafrom as $key => $value) {
+        $urlparam["datafrom[$key]"] = $value;
+    }
 }
 
 if (!empty($dateto)) {
-    $urlparams['dateto[hour]'] = $dateto['hour'];
-    $urlparams['dateto[minute]'] = $dateto['minute'];
-    $urlparams['dateto[month]'] = $dateto['month'];
-    $urlparams['dateto[day]'] = $dateto['day'];
-    $urlparams['dateto[year]'] = $dateto['year'];
+    foreach ($datato as $key => $value) {
+        $urlparam["datato[$key]"] = $value;
+    }
 }
+
 if (!$viewall) {
     $userid = $USER->id;
 }
@@ -217,13 +215,15 @@ if (!empty($dateto)) {
 }
 
 $records = $DB->get_records_select('enrol_wallet_transactions', $select, $params, $orderby, '*', $limitfrom, $limitnum);
-$count = count($records);
+$count = $DB->count_records_select('enrol_wallet_transactions', $select, $params);
 
 // Working on pages.
-$pages = intval($count / $limitnum);
+$pages = $count / $limitnum;
+$decimal = fmod($pages, 1);
+$pages = ($decimal > 0) ? intval($pages) + 1 : intval($pages);
 $content = '<p>Page: </p>';
-for ($i = 0; $i <= $pages; $i++) {
-    $urlparams['page'] = $i * $limitnum;
+for ($i = 1; $i <= $pages; $i++) {
+    $urlparams['page'] = ($i - 1) * $limitnum;
 
     if ($urlparams['page'] == $limitfrom) {
         $content .= $i;
