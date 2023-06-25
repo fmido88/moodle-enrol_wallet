@@ -968,7 +968,7 @@ class enrol_wallet_test extends \advanced_testcase {
         transactions::payment_topup(150, $user2->id);
         $course2 = $this->getDataGenerator()->create_course();
 
-        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance2->customint6 = 1;
         $instance2->cost = 200;
         $DB->update_record('enrol', $instance2);
@@ -1033,7 +1033,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $course1 = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course1->id);
 
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->customint6 = 1;
         $instance1->cost = 200;
         $DB->update_record('enrol', $instance1);
@@ -1060,5 +1060,48 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(90, $balance2);
         $this->assertEquals(40, $norefund);
         $this->assertTrue(is_enrolled($context));
+    }
+
+    public function test_hide_due_cheaper_instance() {
+        global $DB;
+        self::resetAfterTest(true);
+
+        $walletplugin = enrol_get_plugin('wallet');
+        $user1 = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(250, $user1->id);
+
+        $user2 = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(50, $user2->id);
+
+        $user3 = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(100, $user3->id);
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance1->customint6 = 1;
+        $instance1->cost = 200;
+        $DB->update_record('enrol', $instance1);
+        $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
+
+        $instance2id = $walletplugin->add_default_instance($course);
+        $instance2 = $walletplugin->get_instance_by_id($instance2id);
+        $data2['cost'] = 100;
+        $walletplugin->update_instance($instance2, (object) $data2);
+
+        // Sufficient balance for both.
+        $this->setUser($user1);
+        $this->assertTrue($walletplugin->hide_due_cheaper_instance($instance1));
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
+
+        // Insufficient for both.
+        $this->setUser($user2);
+        $this->assertTrue($walletplugin->hide_due_cheaper_instance($instance1));
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
+
+        // Sufficient for one but not the other.
+        $this->setUser($user3);
+        $this->assertTrue($walletplugin->hide_due_cheaper_instance($instance1));
+        $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
     }
 }

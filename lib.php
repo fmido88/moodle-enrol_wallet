@@ -341,17 +341,33 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Check for other enrol_wallet instances, return true if there is a cheaper one.
+     *
      * @param int $thisid the id of this instances.
      * @param mixed $thiscost the cost after discount for this instance.
      * @param mixed $courseid
      * @return bool
      */
-    public function hide_due_cheaper_instance($thisid, $thiscost, $courseid) {
+    public function hide_due_cheaper_instance($thisinstance) {
+        // TODO create a PHPUnit test for this function.
         global $DB, $USER;
         $coupon = $this->check_discount_coupon();
+        $courseid = $thisinstance->coursrid;
+
+        // Check the status of this instance.
+        $thisid = $thisinstance->id;
+        $thiscost = $this->get_cost_after_discount($USER->id, $thisinstance, $coupon);
+        $thisenrolstat = $this->can_self_enrol($thisinstance);
+        $thiscanenrol = (true === $thisenrolstat);
+        $thisinsuf = (self::INSUFFICIENT_BALANCE == $thisenrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $thisenrolstat);
+
         // Get the other instances.
         $instances = $DB->get_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet']);
+        // No need to check if there is only one instance.
+        if (count($instances) < 2) {
+            return false;
+        }
 
+        // Check the status of other instance.
         $hide = false;
         foreach ($instances as $instance) {
             // Don't compare the instance with itself.
@@ -360,12 +376,24 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
 
             $othercost = $this->get_cost_after_discount($USER->id, $instance, $coupon);
+            $enrolstat = $this->can_self_enrol($instance);
+            $canenrol = (true === $enrolstat);
+            $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
 
-            if ($othercost < $thiscost) {
-
+            // Hide if can enrol in other and is cheaper or cannot enrol in this one.
+            if ($canenrol && ($othercost < $thiscost || !$thiscanenrol)) {
                 $hide = true;
                 break;
             }
+            // Both insuficient but there is a cheaper one.
+            if ($insuf && $thisinsuf && $othercost < $thiscost) {
+                $otherinsuf = true;
+            }
+        }
+
+        // Cannot enrol in any but there is other cheaper with insufficient balance.
+        if ($hide === false && !empty($otherinsuf) && !$thiscanenrol) {
+            $hide = true;
         }
 
         return $hide;
@@ -377,6 +405,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool|string
      */
     public function is_course_enrolment_restriction($instance) {
+        // TODO built a PHPUnit test for this function.
         global $DB;
         if (!empty($instance->customchar3) && !empty($instance->customint7)) {
             $courses = explode(',', $instance->customchar3);
@@ -431,9 +460,14 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $balance = transactions::get_user_balance($USER->id);
 
-        $hide = $this->hide_due_cheaper_instance($instance->id, $costafter, $instance->courseid);
+        // Hide this instance in case of existance of another avaliable one with lower cost.
+        $hide = $this->hide_due_cheaper_instance($instance);
+        if ($hide) {
+            return '';
+        }
+
         $output = '';
-        if (true === $enrolstatus && !$hide) {
+        if (true === $enrolstatus) {
 
             // This user can self enrol using this instance.
             $form = new enrol_form(null, $instance);
@@ -464,9 +498,8 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
 
         } else if (
-                (self::INSUFFICIENT_BALANCE == $enrolstatus
-                || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus)
-                && !$hide
+                self::INSUFFICIENT_BALANCE == $enrolstatus
+                || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus
             ) {
 
             // This user has insufficient wallet balance to be directly enrolled.
@@ -528,7 +561,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $output .= ob_get_clean();
             }
 
-        } else if (!$hide) {
+        } else {
             // This user cannot enrol using this instance. Using an empty form to keep
             // the UI consistent with other enrolment plugins that returns a form.
             $data = new stdClass();
@@ -545,8 +578,6 @@ class enrol_wallet_plugin extends enrol_plugin {
             $form->display();
             $output .= ob_get_clean();
 
-        } else {
-            return '';
         }
 
         return $OUTPUT->box($output);
@@ -1530,7 +1561,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public static function check_discount_coupon() {
         $coupon = optional_param('coupon', null, PARAM_RAW);
-        return isset($_SESSION['coupon']) ? $_SESSION['coupon'] : $coupon;
+        return !empty($_SESSION['coupon']) ? $_SESSION['coupon'] : $coupon;
     }
 
     /**
@@ -1545,8 +1576,8 @@ class enrol_wallet_plugin extends enrol_plugin {
     public static function get_cost_after_discount($userid, $instance, $coupon = null) {
         global $DB;
         $couponsetting = get_config('enrol_wallet', 'coupons');
-        // Check if there is a coupon discount first.
-        if ($coupon == null) {
+        // Check if there is a discount coupon first.
+        if (empty($coupon)) {
             $coupon = self::check_discount_coupon();
         }
         // Save coupon in session.

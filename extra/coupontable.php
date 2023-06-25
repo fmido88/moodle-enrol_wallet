@@ -32,11 +32,10 @@ global $OUTPUT, $PAGE;
 require_login();
 
 $systemcontext = context_system::instance();
-$candelete = has_capability('enrol/wallet:deletecoupon', $systemcontext);
-
-$candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
-
 require_capability('enrol/wallet:viewcoupon', $systemcontext);
+
+$candelete = has_capability('enrol/wallet:deletecoupon', $systemcontext);
+$candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
 
 // Parameters.
 $code = optional_param('code', '', PARAM_TEXT);
@@ -51,28 +50,29 @@ $download = optional_param('download', '', PARAM_ALPHA);
 $limitfrom = optional_param('page', 0, PARAM_INT);
 $limitnum = optional_param('perpage', 50, PARAM_INT);
 
-$defaultop = (!$candownload) ? 'delete' : 'download';
-$operation = optional_param('operation', $defaultop, PARAM_TEXT);
-
-// Sterilize the parameters and conditions.
-$conditions = '';
+// Sterilize the url parameters and conditions for sql.
+$conditions = '1=1';
 $urlparams = [];
-if (!empty($sort)) {
-    $urlparams['tsort'] = $sort;
-}
-if (!empty($limitfrom)) {
-    $urlparams['page'] = $limitfrom;
-}
-if (!empty($limitnum)) {
-    $urlparams['perpage'] = $limitnum;
-}
+
+$urlparams['tsort'] = (!empty($sort)) ? $sort : null;
+$urlparams['page'] = (!empty($limitfrom)) ? $limitfrom : null;
+$urlparams['perpage'] = (!empty($limitnum)) ? $limitnum : null;
+
+$conditions .= (!empty($code)) ? ' AND code = \''.$code.'\'' : '';
+$urlparams['code'] = (!empty($code)) ? $code : null;
+
+$conditions .= (!empty($value)) ? ' AND value = \''.$value.'\'' : '';
+$urlparams['value'] = (!empty($value)) ? $value : null;
+
+$conditions .= (!empty($type)) ? ' AND type = \''.$type.'\'' : '';
+$urlparams['type'] = (!empty($type)) ? $type : null;
+
 $arraydates = [
     'createdfrom' => $createdfromarray,
     'createdto' => $createdtoarray,
     'validfrom' => $validfromarray,
     'validto' => $validtoarray,
 ];
-
 // ...mktime all dates.
 foreach ($arraydates as $key => $date) {
     if (!empty($date)) {
@@ -85,50 +85,22 @@ foreach ($arraydates as $key => $date) {
             $date['year'],
         );
 
-        foreach ($date as $k => $value) {
-            $urlparams[$key."[$k]"] = $value;
+        foreach ($date as $k => $val) {
+            $urlparams[$key."[$k]"] = $val;
         }
-
-    } else {
-        $$key = '';
     }
 }
 
-if (!empty($code)) {
-    $conditions .= ' code = '.$code;
-    $urlparams['code'] = $code;
-}
+$conditions .= (!empty($cratedfrom)) ? ' AND timecreated <= \''.$createdfrom.'\'' : '';
+$conditions .= (!empty($cratedto)) ? ' AND timecreated >= \''.$createdto.'\'' : '';
+$conditions .= (!empty($validto)) ? ' AND validto = \''.$validto.'\'' : '';
+$conditions .= (!empty($validfrom)) ? ' AND validfrom = \''.$validfrom.'\'' : '';
 
-if (!empty($value)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' value = \''.$value.'\'';
-    $urlparams['value'] = $value;
-}
-
-if (!empty($type)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' type = \''.$type.'\'';
-    $urlparams['type'] = $type;
-}
-
-if (!empty($validto)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' validto = \''.$validto.'\'';
-}
-
-if (!empty($validfrom)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' validfrom = \''.$validfrom.'\'';
-}
-
-if (!empty($cratedfrom)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' timecreated <= \''.$createdfrom.'\'';
-}
-
-if (!empty($cratedto)) {
-    $conditions .= (!empty($conditions)) ? ' AND' : '';
-    $conditions .= ' timecreated >= \''.$createdto.'\'';
+// Unset empty params.
+foreach ($urlparams as $key => $val) {
+    if (empty($val)) {
+        unset($urlparams[$key]);
+    }
 }
 
 // Setup the page.
@@ -142,7 +114,7 @@ $PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
 // --------------------------------------------------------------------------------------
 // Form.
 // Setup the filtration form.
-$mform = new \MoodleQuickForm('couponfilter', 'get', $PAGE->url);
+$mform = new \MoodleQuickForm('couponfilter', 'get', 'coupontable.php');
 
 $mform->addElement('text', 'code', get_string('coupon_code', 'enrol_wallet'));
 $mform->setType('code', PARAM_TEXT);
@@ -150,11 +122,7 @@ $mform->setDefault('code', $code);
 
 $mform->addElement('text', 'value', get_string('coupon_value', 'enrol_wallet'));
 $mform->setType('value', PARAM_NUMBER);
-if ($value) {
-    $mform->setDefault('value', $value);
-} else {
-    $mform->setDefault('value', '');
-}
+$mform->setDefault('value', $value);
 
 $types = [
     'fixed' => get_string('fixedvaluecoupon', 'enrol_wallet'),
@@ -169,22 +137,13 @@ $mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol
 $mform->addElement('date_time_selector', 'createdfrom', get_string('createdfrom', 'enrol_wallet'), array('optional' => true));
 $mform->addElement('date_time_selector', 'createdto', get_string('createdto', 'enrol_wallet'), array('optional' => true));
 
-if ($candownload && $candelete) {
-    $options = [
-        'delete' => get_string('delete'),
-        'download' => get_string('download'),
-    ];
-    $mform->addElement('select', 'operation', get_string('coupon_operation', 'enrol_wallet'), $options);
-    $mform->addHelpButton('operation', 'coupon_operation', 'enrol_wallet');
-    $mform->setDefault('operation', $defaultop);
-}
-
 $limits = [];
 for ($i = 25; $i <= 1000; $i = $i + 25) {
     $limits[$i] = $i;
 }
-
 $mform->addElement('select', 'perpage', get_string('coupon_perpage', 'enrol_wallet'), $limits);
+$mform->setDefault('perpage', $limitnum);
+
 $mform->addElement('submit', 'submit', get_string('coupon_applyfilter', 'enrol_wallet'));
 
 // Now let's display the form.
@@ -194,33 +153,38 @@ $filterform = ob_get_clean();
 
 // ----------------------------------------------------------------------------------------------
 // Table.
-
+$baseurl = new moodle_url('/enrol/wallet/extra/coupontable.php');
 $table = new flexible_table('walletcouponstable');
-$table->define_baseurl($url->out());
+
+$table->define_baseurl($baseurl->out());
 
 if (!$table->is_downloading($download, 'walletcoupons')) {
+    if ($candelete) {
+        echo '<form name="couponedit" method="post" action="couponedit.php">';
+    }
     echo $OUTPUT->header();
-}
-if (!$table->is_downloading()) {
+
     echo $OUTPUT->box($filterform);
 }
-if (!$table->is_downloading() && $candelete && $operation == 'delete') {
-    echo '<form name="couponedit" method="post" action="couponedit.php">';
-}
+
 // Set up the coupons table.
-$columns = array(
-    'checkbox' => null,
-    'id' => 'id',
-    'code' => 'Code',
-    'value' => 'Value',
-    'type' => 'Type',
-    'maxusage' => 'Maximum usage',
-    'usetimes' => 'Usage',
-    'validfrom' => 'Valid from',
-    'validto' => 'Valid to',
-    'lastuse' => 'lastuse',
-    'timecreated' => 'timecreated',
-);
+$columns = [
+            'checkbox' => null,
+            'id' => 'id',
+            'code' => 'Code',
+            'value' => 'Value',
+            'type' => 'Type',
+            'maxusage' => 'Maximum usage',
+            'usetimes' => 'Usage',
+            'validfrom' => 'Valid from',
+            'validto' => 'Valid to',
+            'lastuse' => 'lastuse',
+            'timecreated' => 'timecreated',
+        ];
+
+if ($table->is_downloading()) {
+    unset($columns['checkbox']);
+}
 
 $table->define_columns(array_keys($columns));
 $table->define_headers(array_values($columns));
@@ -230,9 +194,9 @@ $table->set_attribute('class', 'generaltable generalbox');
 $table->sortable(true);
 
 // Make the table downloadable.
-if ($operation == 'download' && $candownload) {
+if ($candownload) {
     $table->is_downloadable(true);
-    $table->show_download_buttons_at([TABLE_P_BOTTOM]);
+    $table->show_download_buttons_at([TABLE_P_TOP]);
 } else {
     $table->is_downloadable(false);
 }
@@ -305,7 +269,7 @@ if (!$table->is_downloading()) {
 }
 
 foreach ($records as $record) {
-    if ($candelete && $operation == 'delete') {
+    if ($candelete) {
         $chkbox = '<input type="checkbox" name="select['.$record->id.']" value="1" >';
     } else {
         $chkbox = '';
@@ -335,11 +299,18 @@ if (!$table->is_downloading()) {
 }
 
 $table->finish_output();
-if (!$table->is_downloading($download, 'walletcoupons') && $candelete && $operation == 'delete') {
-    echo '<button name="delete" value="delete" type="submit" class="btn btn-secondary">Delete</button>';
+
+if (!$table->is_downloading($download, 'walletcoupons') && $candelete) {
+    echo '<button name="delete" value="delete" type="submit" class="btn btn-secondary">'.get_string('delete').'</button>';
     echo '<input type="hidden" value="'.sesskey().'" name="sesskey">';
     echo '</form>';
 }
+
+if (!$table->is_downloading()) {
+    echo $OUTPUT->box($pageslinks);
+}
+
+
 
 if (!$table->is_downloading()) {
     echo $OUTPUT->footer();
