@@ -89,7 +89,7 @@ class transactions {
 
             $newbalance = $before + $amount;
         }
-
+        // Check if a valid operation done.
         if ($newbalance <= $before) {
             return false;
         }
@@ -302,17 +302,17 @@ class transactions {
             }
 
             // Make sure that the coupon didn't exceed the max usage (0 mean unlimited).
-            if ($couponrecord->maxusage <= $couponrecord->usetimes && $couponrecord->maxusage != 0) {
+            if (!empty($couponrecord->maxusage) && $couponrecord->maxusage <= $couponrecord->usetimes) {
                 return get_string('coupon_exceedusage', 'enrol_wallet');
             }
 
             // Make sure that this coupon is within validation time (0 mean any time).
-            if ($couponrecord->validfrom > time() && $couponrecord->validfrom != 0) {
+            if (!empty($couponrecord->validfrom) && $couponrecord->validfrom > time()) {
                 $date = userdate($couponrecord->validfrom);
                 return get_string('coupon_notvalidyet', 'enrol_wallet', $date);
             }
 
-            if ($couponrecord->validto < time() && $couponrecord->validto != 0) {
+            if (!empty($couponrecord->validto) && $couponrecord->validto < time()) {
                 return get_string('coupon_expired', 'enrol_wallet');
             }
 
@@ -321,7 +321,6 @@ class transactions {
                 'value' => $couponrecord->value,
                 'type'  => $couponrecord->type,
             ];
-
         }
 
         // Check if the coupon type is enabled in this site.

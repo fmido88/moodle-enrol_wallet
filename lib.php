@@ -22,78 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
- * To add the category and node information into the my profile page.
- * If is a regular user, it show the balance, refund policy and topping up options.
- * Regular users can't see the balance of others unless they have the capability 'enrol/wallet:viewotherbalance'.
- * If the user has the capability to credit others, the charger form appears in his own profile.
- *
- * @param core_user\output\myprofile\tree $tree The myprofile tree to add categories and nodes to.
- * @param stdClass                        $user The user object that the profile page belongs to.
- * @param bool                            $iscurrentuser If the $user object is the current user.
- * @param stdClass                        $course The course to determine if we are in a course context or system context.
- * @return void
- */
-function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    require_once(__DIR__.'/locallib.php');
-    global $OUTPUT;
-    $context = context_system::instance();
-    // Only the user with capability could see other user's ballance.
-    if (!$iscurrentuser && !has_capability('enrol/wallet:viewotherbalance', $context)) {
-        return;
-    }
-    $cancredit = has_capability('enrol/wallet:creditdebit', $context);
+defined('MOODLE_INTERNAL') || die();
 
-    // Add the main category.
-    $wdcategory = new core_user\output\myprofile\category('walletcreditdisplay',
-                                                    get_string('walletcredit', 'enrol_wallet'),
-                                                    'contact',
-                                                    'enrol_wallet_card');
-    $tree->add_category($wdcategory);
-
-    if (!$cancredit || !$iscurrentuser) {
-        // First node for displaying the balance information.
-        $render1 = enrol_wallet_display_current_user_balance($user->id);
-        $node1 = new core_user\output\myprofile\node('walletcreditdisplay',
-                                                    'walletcreditnode',
-                                                    '',
-                                                    null,
-                                                    null,
-                                                    $render1,
-                                                    null,
-                                                    'enrol_wallet_display_node');
-        $tree->add_node($node1);
-
-        // Second node to display the topping up options.
-        $render2 = enrol_wallet_display_topup_options();
-        if (!empty($render2) && $iscurrentuser) {
-            $node2 = new core_user\output\myprofile\node('walletcreditdisplay',
-                                                        'wallettopupnode',
-                                                        '',
-                                                        null,
-                                                        null,
-                                                        $render2,
-                                                        null,
-                                                        'enrol_wallet_display_node');
-            $tree->add_node($node2);
-        }
-    } else {
-        // Node 3 to display charger form and coupon view and generation pages links.
-        $render3 = '';
-        $form = enrol_wallet_display_charger_form();
-        $render3 .= $OUTPUT->box($form);
-        $render3 .= enrol_wallet_display_coupon_urls();
-        $node3 = new core_user\output\myprofile\node('walletcreditdisplay',
-                                                    'walletchargingnode',
-                                                    '',
-                                                    null,
-                                                    null,
-                                                    $render3,
-                                                    null,
-                                                    'enrol_wallet_display_node');
-        $tree->add_node($node3);
-    }
-}
+require_once('extendlib.php');
 
 use enrol_wallet\form\enrol_form;
 use enrol_wallet\form\empty_form;
