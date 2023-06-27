@@ -190,15 +190,15 @@ function enrol_wallet_display_charger_form() {
     $mform->hideIf('value', 'op', 'eq', 'balance');
 
     $context = context_system::instance();
-    $options = array(
-        'ajax' => 'enrol_manual/form-potential-user-selector',
-        'multiple' => false,
-        'courseid' => SITEID,
-        'enrolid' => 0,
-        'perpage' => $CFG->maxusersperpage,
+    $options = [
+        'ajax'       => 'enrol_manual/form-potential-user-selector',
+        'multiple'   => false,
+        'courseid'   => SITEID,
+        'enrolid'    => 0,
+        'perpage'    => $CFG->maxusersperpage,
         'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true))
-    );
-    $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), array(), $options);
+    ];
+    $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), [], $options);
     $mform->addRule('userlist', 'select user', 'required');
 
     // Empty div used by js to display the calculated final value.
@@ -251,6 +251,9 @@ function enrol_wallet_display_charger_form() {
  * @return string
  */
 function enrol_wallet_display_coupon_urls() {
+    if (get_config('enrol_wallet', 'walletsource') !== enrol_wallet\transactions::SOURCE_MOODLE) {
+        return '';
+    }
     $context = context_system::instance();
     $canviewcoupons = has_capability('enrol/wallet:viewcoupon', $context);
     $cangeneratecoupon = has_capability('enrol/wallet:createcoupon', $context);

@@ -248,7 +248,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             return false;
         }
         // Check the number of allowed instances.
-        $count = $DB->count_records('enrol', array('courseid' => $courseid, 'enrol' => 'wallet'));
+        $count = $DB->count_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet']);
         if ($multiple = get_config('enrol_wallet', 'allowmultipleinstances')) {
             if (empty($multiple)) {
                 return true;
@@ -317,14 +317,14 @@ class enrol_wallet_plugin extends enrol_plugin {
             $id = transactions::payment_topup($value, $user->id, $desc, $user->id, false);
             // Trigger cashback event.
             $eventdata = [
-                'context' => \context_course::instance($instance->courseid),
-                'courseid' => $instance->courseid,
-                'objectid' => $id,
-                'userid' => $user->id,
+                'context'       => \context_course::instance($instance->courseid),
+                'courseid'      => $instance->courseid,
+                'objectid'      => $id,
+                'userid'        => $user->id,
                 'relateduserid' => $user->id,
-                'other' => [
-                    'amount' => $value,
-                    'original' => $costafter,
+                'other'         => [
+                        'amount'   => $value,
+                        'original' => $costafter,
                 ],
             ];
             $event = \enrol_wallet\event\cashback_applied::create($eventdata);
@@ -346,7 +346,6 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool
      */
     public function hide_due_cheaper_instance($thisinstance) {
-        // TODO create a PHPUnit test for this function.
         global $DB, $USER;
         $coupon = $this->check_discount_coupon();
         $courseid = $thisinstance->courseid;
@@ -510,7 +509,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $data->info = get_string('insufficient_balance',
                                         'enrol_wallet',
                                         [
-                                            'cost_before' => $costbefore,
+                                            'cost_before'  => $costbefore,
                                             'user_balance' => $balance
                                         ]);
 
@@ -519,8 +518,8 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $data->info = get_string('insufficient_balance_discount',
                                         'enrol_wallet',
                                         [
-                                            'cost_before' => $costbefore,
-                                            'cost_after' => $costafter,
+                                            'cost_before'  => $costbefore,
+                                            'cost_after'   => $costafter,
                                             'user_balance' => $balance
                                         ]);
 
@@ -878,9 +877,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         } else {
             $merge = [
                 'courseid' => $data->courseid,
-                'enrol' => $this->get_name(),
-                'status' => $data->status,
-                'roleid' => $data->roleid,
+                'enrol'    => $this->get_name(),
+                'status'   => $data->status,
+                'roleid'   => $data->roleid,
             ];
         }
         if ($merge && $instances = $DB->get_records('enrol', $merge, 'id')) {
@@ -1090,7 +1089,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function get_bulk_operations(course_enrolment_manager $manager) {
         $context = $manager->get_context();
-        $bulkoperations = array();
+        $bulkoperations = [];
         if (has_capability("enrol/wallet:manage", $context)) {
             $bulkoperations['editselectedusers'] = new \enrol_wallet\editselectedusers_operation($manager, $this);
         }
@@ -1209,7 +1208,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->setType('customchar3', PARAM_TEXT);
 
             $params = [
-                'id' => 'wallet_courserestriction',
+                'id'       => 'wallet_courserestriction',
                 'onChange' => 'restrictByCourse()'
             ];
             $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
@@ -1310,25 +1309,25 @@ class enrol_wallet_plugin extends enrol_plugin {
         $cohorts = $this->get_cohorts_options($instance, $context);
         $validcohorts = array_keys($cohorts);
         $validcurrencies = array_keys($this->get_possible_currencies());
-        $tovalidate = array(
+        $tovalidate = [
             'enrolstartdate' => PARAM_INT,
-            'enrolenddate' => PARAM_INT,
-            'name' => PARAM_TEXT,
-            'currency' => $validcurrencies,
-            'cost' => PARAM_NUMBER,
-            'customint2' => $validlongtimenosee,
-            'customint3' => PARAM_INT,
-            'customint4' => $validswep,
-            'customint6' => $validnewenrols,
-            'customint7' => PARAM_INT,
-            'customint8' => PARAM_BOOL,
-            'customdec1' => PARAM_NUMBER,
-            'customdec2' => PARAM_NUMBER,
-            'status' => $validstatus,
-            'enrolperiod' => PARAM_INT,
-            'expirynotify' => $validexpirynotify,
-            'roleid' => $validroles
-        );
+            'enrolenddate'   => PARAM_INT,
+            'name'           => PARAM_TEXT,
+            'currency'       => $validcurrencies,
+            'cost'           => PARAM_NUMBER,
+            'customint2'     => $validlongtimenosee,
+            'customint3'     => PARAM_INT,
+            'customint4'     => $validswep,
+            'customint6'     => $validnewenrols,
+            'customint7'     => PARAM_INT,
+            'customint8'     => PARAM_BOOL,
+            'customdec1'     => PARAM_NUMBER,
+            'customdec2'     => PARAM_NUMBER,
+            'status'         => $validstatus,
+            'enrolperiod'    => PARAM_INT,
+            'expirynotify'   => $validexpirynotify,
+            'roleid'         => $validroles
+        ];
 
         if (count($cohorts) > 0) {
             $tovalidate['customint5'] = $validcohorts;
@@ -1359,21 +1358,23 @@ class enrol_wallet_plugin extends enrol_plugin {
             $notifyall = 0;
         }
 
-        $fields = [];
-        $fields['status'] = $this->get_config('status');
-        $fields['roleid'] = $this->get_config('roleid');
-        $fields['enrolperiod'] = $this->get_config('enrolperiod');
-        $fields['expirynotify'] = $expirynotify;
-        $fields['notifyall'] = $notifyall;
-        $fields['expirythreshold'] = $this->get_config('expirythreshold');
-        $fields['currency'] = $this->get_config('currency');
-        $fields['customint1'] = $this->get_config('paymentaccount');
-        $fields['customint2'] = $this->get_config('longtimenosee');
-        $fields['customint3'] = $this->get_config('maxenrolled');
-        $fields['customint4'] = $this->get_config('sendcoursewelcomemessage');
-        $fields['customint5'] = 0;
-        $fields['customint6'] = $this->get_config('newenrols');
-        $fields['customint7'] = 0;
+        $fields = [
+            'status'          => $this->get_config('status'),
+            'roleid'          => $this->get_config('roleid'),
+            'enrolperiod'     => $this->get_config('enrolperiod'),
+            'expirynotify'    => $expirynotify,
+            'notifyall'       => $notifyall,
+            'expirythreshold' => $this->get_config('expirythreshold'),
+            'currency'        => $this->get_config('currency'),
+            'customint1'      => $this->get_config('paymentaccount'),
+            'customint2'      => $this->get_config('longtimenosee'),
+            'customint3'      => $this->get_config('maxenrolled'),
+            'customint4'      => $this->get_config('sendcoursewelcomemessage'),
+            'customint5'      => 0,
+            'customint6'      => $this->get_config('newenrols'),
+            'customint7'      => 0,
+        ];
+
         $awards = $this->get_config('awards');
         $fields['customint8'] = !empty($awards) ? $awards : 0;
         if (!empty($awards)) {
@@ -1412,9 +1413,11 @@ class enrol_wallet_plugin extends enrol_plugin {
         uasort($currencies, function($a, $b) {
             return strcmp($a, $b);
         });
+
         if (empty($currencies)) {
             $currencies = ['' => ''];
         }
+
         return $currencies;
     }
 
@@ -1504,7 +1507,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $roles = get_assignable_roles($context, ROLENAME_BOTH);
         if (!isset($roles[$defaultrole])) {
-            if ($role = $DB->get_record('role', array('id' => $defaultrole))) {
+            if ($role = $DB->get_record('role', ['id' => $defaultrole])) {
                 $roles[$defaultrole] = role_get_name($role, $context, ROLENAME_BOTH);
             }
         }
@@ -1525,7 +1528,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $contact = null;
         // Send as the first user assigned as the course contact.
         if ($sendoption == ENROL_SEND_EMAIL_FROM_COURSE_CONTACT) {
-            $rusers = array();
+            $rusers = [];
             if (!empty($CFG->coursecontact)) {
                 $croles = explode(',', $CFG->coursecontact);
                 list($sort, $sortparams) = users_order_by_sql('u');
@@ -1645,21 +1648,23 @@ class enrol_wallet_plugin extends enrol_plugin {
         if ($balance >= $fee) {
             return '';
         }
+
         $cost = $fee - $balance;
         $course = $DB->get_record('course', ['id' => $instance->courseid], '*', MUST_EXIST);
         $context = context_course::instance($course->id);
 
-        if (abs($cost) < 0.01) { // No cost, other enrolment methods (instances) should be used.
-            echo '<p>'.get_string('nocost', 'enrol_wallet').'</p>';
+        if ($cost < 0.01) { // No cost.
+            return '<p>'.get_string('nocost', 'enrol_wallet').'</p>';
+
         } else {
             require_once(__DIR__.'/classes/payment/service_provider.php');
             $data = [
                 'isguestuser' => isguestuser() || !isloggedin(),
-                'cost' => \core_payment\helper::get_cost_as_string($cost, $instance->currency),
-                'instanceid' => $instance->id,
+                'cost'        => \core_payment\helper::get_cost_as_string($cost, $instance->currency),
+                'instanceid'  => $instance->id,
                 'description' => get_string('purchasedescription', 'enrol_wallet',
-                    format_string($course->fullname, true, ['context' => $context])),
-                'successurl' => \enrol_wallet\payment\service_provider::get_success_url('wallet', $instance->id)->out(false),
+                                        format_string($course->fullname, true, ['context' => $context])),
+                'successurl'  => \enrol_wallet\payment\service_provider::get_success_url('wallet', $instance->id)->out(false),
             ];
             $balance != 0 ? $data['balance'] =
                 \core_payment\helper::get_cost_as_string($balance, $instance->currency) : $data['balance'] = false;

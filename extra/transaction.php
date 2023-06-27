@@ -34,8 +34,8 @@ require_login();
 $systemcontext = context_system::instance();
 $viewall = has_capability('enrol/wallet:transaction', $systemcontext);
 
-$sort = optional_param('tsort', 'timecreated', PARAM_ALPHA);
-$userid = optional_param('user', '', PARAM_INT);
+$sort = optional_param('tsort', '', PARAM_ALPHA);
+$userid = (!$viewall) ? $USER->id : optional_param('user', '', PARAM_INT);
 $datefrom = optional_param_array('datefrom', [], PARAM_INT);
 $dateto = optional_param_array('dateto', [], PARAM_INT);
 $ttype = optional_param('ttype', '', PARAM_TEXT);
@@ -45,12 +45,12 @@ $limitfrom = optional_param('page', 0, PARAM_INT);
 
 // Page parameters.
 $urlparams = [
-    'tsort' => $sort,
+    'tsort'   => $sort,
     'perpage' => $limitnum,
-    'page' => $limitfrom,
-    'user' => $userid,
-    'ttype' => $ttype,
-    'value' => $value,
+    'page'    => $limitfrom,
+    'user'    => $userid,
+    'ttype'   => $ttype,
+    'value'   => $value,
 ];
 if (!empty($datefrom)) {
     foreach ($datafrom as $key => $value) {
@@ -64,11 +64,14 @@ if (!empty($dateto)) {
     }
 }
 
-if (!$viewall) {
-    $userid = $USER->id;
+// Unset empty params.
+foreach ($urlparams as $key => $val) {
+    if (empty($val)) {
+        unset($urlparams[$key]);
+    }
 }
+
 // Setup the page.
-$PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
 $PAGE->set_title("Wallet Transactions");
 $PAGE->set_heading('Wallet Transactions');
@@ -85,15 +88,15 @@ $mform = new MoodleQuickForm('transactions', 'GET', $thisurl);
 
 if ($viewall) {
     // Borrow potential users selectors from enrol_manual.
-    $options = array(
-        'ajax' => 'enrol_manual/form-potential-user-selector',
-        'multiple' => false,
-        'courseid' => SITEID,
-        'enrolid' => 0,
-        'perpage' => $CFG->maxusersperpage,
-        'userfields' => implode(',', \core_user\fields::get_identity_fields($systemcontext, true)),
+    $options = [
+        'ajax'              => 'enrol_manual/form-potential-user-selector',
+        'multiple'          => false,
+        'courseid'          => SITEID,
+        'enrolid'           => 0,
+        'perpage'           => $CFG->maxusersperpage,
+        'userfields'        => implode(',', \core_user\fields::get_identity_fields($systemcontext, true)),
         'noselectionstring' => get_string('allusers', 'enrol_wallet'),
-    );
+    ];
     $mform->addElement('autocomplete', 'user', get_string('selectusers', 'enrol_manual'), array(), $options);
 }
 
@@ -126,18 +129,20 @@ $mform->addElement('submit', '', get_string('submit'));
 
 // Setup the transactions table.
 $columns = [
-    'user' => 'User',
-    'timecreated' => 'Time',
-    'amount' => 'Amount',
-    'type' => 'Type of transaction',
-    'balbefore' => 'balance before',
-    'balance' => 'balance after',
-    'norefund' => 'Non refundable',
-    'descripe' => 'description',
+    'user'        => get_string('user'),
+    'timecreated' => get_string('time'),
+    'amount'      => get_string('amount', 'enrol_wallet'),
+    'type'        => get_string('transaction_type', 'enrol_wallet'),
+    'balbefore'   => get_string('balance_before', 'enrol_wallet'),
+    'balance'     => get_string('balance_after', 'enrol_wallet'),
+    'norefund'    => get_string('nonrefundable', 'enrol_wallet'),
+    'descripe'    => get_string('description'),
 ];
 
 $table = new flexible_table('wallet_transactions');
-$table->define_baseurl($thisurl->out(true));
+
+$baseurl = new moodle_url('/enrol/wallet/extra/transaction.php');
+$table->define_baseurl($baseurl->out(true));
 
 $table->define_columns(array_keys($columns));
 $table->define_headers(array_values($columns));
@@ -250,14 +255,14 @@ foreach ($records as $record) {
     $desc = $record->descripe;
 
     $row = [
-        'user' => $userfullname,
+        'user'        => $userfullname,
         'timecreated' => $time,
-        'amount' => $amount,
-        'type' => $record->type,
-        'balbefore' => $before,
-        'balance' => $after,
-        'norefund' => $norefund,
-        'descripe' => $desc,
+        'amount'      => $amount,
+        'type'        => $record->type,
+        'balbefore'   => $before,
+        'balance'     => $after,
+        'norefund'    => $norefund,
+        'descripe'    => $desc,
     ];
 
     $table->add_data_keyed($row);
@@ -276,6 +281,7 @@ echo $pageslinks;
 // Display the table.
 $table->finish_output();
 
+// Page links again.
 echo $pageslinks;
 
 echo $OUTPUT->box(ob_get_clean());

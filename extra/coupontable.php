@@ -35,6 +35,7 @@ $systemcontext = context_system::instance();
 require_capability('enrol/wallet:viewcoupon', $systemcontext);
 
 $candelete = has_capability('enrol/wallet:deletecoupon', $systemcontext);
+$canedit = has_capability('enrol/wallet:editcoupon', $systemcontext);
 $candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
 
 // Parameters.
@@ -69,9 +70,9 @@ $urlparams['type'] = (!empty($type)) ? $type : null;
 
 $arraydates = [
     'createdfrom' => $createdfromarray,
-    'createdto' => $createdtoarray,
-    'validfrom' => $validfromarray,
-    'validto' => $validtoarray,
+    'createdto'   => $createdtoarray,
+    'validfrom'   => $validfromarray,
+    'validto'     => $validtoarray,
 ];
 // ...mktime all dates.
 foreach ($arraydates as $key => $date) {
@@ -160,7 +161,7 @@ $table->define_baseurl($baseurl->out());
 
 if (!$table->is_downloading($download, 'walletcoupons')) {
     if ($candelete) {
-        echo '<form name="couponedit" method="post" action="couponedit.php">';
+        echo '<form name="coupondelete" method="post" action="coupondelete.php">';
     }
     echo $OUTPUT->header();
 
@@ -169,26 +170,31 @@ if (!$table->is_downloading($download, 'walletcoupons')) {
 
 // Set up the coupons table.
 $columns = [
-            'checkbox' => null,
-            'id' => 'id',
-            'code' => 'Code',
-            'value' => 'Value',
-            'type' => 'Type',
-            'maxusage' => 'Maximum usage',
-            'usetimes' => 'Usage',
-            'validfrom' => 'Valid from',
-            'validto' => 'Valid to',
-            'lastuse' => 'lastuse',
-            'timecreated' => 'timecreated',
+            'checkbox'    => null,
+            'id'          => 'id',
+            'code'        => get_string('coupon_t_code', 'enrol_wallet'),
+            'value'       => get_string('coupon_t_value', 'enrol_wallet'),
+            'type'        => get_string('coupon_t_type', 'enrol_wallet'),
+            'maxusage'    => get_string('coupons_maxusage', 'enrol_wallet'),
+            'usetimes'    => get_string('coupon_t_usage', 'enrol_wallet'),
+            'validfrom'   => get_string('validfrom', 'enrol_wallet'),
+            'validto'     => get_string('validto', 'enrol_wallet'),
+            'lastuse'     => get_string('coupon_t_lastuse', 'enrol_wallet'),
+            'timecreated' => get_string('coupon_t_timecreated', 'enrol_wallet'),
+            'edit'        => null,
         ];
 
-if ($table->is_downloading()) {
+if ($table->is_downloading() || !$candelete) {
     unset($columns['checkbox']);
+}
+
+if ($table->is_downloading() || !$canedit) {
+    unset($columns['edit']);
 }
 
 $table->define_columns(array_keys($columns));
 $table->define_headers(array_values($columns));
-$table->set_attribute('class', 'generaltable generalbox');
+$table->set_attribute('class', 'generaltable generalbox wallet-couponstable');
 
 // Setup the sorting properties.
 $table->sortable(true);
@@ -269,24 +275,25 @@ if (!$table->is_downloading()) {
 }
 
 foreach ($records as $record) {
-    if ($candelete) {
-        $chkbox = '<input type="checkbox" name="select['.$record->id.']" value="1" >';
-    } else {
-        $chkbox = '';
-    }
+    $editparams = array_merge(['edit' => true], (array)$record);
+    $editurl = new moodle_url('couponedit.php', $editparams);
+    $editbutton = ($canedit) ? $OUTPUT->single_button($editurl, get_string('edit'), 'post') : '';
+
+    $chkbox = ($candelete) ? '<input type="checkbox" name="select['.$record->id.']" value="1" >' : '';
 
     $row = [
-        'checkbox' => $chkbox,
-        'id' => $record->id,
-        'code' => $record->code,
-        'value' => number_format($record->value, 2),
-        'type' => $record->type,
-        'maxusage' => $record->maxusage,
-        'usetimes' => $record->usetimes,
-        'validfrom' => !empty($record->validfrom) ? userdate($record->validfrom) : '',
-        'validto' => !empty($record->validto) ? userdate($record->validto) : '',
-        'lastuse' => !empty($record->lastuse) ? userdate($record->lastuse) : '',
+        'checkbox'    => $chkbox,
+        'id'          => $record->id,
+        'code'        => $record->code,
+        'value'       => number_format($record->value, 2),
+        'type'        => $record->type,
+        'maxusage'    => $record->maxusage,
+        'usetimes'    => $record->usetimes,
+        'validfrom'   => !empty($record->validfrom) ? userdate($record->validfrom) : '',
+        'validto'     => !empty($record->validto) ? userdate($record->validto) : '',
+        'lastuse'     => !empty($record->lastuse) ? userdate($record->lastuse) : '',
         'timecreated' => !empty($record->timecreated) ? userdate($record->timecreated) : '',
+        'edit'        => $editbutton,
     ];
 
     $table->add_data_keyed($row);
@@ -309,8 +316,6 @@ if (!$table->is_downloading($download, 'walletcoupons') && $candelete) {
 if (!$table->is_downloading()) {
     echo $OUTPUT->box($pageslinks);
 }
-
-
 
 if (!$table->is_downloading()) {
     echo $OUTPUT->footer();

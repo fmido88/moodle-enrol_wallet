@@ -33,7 +33,7 @@ if ($method == 'single') {
     $number = 1;
     $length = '';
     $characters = [];
-} else {
+} else if ($method == 'random') {
     $code = '';
     $number = required_param('number', PARAM_INT);
     $length = required_param('length', PARAM_INT);

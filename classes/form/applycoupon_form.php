@@ -41,7 +41,9 @@ class applycoupon_form extends \moodleform {
         $mform = $this->_form;
         $instance = $this->_customdata->instance;
         $url = new \moodle_url('course/view.php', ['id' => $instance->courseid]);
-        $coupon = optional_param('coupon', '', PARAM_TEXT);
+
+        $wallet = enrol_get_plugin('wallet');
+        $coupon = $wallet->check_discount_coupon();
         $coupongroup = [];
 
         if (!empty($coupon)) {

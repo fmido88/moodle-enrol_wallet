@@ -43,15 +43,19 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     $charger = $USER->id;
     if (empty($value) && ($op !== 'balance')) {
         $err = get_string('charger_novalue', 'enrol_wallet');
-        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('error' => $err,
-                                                                                   'op' => 'result'));
+        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', [
+                                                                        'error' => $err,
+                                                                        'op'    => 'result'
+                                                                        ]);
         redirect($redirecturl, $err);
     }
 
     if (empty($userid)) {
         $err = get_string('charger_nouser', 'enrol_wallet');
-        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('error' => $err,
-                                                                                   'op' => 'result'));
+        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', [
+                                                                            'error' => $err,
+                                                                            'op'    => 'result'
+                                                                        ]);
         redirect($redirecturl, $err);
     }
     $transactions = new enrol_wallet\transactions;
@@ -86,11 +90,13 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     }
 
     // Redirect to same page to show results.
-    $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('result' => $result,
-    'before' => $before,
-    'after' => ($op == 'balance') ? $before : $after,
-    'userid' => $userid,
-    'op' => 'result'));
+    $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', [
+                                                                    'result' => $result,
+                                                                    'before' => $before,
+                                                                    'after'  => ($op == 'balance') ? $before : $after,
+                                                                    'userid' => $userid,
+                                                                    'op'     => 'result'
+                                                                ]);
 
     redirect($redirecturl);
 

@@ -89,8 +89,8 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $where = "userid = :userid AND type = :type AND timecreated >= :checktime";
 
         $params = [
-            'userid' => $userid,
-            'type' => 'debit',
+            'userid'    => $userid,
+            'type'      => 'debit',
             'checktime' => time() - $period,
         ];
         $records = $DB->get_records_select('enrol_wallet_transactions', $where, $params, 'id DESC', 'id, amount');
@@ -137,13 +137,13 @@ class turn_non_refundable extends \core\task\adhoc_task {
         }
 
         $recorddata = [
-            'userid' => $userid,
-            'amount' => 0,
-            'type' => 'credit',
-            'balbefore' => $balance,
-            'balance' => $balance,
-            'norefund' => min($norefund + $transform, $balance),
-            'descripe' => 'Transform the transaction to nonrefundable due to expiring of refund period.'."\n",
+            'userid'      => $userid,
+            'amount'      => 0,
+            'type'        => 'credit',
+            'balbefore'   => $balance,
+            'balance'     => $balance,
+            'norefund'    => min($norefund + $transform, $balance),
+            'descripe'    => get_string('nonrefundable_transform_desc', 'enrol_wallet'),
             'timecreated' => time(),
         ];
         $DB->insert_record('enrol_wallet_transactions', $recorddata);

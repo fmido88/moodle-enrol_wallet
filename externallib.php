@@ -61,7 +61,7 @@ class enrol_wallet_external extends external_api {
 
         require_once($CFG->libdir . '/enrollib.php');
 
-        $params = self::validate_parameters(self::get_instance_info_parameters(), array('instanceid' => $instanceid));
+        $params = self::validate_parameters(self::get_instance_info_parameters(), ['instanceid' => $instanceid]);
 
         // Retrieve wallet enrolment plugin.
         $enrolplugin = enrol_get_plugin('wallet');
@@ -71,8 +71,8 @@ class enrol_wallet_external extends external_api {
 
         self::validate_context(context_system::instance());
 
-        $enrolinstance = $DB->get_record('enrol', array('id' => $params['instanceid']), '*', MUST_EXIST);
-        $course = $DB->get_record('course', array('id' => $enrolinstance->courseid), '*', MUST_EXIST);
+        $enrolinstance = $DB->get_record('enrol', ['id' => $params['instanceid']], '*', MUST_EXIST);
+        $course = $DB->get_record('course', ['id' => $enrolinstance->courseid], '*', MUST_EXIST);
         if (!core_course_category::can_view_course_info($course) && !can_access_course($course)) {
             throw new moodle_exception('coursehidden');
         }
@@ -130,10 +130,10 @@ class enrol_wallet_external extends external_api {
         require_once($CFG->libdir . '/enrollib.php');
 
         $params = self::validate_parameters(self::enrol_user_parameters(),
-                                            array(
-                                                'courseid' => $courseid,
-                                                'instanceid' => $instanceid
-                                            ));
+                                                    [
+                                                        'courseid' => $courseid,
+                                                        'instanceid' => $instanceid
+                                                    ]);
 
         $warnings = [];
 

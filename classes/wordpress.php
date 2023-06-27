@@ -43,21 +43,21 @@ class wordpress {
     public function request($method, $data) {
 
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $wordpressurl = clean_param($wordpressurl, PARAM_URL);
         if (empty($wordpressurl)) {
             return;
         }
+
         $url = $wordpressurl . self::ENDPOINT . $method;
         $encrypted = $this->encrypt_data($data);
-        $sendingdata = [
-            'encdata' => $encrypted,
-        ];
+        $sendingdata = ['encdata' => $encrypted];
         $curl = curl_init();
         $curlsetopt = [
-            CURLOPT_URL => $url,
+            CURLOPT_URL            => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FAILONERROR => false,
-            CURLOPT_POST => true,
-            CURLOPT_POSTFIELDS => $sendingdata,
+            CURLOPT_FAILONERROR    => false,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $sendingdata,
         ];
 
         curl_setopt_array($curl, $curlsetopt);
@@ -82,18 +82,15 @@ class wordpress {
     public static function encrypt_data($data) {
         $key = get_config('enrol_wallet', 'wordpress_secretkey');
         $data['sk'] = $key;
-        $query = http_build_query( $data, 'flags_' );
-        $token = $query;
-
-        $encryptmethod = 'AES-128-CTR';
+        $token = http_build_query( $data, 'flags_' );
 
         $encryptkey = openssl_digest( $key, 'SHA256', true );
 
-        $encryptiv = openssl_random_pseudo_bytes(openssl_cipher_iv_length($encryptmethod));
-        $crypttext = openssl_encrypt($token, $encryptmethod, $encryptkey, 0, $encryptiv) . "::" . bin2hex($encryptiv);
+        $encryptiv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('AES-128-CTR'));
+        $crypttext = openssl_encrypt($token, 'AES-128-CTR', $encryptkey, 0, $encryptiv) . "::" . bin2hex($encryptiv);
 
         $encdata = base64_encode($crypttext);
-        $encdata = str_replace(array('+', '/', '='), array('-', '_', ''), $encdata);
+        $encdata = str_replace(['+', '/', '='], ['-', '_', ''], $encdata);
 
         $encrypteddata = trim($encdata);
         return $encrypteddata;
@@ -102,17 +99,17 @@ class wordpress {
      * Deduct amount from user's wallet.
      * @param int $userid
      * @param float $amount
-     * @param string $coursename
-     * @param int $charger \\ id of user did the operation.
+     * @param string $coursename COURSE name at which the request occurred.
+     * @param int $charger id of user did the operation.
      * @return mixed
      */
     public function debit($userid, float $amount, $coursename = '', $charger = '') {
-        $data = array(
+        $data = [
             'moodle_user_id' => $userid,
-            'amount' => $amount,
-            'course' => $coursename, // COURSE name at which the request occurred.
-            'charger' => $charger
-        );
+            'amount'         => $amount,
+            'course'         => $coursename,
+            'charger'        => $charger
+        ];
 
         return $this->request('debit', $data);
     }
@@ -128,12 +125,12 @@ class wordpress {
      * @return array|string
      */
     public function credit($amount, $userid, $description = '', $charger = '') {
-        $data = array(
-            'amount' => $amount,
+        $data = [
+            'amount'         => $amount,
             'moodle_user_id' => $userid,
-            'description' => $description,
-            'charger' => $charger
-        );
+            'description'    => $description,
+            'charger'        => $charger
+        ];
 
         $responsedata = $this->request('wallet_topup', $data);
 
@@ -146,6 +143,7 @@ class wordpress {
                 return $responsedata['err'];
             }
         }
+
         if ($responsedata['success'] == 'false') {
             // Response format is incorrect.
             return $responsedata['err'];
@@ -165,12 +163,12 @@ class wordpress {
      */
     public function get_coupon($coupon, $userid, $instanceid, $apply) {
         $method = 'get_coupon_value';
-        $data = array(
-            'coupon' => $coupon,
+        $data = [
+            'coupon'         => $coupon,
             'moodle_user_id' => $userid,
-            'instanceid' => $instanceid,
-            'apply' => $apply,
-        );
+            'instanceid'     => $instanceid,
+            'apply'          => $apply,
+        ];
 
         $responsedata = $this->request($method, $data);
 
@@ -204,7 +202,7 @@ class wordpress {
 
         $coupondata = [
             'value' => $couponvalue,
-            'type' => $coupontype,
+            'type'  => $coupontype,
         ];
         return $coupondata;
     }
@@ -262,12 +260,13 @@ class wordpress {
     public function login_logout_user_to_wordpress($userid, $method, $redirect) {
         $allowed = get_config('enrol_wallet', 'wordpressloggins');
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $wordpressurl = clean_param($wordpressurl, PARAM_URL);
+
         $user = \core_user::get_user($userid);
 
         if (
             empty($allowed) // Check if this option allowed in the settings.
             || empty($wordpressurl) // If the wp url is not set.
-            || !filter_var($wordpressurl, FILTER_VALIDATE_URL) // If the wp url is valid url.
             || !$user // If this is a valid user.
             || isguestuser($user) // Not guest.
             ) {
@@ -277,14 +276,13 @@ class wordpress {
         // The data to send to wordpress.
         $data = [
             'moodle_user_id' => $userid,
-            'method' => $method,
-            'url' => $redirect,
-            'email' => $user->email,
-            'username' => $user->username, // ...username and email used for login only in case user need to be created.
+            'method'         => $method,
+            'url'            => $redirect,
+            'email'          => $user->email,
+            'username'       => $user->username, // ...username and email used for login only in case user need to be created.
         ];
 
         $encdata = $this->encrypt_data($data);
         redirect($wordpressurl . '?encdata=' . $encdata . '&moodleurl=' . (new \moodle_url('/'))->out());
     }
 }
-

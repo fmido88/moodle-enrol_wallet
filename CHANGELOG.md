@@ -1,5 +1,11 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.7.0 ##
+- Add ability for editing coupons.
+- Hide cheaper instances or non available enrol wallet instance in the same course.
+- Fix and test logging in and out to wordpress.
+- Bug fixes and enhancement.
+
 ## V 1.6.7 ##
 - Fix and enhance coupons and transaction pages.
 

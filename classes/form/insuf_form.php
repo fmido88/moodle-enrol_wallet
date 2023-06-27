@@ -27,7 +27,7 @@ global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
 /**
- * This is realy just a display for user that he has insufficient wallet ballance to enrol.
+ * This is really just a display for user that he has insufficient wallet ballance to enrol.
  */
 class insuf_form extends \moodleform {
 

@@ -93,13 +93,13 @@ class transactions {
         $oldnotrefund = self::get_nonrefund_balance($userid);
 
         $recorddata = [
-            'userid' => $userid,
-            'type' => 'credit',
-            'amount' => $amount,
-            'balbefore' => $before,
-            'balance' => $newbalance,
-            'norefund' => $refundable ? $oldnotrefund : $amount + $oldnotrefund,
-            'descripe' => $description,
+            'userid'      => $userid,
+            'type'        => 'credit',
+            'amount'      => $amount,
+            'balbefore'   => $before,
+            'balance'     => $newbalance,
+            'norefund'    => $refundable ? $oldnotrefund : $amount + $oldnotrefund,
+            'descripe'    => $description,
             'timecreated' => time()
         ];
 
@@ -158,8 +158,8 @@ class transactions {
         global $DB;
 
         $a = (object)[
-            'amount' => $amount,
-            'charger' => $charger,
+            'amount'     => $amount,
+            'charger'    => $charger,
             'coursename' => $coursename,
         ];
 
@@ -172,13 +172,13 @@ class transactions {
         $oldnotrefund = self::get_nonrefund_balance($userid);
 
         $recorddata = [
-            'userid' => $userid,
-            'type' => 'debit',
-            'amount' => $amount,
-            'balbefore' => $before,
-            'balance' => $newbalance,
-            'norefund' => ($newbalance >= $oldnotrefund) ? $oldnotrefund : $newbalance,
-            'descripe' => $description,
+            'userid'      => $userid,
+            'type'        => 'debit',
+            'amount'      => $amount,
+            'balbefore'   => $before,
+            'balance'     => $newbalance,
+            'norefund'    => ($newbalance >= $oldnotrefund) ? $oldnotrefund : $newbalance,
+            'descripe'    => $description,
             'timecreated' => time()
         ];
 
@@ -312,7 +312,7 @@ class transactions {
             // Set the returning coupon data.
             $coupondata = [
                 'value' => $couponrecord->value,
-                'type' => $couponrecord->type,
+                'type'  => $couponrecord->type,
             ];
 
         }
@@ -406,8 +406,8 @@ class transactions {
             $couponrecord = $DB->get_record('enrol_wallet_coupons', ['code' => $coupon]);
             $usage = $couponrecord->usetimes + 1;
             $data = (object)[
-                'id' => $couponrecord->id,
-                'lastuse' => time(),
+                'id'       => $couponrecord->id,
+                'lastuse'  => time(),
                 'usetimes' => $usage,
             ];
             $DB->update_record('enrol_wallet_coupons', $data);
@@ -415,22 +415,22 @@ class transactions {
 
         // Logging the usage in the coupon usage table.
         $logdata = (object)[
-            'code' => $coupon,
-            'type' => $couponrecord->type,
-            'value' => $couponrecord->value,
-            'userid' => $userid,
+            'code'       => $coupon,
+            'type'       => $couponrecord->type,
+            'value'      => $couponrecord->value,
+            'userid'     => $userid,
             'instanceid' => $instanceid,
-            'timeused' => time(),
+            'timeused'   => time(),
         ];
         $id = $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
 
         $eventdata = [
-            'userid' => $userid,
+            'userid'        => $userid,
             'relateduserid' => $userid,
-            'objectid' => !empty($id) ? $id : null,
-            'other' => [
-                'code' => $coupon,
-            ]
+            'objectid'      => !empty($id) ? $id : null,
+            'other'         => [
+                                    'code' => $coupon,
+                                ]
         ];
 
         if (!empty($instanceid) && $instanceid != 0) {
@@ -465,15 +465,15 @@ class transactions {
         $context = \context_system::instance();
 
         $eventarray = [
-                        'context' => $context,
-                        'objectid' => $id,
-                        'userid' => $charger,
+                        'context'       => $context,
+                        'objectid'      => $id,
+                        'userid'        => $charger,
                         'relateduserid' => $userid,
                         'other' => [
-                                    'type' => $type,
-                                    'amount' => $amount,
+                                    'type'       => $type,
+                                    'amount'     => $amount,
                                     'refundable' => $refundable,
-                                    'desc' => $desc,
+                                    'desc'       => $desc,
                                     ],
                     ];
 
@@ -501,7 +501,7 @@ class transactions {
         $task = new \enrol_wallet\task\turn_non_refundable;
         $task->set_custom_data(
                 [
-                    'id' => $id,
+                    'id'     => $id,
                     'userid' => $record->userid,
                     'amount' => $record->amount,
                 ]

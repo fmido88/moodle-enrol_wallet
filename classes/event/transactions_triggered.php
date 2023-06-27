@@ -69,6 +69,7 @@ class transactions_triggered extends \core\event\base {
         $type = $this->other['type'];
         if ($type == 'debit') {
             return get_string('event_transaction_debit_description', 'enrol_wallet', $a);
+
         } else if ($type == 'credit') {
             $refundable = clean_param($this->other['refundable'], PARAM_BOOL);
             $a->refundable = $refundable ? 'refundable' : 'not refundable';

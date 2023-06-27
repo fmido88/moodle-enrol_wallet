@@ -99,25 +99,25 @@ class observer {
 
         // Insert the record.
         $data = [
-            'userid' => $userid,
+            'userid'   => $userid,
             'courseid' => $courseid,
-            'grade' => $usergrade,
+            'grade'    => $usergrade,
             'maxgrade' => $maxgrade,
-            'percent' => $percentage,
-            'amount' => $award,
+            'percent'  => $percentage,
+            'amount'   => $award,
             'timecreated' => time()
         ];
         $id = $DB->insert_record('enrol_wallet_awards', $data);
 
         // Trigger award event.
         $eventdata = [
-            'context' => \context_course::instance($courseid),
-            'userid' => $userid,
+            'context'       => \context_course::instance($courseid),
+            'userid'        => $userid,
             'relateduserid' => $userid,
-            'objectid' => $id,
-            'courseid' => $courseid,
+            'objectid'      => $id,
+            'courseid'      => $courseid,
             'other' => [
-                'grade' => number_format($percentage, 2),
+                'grade'  => number_format($percentage, 2),
                 'amount' => $award,
             ],
         ];
@@ -152,10 +152,10 @@ class observer {
 
         // Trigger gifts event.
         $eventdata = [
-            'context' => \context_system::instance(),
-            'userid' => $userid,
+            'context'       => \context_system::instance(),
+            'userid'        => $userid,
             'relateduserid' => $userid,
-            'objectid' => $id,
+            'objectid'      => $id,
             'other' => [
                 'amount' => $giftvalue,
             ],
@@ -225,6 +225,13 @@ class observer {
             return;
         }
 
+        $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $wordpressurl = clean_param($wordpressurl, PARAM_URL);
+        $allowed = get_config('enrol_wallet', 'wordpressloggins');
+        if (empty($allowed) || empty($wordpressurl)) {
+            return;
+        }
+
         // Clone the old wantsurl.
         $params = [];
         if (isset($SESSION->wantsurl)) {
@@ -254,6 +261,13 @@ class observer {
         $user = \core_user::get_user($userid);
 
         if (!$user || isguestuser($user)) {
+            return;
+        }
+
+        $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $wordpressurl = clean_param($wordpressurl, PARAM_URL);
+        $allowed = get_config('enrol_wallet', 'wordpressloggins');
+        if (empty($allowed) || empty($wordpressurl)) {
             return;
         }
 

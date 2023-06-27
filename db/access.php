@@ -27,108 +27,124 @@ defined('MOODLE_INTERNAL') || die();
 $capabilities = [
 
     /* Add or edit enrol-wallet instance in course. */
-    'enrol/wallet:config' => array(
-
-        'captype' => 'write',
+    'enrol/wallet:config' => [
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW,
-        )
-    ),
+            'manager'        => CAP_ALLOW,
+        ]
+    ],
 
     /* Manage user wallet-enrolments. */
-    'enrol/wallet:manage' => array(
-
-        'captype' => 'write',
+    'enrol/wallet:manage' => [
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW,
-        )
-    ),
+            'manager'        => CAP_ALLOW,
+        ]
+    ],
 
     /* Voluntarily unenrol self from course - watch out for data loss. */
-    'enrol/wallet:unenrolself' => array(
-        'captype' => 'write',
+    'enrol/wallet:unenrolself' => [
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes'   => [
             'student' => CAP_ALLOW,
-        )
-    ),
+        ]
+    ],
 
     /* Unenrol anybody from course (including self) -  watch out for data loss. */
-    'enrol/wallet:unenrol' => array(
-        'captype' => 'write',
+    'enrol/wallet:unenrol' => [
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => array(
+        'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW,
-        )
-    ),
+            'manager'        => CAP_ALLOW,
+        ]
+    ],
+
     // View pages for bulk edit.
     'enrol/wallet:bulkedit' => [
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW,
+            'manager'        => CAP_ALLOW,
         ]
     ],
+
     // View pages for transaction.
     'enrol/wallet:transaction' => [
-        'captype' => 'read',
+        'captype'      => 'read',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'manager' => CAP_ALLOW,
         ]
     ],
-    // View pages for transaction.
+
+    // View other users balance.
     'enrol/wallet:viewotherbalance' => [
-        'captype' => 'read',
+        'captype'      => 'read',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'manager' => CAP_ALLOW,
         ]
     ],
+
     // Creating coupons.
     'enrol/wallet:createcoupon' => [
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'manager' => CAP_ALLOW,
         ]
     ],
+
     // Deleting coupons.
     'enrol/wallet:deletecoupon' => [
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'manager' => CAP_ALLOW,
         ]
     ],
+
+    // Edit coupons.
+    'enrol/wallet:editcoupon' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [
+            'manager' => CAP_ALLOW,
+        ]
+    ],
+
     // Download coupons.
     'enrol/wallet:downloadcoupon' => [
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'manager' => CAP_ALLOW,
         ]
     ],
-    // Download coupons.
+
+    // View coupons table.
     'enrol/wallet:viewcoupon' => [
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'manager' => CAP_ALLOW,
         ]
     ],
+
     // Performing Transactions.
     'enrol/wallet:creditdebit' => [
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_SYSTEM,
-        'archetypes' => [
+        'archetypes'   => [
             'manager' => CAP_ALLOW,
         ]
     ],
+
 ];

@@ -45,7 +45,7 @@ $couponsetting = get_config('enrol_wallet', 'coupons');
 if (confirm_sesskey()) {
     // Get the coupon data.
     $coupondata = enrol_wallet\transactions::get_coupon_value($coupon, $userid, $instanceid, false);
-    if (is_string($coupondata) || $coupondata === false) {
+    if (empty($coupondata) || is_string($coupondata)) {
         $errormessage = get_string('coupon_applyerror', 'enrol_wallet', $coupondata);
         // This mean that the function return error.
         redirect($redirecturl, $errormessage);
@@ -82,9 +82,11 @@ if (confirm_sesskey()) {
                 $msg = get_string('coupon_applynocourse', 'enrol_wallet');
                 redirect($redirecturl, $msg);
             }
+
         } else if ($type == 'percent' && empty($instanceid)) {
             $msg = get_string('coupon_applynothere', 'enrol_wallet');
             redirect($redirecturl, $msg);
+
         } else {
             $msg = 'Invalid Action.';
             redirect($redirecturl, $msg);

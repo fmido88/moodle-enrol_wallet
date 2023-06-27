@@ -44,12 +44,12 @@ class notifications {
         $time = userdate($data['timecreated']);
 
         $a = (object)[
-            'type' => $type,
-            'amount' => $amount,
-            'before' => $before,
+            'type'    => $type,
+            'amount'  => $amount,
+            'before'  => $before,
             'balance' => $balance,
-            'desc' => $desc,
-            'time' => $time,
+            'desc'    => $desc,
+            'time'    => $time,
         ];
         $user = \core_user::get_user($userid);
         $message = new \core\message\message();
@@ -72,7 +72,7 @@ class notifications {
         $message->smallmessage = $desc;
         $message->notification = 1; // Because this is a notification generated from Moodle, not a user-to-user message.
 
-        $content = array('*' => array('header' => ' Wallet Transaction ', 'footer' => '')); // Extra content for specific processor.
+        $content = ['*' => ['header' => ' Wallet Transaction ', 'footer' => '']]; // Extra content for specific processor.
         $message->set_additional_content('email', $content);
 
         // Actually send the message.

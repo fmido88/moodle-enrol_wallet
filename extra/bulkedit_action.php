@@ -74,18 +74,11 @@ if (confirm_sesskey()) {
         foreach ($enrolusers as $euser) {
             $instance = $DB->get_record('enrol', ['id' => $euser->ueenrolid]);
 
-            if (!in_array($instance->enrol , $plugins)) {
+            if (!in_array($instance->enrol, $plugins)) {
                 continue;
             }
 
             if (!has_capability("enrol/$instance->enrol:manage", $context)) {
-                continue;
-            }
-
-            if ($euser->uestatus == $status
-                && $euser->uetimestart == $start
-                && $euser->uetimeend == $end) {
-                // No change.
                 continue;
             }
 
@@ -96,16 +89,23 @@ if (confirm_sesskey()) {
                 $data->status = $euser->uestatus;
             }
 
-            if (!empty($start) && $euser->uetimestart > $start) {
+            if (!empty($start) && $euser->uetimestart > $start && !empty($euser->uetimestart)) {
                 $data->timestart = $start;
             } else {
                 $data->timestart = $euser->uetimestart;
             }
 
-            if (!empty($end) && $euser->uetimeend < $end && $euser->uetimeend !== 0) {
+            if (!empty($end) && $euser->uetimeend < $end && !empty($euser->uetimeend)) {
                 $data->timeend = $end;
             } else {
                 $data->timeend = $euser->uetimeend;
+            }
+
+            if ($euser->uestatus == $data->status
+                && $euser->uetimestart == $data->timestart
+                && $euser->uetimeend == $data->timeend) {
+                // No change.
+                continue;
             }
 
             $plugin = $instance->enrol;
