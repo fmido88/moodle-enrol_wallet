@@ -90,6 +90,10 @@ class transactions {
             $newbalance = $before + $amount;
         }
 
+        if ($newbalance <= $before) {
+            return false;
+        }
+
         $oldnotrefund = self::get_nonrefund_balance($userid);
 
         $recorddata = [
@@ -111,7 +115,7 @@ class transactions {
 
         self::notify()->transaction_notify($recorddata);
 
-        self::triger_transaction_event($amount, 'credit', $charger, $userid, $description, $id, $refundable);
+        self::trigger_transaction_event($amount, 'credit', $charger, $userid, $description, $id, $refundable);
 
         return $id;
     }
@@ -153,7 +157,10 @@ class transactions {
 
             $response = 'done';
         }
-
+        // No debit occurs.
+        if ($newbalance >= $before) {
+            return false;
+        }
         // Inserting a record in the transaction table.
         global $DB;
 
@@ -186,7 +193,7 @@ class transactions {
 
         self::notify()->transaction_notify($recorddata);
 
-        self::triger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
+        self::trigger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
 
         return $id;
     }
@@ -429,7 +436,7 @@ class transactions {
             'relateduserid' => $userid,
             'objectid'      => !empty($id) ? $id : null,
             'other'         => [
-                                    'code' => $coupon,
+                                'code' => $coupon,
                                 ]
         ];
 
@@ -442,13 +449,45 @@ class transactions {
         } else {
 
             $eventdata['context'] = \context_system::instance();
-
         }
 
         $event = \enrol_wallet\event\coupon_used::create($eventdata);
         $event->trigger();
     }
 
+    /**
+     * Apply cashback after course purchace.
+     * @param int $userid the user id
+     * @param float $costafter the cost of the course after discounts
+     * @param string $coursename the full name of the course
+     * @param int $courseid the course id
+     * @return void
+     */
+    public static function apply_cashback($userid, $costafter, $coursename, $courseid) {
+        // Now apply the cashback if enabled.
+        $cashbackenabled = get_config('enrol_wallet', 'cashback');
+
+        if ($cashbackenabled) {
+            $percent = get_config('enrol_wallet', 'cashbackpercent');
+            $desc = get_string('cashbackdesc', 'enrol_wallet', $coursename);
+            $value = $costafter * $percent / 100;
+            $id = self::payment_topup($value, $userid, $desc, $userid, false);
+            // Trigger cashback event.
+            $eventdata = [
+                'context'       => \context_course::instance($courseid),
+                'courseid'      => $courseid,
+                'objectid'      => $id,
+                'userid'        => $userid,
+                'relateduserid' => $userid,
+                'other'         => [
+                        'amount'   => $value,
+                        'original' => $costafter,
+                ],
+            ];
+            $event = \enrol_wallet\event\cashback_applied::create($eventdata);
+            $event->trigger();
+        }
+    }
     /**
      * Triggering transactions event.
      * @param float $amount amount of the transaction.
@@ -460,7 +499,7 @@ class transactions {
      * @param bool $refundable is the transaction is refundable
      * @return void
      */
-    private static function triger_transaction_event($amount, $type, $charger, $userid, $desc, $id, $refundable) {
+    private static function trigger_transaction_event($amount, $type, $charger, $userid, $desc, $id, $refundable) {
         require_once(__DIR__.'/event/transactions_triggered.php');
         $context = \context_system::instance();
 
