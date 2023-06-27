@@ -504,25 +504,18 @@ class enrol_wallet_plugin extends enrol_plugin {
             $data = new stdClass();
             $data->header = $this->get_instance_name($instance);
             $data->instance = $instance;
+            $a = [
+                'cost_before'  => $costbefore,
+                'cost_after'   => $costafter,
+                'user_balance' => $balance
+            ];
             if ($enrolstatus == self::INSUFFICIENT_BALANCE) {
 
-                $data->info = get_string('insufficient_balance',
-                                        'enrol_wallet',
-                                        [
-                                            'cost_before'  => $costbefore,
-                                            'user_balance' => $balance
-                                        ]);
+                $data->info = get_string('insufficient_balance', 'enrol_wallet', $a);
 
             } else {
 
-                $data->info = get_string('insufficient_balance_discount',
-                                        'enrol_wallet',
-                                        [
-                                            'cost_before'  => $costbefore,
-                                            'cost_after'   => $costafter,
-                                            'user_balance' => $balance
-                                        ]);
-
+                $data->info = get_string('insufficient_balance_discount', 'enrol_wallet', $a);
             }
 
             $form = new insuf_form(null, $data);
@@ -548,8 +541,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             // If payment is enabled in general, adding topup option.
             $account = get_config('enrol_wallet', 'paymentaccount');
-            if (!empty($account) && $account > 0) {
-
+            if (enrol_wallet_is_valid_account($account)) {
                 $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
                 $topupform = new topup_form($topupurl, $data);
 
@@ -1641,14 +1633,15 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public static function show_payment_info(stdClass $instance, $costafter) {
         global $USER, $OUTPUT, $DB;
-
+        if (!enrol_wallet_is_valid_account($instance->customint1)) {
+            return '';
+        }
         $fee = (float)$costafter;
         $balance = (float)transactions::get_user_balance($USER->id);
         // If user already had enough balance no need to display direct payment to the course.
         if ($balance >= $fee) {
             return '';
         }
-
         $cost = $fee - $balance;
         $course = $DB->get_record('course', ['id' => $instance->courseid], '*', MUST_EXIST);
         $context = context_course::instance($course->id);

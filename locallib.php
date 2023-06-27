@@ -388,7 +388,7 @@ function enrol_wallet_display_topup_options() {
     $data->instance = $instance;
     $render = '';
     // First check if payments is enabled.
-    if (!empty($account)) {
+    if (enrol_wallet_is_valid_account($account)) {
         // If the user don't have capability to charge others.
         // Display options to charge with coupons or other payment methods.
         $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
@@ -415,4 +415,22 @@ function enrol_wallet_display_topup_options() {
     } else {
         return '';
     }
+}
+
+/**
+ * Check the payment account id if it is valid or not.
+ *
+ * @param int $accountid
+ * @return bool
+ */
+function enrol_wallet_is_valid_account($accountid) {
+    if (empty($accountid) || !is_number($accountid) || $accountid < 0) {
+        return false;
+    }
+    $account = new \core_payment\account($accountid);
+    if (!$account->is_available() || !$account->is_valid()) {
+        return false;
+    }
+
+    return true;
 }
