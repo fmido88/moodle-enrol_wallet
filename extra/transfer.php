@@ -1,0 +1,116 @@
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * The page to transfer wallet ballance to other user.
+ *
+ * @package    enrol_wallet
+ * @copyright  2023 Mohammad Farouk <phun.for.physics@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+require_once(__DIR__.'/../../../config.php');
+require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+
+$context = context_system::instance();
+
+require_login();
+require_capability('enrol/wallet:transfer', $context);
+
+$transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+if (empty($transferenabled)) {
+    redirect(new moodle_url('/'));
+}
+
+$url = new moodle_url('/enrol/wallet/extra/transfer.php');
+$confirm = optional_param('confirm', '', PARAM_BOOL);
+
+if ($confirm && confirm_sesskey()) {
+    global $USER;
+    $email = required_param('email', PARAM_EMAIL);
+    $amount = required_param('amount', PARAM_NUMBER);
+
+    // No email or invalid email format.
+    if (empty($email)) {
+        $msg = get_string('wrongemailformat', 'enrol_wallet');
+        redirect($url, $msg, null, 'warning');
+    }
+
+    // No amount or invalid amount.
+    if (empty($amount) || $amount < 0) {
+        $msg = get_string('noamount', 'enrol_wallet');
+        redirect($url, $msg, null, 'warning');
+    }
+
+    $balance = enrol_wallet\transactions::get_user_balance($USER->id);
+    // No sufficient balance.
+    if ($amount > $balance) {
+        $msg = get_string('insufficientbalance', 'enrol_wallet');
+        redirect($url, $msg, null, 'warning');
+    }
+
+    $receiver = core_user::get_user_by_email($email);
+    // No active user found with this email.
+    if (empty($receiver) || !empty($receiver->deleted) || !empty($receiver->suspended)) {
+        $msg = get_string('usernotfound', 'enrol_wallet');
+        redirect($url, $msg, null, 'warning');
+    }
+
+    // Check the transfer fees.
+    $percentfee = get_config('enrol_wallet', 'transferpercent');
+    $percentfee = (!empty($percentfee)) ? $percentfee : 0;
+    $fee = $amount * $percentfee / 100;
+
+    // Debit the sender.
+    enrol_wallet\transactions::debit($USER->id, $amount, '', $receiver->id);
+
+    // Credit the receiver.
+    $desc = get_string('transferdesc', 'enrol_wallet');
+    enrol_wallet\transactions::payment_topup($amount - $fee, $receiver->id, $desc, $USER->id, false);
+
+    // All done.
+    redirect($url, $desc, null, 'success');
+
+} else {
+
+    // Transfer form.
+    require_once($CFG->libdir.'/formslib.php');
+    $mform = new MoodleQuickForm('wallet_transfer', 'post', $url);
+
+    $mform->addElement('text', 'email', get_string('email'));
+    $mform->setType('email', PARAM_EMAIL);
+
+    $mform->addElement('text', 'amount', get_string('amount', 'enrol_wallet'));
+    $mform->setType('amount', PARAM_NUMBER);
+
+    $mform->addElement('submit', 'confirm', get_string('confirm'));
+
+    $mform->addElement('hidden', 'sesskey');
+    $mform->setType('sesskey', PARAM_TEXT);
+    $mform->setDefault('sesskey', sesskey());
+
+    $PAGE->set_context(context_system::instance());
+    $PAGE->set_title(get_string('transferepage', 'enrol_wallet'));
+    $PAGE->set_heading(get_string('transformpage', 'enrol_wallet'));
+    $PAGE->set_url($url);
+
+    echo $OUTPUT->header();
+
+    $mform->display();
+
+    echo $OUTPUT->footer();
+}
+
