@@ -340,8 +340,10 @@ function enrol_wallet_display_transaction_results() {
  */
 function enrol_wallet_display_current_user_balance($userid = 0) {
     global $USER, $OUTPUT;
-    if (empty($userid)) {
+    $currentuser = false;
+    if (empty($userid) || $userid == $USER->id) {
         $userid = $USER->id;
+        $currentuser = true;
     }
     // Get the user balance.
     $balance = \enrol_wallet\transactions::get_user_balance($userid);
@@ -352,11 +354,19 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
     // Prepare transaction URL to display.
     $transactionsurl = new moodle_url('/enrol/wallet/extra/transaction.php');
     $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));
+    if ($currentuser) {
+        // Transfer link.
+        $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+        $transferurl = new moodle_url('/enrol/wallet/extra/transfer.php');
+        $transfer = html_writer::link($transferurl, get_string('transfer', 'enrol_wallet'));
+    }
+
     $tempctx = new stdClass;
     $tempctx->balance = number_format($balance, 2);
     $tempctx->currency = $currency;
     $tempctx->norefund = number_format($norefund, 2);
     $tempctx->transactions = $transactions;
+    $tempctx->transfer = !empty($transferenabled) ? $transfer : false;
     $tempctx->policy = !empty($policy) ? $policy : false;
     // Display the current user's balance in the wallet.
     $render = $OUTPUT->render_from_template('enrol_wallet/display', $tempctx);
@@ -433,4 +443,50 @@ function enrol_wallet_is_valid_account($accountid) {
     }
 
     return true;
+}
+
+/**
+ * Display the form to let users transfer balance to each other.
+ * @return string
+ */
+function enrol_wallet_get_transfer_form() {
+    // $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+    // if (empty($transferenabled)) {
+    //     return '';
+    // }
+
+    global $CFG;
+    require_once($CFG->libdir.'/formslib.php');
+
+    $url = new moodle_url('/enrol/wallet/extra/transfer.php');
+
+    $mform = new MoodleQuickForm('wallet_transfer', 'post', $url);
+
+    $mform->addElement('header', 'transferformhead', get_string('transfer', 'enrol_wallet'));
+
+    $mform->addElement('text', 'email', get_string('email'));
+    $mform->setType('email', PARAM_EMAIL);
+
+    $mform->addElement('text', 'amount', get_string('amount', 'enrol_wallet'));
+    $mform->setType('amount', PARAM_NUMBER);
+
+    $percentfee = get_config('enrol_wallet', 'transferpercent');
+    if (!empty($percentfee)) {
+        $a = ['fee' => $percentfee];
+        $feefrom = get_config('enrol_wallet', 'transferfee_from');
+        $a['from'] = get_string($feefrom, 'enrol_wallet');
+    
+        $mform->addElement('static', 'feedesc', get_string('transferpercent', 'enrol_wallet'), get_string('transferfee_desc', 'enrol_wallet', $a));
+    }
+
+    $mform->addElement('submit', 'confirm', get_string('confirm'));
+
+    $mform->addElement('hidden', 'sesskey');
+    $mform->setType('sesskey', PARAM_TEXT);
+    $mform->setDefault('sesskey', sesskey());
+
+    ob_start();
+    $mform->display();
+    $output = ob_get_clean();
+    return $output;
 }

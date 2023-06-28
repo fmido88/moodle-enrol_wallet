@@ -118,7 +118,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
 
     if ($hassiteconfig && $any) {
 
-        $pnode = navigation_node::create(
+        $node = navigation_node::create(
             get_string('bulkfolder', 'enrol_wallet'),
             new moodle_url('/admin/category.php', ['category' => 'enrol_wallet_settings']),
             navigation_node::TYPE_CONTAINER,
@@ -126,7 +126,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             'extrawallet',
             null
         );
-        $parentnode->add_node($pnode, 'users');
+        $parentnode->add_node($node);
 
     } else {
 
@@ -181,6 +181,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
         }
 
         if ($capbulkedit) {
+            // Bulk edit enrollments.
             $node = navigation_node::create(
                 get_string('bulkeditor', 'enrol_wallet'),
                 new moodle_url('/enrol/wallet/extra/bulkedit.php'),
@@ -190,6 +191,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             );
             $parentnode->add_node($node);
 
+            // Bulk edit wallet instances.
             $node = navigation_node::create(
                 get_string('walletbulk', 'enrol_wallet'),
                 new moodle_url('/enrol/wallet/extra/bulkinstances.php'),

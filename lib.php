@@ -135,9 +135,21 @@ class enrol_wallet_plugin extends enrol_plugin {
      * user_enrollments
      */
     public function allow_unenrol(stdClass $instance) {
+        // TODO adding time limit.
         return true;
     }
 
+    /**
+     * Unenrol user from the course if enrolled using wallet enrolment.
+     * using this to refund the users balance again.
+     * @param stdClass $instance
+     * @param mixed $userid
+     * @return void
+     */
+    public function unenrol_user(stdClass $instance, $userid) {
+        // TODO Refunding user after unenrol.
+        parent::unenrol_user($instance, $userid);
+    }
     /**
      * Does this plugin allow manual changes in user_enrollments table?
      *

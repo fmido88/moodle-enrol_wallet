@@ -204,15 +204,15 @@ $string['expiredaction'] = 'Enrolment expiry action';
 $string['expiredaction_help'] = 'Select action to carry out when user enrolment expires. Please note that some user data and settings are purged from course during course un-enrolment.';
 $string['expirymessageenrollersubject'] = 'Enrolment expiry notification';
 $string['expirymessageenrollerbody'] = 'Enrolment in the course \'{$a->course}\' will expire within the next {$a->threshold} for the following users:
-
+<br>
 {$a->users}
 
 To extend their enrolment, go to {$a->extendurl}';
 $string['expirymessageenrolledsubject'] = 'Enrolment expiry notification';
 $string['expirymessageenrolledbody'] = 'Dear {$a->user},
-
+<br>
 This is a notification that your enrolment in the course \'{$a->course}\' is due to expire on {$a->timeend}.
-
+<br>
 If you need help, please contact {$a->enroller}.';
 
 $string['fixedvaluecoupon'] = 'Fixed value coupon';
@@ -224,6 +224,7 @@ $string['giftvalue_help'] = 'The value which will be added to new users wallet.'
 
 $string['insufficient_balance'] = 'You have insufficient wallet balance to enroll. {$a->cost_before} EGP are required, your balance is {$a->user_balance} EGP.';
 $string['insufficient_balance_discount'] = 'You have insufficient wallet balance to enroll. <del>{$a->cost_before}EGP</del> {$a->cost_after} EGP are required, your balance is {$a->user_balance} EGP.';
+$string['insufficientbalance'] = 'Sorry, you have insufficient balance for this operation. You need {$a->amount} while you have only {$a->balance}';
 $string['inyourwallet'] = 'in your wallet.';
 $string['invalidpercentcoupon'] = 'Invalid value for percentage coupon, cannot exceed 100.';
 
@@ -236,18 +237,18 @@ $string['maxenrolled_help'] = 'Specifies the maximum number of users that can en
 $string['maxenrolledreached'] = 'Maximum number of users allowed to enrol was already reached.';
 $string['messagesubject'] = 'Wallet Transactions ({$a})';
 $string['messagebody_credit'] = 'Your wallet has been charged by {$a->amount}
-
+<br>
 Your balance before was {$a->before}
-
+<br>
 Your balance now is: {$a->balance}
-
+<br>
 more info: {$a->desc}. at: {$a->time}';
 $string['messagebody_debit'] = 'An amount of {$a->amount} deduct from your wallet
-
+<br>
 Your balance before was {$a->before}
-
+<br>
 Your balance now is: {$a->balance}
-
+<br>
 more info: {$a->desc}. at: {$a->time}';
 $string['messageprovider:expiry_notification'] = 'Wallet enrolment expiry notifications';
 $string['messageprovider:wallet_transaction'] = 'Wallet transaction notifications';
@@ -292,13 +293,16 @@ please note that:<br>
 Payment to top-up your wallet cannot be refunded in the following cases:<br>
 1- If this amount is due to new user gift, reward or a cashback.<br>
 2- If the grace of refund period expired (14 days).<br>
+3- Any amount already used in enrolment aren\'t refundable.<br>
 When charging your wallet by any method means you agreed to this policy.';
 $string['refundperiod'] = 'Refunding grace period';
 $string['refundperiod_desc'] = 'The time after which user\'s cannot refunded for what they pay to top-up their wallets. 0 mean refund any time.';
+$string['receiver'] = 'Receiver';
 $string['role'] = 'Default assigned role';
 
 $string['sendcoursewelcomemessage'] = 'Send course welcome message';
 $string['sendcoursewelcomemessage_help'] = 'When a user enrols in the course, they may be sent a welcome message email. If sent from the course contact (by default the teacher), and more than one user has this role, the email is sent from the first user to be assigned the role.';
+$string['sender'] = 'Sender';
 $string['sendexpirynotificationstask'] = "Wallet enrolment send expiry notifications task";
 $string['sendpaymentbutton'] = 'direct payment';
 $string['singlecoupon'] = 'Single coupon';
@@ -318,6 +322,19 @@ $string['topupcoupon_desc'] = 'by coupon code {$a}';
 $string['topuppayment_desc'] = 'Topping up the wallet by payment of {$a} using payment gateway.';
 $string['transaction_type'] = 'Type of transaction';
 $string['transaction_perpage'] = 'Trasactions per page';
+$string['transfer'] = 'Transfer balance to other user';
+$string['transfer_desc'] = 'Enable or disable the ability of users to transfer balance to other users and determine the transfer fee per each operation.';
+$string['transfer_enabled'] = 'Transfer to other user';
+$string['transfer_enabled_desc'] = 'Enable or disable the abiity for users to transfer balance to other users by email.';
+$string['transferfee_desc'] = 'Note that there is a {$a->fee}% will be deducted from the {$a->from}.';
+$string['transferfee_from'] = 'Deduct fees from:';
+$string['transferfee_from_desc'] = 'Select how the fees get deducted.<br>
+From sender: means that amount completely transfered and extra credit deducted from the sender.<br>
+From receiver: means that the amount transfered to the reciever less than the sent amount by the fees.';
+$string['transferop_desc'] = 'Transfering a net amount of {$a->amount} with a transfer fees {$a->fee} to {$a->receiver}';
+$string['transferpercent'] = 'Transfer fees %';
+$string['transferpercent_desc'] = 'In order to transfer some amount to other user a percentage fees will be deducted from the sender by default. Set it to 0 so there is no fee deducted.';
+$string['transferpage'] = 'Transfer ballance';
 $string['turn_not_refundable_task'] = 'Turn balance to non-refundable.';
 
 $string['unenrol'] = 'Unenrol user';
@@ -325,6 +342,7 @@ $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from cou
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolusers'] = 'Unenrol users';
 $string['upperletters'] = 'UPPER case';
+$string['usernotfound'] = 'No user found with this email {$a}';
 
 $string['value'] = 'Amount per transaction';
 
@@ -358,6 +376,7 @@ $string['wordpressloggins'] = 'Login/logout user from wordpress';
 $string['wordpressloggins_desc'] = 'If enabled users is logged in and out from wordpress website when they logged in or out from moodle. (note that is one way only)';
 $string['wordpress_secretkey'] = 'Secret Key';
 $string['wordpress_secretkey_help'] = 'Admin must add any value here and the same value in moo-wallet setting in wordpress site.';
+$string['wrongemailformat'] = 'Wrong Email format.';
 $string['validfrom'] = 'Valid from';
 $string['validto'] = 'Valid to';
 

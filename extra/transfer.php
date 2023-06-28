@@ -28,12 +28,12 @@ require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 $context = context_system::instance();
 
 require_login();
-require_capability('enrol/wallet:transfer', $context);
+// require_capability('enrol/wallet:transfer', $context);
 
-$transferenabled = get_config('enrol_wallet', 'transfer_enabled');
-if (empty($transferenabled)) {
-    redirect(new moodle_url('/'));
-}
+// $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+// if (empty($transferenabled)) {
+//     redirect(new moodle_url('/'));
+// }
 
 $url = new moodle_url('/enrol/wallet/extra/transfer.php');
 $confirm = optional_param('confirm', '', PARAM_BOOL);
@@ -51,21 +51,7 @@ if ($confirm && confirm_sesskey()) {
 
     // No amount or invalid amount.
     if (empty($amount) || $amount < 0) {
-        $msg = get_string('noamount', 'enrol_wallet');
-        redirect($url, $msg, null, 'warning');
-    }
-
-    $balance = enrol_wallet\transactions::get_user_balance($USER->id);
-    // No sufficient balance.
-    if ($amount > $balance) {
-        $msg = get_string('insufficientbalance', 'enrol_wallet');
-        redirect($url, $msg, null, 'warning');
-    }
-
-    $receiver = core_user::get_user_by_email($email);
-    // No active user found with this email.
-    if (empty($receiver) || !empty($receiver->deleted) || !empty($receiver->suspended)) {
-        $msg = get_string('usernotfound', 'enrol_wallet');
+        $msg = get_string('charger_novalue', 'enrol_wallet');
         redirect($url, $msg, null, 'warning');
     }
 
@@ -74,42 +60,57 @@ if ($confirm && confirm_sesskey()) {
     $percentfee = (!empty($percentfee)) ? $percentfee : 0;
     $fee = $amount * $percentfee / 100;
 
+    $feefrom = get_config('enrol_wallet', 'transferfee_from');
+    if ($feefrom == 'sender') {
+        $debit = $amount + $fee;
+        $credit = $amount;
+    } else if ($feefrom == 'receiver') {
+        $credit = $amount - $fee;
+        $debit = $amount;
+    }
+
+    $balance = enrol_wallet\transactions::get_user_balance($USER->id);
+    // No sufficient balance.
+    if ($debit > $balance) {
+        $msg = get_string('insufficientbalance', 'enrol_wallet', ['amount' => $debit, 'balance' => $balance]);
+        redirect($url, $msg, null, 'warning');
+    }
+
+    $receiver = core_user::get_user_by_email($email);
+    // No active user found with this email.
+    if (empty($receiver) || !empty($receiver->deleted) || !empty($receiver->suspended)) {
+        $msg = get_string('usernotfound', 'enrol_wallet', $email);
+        redirect($url, $msg, null, 'warning');
+    }
+
     // Debit the sender.
-    enrol_wallet\transactions::debit($USER->id, $amount, '', $receiver->id);
+    enrol_wallet\transactions::debit($USER->id, $debit, '', $receiver->id);
 
     // Credit the receiver.
-    $desc = get_string('transferdesc', 'enrol_wallet');
-    enrol_wallet\transactions::payment_topup($amount - $fee, $receiver->id, $desc, $USER->id, false);
+    $a = [
+        'fee' => $fee,
+        'amount' => $credit,
+        'receiver' => fullname($receiver),
+    ];
+    $desc = get_string('transferop_desc', 'enrol_wallet', $a);
+    enrol_wallet\transactions::payment_topup($credit, $receiver->id, $desc, $USER->id, false);
 
     // All done.
     redirect($url, $desc, null, 'success');
 
 } else {
 
-    // Transfer form.
-    require_once($CFG->libdir.'/formslib.php');
-    $mform = new MoodleQuickForm('wallet_transfer', 'post', $url);
-
-    $mform->addElement('text', 'email', get_string('email'));
-    $mform->setType('email', PARAM_EMAIL);
-
-    $mform->addElement('text', 'amount', get_string('amount', 'enrol_wallet'));
-    $mform->setType('amount', PARAM_NUMBER);
-
-    $mform->addElement('submit', 'confirm', get_string('confirm'));
-
-    $mform->addElement('hidden', 'sesskey');
-    $mform->setType('sesskey', PARAM_TEXT);
-    $mform->setDefault('sesskey', sesskey());
-
-    $PAGE->set_context(context_system::instance());
-    $PAGE->set_title(get_string('transferepage', 'enrol_wallet'));
-    $PAGE->set_heading(get_string('transformpage', 'enrol_wallet'));
+    $PAGE->set_context($context);
+    $PAGE->set_title(get_string('transferpage', 'enrol_wallet'));
+    $PAGE->set_heading(get_string('transferpage', 'enrol_wallet'));
     $PAGE->set_url($url);
+
+    // Transfer form.
+    $mformoutput = enrol_wallet_get_transfer_form();
 
     echo $OUTPUT->header();
 
-    $mform->display();
+    echo $mformoutput;
 
     echo $OUTPUT->footer();
 }

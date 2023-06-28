@@ -98,6 +98,34 @@ if ($ADMIN->fulltree) {
                         get_string('refundperiod_desc', 'enrol_wallet'),
                         14 * DAYSECS,
                         DAYSECS));
+
+    // Adding settings for transfer credit for user to another.
+    $settings->add(new admin_setting_heading('enrol_wallet_transfer',
+                        get_string('transfer', 'enrol_wallet'),
+                        get_string('transfer_desc', 'enrol_wallet')));
+    // Enable or disable transfer.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/transfer_enabled',
+                        get_string('transfer_enabled', 'enrol_wallet'),
+                        get_string('transfer_enabled_desc', 'enrol_wallet'),
+                        0));
+    // Transfer fee.
+    $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/transferpercent',
+                        get_string('transferpercent', 'enrol_wallet'),
+                        get_string('transferpercent_desc', 'enrol_wallet'),
+                        0,
+                        PARAM_INT,
+                        null,
+                        2));
+
+    $options = [
+        'sender' => get_string('sender', 'enrol_wallet'),
+        'receiver' => get_string('receiver', 'enrol_wallet'),
+    ];
+    $settings->add(new admin_setting_configselect('enrol_wallet/transferfee_from',
+                        get_string('transferfee_from', 'enrol_wallet'),
+                        get_string('transferfee_from_desc', 'enrol_wallet'),
+                        'sender',
+                        $options));
     // Adding discounts and coupons.
     $settings->add(new admin_setting_heading('enrol_wallet_discounts',
                                             get_string('discountscopouns', 'enrol_wallet'),

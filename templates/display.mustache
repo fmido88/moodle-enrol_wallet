@@ -30,7 +30,8 @@
         "currency": "EGP",
         "transaction": "<a href='https://your-moodle.com/enrol/wallet/extra/transactions.php'>Wallet transactions</a>",
         "norefund": 30,
-        "policy": "something"
+        "policy": "something",
+        "transfer": "<a href='https://your-moodle.com/enrol/wallet/extra/transfer.php'>transfer</a>"
     }
 
 }}
@@ -46,7 +47,8 @@
             <a href="#" id="enrol_wallet_transactions-policy-url" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
             {{/ policy}}
         </span>
-        <span class="transactions-url" style="text-align: center; direction: ltr;">{{{transactions}}}</span>
+        <span class="transactions-url" style="text-align: center; direction: ltr;">{{{transactions}}}</span><br>
+        <span class="transfer-url" style="text-align: center; direction: ltr;">{{{transfer}}}</span>
     </p>
 </div>
 <div id="enrol_wallet_transactions-policy" class="transactions-policy" style="display:none;">{{{policy}}}</div><br>

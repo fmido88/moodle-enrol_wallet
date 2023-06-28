@@ -147,4 +147,12 @@ $capabilities = [
         ]
     ],
 
+    // Transfer balance to other users.
+    'enrol/wallet:transfer' => [
+        'captype'      => 'write',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes'   => [
+            'user' => CAP_ALLOW,
+        ]
+    ],
 ];
