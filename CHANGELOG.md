@@ -1,5 +1,9 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.8.1 ##
+- Some fixes.
+- Apply  coupons now compatible with availability_wallet.
+
 ## V 1.8.0 ##
 - Add more useful links to homepage navigation.
 - Adding the ability to transfer credit to other users.
