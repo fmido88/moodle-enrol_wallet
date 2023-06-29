@@ -197,8 +197,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $refundperiod = get_config('enrol_wallet', 'unenrolrefundperiod');
         $now = time();
         if (
-            $now < $enrolend
-            || ($enrolstart - $now) > $refundperiod
+            $now > $enrolend
+            || ($now - $enrolstart) > $refundperiod
         ) {
             // Condition for refunding aren't met.
             return parent::unenrol_user($instance, $userid);
