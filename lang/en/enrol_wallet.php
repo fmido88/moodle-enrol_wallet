@@ -349,6 +349,16 @@ $string['unenrolrefundperiod'] = 'Refund upon unenrol grace period';
 $string['unenrolrefundperiod_desc'] = 'If the user unenrolled within this period from the enrol start date he will be refunded.';
 $string['unenrolrefundfee'] = 'Refund percentage fee';
 $string['unenrolrefundfee_desc'] = 'Choose a percentage amount that will not be refunded after unenrol as a fee.';
+$string['unenrolrefundpolicy'] = 'Unenrol Refunding Policy';
+$string['unenrolrefundpolicy_help'] = 'If refunding upon unernol enabled, this policy will be visible to users befor enrol themselves to courses using wallet enrolment.<br>
+placing {fee} in the policy will be replaced by the percentage fee.<br>
+placing {period} will be replaced by the grace period in days.';
+$string['unenrolrefundpolicy_default'] = '<p dir="ltr" style="text-align: left;"><strong>Conditions for refunding upon unenrol:</strong></p>
+<p dir="ltr" style="text-align: left;">
+If you are unenrolled from the course within {period} days from the start date you will be refunded with the amount you pay after deducting a {fee}% from the paid amount.
+ This amount will return to your wallet and can use it to enrol in other courses but not be able to be manually refunded.<br>
+By pressing purchace means you have agreed to this conditions.
+</p>';
 $string['unenrolrefund_head'] = 'Refund users upon unenrol.';
 $string['unenrolrefund_head_desc'] = 'Return the paid fee of a course after unenrol from the course.';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';

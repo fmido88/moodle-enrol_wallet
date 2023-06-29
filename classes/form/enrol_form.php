@@ -58,24 +58,42 @@ class enrol_form extends \moodleform {
      */
     public function definition() {
         global $USER;
-        $instance = $this->_customdata;
-        $costafter = \enrol_wallet_plugin::get_cost_after_discount($USER->id, $instance);
+        $instance = (object)$this->_customdata;
+        $this->instance = $instance;
+
         $mform = $this->_form;
         $costbefore = $instance->cost;
-        $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
-        $coupon = optional_param('coupon', '', PARAM_TEXT);
-
-        $this->instance = $instance;
         $plugin = enrol_get_plugin('wallet');
+
+        $coupon = $plugin->check_discount_coupon();
+        $costafter = $plugin->get_cost_after_discount($USER->id, $instance, $coupon);
+
+        $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
 
         $heading = $plugin->get_instance_name($instance);
         $mform->addElement('header', 'walletheader', $heading);
+
         if ($costafter == $costbefore) {
             $mform->addElement('html', get_string('checkout', 'enrol_wallet',
             ['credit_cost' => $costbefore, 'user_balance' => $balance]));
         } else {
             $mform->addElement('html', get_string('checkout_discounted', 'enrol_wallet',
             ['credit_cost' => $costbefore, 'user_balance' => $balance, 'after_discount' => $costafter]));
+        }
+
+        $refund = get_config('enrol_wallet', 'unenrolrefund');
+        $policy = get_config('enrol_wallet', 'unenrolrefundpolicy');
+        if (!empty($refund) && !empty($policy)) {
+            $period = get_config('enrol_wallet', 'unenrolrefundperiod');
+            $period = (!empty($period)) ? $period / DAYSECS : '('.get_string('unlimited').')';
+
+            $fee = get_config('enrol_wallet', 'unenrolrefundfee');
+            $fee = !(empty($fee)) ? $fee : 0;
+
+            $policy = str_replace('{fee}', $fee, $policy);
+            $policy = str_replace('{period}', $period, $policy);
+
+            $mform->addElement('html', $policy);
         }
 
         $this->add_action_buttons(false, get_string('purchase', 'enrol_wallet'));

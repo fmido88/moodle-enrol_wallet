@@ -146,11 +146,17 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function get_unenrolself_link($instance) {
         global $USER, $DB;
+        // Check main security in the main function.
+        $return = parent::get_unenrolself_link($instance);
+        if (empty($return)) {
+            return null;
+        }
+        // Check if unenrol self is enabled in the settings.
         $enabled = get_config('enrol_wallet', 'unenrolselfenabled');
         if (!$enabled) {
             return null;
         }
-
+        // Check the periods conditions.
         $before = get_config('enrol_wallet', 'unenrollimitbefor');
         $after = get_config('enrol_wallet', 'unenrollimitafter');
 
@@ -166,7 +172,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             return null;
         }
 
-        return parent::get_unenrolself_link($instance);
+        return $return;
     }
 
     /**
