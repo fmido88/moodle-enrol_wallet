@@ -63,7 +63,6 @@ class topup_form extends \moodleform {
         $mform->setType('sesskey', PARAM_TEXT);
         $mform->setDefault('sesskey', sesskey());
 
-        $this->add_action_buttons(false, 'Apply');
+        $this->add_action_buttons(false, get_string('topup', 'enrol_wallet'));
     }
-
 }

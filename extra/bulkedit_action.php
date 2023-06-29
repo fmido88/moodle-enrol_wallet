@@ -58,6 +58,7 @@ if (!empty($timestart)) {
 
 $status = optional_param('status', -1, PARAM_INT);
 $plugins = optional_param_array('plugins', [], PARAM_TEXT);
+
 foreach ($plugins as $plugin) {
     $$plugin = enrol_get_plugin($plugin);
 }

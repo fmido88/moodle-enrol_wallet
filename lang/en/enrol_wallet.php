@@ -227,6 +227,7 @@ $string['insufficient_balance_discount'] = 'You have insufficient wallet balance
 $string['insufficientbalance'] = 'Sorry, you have insufficient balance for this operation. You need {$a->amount} while you have only {$a->balance}';
 $string['inyourwallet'] = 'in your wallet.';
 $string['invalidpercentcoupon'] = 'Invalid value for percentage coupon, cannot exceed 100.';
+$string['invalidcoupon_operation'] = 'Invalid coupon operation, This coupon type may be disabled is this site or invalid configuration.';
 
 $string['longtimenosee'] = 'Un-enrol inactive after';
 $string['longtimenosee_help'] = 'If users haven\'t accessed a course for a long time, then they are automatically unenrolled. This parameter specifies that time limit.';
@@ -317,6 +318,7 @@ $string['syncenrolmentstask'] = 'Wallet enrolment synchronise enrolments task';
 
 $string['transactions'] = 'Wallet Transactions';
 
+$string['topup'] = 'topup';
 $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';

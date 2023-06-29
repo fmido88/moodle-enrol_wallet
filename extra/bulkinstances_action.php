@@ -171,7 +171,7 @@ if (confirm_sesskey()) {
 
     foreach ($courses as $courseid) {
         $context = context_course::instance($courseid);
-
+        // Check the capability for each course.
         if (!has_capability('enrol/wallet:manage', $context)) {
             continue;
         }
@@ -189,7 +189,7 @@ if (confirm_sesskey()) {
             $i++;
             $wallet->update_instance($instance, $data);
         }
-
+        // No wallet instances exists in the course? Add one.
         if ($count < 1) {
             $data->timecreated = time();
             $course = get_course($courseid);

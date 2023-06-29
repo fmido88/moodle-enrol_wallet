@@ -133,7 +133,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $refundenabled = get_config('enrol_wallet', 'enablerefund');
         if (empty($refundenabled)) {
             $transform = $balance;
-            $trace = 'Refunding is disabled in this website, all of user\'s balance will transform...'."\n";
+            $trace .= 'Refunding is disabled in this website, all of user\'s balance will transform...'."\n";
         }
 
         $recorddata = [

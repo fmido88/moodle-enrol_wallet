@@ -30,14 +30,35 @@ require_once($CFG->libdir.'/formslib.php');
  *
  */
 class applycoupon_form extends \moodleform {
+    /**
+     * Overriding this function to get unique form id for multiple wallet enrollments,
+     * or multiple wallet activity restriction.
+     *
+     * @return string form identifier
+     */
+    protected function get_form_identifier() {
+        $data = (object)$this->_customdata;
+        if (!empty($data->id)) {
+            $formid = $data->id.'_'.get_class($this);
 
+        } else if (!empty($data->cmid)) {
+            $formid = $data->cmid.'_'.get_class($this);
+
+        } else if (!empty($data->sectionid)) {
+            $formid = $data->sectionid.'_'.get_class($this);
+
+        } else {
+            $formid = parent::get_form_identifier();
+        }
+
+        return $formid;
+    }
 
     /**
      * Form definition. Abstract method - always override!
      * @return void
      */
     public function definition() {
-        global $USER;
         $mform = $this->_form;
         $instance = $this->_customdata->instance;
         $url = new \moodle_url('course/view.php', ['id' => $instance->courseid]);
@@ -55,16 +76,31 @@ class applycoupon_form extends \moodleform {
             $mform->setType('coupon', PARAM_TEXT);
             $coupongroup[] = $mform->createElement('submit', 'submitcoupon', get_string('applycoupon', 'enrol_wallet'));
         }
-        $mform->addGroup($coupongroup, 'coupons', get_string('applycoupon', 'enrol_wallet'), null, false);
-        $mform->addHelpButton('coupons', 'applycoupon', 'enrol_wallet');
 
-        $mform->addElement('hidden', 'userid');
-        $mform->setType('userid', PARAM_INT);
-        $mform->setDefault('userid', $USER->id);
+        if (empty($instance->cmid) && empty($instance->sectionid)) {
+            $mform->addGroup($coupongroup, 'coupons', get_string('applycoupon', 'enrol_wallet'), null, false);
+            $mform->addHelpButton('coupons', 'applycoupon', 'enrol_wallet');
+        } else {
+            $mform->addGroup($coupongroup, 'coupons', null, null, false);
+        }
 
-        $mform->addElement('hidden', 'instanceid');
-        $mform->setType('instanceid', PARAM_INT);
-        $mform->setDefault('instanceid', $instance->id);
+        if (!empty($instance->id)) {
+            $mform->addElement('hidden', 'instanceid');
+            $mform->setType('instanceid', PARAM_INT);
+            $mform->setDefault('instanceid', $instance->id);
+        }
+
+        if (!empty($instance->cmid)) {
+            $mform->addElement('hidden', 'cmid');
+            $mform->setType('cmid', PARAM_INT);
+            $mform->setDefault('cmid', $instance->cmid);
+        }
+
+        if (!empty($instance->sectionid)) {
+            $mform->addElement('hidden', 'sectionid');
+            $mform->setType('sectionid', PARAM_INT);
+            $mform->setDefault('sectionid', $instance->sectionid);
+        }
 
         $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
@@ -78,5 +114,4 @@ class applycoupon_form extends \moodleform {
         $mform->setType('sesskey', PARAM_TEXT);
         $mform->setDefault('sesskey', sesskey());
     }
-
 }

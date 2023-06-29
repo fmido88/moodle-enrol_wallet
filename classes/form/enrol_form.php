@@ -73,6 +73,7 @@ class enrol_form extends \moodleform {
         $heading = $plugin->get_instance_name($instance);
         $mform->addElement('header', 'walletheader', $heading);
 
+        // Display cost and balance.
         if ($costafter == $costbefore) {
             $mform->addElement('html', get_string('checkout', 'enrol_wallet',
             ['credit_cost' => $costbefore, 'user_balance' => $balance]));
@@ -81,6 +82,7 @@ class enrol_form extends \moodleform {
             ['credit_cost' => $costbefore, 'user_balance' => $balance, 'after_discount' => $costafter]));
         }
 
+        // Display refund policy if enabled.
         $refund = get_config('enrol_wallet', 'unenrolrefund');
         $policy = get_config('enrol_wallet', 'unenrolrefundpolicy');
         if (!empty($refund) && !empty($policy)) {

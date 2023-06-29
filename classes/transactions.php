@@ -128,6 +128,7 @@ class transactions {
      * @return mixed
      */
     public static function debit($userid, float $amount, $coursename = '', $charger = '') {
+        global $DB;
 
         if (empty($charger)) {
             $charger = $userid;
@@ -157,13 +158,13 @@ class transactions {
 
             $response = 'done';
         }
+
         // No debit occurs.
         if ($newbalance >= $before) {
             return false;
         }
-        // Inserting a record in the transaction table.
-        global $DB;
 
+        // Inserting a record in the transaction table.
         $a = (object)[
             'amount'     => $amount,
             'charger'    => $charger,
@@ -206,6 +207,7 @@ class transactions {
      * @return float|false|string
      */
     public static function get_user_balance($userid) {
+        global $DB;
 
         $source = get_config('enrol_wallet', 'walletsource');
 
@@ -222,7 +224,6 @@ class transactions {
 
         } else if ($source == self::SOURCE_MOODLE) {
 
-            global $DB;
             // Get the balance from the last transaction.
             $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $userid], 'id DESC', 'balance', 0, 1);
 
@@ -394,6 +395,8 @@ class transactions {
      * @return void
      */
     public static function mark_coupon_used($coupon, $userid, $instanceid) {
+        global $DB;
+
         // Unset the session coupon to make sure not used again.
         if (isset($_SESSION['coupon'])) {
             $_SESSION['coupon'] = '';
@@ -407,7 +410,6 @@ class transactions {
             $couponrecord = (object)self::get_coupon_value($coupon, $userid, $instanceid, true);
 
         } else {
-            global $DB;
 
             $couponrecord = $DB->get_record('enrol_wallet_coupons', ['code' => $coupon]);
             $usage = $couponrecord->usetimes + 1;
@@ -439,7 +441,7 @@ class transactions {
                                 ]
         ];
 
-        if (!empty($instanceid) && $instanceid != 0) {
+        if (!empty($instanceid)) {
             $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
 
             $eventdata['courseid'] = $instance->courseid;

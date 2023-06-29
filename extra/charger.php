@@ -23,8 +23,6 @@
  */
 
 require_once(__DIR__.'/../../../config.php');
-global $USER, $DB, $CFG;
-
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 
 $context = context_system::instance();
@@ -32,32 +30,31 @@ $context = context_system::instance();
 require_login();
 require_capability('enrol/wallet:creditdebit', $context);
 
-$op = optional_param('op', 'none', PARAM_TEXT);
+global $USER, $DB;
+$op = optional_param('op', '', PARAM_TEXT);
 
-if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
+if (!empty($op) && $op != 'result' && confirm_sesskey()) {
 
     $value = optional_param('value', '', PARAM_NUMBER);
     $userid = required_param("userlist", PARAM_INT);
     $err = '';
 
     $charger = $USER->id;
+    // No value.
     if (empty($value) && ($op !== 'balance')) {
         $err = get_string('charger_novalue', 'enrol_wallet');
-        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', [
-                                                                        'error' => $err,
-                                                                        'op'    => 'result'
-                                                                        ]);
-        redirect($redirecturl, $err);
+        $params = ['error' => $err, 'op' => 'result'];
+        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', $params);
+        redirect($redirecturl, $err, null, 'error');
     }
-
+    // No user.
     if (empty($userid)) {
         $err = get_string('charger_nouser', 'enrol_wallet');
-        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', [
-                                                                            'error' => $err,
-                                                                            'op'    => 'result'
-                                                                        ]);
-        redirect($redirecturl, $err);
+        $params = ['error' => $err, 'op' => 'result'];
+        $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', $params);
+        redirect($redirecturl, $err, null, 'error');
     }
+
     $transactions = new enrol_wallet\transactions;
     $before = $transactions->get_user_balance($userid);
     if ($op === 'credit') {
@@ -70,10 +67,11 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
     } else if ($op === 'debit') {
 
         if ($value > $before) {
+            // Cannot deduct more than the user's balance.
             $a = ['value' => $value, 'before' => $before];
             $err = get_string('charger_debit_err', 'enrol_wallet', $a);
-            $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', array('error' => $err,
-                                                                                       'op' => 'result'));
+            $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', ['error' => $err,
+                                                                                       'op' => 'result']);
             redirect($redirecturl);
         } else {
             // Process the payment.
@@ -89,14 +87,15 @@ if ($op != 'none' && $op != 'result' && confirm_sesskey()) {
         $result = get_string('charger_invalid_operation', 'enrol_wallet');
     }
 
+    $params = [
+        'result' => $result,
+        'before' => $before,
+        'after'  => ($op == 'balance') ? $before : $after,
+        'userid' => $userid,
+        'op'     => 'result'
+    ];
     // Redirect to same page to show results.
-    $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', [
-                                                                    'result' => $result,
-                                                                    'before' => $before,
-                                                                    'after'  => ($op == 'balance') ? $before : $after,
-                                                                    'userid' => $userid,
-                                                                    'op'     => 'result'
-                                                                ]);
+    $redirecturl = new moodle_url('/enrol/wallet/extra/charger.php', $params);
 
     redirect($redirecturl);
 

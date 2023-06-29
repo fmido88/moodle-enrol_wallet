@@ -33,7 +33,7 @@ if ($ADMIN->fulltree) {
     $walletplugin = enrol_get_plugin('wallet');
     // General settings.
     $settings->add(new admin_setting_heading('enrol_wallet_settings', '',
-        get_string('pluginname_desc', 'enrol_wallet')));
+                        get_string('pluginname_desc', 'enrol_wallet')));
     // Adding choice between using wordpress (woowallet) of internal moodle wallet.
     $sources = [
         enrol_wallet\transactions::SOURCE_WORDPRESS => get_string('sourcewordpress', 'enrol_wallet'),

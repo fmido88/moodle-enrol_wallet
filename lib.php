@@ -23,8 +23,8 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
-require_once('extendlib.php');
+global $CFG;
+require_once("$CFG->dirroot/enrol/wallet/extendlib.php");
 
 use enrol_wallet\form\enrol_form;
 use enrol_wallet\form\empty_form;
@@ -140,7 +140,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Return unenrol link to unenrol user from the current course.
-     *
+     * Null if unenrol self is not allowed or the user doesn't has the capability to unernol.
      * @param stdClass $instance
      * @return moodle_url|null
      */
@@ -183,7 +183,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return void
      */
     public function unenrol_user(stdClass $instance, $userid) {
-        // Check if refund upon unenrollment is enabled.
+        // Check if refund upon unenrolment is enabled.
         $enabled = get_config('enrol_wallet', 'unenrolrefund');
         if (empty($enabled)) {
             return parent::unenrol_user($instance, $userid);
@@ -454,7 +454,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return string html text, usually a form in a text box
      */
     public function enrol_page_hook(stdClass $instance) {
-        global $OUTPUT, $USER;
+        global $OUTPUT, $USER, $CFG;
 
         $coupon = $this->check_discount_coupon();
         $couponsetting = get_config('enrol_wallet', 'coupons');
@@ -551,6 +551,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             // If payment is enabled in general, adding topup option.
             $account = get_config('enrol_wallet', 'paymentaccount');
+            require_once("$CFG->dirroot/enrol/wallet/locallib.php");
             if (enrol_wallet_is_valid_account($account)) {
                 $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
                 $topupform = new topup_form($topupurl, $data);
@@ -1577,23 +1578,26 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return float the cost after discount.
      */
     public static function get_cost_after_discount($userid, $instance, $coupon = null) {
-        global $DB;
+        global $DB, $_SESSION;
         $couponsetting = get_config('enrol_wallet', 'coupons');
         // Check if there is a discount coupon first.
         if (empty($coupon)) {
             $coupon = self::check_discount_coupon();
         }
-        // Save coupon in session.
-        $_SESSION['coupon'] = $coupon;
 
         $costaftercoupon = $instance->cost;
 
         if (!empty($coupon) && $couponsetting != self::WALLET_NOCOUPONS) {
+            // Save coupon in session.
+            $_SESSION['coupon'] = $coupon;
+
             $coupondata = transactions::get_coupon_value($coupon, $userid);
 
             $type = (is_array($coupondata)) ? $coupondata['type'] : '';
             if ($type == 'percent' && $couponsetting != self::WALLET_COUPONSFIXED && $coupondata['value'] <= 100) {
+
                 $costaftercoupon = $instance->cost * (1 - $coupondata['value'] / 100);
+
             } else if ($type == 'fixed' && $couponsetting != self::WALLET_COUPONSDISCOUNT) {
                 // There is no need for this condition as if the type is fixed.
                 // we add the value to the wallet then redirect to enrolment page again.
@@ -1642,7 +1646,8 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return false|string
      */
     public static function show_payment_info(stdClass $instance, $costafter) {
-        global $USER, $OUTPUT, $DB;
+        global $USER, $OUTPUT, $DB, $CFG;
+        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
         if (!enrol_wallet_is_valid_account($instance->customint1)) {
             return '';
         }
