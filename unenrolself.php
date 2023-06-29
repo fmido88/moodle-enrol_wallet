@@ -23,7 +23,7 @@
  */
 
 require('../../config.php');
-global $PAGE, $USER;
+global $PAGE, $USER, $DB;
 
 $enrolid = required_param('enrolid', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
@@ -41,8 +41,9 @@ require_login($course);
 $plugin = enrol_get_plugin('wallet');
 
 // Security defined inside following function.
-if (!$plugin->get_unenrolself_link($instance)) {
-    redirect(new moodle_url('/course/view.php', ['id' => $course->id]));
+if (empty($plugin->get_unenrolself_link($instance))) {
+    $msg = get_string('unenrolself_notallowed', 'enrol_wallet');
+    redirect(new moodle_url('/course/view.php', ['id' => $course->id]), $msg);
 }
 
 $PAGE->set_url('/enrol/wallet/unenrolself.php', ['enrolid' => $instance->id]);

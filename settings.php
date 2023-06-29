@@ -82,6 +82,51 @@ if ($ADMIN->fulltree) {
                         get_string('allowmultiple', 'enrol_wallet'),
                         get_string('allowmultiple_help', 'enrol_wallet'), 1, PARAM_INT));
 
+    // Enable or disable unenrol self.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/unenrolselfenabled',
+                        get_string('unenrolselfenabled', 'enrol_wallet'),
+                        get_string('unenrolselfenabled_desc', 'enrol_wallet'),
+                        0));
+    // Not allowing unenrol self after certain period of time.
+    $settings->add(new admin_setting_configduration('enrol_wallet/unenrollimitafter',
+                        get_string('unenrollimitafter', 'enrol_wallet'),
+                        get_string('unenrollimitafter_desc', 'enrol_wallet'),
+                        0,
+                        DAYSECS));
+    // Not allowing unenrol self before end of enrolment with this period.
+    $settings->add(new admin_setting_configduration('enrol_wallet/unenrollimitbefor',
+                        get_string('unenrollimitbefor', 'enrol_wallet'),
+                        get_string('unenrollimitbefor_desc', 'enrol_wallet'),
+                        0));
+
+    // Auto Refunding to wallet after unenrol.
+    $settings->add(new admin_setting_heading('enrol_wallet_unenrolrefund',
+                        get_string('unenrolrefund_head', 'enrol_wallet'),
+                        get_string('unenrolrefund_head_desc', 'enrol_wallet')));
+    // Enabling refund upon unenrol.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/unenrolrefund',
+                        get_string('unenrolrefund', 'enrol_wallet'),
+                        get_string('unenrolrefund_desc', 'enrol_wallet'),
+                        0));
+    // Unenrol refund grace period.
+    $settings->add(new admin_setting_configduration('unenrolrefundperiod',
+                        get_string('unenrolrefundperiod', 'enrol_wallet'),
+                        get_string('unenrolrefundperiod_desc', 'enrol_wallet'),
+                        '0',
+                        DAYSECS));
+    // Refunding after enrolment fee.
+    $settings->add(new admin_setting_configtext_with_maxlength('unenrolrefundfee',
+                        get_string('unenrolrefundfee', 'enrol_wallet'),
+                        get_string('unenrolrefundfee_desc', 'enrol_wallet'),
+                        0,
+                        PARAM_INT,
+                        null,
+                        2));
+
+    // Manual Refunding.
+    $settings->add(new admin_setting_heading('enrol_wallet_refund',
+                        get_string('refundpolicy', 'enrol_wallet'),
+                        ''));
     // Refund policy.
     $settings->add(new admin_setting_confightmleditor('enrol_wallet/refundpolicy',
                         get_string('refundpolicy', 'enrol_wallet'),

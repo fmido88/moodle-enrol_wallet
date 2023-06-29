@@ -28,12 +28,12 @@ require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 $context = context_system::instance();
 
 require_login();
-// require_capability('enrol/wallet:transfer', $context);
+require_capability('enrol/wallet:transfer', $context);
 
-// $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
-// if (empty($transferenabled)) {
-//     redirect(new moodle_url('/'));
-// }
+$transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+if (empty($transferenabled)) {
+    redirect(new moodle_url('/'));
+}
 
 $url = new moodle_url('/enrol/wallet/extra/transfer.php');
 $confirm = optional_param('confirm', '', PARAM_BOOL);

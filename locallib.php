@@ -450,10 +450,10 @@ function enrol_wallet_is_valid_account($accountid) {
  * @return string
  */
 function enrol_wallet_get_transfer_form() {
-    // $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
-    // if (empty($transferenabled)) {
-    //     return '';
-    // }
+    $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+    if (empty($transferenabled)) {
+        return '';
+    }
 
     global $CFG;
     require_once($CFG->libdir.'/formslib.php');
@@ -475,8 +475,10 @@ function enrol_wallet_get_transfer_form() {
         $a = ['fee' => $percentfee];
         $feefrom = get_config('enrol_wallet', 'transferfee_from');
         $a['from'] = get_string($feefrom, 'enrol_wallet');
-    
-        $mform->addElement('static', 'feedesc', get_string('transferpercent', 'enrol_wallet'), get_string('transferfee_desc', 'enrol_wallet', $a));
+
+        $mform->addElement('static', 'feedesc',
+                            get_string('transferpercent', 'enrol_wallet'),
+                            get_string('transferfee_desc', 'enrol_wallet', $a));
     }
 
     $mform->addElement('submit', 'confirm', get_string('confirm'));

@@ -174,7 +174,7 @@ $string['discountcoupondisabled'] = 'Discount coupons disabled in this website.'
 $string['editselectedusers'] = 'Edit selected user enrollments';
 
 $string['enablerefund'] = 'Enable refund';
-$string['enablerefund_desc'] = 'If not checked, all credits from now on will be nonrefundable, don\'t forget to clear that to users in refund policy';
+$string['enablerefund_desc'] = 'If not checked, all credits from now on will be nonrefundable, don\'t forget to make it clear to users in refund policy';
 $string['endpoint_error'] = 'endpoint return error';
 $string['endpoint_incorrect'] = 'incorrect response';
 $string['enrol_wallet'] = 'Enrol with wallet balance';
@@ -286,7 +286,7 @@ $string['profile_field_map_help'] = 'Select the profile field that stores inform
 $string['privacy:metadata'] = 'The Wallet enrolment plugin does not store any personal data.';
 
 $string['randomcoupons'] = 'Random Coupons';
-$string['refundpolicy'] = 'Refund Policy';
+$string['refundpolicy'] = 'Manual Refund Policy';
 $string['refundpolicy_help'] = 'Define custom refund policy for users to be aware of the condition of how they get back their money or not before they topping up their wallet. This policy will be displayed to users in any form to recharge their wallet, or displying their balance.';
 $string['refundpolicy_default'] = '<h5>Refund Policy</h5>
 please note that:<br>
@@ -297,6 +297,7 @@ Payment to top-up your wallet cannot be refunded in the following cases:<br>
 When charging your wallet by any method means you agreed to this policy.';
 $string['refundperiod'] = 'Refunding grace period';
 $string['refundperiod_desc'] = 'The time after which user\'s cannot refunded for what they pay to top-up their wallets. 0 mean refund any time.';
+$string['refunduponunenrol_desc'] = 'Refunded by amount of {$a->credit} after deduction unenrol fee of {$a->fee} in the course: {$a->coursename}.';
 $string['receiver'] = 'Receiver';
 $string['role'] = 'Default assigned role';
 
@@ -338,7 +339,22 @@ $string['transferpage'] = 'Transfer ballance';
 $string['turn_not_refundable_task'] = 'Turn balance to non-refundable.';
 
 $string['unenrol'] = 'Unenrol user';
+$string['unenrollimitafter'] = 'Cannot unenrol self after:';
+$string['unenrollimitafter_desc'] = 'Users cannot enrol themselfs after this period from enrolment start date. 0 means unlimited.';
+$string['unenrollimitbefor'] = 'Cannot unenrol self before:';
+$string['unenrollimitbefor_desc'] = 'Users cannot unenrol themselfs before this period from enrolment end date. 0 means no limit.';
+$string['unenrolrefund'] = 'Refund upon unenrol?';
+$string['unenrolrefund_desc'] = 'If enabled users will be refunded if they unenrolled from the corse.';
+$string['unenrolrefundperiod'] = 'Refund upon unenrol grace period';
+$string['unenrolrefundperiod_desc'] = 'If the user unenrolled within this period from the enrol start date he will be refunded.';
+$string['unenrolrefundfee'] = 'Refund percentage fee';
+$string['unenrolrefundfee_desc'] = 'Choose a percentage amount that will not be refunded after unenrol as a fee.';
+$string['unenrolrefund_head'] = 'Refund users upon unenrol.';
+$string['unenrolrefund_head_desc'] = 'Return the paid fee of a course after unenrol from the course.';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
+$string['unenrolselfenabled'] = 'Enable self unenrol';
+$string['unenrolselfenabled_desc'] = 'If enable, then users are allowed to unenrol themselfs from the course.';
+$string['unenrolself_notallowed'] = 'You are not unenrol yourself from this course.';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolusers'] = 'Unenrol users';
 $string['upperletters'] = 'UPPER case';

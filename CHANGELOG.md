@@ -1,5 +1,11 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.8.0 ##
+- Add more useful links to homepage navigation.
+- Adding the ability to transfer credit to other users.
+- Adding option to enable or disable self unenrol with conditions.
+- Adding option to refund users upon unenrol.
+
 ## V 1.7.0 ##
 - Add ability for editing coupons.
 - Hide cheaper instances or non available enrol wallet instance in the same course.

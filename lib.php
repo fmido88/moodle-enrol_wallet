@@ -135,20 +135,98 @@ class enrol_wallet_plugin extends enrol_plugin {
      * user_enrollments
      */
     public function allow_unenrol(stdClass $instance) {
-        // TODO adding time limit.
         return true;
+    }
+
+    /**
+     * Return unenrol link to unenrol user from the current course.
+     *
+     * @param stdClass $instance
+     * @return moodle_url|null
+     */
+    public function get_unenrolself_link($instance) {
+        global $USER, $DB;
+        $enabled = get_config('enrol_wallet', 'unenrolselfenabled');
+        if (!$enabled) {
+            return null;
+        }
+
+        $before = get_config('enrol_wallet', 'unenrollimitbefor');
+        $after = get_config('enrol_wallet', 'unenrollimitafter');
+
+        $enrolrecord = $DB->get_record('user_enrolment', ['enrolid' => $instance->id, 'userid' => $USER->id]);
+
+        $enrolstart = $enrolrecord->timestart;
+        $enrolend = $enrolrecord->timeend;
+        if (!empty($after) && time() > $after + $enrolstart) {
+            return null;
+        }
+
+        if (!empty($before) && !empty($enrolend) && time() < $enrolend - $before) {
+            return null;
+        }
+
+        return parent::get_unenrolself_link($instance);
     }
 
     /**
      * Unenrol user from the course if enrolled using wallet enrolment.
      * using this to refund the users balance again.
      * @param stdClass $instance
-     * @param mixed $userid
+     * @param int $userid
      * @return void
      */
     public function unenrol_user(stdClass $instance, $userid) {
-        // TODO Refunding user after unenrol.
-        parent::unenrol_user($instance, $userid);
+        // Check if refund upon unenrollment is enabled.
+        $enabled = get_config('enrol_wallet', 'unenrolrefund');
+        if (empty($enabled)) {
+            return parent::unenrol_user($instance, $userid);
+        }
+
+        global $DB;
+
+        $enrolrecord = $DB->get_record('user_enrolment', ['enrolid' => $instance->id, 'userid' => $userid]);
+        $enrolstart = $enrolrecord->timestart;
+        $enrolend = $enrolrecord->timeend;
+        $refundperiod = get_config('enrol_wallet', 'unenrolrefundperiod');
+        $now = time();
+        if (
+            $now < $enrolend
+            || ($enrolstart - $now) > $refundperiod
+        ) {
+            // Condition for refunding aren't met.
+            return parent::unenrol_user($instance, $userid);
+        }
+
+        $rawcost = $this->get_cost_after_discount($userid, $instance);
+        // Check for refunding fee.
+        $fee = intval(get_config('enrol_wallet', 'unenrolrefundfee'));
+        $cost = $rawcost - ($rawcost * $fee / 100);
+
+        // Check for previously used coupon.
+        $coupon = $DB->get_record('enrol_wallet_coupons_usage', ['userid' => $userid, 'instanceid' => $instance->id]);
+        if (!empty($coupon)) {
+            if ($coupon->type == 'fixed') {
+                $credit = $cost - $coupon->value;
+            } else if ($coupon->type == 'percent') {
+                $credit = $cost - ($cost * $coupon->value / 100);
+            } else {
+                $credit = $cost;
+            }
+        } else {
+            $credit = $cost;
+        }
+
+        // Credit the user.
+        $a = [
+            'fee' => $cost - $credit,
+            'credit' => $credit,
+            'coursename' => get_course($instance->courseid)->fullname,
+        ];
+        $desc = get_string('refunduponunenrol_desc', 'enrol_wallet', $a);
+        transactions::payment_topup($credit, $userid, $desc, $userid, false);
+
+        return parent::unenrol_user($instance, $userid);
     }
     /**
      * Does this plugin allow manual changes in user_enrollments table?
