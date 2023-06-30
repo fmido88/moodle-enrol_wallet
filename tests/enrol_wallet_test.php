@@ -1098,13 +1098,14 @@ class enrol_wallet_test extends \advanced_testcase {
         $wallet->update_instance($instance, $data);
 
         $this->assertCount(7, $wallet->get_courses_options($course1->id));
-        $this->assertContains($course2->id, $wallet->get_courses_options($course1->id));
-        $this->assertContains($course3->id, $wallet->get_courses_options($course1->id));
-        $this->assertContains($course4->id, $wallet->get_courses_options($course1->id));
-        $this->assertContains($course5->id, $wallet->get_courses_options($course1->id));
-        $this->assertContains($course6->id, $wallet->get_courses_options($course1->id));
-        $this->assertContains($course7->id, $wallet->get_courses_options($course1->id));
-        $this->assertContains($course8->id, $wallet->get_courses_options($course1->id));
+        $options = array_keys($wallet->get_courses_options($course1->id));
+        $this->assertContains($course2->id, $options);
+        $this->assertContains($course3->id, $options);
+        $this->assertContains($course4->id, $options);
+        $this->assertContains($course5->id, $options);
+        $this->assertContains($course6->id, $options);
+        $this->assertContains($course7->id, $options);
+        $this->assertContains($course8->id, $options);
 
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
