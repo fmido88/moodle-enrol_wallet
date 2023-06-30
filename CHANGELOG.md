@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 1.8.2 ##
+- Fix the the table name in get_record().
+- Fix the functionality of the function get_unenrolself_link().
+- Add tests for get_unenrolself_link() and unenrol_user() to make sure refunding is working well.
+
 ## V 1.8.1 ##
 - Some fixes.
 - Apply  coupons now compatible with availability_wallet.
