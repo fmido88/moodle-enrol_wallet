@@ -1212,6 +1212,7 @@ class enrol_wallet_test extends \advanced_testcase {
         // The user remaind in the course more than the grace period.
         $wallet->update_user_enrol($instance, $user->id, true, time() - 3 * HOURSECS, time() + DAYSECS);
 
+        $this->setUser($user);
         $this->assertTrue(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
@@ -1282,22 +1283,22 @@ class enrol_wallet_test extends \advanced_testcase {
         set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
 
-        // Can self unenrol before the conditional time.
+        // Cannot self unenrol before the conditional time.
         $wallet->update_user_enrol($instance, $user->id, true, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
-        $this->setUser($user);
-        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
-
-        // Cannot unenrol self after the condition after time.
-        $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, true, time() - 6 * HOURSECS, time() + 4 * DAYSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
-        // Can selt unenrol.
+        // Can unenrol self after the condition after time.
+        $this->setAdminUser();
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 6 * HOURSECS, time() + 4 * DAYSECS);
+        $this->setUser($user);
+        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
+
+        // Cannot self unenrol.
         $this->setAdminUser();
         $wallet->update_user_enrol($instance, $user->id, true, time() - 9 * HOURSECS, time() + 1 * DAYSECS);
         $this->setUser($user);
-        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
+        $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         $this->setAdminUser();
         set_config('unenrollimitbefor', 0, 'enrol_wallet');
