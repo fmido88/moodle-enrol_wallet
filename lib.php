@@ -160,7 +160,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $before = get_config('enrol_wallet', 'unenrollimitbefor');
         $after = get_config('enrol_wallet', 'unenrollimitafter');
 
-        $enrolrecord = $DB->get_record('user_enrolment', ['enrolid' => $instance->id, 'userid' => $USER->id]);
+        $enrolrecord = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $USER->id]);
 
         $enrolstart = $enrolrecord->timestart;
         $enrolend = $enrolrecord->timeend;
@@ -198,7 +198,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         global $DB;
 
-        $enrolrecord = $DB->get_record('user_enrolment', ['enrolid' => $instance->id, 'userid' => $userid]);
+        $enrolrecord = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $userid]);
         $enrolstart = $enrolrecord->timestart;
         $enrolend = $enrolrecord->timeend;
         $refundperiod = get_config('enrol_wallet', 'unenrolrefundperiod');
