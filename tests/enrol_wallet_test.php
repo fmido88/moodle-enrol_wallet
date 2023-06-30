@@ -1099,13 +1099,13 @@ class enrol_wallet_test extends \advanced_testcase {
 
         $this->assertCount(7, $wallet->get_courses_options($course1->id));
         $options = array_keys($wallet->get_courses_options($course1->id));
-        $this->assertContains($course2->id, $options, implode(',', $options));
-        $this->assertContains($course3->id, $options);
-        $this->assertContains($course4->id, $options);
-        $this->assertContains($course5->id, $options);
-        $this->assertContains($course6->id, $options);
-        $this->assertContains($course7->id, $options);
-        $this->assertContains($course8->id, $options);
+        $this->assertTrue(in_array($course2->id, $options));
+        $this->assertTrue(in_array($course3->id, $options));
+        $this->assertTrue(in_array($course4->id, $options));
+        $this->assertTrue(in_array($course5->id, $options));
+        $this->assertTrue(in_array($course6->id, $options));
+        $this->assertTrue(in_array($course7->id, $options));
+        $this->assertTrue(in_array($course8->id, $options));
 
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
