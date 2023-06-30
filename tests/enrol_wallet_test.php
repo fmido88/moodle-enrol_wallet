@@ -1283,17 +1283,17 @@ class enrol_wallet_test extends \advanced_testcase {
         set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
 
-        $wallet->update_user_enrol($instance, $user->id, true, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, true, time() - 6 * HOURSECS, time() + 4 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * DAYSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, true, time() - 9 * HOURSECS, time() + 1 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * DAYSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
