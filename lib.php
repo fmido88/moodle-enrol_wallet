@@ -171,7 +171,9 @@ class enrol_wallet_plugin extends enrol_plugin {
             } else {
                 $return = null;
             }
-        } else if (!empty($before) && !empty($enrolend) && time() < $enrolend - $before) {
+        }
+
+        if (!empty($before) && !empty($enrolend) && time() < $enrolend - $before) {
             if (!empty($after) && time() < $after + $enrolstart) {
                 $return = parent::get_unenrolself_link($instance);
             } else {
