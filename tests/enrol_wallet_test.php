@@ -1129,4 +1129,210 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance1));
         $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
     }
+
+    /**
+     * Summary of test_unenrol_user
+     * @covers ::unenrol_user()
+     * @return void
+     */
+    public function test_unenrol_user() {
+        global $DB;
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $context = \context_course::instance($course->id);
+
+        $user = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(100, $user->id);
+
+        $wallet = enrol_get_plugin('wallet');
+        // Update the instance such that the enrol duration is 2 hours.
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance->customint6 = 1;
+        $instance->enrolperiod = HOURSECS * 2;
+        $instance->cost = 50;
+        $DB->update_record('enrol', $instance);
+        $wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
+
+        // Enable refunding.
+        set_config('unenrolrefund', 1, 'enrol_wallet');
+
+        // Enrol the user and check the balance.
+        $this->setUser($user);
+        $wallet->enrol_self($instance);
+        $this->assertTrue(is_enrolled($context));
+
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 50);
+
+        $wallet->unenrol_user($instance, $user->id);
+        $this->assertFalse(is_enrolled($context));
+
+        // Check the refund.
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 100);
+
+        $this->setAdminUser();
+        set_config('unenrolrefund', 0, 'enrol_wallet');
+
+        // Repeat but disable refunding.
+        $this->setUser($user);
+        $wallet->enrol_self($instance);
+        $this->assertTrue(is_enrolled($context));
+
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 50);
+
+        $wallet->unenrol_user($instance, $user->id);
+        $this->assertFalse(is_enrolled($context));
+
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 50);
+
+        // Enable refunding with duration limit.
+        $this->setAdminUser();
+        set_config('unenrolrefund', 1, 'enrol_wallet');
+        set_config('unenrolrefundperiod', HOURSECS, 'enrol_wallet');
+
+        $this->setUser($user);
+        $wallet->enrol_self($instance);
+        $this->assertTrue(is_enrolled($context));
+
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 0);
+
+        $wallet->unenrol_user($instance, $user->id);
+        $this->assertFalse(is_enrolled($context));
+
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 50);
+
+        $wallet->enrol_self($instance);
+
+        $this->setAdminUser();
+        // The user remaind in the course more than the grace period.
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 3 * HOURSECS, time() + DAYSECS);
+
+        $this->assertTrue(is_enrolled($context));
+
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 0);
+
+        $wallet->unenrol_user($instance, $user->id);
+        $this->assertFalse(is_enrolled($context));
+        // No refund.
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 0);
+
+        // Now test the refund fee.
+        transactions::payment_topup(100, $user->id);
+        $this->setAdminUser();
+        // Set to 10%.
+        set_config('unenrolrefundfee', 10, 'enrol_wallet');
+
+        $this->setUser($user);
+        $wallet->enrol_self($instance);
+        $this->assertTrue(is_enrolled($context));
+
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 50);
+
+        $wallet->unenrol_user($instance, $user->id);
+        $this->assertFalse(is_enrolled($context));
+        // Only 45 refund.
+        $balance = transactions::get_user_balance($user->id);
+        $this->assertEquals($balance, 95);
+    }
+
+    public function test_get_unenrolself_link() {
+        global $DB;
+        $this->resetAfterTest();
+        $course = $this->getDataGenerator()->create_course();
+        $context = \context_course::instance($course->id);
+
+        $user = $this->getDataGenerator()->create_user();
+        transactions::payment_topup(100, $user->id);
+
+        $wallet = enrol_get_plugin('wallet');
+        // Update the instance such that the enrol duration is 2 hours.
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $data = new \stdClass;
+        $data->customint6 = 1;
+        $data->enrolperiod = HOURSECS * 10;
+        $data->cost = 50;
+        $wallet->update_instance($instance, $data);
+        $wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
+
+        $this->setUser($user);
+        $this->assertTrue(is_enrolled($context));
+        $this->assertEmpty($wallet->get_unenrolself_link($instance));
+
+        $this->setAdminUser();
+        set_config('unenrolselfenabled', 1, 'enrol_wallet');
+
+        $this->setUser($user);
+        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
+
+        $this->setAdminUser();
+        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
+        set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
+
+        // Can self unenrol before the conditional time.
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
+        $this->setUser($user);
+        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
+
+        // Cannot unenrol self after the condition after time.
+        $this->setAdminUser();
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 6 * HOURSECS, time() + 4 *DAYSECS);
+        $this->setUser($user);
+        $this->assertEmpty($wallet->get_unenrolself_link($instance));
+
+        // Can selt unenrol.
+        $this->setAdminUser();
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 9 * HOURSECS, time() + 1 *DAYSECS);
+        $this->setUser($user);
+        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
+
+        $this->setAdminUser();
+        set_config('unenrollimitbefor', 0, 'enrol_wallet');
+        set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
+
+        // Can self unenrol before the conditional time.
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
+        $this->setUser($user);
+        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
+
+        // Cannot unenrol self after the condition after time.
+        $this->setAdminUser();
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 6 * HOURSECS, time() + 4 *DAYSECS);
+        $this->setUser($user);
+        $this->assertEmpty($wallet->get_unenrolself_link($instance));
+
+        // Cannot self unenrol.
+        $this->setAdminUser();
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 9 * HOURSECS, time() + 1 *DAYSECS);
+        $this->setUser($user);
+        $this->assertEmpty($wallet->get_unenrolself_link($instance));
+
+        $this->setAdminUser();
+        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
+        set_config('unenrollimitafter', 0, 'enrol_wallet');
+
+        // Cannot self unenrol before the conditional time.
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
+        $this->setUser($user);
+        $this->assertEmpty($wallet->get_unenrolself_link($instance));
+
+        // Cannot unenrol.
+        $this->setAdminUser();
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 6 * HOURSECS, time() + 4 *DAYSECS);
+        $this->setUser($user);
+        $this->assertEmpty($wallet->get_unenrolself_link($instance));
+
+        // Can self unenrol.
+        $this->setAdminUser();
+        $wallet->update_user_enrol($instance, $user->id, true, time() - 9 * HOURSECS, time() + 1 *DAYSECS);
+        $this->setUser($user);
+        $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
+    }
 }

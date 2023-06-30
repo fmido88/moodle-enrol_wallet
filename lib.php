@@ -164,12 +164,19 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $enrolstart = $enrolrecord->timestart;
         $enrolend = $enrolrecord->timeend;
+        // Cannot unenrol self after this period from enrol start date.
         if (!empty($after) && time() > $after + $enrolstart) {
-            return null;
+            $return = null;
         }
 
+        // Cannot unenrol self before this period.
         if (!empty($before) && !empty($enrolend) && time() < $enrolend - $before) {
-            return null;
+            // Make sure that this condition not cancel the first allowance.
+            if (!empty($after) && time() < $after + $enrolstart) {
+                $return = parent::get_unenrolself_link($instance); 
+            } else {
+                $return = null;
+            }
         }
 
         return $return;
