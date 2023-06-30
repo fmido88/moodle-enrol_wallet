@@ -1288,12 +1288,12 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
@@ -1308,13 +1308,13 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Cannot unenrol self after the condition after time.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         // Cannot self unenrol.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
@@ -1329,13 +1329,13 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Cannot unenrol.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         // Can self unenrol.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
     }
