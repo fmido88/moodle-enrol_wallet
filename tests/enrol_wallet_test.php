@@ -1063,6 +1063,96 @@ class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
+     * Summary of test_is_course_enrolment_restriction
+     * @covers ::is_course_enrolment_restriction()
+     * @return void
+     */
+    public function test_is_course_enrolment_restriction() {
+        global $DB;
+        $this->resetAfterTest();
+        $wallet = enrol_get_plugin('wallet');
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
+        $course3 = $this->getDataGenerator()->create_course();
+        $course4 = $this->getDataGenerator()->create_course();
+        $course5 = $this->getDataGenerator()->create_course();
+        $course6 = $this->getDataGenerator()->create_course();
+        $course7 = $this->getDataGenerator()->create_course();
+        $course8 = $this->getDataGenerator()->create_course();
+
+        $courses = [];
+        $courses[] = $course2->id;
+        $courses[] = $course3->id;
+        $courses[] = $course4->id;
+        $courses[] = $course5->id;
+        $courses[] = $course6->id;
+
+        $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'courseid' => $course1->id]);
+        $data = new \stdClass;
+        $data->status = ENROL_INSTANCE_ENABLED;
+        $data->cost = 50;
+        $data->customint1 = 1;
+        $data->customint7 = 4;
+        $data->customchar3 = implode(',', $courses);
+        $wallet->update_instance($instance, $data);
+
+        $this->assertCount(7, $wallet->get_courses_options($course1->id));
+        $this->assertContains($course2->id, $wallet->get_courses_options($course1->id));
+        $this->assertContains($course3->id, $wallet->get_courses_options($course1->id));
+        $this->assertContains($course4->id, $wallet->get_courses_options($course1->id));
+        $this->assertContains($course5->id, $wallet->get_courses_options($course1->id));
+        $this->assertContains($course6->id, $wallet->get_courses_options($course1->id));
+        $this->assertContains($course7->id, $wallet->get_courses_options($course1->id));
+        $this->assertContains($course8->id, $wallet->get_courses_options($course1->id));
+
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user();
+        $user5 = $this->getDataGenerator()->create_user();
+
+        $this->getDataGenerator()->enrol_user($user1->id, $course2->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course3->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course4->id);
+        $this->getDataGenerator()->enrol_user($user1->id, $course5->id);
+
+        $this->getDataGenerator()->enrol_user($user2->id, $course2->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course3->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course5->id);
+        $this->getDataGenerator()->enrol_user($user2->id, $course6->id);
+
+        $this->getDataGenerator()->enrol_user($user3->id, $course2->id);
+        $this->getDataGenerator()->enrol_user($user3->id, $course4->id);
+
+        $this->getDataGenerator()->enrol_user($user4->id, $course2->id);
+        $this->getDataGenerator()->enrol_user($user4->id, $course3->id);
+        $this->getDataGenerator()->enrol_user($user4->id, $course6->id);
+        $this->getDataGenerator()->enrol_user($user4->id, $course7->id);
+        $this->getDataGenerator()->enrol_user($user4->id, $course8->id);
+
+        // Not restricted.
+        $this->setUser($user1);
+        $this->assertFalse($wallet->is_course_enrolment_restriction($instance));
+
+        // Not restricted.
+        $this->setUser($user2);
+        $this->assertFalse($wallet->is_course_enrolment_restriction($instance));
+
+        // Restricted.
+        $this->setUser($user3);
+        $this->assertTrue($wallet->is_course_enrolment_restriction($instance));
+
+        // Restricted.
+        $this->setUser($user4);
+        $this->assertTrue($wallet->is_course_enrolment_restriction($instance));
+
+        // Restricted.
+        $this->setUser($user5);
+        $this->assertTrue($wallet->is_course_enrolment_restriction($instance));
+    }
+
+    /**
      * test for hide_due_cheaper_instance function
      * @covers ::hide_due_cheaper_instance()
      */
@@ -1132,6 +1222,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Summary of test_unenrol_user
+     * Mainly to test the refunds.
      * @covers ::unenrol_user()
      * @return void
      */
@@ -1268,72 +1359,82 @@ class enrol_wallet_test extends \advanced_testcase {
         $wallet->update_instance($instance, $data);
         $wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
 
+        // By default the self unenrol option is disabled.
         $this->setUser($user);
         $wallet->enrol_self($instance);
         $this->assertTrue(is_enrolled($context));
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
+        // Enable unconditionaly.
         $this->setAdminUser();
         set_config('unenrolselfenabled', 1, 'enrol_wallet');
 
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
+        // Set conditions.
         $this->setAdminUser();
-        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
+        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
 
+        // First condition limit after enrol start time by 2 hours.
+        // Second condition limit is before the enrol end time by 2 hours.
+        // Can unenrol before the first condition.
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
+        // Cannot unenrol after the first condition and before the second.
         $this->setAdminUser();
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
+        // Can unenrol after the second condition.
         $this->setAdminUser();
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
+        // Remove the second condition.
         $this->setAdminUser();
+        set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitbefor', 0, 'enrol_wallet');
-        set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
 
-        // Can self unenrol before the conditional time.
+        // Can unenrol before the first condition.
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
-        // Cannot unenrol self after the condition after time.
+        // Cannot unenrol after.
         $this->setAdminUser();
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
-        // Cannot self unenrol.
+        // Cannot unenrol too.
         $this->setAdminUser();
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
+        // Remove the first condition only.
         $this->setAdminUser();
-        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitafter', 0, 'enrol_wallet');
+        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
 
-        // Cannot self unenrol before the conditional time.
+        // Cannot unenrol before.
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
-        // Cannot unenrol.
+        // Still cannot unenrol.
         $this->setAdminUser();
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
-        // Can self unenrol.
+        // Can unenrol after the second condition.
         $this->setAdminUser();
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
         $this->setUser($user);

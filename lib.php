@@ -166,14 +166,16 @@ class enrol_wallet_plugin extends enrol_plugin {
         $enrolend = $enrolrecord->timeend;
         // Cannot unenrol self after this period from enrol start date.
         if (!empty($after) && time() > $after + $enrolstart) {
+            // Make sure this is not interfere with the second condition.
             if (!empty($before) && !empty($enrolend) && time() > $enrolend - $before) {
                 $return = parent::get_unenrolself_link($instance);
             } else {
                 $return = null;
             }
         }
-
+        // Cannot unenrol self before this period from the enrol end date.
         if (!empty($before) && !empty($enrolend) && time() < $enrolend - $before) {
+            // Make sure this is not interfere with the first condition.
             if (!empty($after) && time() < $after + $enrolstart) {
                 $return = parent::get_unenrolself_link($instance);
             } else {
@@ -421,7 +423,6 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool|string
      */
     public function is_course_enrolment_restriction($instance) {
-        // TODO built a PHPUnit test for this function.
         global $DB;
         if (!empty($instance->customchar3) && !empty($instance->customint7)) {
             $courses = explode(',', $instance->customchar3);
@@ -1001,16 +1002,16 @@ class enrol_wallet_plugin extends enrol_plugin {
         $options = [0 => get_string('never'),
                     1800 * DAYSECS => get_string('numdays', '', 1800),
                     1000 * DAYSECS => get_string('numdays', '', 1000),
-                    365 * DAYSECS => get_string('numdays', '', 365),
-                    180 * DAYSECS => get_string('numdays', '', 180),
-                    150 * DAYSECS => get_string('numdays', '', 150),
-                    120 * DAYSECS => get_string('numdays', '', 120),
-                    90 * DAYSECS => get_string('numdays', '', 90),
-                    60 * DAYSECS => get_string('numdays', '', 60),
-                    30 * DAYSECS => get_string('numdays', '', 30),
-                    21 * DAYSECS => get_string('numdays', '', 21),
-                    14 * DAYSECS => get_string('numdays', '', 14),
-                    7 * DAYSECS => get_string('numdays', '', 7)];
+                    365 * DAYSECS  => get_string('numdays', '', 365),
+                    180 * DAYSECS  => get_string('numdays', '', 180),
+                    150 * DAYSECS  => get_string('numdays', '', 150),
+                    120 * DAYSECS  => get_string('numdays', '', 120),
+                    90 * DAYSECS   => get_string('numdays', '', 90),
+                    60 * DAYSECS   => get_string('numdays', '', 60),
+                    30 * DAYSECS   => get_string('numdays', '', 30),
+                    21 * DAYSECS   => get_string('numdays', '', 21),
+                    14 * DAYSECS   => get_string('numdays', '', 14),
+                    7 * DAYSECS    => get_string('numdays', '', 7)];
         return $options;
     }
 
@@ -1587,7 +1588,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return float the cost after discount.
      */
     public static function get_cost_after_discount($userid, $instance, $coupon = null) {
-        global $DB, $_SESSION;
+        global $DB;
         $couponsetting = get_config('enrol_wallet', 'coupons');
         // Check if there is a discount coupon first.
         if (empty($coupon)) {
@@ -1652,7 +1653,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      *
      * @param stdClass $instance
      * @param float $costafter the cost after discounts.
-     * @return false|string
+     * @return string
      */
     public static function show_payment_info(stdClass $instance, $costafter) {
         global $USER, $OUTPUT, $DB, $CFG;
@@ -1691,3 +1692,40 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
 }
+/*  A reference to remind me with the instance object.
+    id:              the instance id (int)
+    enrol:           wallet "fixed for each plugin" (string)
+    status:          is the instance enabled or disabled (int)
+    courseid:        the course id (int)
+    sortorder:       "Don't override" the order of this instance in the course (int)
+    name:            the name of the instance (string)
+    enrolperiod:     duration of enrolment (int)
+    enrolstartdate:  start date (int)
+    enrolenddate:    end date (int)
+    expirynotify:    Whom to notify about expiration? (int)
+    expirythreshold: When to send notification? (int)
+    notifyall:       if to notify enrolled and enroller or not, (overridden by expirynotify) (int) - bool
+    password:        "Not used"
+    cost:            The cost (float)
+    currency:        The currency (sting)
+    roleid:          the id of the role, by default student role (int)
+    customint1:      Payment Account id (int)
+    customint2:      long time no see (unenrol inactive after) (int)
+    customint3:      Max enrolled users (int)
+    customint4:      Send welcome email (int) - bool
+    customint5:      Cohort restriction id (int)
+    customint6:      Allow new enrol (int) - bool
+    customint7:      Min number or required courses (int)
+    customint8:      Enable Awards (int) - bool
+    customchar1:     "not used"
+    customchar2:     "not used"
+    customchar3:     ids of the courses required for enrol restriction (string) integers imploded by ','
+    customdec1:      condition for award (percentage) (int) 0 - 99
+    customdec2:      Award value per each raw mark above the condition (float)
+    customtext1:     Welcome email content (string)
+    customtext2:     "not used"
+    customtext3:     "not used"
+    customtext4:     "not used"
+    timecreated:     the time at which the instance created (int)
+    timemodified:    the time at which the instance modified (int)
+    */
