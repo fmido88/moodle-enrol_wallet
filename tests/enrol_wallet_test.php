@@ -1142,15 +1142,25 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Restricted.
         $this->setUser($user3);
-        $this->assertTrue($wallet->is_course_enrolment_restriction($instance));
+        $this->assertIsString($wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course3->fullname, $wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course5->fullname, $wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course6->fullname, $wallet->is_course_enrolment_restriction($instance));
 
         // Restricted.
         $this->setUser($user4);
-        $this->assertTrue($wallet->is_course_enrolment_restriction($instance));
+        $this->assertIsString($wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course4->fullname, $wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course5->fullname, $wallet->is_course_enrolment_restriction($instance));
 
         // Restricted.
         $this->setUser($user5);
-        $this->assertTrue($wallet->is_course_enrolment_restriction($instance));
+        $this->assertIsString($wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course2->fullname, $wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course3->fullname, $wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course4->fullname, $wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course5->fullname, $wallet->is_course_enrolment_restriction($instance));
+        $this->assertStringContainsString($course6->fullname, $wallet->is_course_enrolment_restriction($instance));
     }
 
     /**
