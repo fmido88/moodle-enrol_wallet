@@ -1054,6 +1054,46 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
+     * Adding another course restriction options to enrolment edit form.
+     * @param array<string> $coursesoptions
+     * @param MoodleQuickForm $mform
+     * @return void
+     */
+    public function course_restriction_edit($coursesoptions, \MoodleQuickForm $mform) {
+        if (!empty($coursesoptions)) {
+            $count = count($coursesoptions);
+
+            $options = [];
+            for ($i = 0; $i <= $count; $i++) {
+                $options[$i] = $i;
+            }
+            $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction_num', 'enrol_wallet'), $options);
+            $select->setMultiple(false);
+            $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
+
+            $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
+            $mform->setType('customchar3', PARAM_TEXT);
+
+            $params = [
+                'id'       => 'wallet_courserestriction',
+                'onChange' => 'restrictByCourse()'
+            ];
+            $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
+            $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $params);
+            $select->setMultiple(true);
+            $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
+            $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
+        } else {
+            $mform->addElement('hidden', 'customint7');
+            $mform->setType('customint7', PARAM_INT);
+            $mform->setConstant('customint7', 0);
+
+            $mform->addElement('hidden', 'customchar3');
+            $mform->setType('customchar3', PARAM_TEXT);
+            $mform->setConstant('customchar3', '');
+        }
+    }
+    /**
      * Return an array of valid send welcome email options.
      * @return array<string>
      */
@@ -1215,36 +1255,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         $coursesoptions = $this->get_courses_options($instance->courseid);
-        if (!empty($coursesoptions)) {
-            $options = [];
-            for ($i = 0; $i <= 50; $i++) {
-                $options[$i] = $i;
-            }
-            $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction_num', 'enrol_wallet'), $options);
-            $select->setMultiple(false);
-            $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
-
-            $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
-            $mform->setType('customchar3', PARAM_TEXT);
-
-            $params = [
-                'id'       => 'wallet_courserestriction',
-                'onChange' => 'restrictByCourse()'
-            ];
-            $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
-            $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $params);
-            $select->setMultiple(true);
-            $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
-            $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
-        } else {
-            $mform->addElement('hidden', 'customint7');
-            $mform->setType('customint7', PARAM_INT);
-            $mform->setConstant('customint7', 0);
-
-            $mform->addElement('hidden', 'customchar3');
-            $mform->setType('customchar3', PARAM_TEXT);
-            $mform->setConstant('customchar3', '');
-        }
+        $this->course_restriction_edit($coursesoptions, $mform);
 
         $options = $this->get_send_welcome_email_option();
         $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);

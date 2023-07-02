@@ -178,38 +178,7 @@ if (count($cohorts) > 1) {
 
 // Add course restriction options.
 $coursesoptions = $enrol->get_courses_options(SITEID);
-if (!empty($coursesoptions)) {
-    $options = [-1 => $nochange];
-    for ($i = 0; $i <= 50; $i++) {
-        $options[$i] = $i;
-    }
-    $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction_num', 'enrol_wallet'), $options);
-    $select->setMultiple(false);
-    $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
-
-    $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
-    $mform->setType('customchar3', PARAM_TEXT);
-
-    $params = [
-        'id'       => 'wallet_courserestriction',
-        'onChange' => 'restrictByCourse()'
-    ];
-    $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
-    $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $params);
-    $select->setMultiple(true);
-    $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
-    $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
-    $mform->hideIf('courserestriction', 'customint7', 'eq', -1);
-
-} else {
-    $mform->addElement('hidden', 'customint7');
-    $mform->setType('customint7', PARAM_INT);
-    $mform->setConstant('customint7', 0);
-
-    $mform->addElement('hidden', 'customchar3');
-    $mform->setType('customchar3', PARAM_TEXT);
-    $mform->setConstant('customchar3', '');
-}
+$enrol->course_restriction_edit($coursesoptions, $mform);
 
 $options = [
         -1                                   => $nochange,
