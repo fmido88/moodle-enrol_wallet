@@ -657,7 +657,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         // All restrictions checked.
-        if(!empty($return)) {
+        if (!empty($return)) {
             // Display them all.
             return implode('<br> ' . get_string('and') . ' ', $return);
         }
