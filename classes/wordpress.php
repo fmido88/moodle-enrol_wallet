@@ -241,9 +241,9 @@ class wordpress {
             return false;
         }
         $data = [
-            'username' => $user->username,
-            'password' => random_string(12),
-            'email' => $user->email,
+            'username'       => $user->username,
+            'password'       => random_string(12),
+            'email'          => $user->email,
             'moodle_user_id' => $userid,
         ];
 

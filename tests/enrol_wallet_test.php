@@ -1264,14 +1264,14 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 50);
+        $this->assertEquals(50, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
 
         // Check the refund.
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 100);
+        $this->assertEquals(100, $balance);
 
         $this->setAdminUser();
         set_config('unenrolrefund', 0, 'enrol_wallet');
@@ -1282,13 +1282,13 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 50);
+        $this->assertEquals(50, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 50);
+        $this->assertEquals(50, $balance);
 
         // Enable refunding with duration limit.
         $this->setAdminUser();
@@ -1300,13 +1300,13 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 0);
+        $this->assertEquals(0, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 50);
+        $this->assertEquals(50, $balance);
 
         $wallet->enrol_self($instance);
 
@@ -1318,13 +1318,13 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 0);
+        $this->assertEquals(0, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
         // No refund.
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 0);
+        $this->assertEquals(0, $balance);
 
         // Now test the refund fee.
         transactions::payment_topup(100, $user->id);
@@ -1337,13 +1337,13 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertTrue(is_enrolled($context));
 
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 50);
+        $this->assertEquals(50, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
         // Only 45 refund.
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals($balance, 95);
+        $this->assertEquals(95, $balance);
     }
 
     /**

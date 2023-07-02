@@ -79,9 +79,11 @@ foreach ($enrolplugins as $name => $object) {
 $selectenrol = $form->addElement('select', 'plugins', get_string('enrol_type', 'enrol_wallet'), $plugoptions);
 $selectenrol->setMultiple(true);
 
-$statusoptions = array(-1 => get_string('nochange', 'enrol'),
-        ENROL_USER_ACTIVE => get_string('participationactive', 'enrol'),
-        ENROL_USER_SUSPENDED => get_string('participationsuspended', 'enrol'));
+$statusoptions = [
+        -1                   => get_string('nochange', 'enrol'),
+        ENROL_USER_ACTIVE    => get_string('participationactive', 'enrol'),
+        ENROL_USER_SUSPENDED => get_string('participationsuspended', 'enrol')
+    ];
 $form->addElement('select', 'status', get_string('alterstatus', 'enrol_manual'), $statusoptions, array('optional' => true));
 
 $form->addElement('date_time_selector', 'timestart', get_string('altertimestart', 'enrol_manual'), array('optional' => true));

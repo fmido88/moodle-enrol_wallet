@@ -60,10 +60,10 @@ class cashback_applied extends \core\event\base {
      */
     public function get_description() {
         $a = new \stdClass;
-        $a->userid = $this->userid;
+        $a->userid   = $this->userid;
         $a->courseid = $this->courseid;
         $a->original = $this->other['original'];
-        $a->amount = $this->other['amount'];
+        $a->amount   = $this->other['amount'];
 
         return get_string('event_cashback_desc', 'enrol_wallet', $a);
     }

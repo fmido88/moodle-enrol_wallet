@@ -42,12 +42,14 @@ if ($cancel) {
 }
 
 $userid = $USER->id;
-$coupon = required_param('coupon', PARAM_TEXT);
+
+$coupon     = required_param('coupon', PARAM_TEXT);
 $instanceid = optional_param('instanceid' , '', PARAM_INT);
-$courseid = optional_param('courseid', 0, PARAM_INT);
+$courseid   = optional_param('courseid', 0, PARAM_INT);
+$cmid       = optional_param('cmid', 0, PARAM_INT);
+$sectionid  = optional_param('sectionid', 0, PARAM_INT);
+
 $couponsetting = get_config('enrol_wallet', 'coupons');
-$cmid = optional_param('cmid', 0, PARAM_INT);
-$sectionid = optional_param('sectionid', 0, PARAM_INT);
 
 if (confirm_sesskey()) {
     // Get the coupon data.
@@ -69,7 +71,7 @@ if (confirm_sesskey()) {
             enrol_wallet\transactions::get_coupon_value($coupon, $userid, $instanceid, true);
             $currency = get_config('enrol_wallet', 'currency');
             $a = [
-                'value' => $value,
+                'value'    => $value,
                 'currency' => $currency,
             ];
             $msg = get_string('coupon_applyfixed', 'enrol_wallet', $a);

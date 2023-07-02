@@ -25,9 +25,9 @@
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 
-$select = optional_param_array('select', [], PARAM_INT);
+$select  = optional_param_array('select', [], PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL); // Delete confirmation.
-$ids = ($confirm) ? required_param('ids', PARAM_TEXT) : '';
+$ids     = ($confirm) ? required_param('ids', PARAM_TEXT) : '';
 
 require_login();
 require_capability('enrol/wallet:deletecoupon', context_system::instance());

@@ -24,7 +24,7 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$messageproviders = array(
-    'expiry_notification' => array(),
-    'wallet_transaction' => array(),
-);
+$messageproviders = [
+    'expiry_notification' => [],
+    'wallet_transaction'  => [],
+];

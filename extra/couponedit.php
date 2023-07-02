@@ -27,20 +27,20 @@ require_once('../../../config.php');
 require_login();
 require_capability('enrol/wallet:editcoupon', context_system::instance());
 
-$edit = optional_param('edit', 0, PARAM_BOOL);
+$edit    = optional_param('edit', 0, PARAM_BOOL);
 $confirm = optional_param('confirm', 0, PARAM_BOOL); // Edit confirmation.
 
 if ($edit) { // The edit form.
     require_once("$CFG->libdir/formslib.php");
 
-    $id = required_param('id', PARAM_INT);
-    $code = required_param('code', PARAM_TEXT);
-    $type = required_param('type', PARAM_TEXT);
-    $value = required_param('value', PARAM_NUMBER);
-    $maxusage = optional_param('maxusage', 0, PARAM_INT);
-    $usetimes = optional_param('usetimes', 0, PARAM_INT);
+    $id        = required_param('id', PARAM_INT);
+    $code      = required_param('code', PARAM_TEXT);
+    $type      = required_param('type', PARAM_TEXT);
+    $value     = required_param('value', PARAM_NUMBER);
+    $maxusage  = optional_param('maxusage', 0, PARAM_INT);
+    $usetimes  = optional_param('usetimes', 0, PARAM_INT);
     $validfrom = optional_param('validfrom', 0, PARAM_INT);
-    $validto = optional_param('validto', 0, PARAM_INT);
+    $validto   = optional_param('validto', 0, PARAM_INT);
 
     $validfromedit = false;
     if (!empty($validfrom)) {
@@ -71,7 +71,7 @@ if ($edit) { // The edit form.
     $mform->setDefault('value', $value);
 
     $types = [
-        'fixed' => get_string('fixedvaluecoupon', 'enrol_wallet'),
+        'fixed'   => get_string('fixedvaluecoupon', 'enrol_wallet'),
         'percent' => get_string('percentdiscountcoupon', 'enrol_wallet'),
     ];
     $mform->addElement('select', 'type', get_string('coupon_type', 'enrol_wallet'), $types);
@@ -113,13 +113,13 @@ if ($edit) { // The edit form.
 } else if ($confirm && confirm_sesskey()) { // The edit action.
     global $DB;
 
-    $id = required_param('id', PARAM_INT);
-    $code = required_param('code', PARAM_TEXT);
-    $type = required_param('type', PARAM_TEXT);
-    $value = required_param('value', PARAM_NUMBER);
-    $maxusage = optional_param('maxusage', 0, PARAM_INT);
-    $validfrom = optional_param_array('validfrom', [], PARAM_INT);
-    $validto = optional_param_array('validto', [], PARAM_INT);
+    $id            = required_param('id', PARAM_INT);
+    $code          = required_param('code', PARAM_TEXT);
+    $type          = required_param('type', PARAM_TEXT);
+    $value         = required_param('value', PARAM_NUMBER);
+    $maxusage      = optional_param('maxusage', 0, PARAM_INT);
+    $validfrom     = optional_param_array('validfrom', [], PARAM_INT);
+    $validto       = optional_param_array('validto', [], PARAM_INT);
     $usetimesreset = optional_param('usetimesreset', false, PARAM_BOOL);
 
     $coupondata = [

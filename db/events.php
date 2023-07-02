@@ -26,38 +26,38 @@
 defined('MOODLE_INTERNAL') || die();
 
 // List of observers.
-$observers = array(
+$observers = [
     // The observer to check the completion of a course and award the student.
     // Include the file containing the callback just in case.
-    array(
-        'eventname' => '\core\event\course_completed',
-        'callback' => '\enrol_wallet\observer::wallet_completion_awards',
+    [
+        'eventname'   => '\core\event\course_completed',
+        'callback'    => '\enrol_wallet\observer::wallet_completion_awards',
         'includefile' => '/enrol/wallet/classes/observer.php'
-    ),
+    ],
     // The observer to check for new user creation and gift the student.
     // Include the file containing the callback just in case.
-    array(
-        'eventname' => '\core\event\user_created',
-        'callback' => '\enrol_wallet\observer::wallet_gifting_new_user',
+    [
+        'eventname'   => '\core\event\user_created',
+        'callback'    => '\enrol_wallet\observer::wallet_gifting_new_user',
         'includefile' => '/enrol/wallet/classes/observer.php'
-    ),
+    ],
     // Login user to wordpress.
-    array(
-        'eventname' => '\core\event\user_loggedin',
-        'callback' => '\enrol_wallet\observer::login_to_wordpress',
+    [
+        'eventname'   => '\core\event\user_loggedin',
+        'callback'    => '\enrol_wallet\observer::login_to_wordpress',
         'includefile' => '/enrol/wallet/classes/observer.php'
-    ),
+    ],
     // Logout user from wordpress.
-    array(
-        'eventname' => '\core\event\user_loggedout',
-        'callback' => '\enrol_wallet\observer::logout_from_wordpress',
+    [
+        'eventname'   => '\core\event\user_loggedout',
+        'callback'    => '\enrol_wallet\observer::logout_from_wordpress',
         'includefile' => '/enrol/wallet/classes/observer.php'
-    ),
+    ],
     // Observer to apply extra credit to fullfil the discount rule.
-    array(
-        'eventname' => '\enrol_wallet\event\transactions_triggered',
-        'callback' => '\enrol_wallet\observer::conditional_discount_charging',
+    [
+        'eventname'   => '\enrol_wallet\event\transactions_triggered',
+        'callback'    => '\enrol_wallet\observer::conditional_discount_charging',
         'includefile' => '/enrol/wallet/classes/observer.php'
-    ),
-);
+    ],
+];
 

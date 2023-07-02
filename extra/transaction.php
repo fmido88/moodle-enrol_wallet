@@ -34,13 +34,13 @@ require_login();
 $systemcontext = context_system::instance();
 $viewall = has_capability('enrol/wallet:transaction', $systemcontext);
 
-$sort = optional_param('tsort', '', PARAM_ALPHA);
-$userid = (!$viewall) ? $USER->id : optional_param('user', '', PARAM_INT);
-$datefrom = optional_param_array('datefrom', [], PARAM_INT);
-$dateto = optional_param_array('dateto', [], PARAM_INT);
-$ttype = optional_param('ttype', '', PARAM_TEXT);
-$value = optional_param('value', '', PARAM_NUMBER);
-$limitnum = optional_param('perpage', 50, PARAM_INT);
+$sort      = optional_param('tsort', '', PARAM_ALPHA);
+$userid    = (!$viewall) ? $USER->id : optional_param('user', '', PARAM_INT);
+$datefrom  = optional_param_array('datefrom', [], PARAM_INT);
+$dateto    = optional_param_array('dateto', [], PARAM_INT);
+$ttype     = optional_param('ttype', '', PARAM_TEXT);
+$value     = optional_param('value', '', PARAM_NUMBER);
+$limitnum  = optional_param('perpage', 50, PARAM_INT);
 $limitfrom = optional_param('page', 0, PARAM_INT);
 
 // Page parameters.
@@ -248,9 +248,9 @@ foreach ($records as $record) {
 
     $time = userdate($record->timecreated);
 
-    $amount = number_format($record->amount, 2);
-    $before = number_format($record->balbefore, 2);
-    $after = number_format($record->balance, 2);
+    $amount   = number_format($record->amount, 2);
+    $before   = number_format($record->balbefore, 2);
+    $after    = number_format($record->balance, 2);
     $norefund = number_format($record->norefund, 2);
     $desc = $record->descripe;
 

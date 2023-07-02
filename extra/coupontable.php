@@ -34,22 +34,22 @@ require_login();
 $systemcontext = context_system::instance();
 require_capability('enrol/wallet:viewcoupon', $systemcontext);
 
-$candelete = has_capability('enrol/wallet:deletecoupon', $systemcontext);
-$canedit = has_capability('enrol/wallet:editcoupon', $systemcontext);
+$candelete   = has_capability('enrol/wallet:deletecoupon', $systemcontext);
+$canedit     = has_capability('enrol/wallet:editcoupon', $systemcontext);
 $candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
 
 // Parameters.
-$code = optional_param('code', '', PARAM_TEXT);
-$value = optional_param('value', '', PARAM_NUMBER);
-$type = optional_param('type', '', PARAM_TEXT);
-$validtoarray = optional_param_array('validto', [], PARAM_INT);
-$validfromarray = optional_param_array('validfrom', [], PARAM_INT);
-$createdtoarray = optional_param_array('createdto', [], PARAM_INT);
+$code             = optional_param('code', '', PARAM_TEXT);
+$value            = optional_param('value', '', PARAM_NUMBER);
+$type             = optional_param('type', '', PARAM_TEXT);
+$validtoarray     = optional_param_array('validto', [], PARAM_INT);
+$validfromarray   = optional_param_array('validfrom', [], PARAM_INT);
+$createdtoarray   = optional_param_array('createdto', [], PARAM_INT);
 $createdfromarray = optional_param_array('createdfrom', [], PARAM_INT);
-$sort = optional_param('tsort', 'userid', PARAM_ALPHA);
-$download = optional_param('download', '', PARAM_ALPHA);
-$limitfrom = optional_param('page', 0, PARAM_INT);
-$limitnum = optional_param('perpage', 50, PARAM_INT);
+$sort             = optional_param('tsort', 'userid', PARAM_ALPHA);
+$download         = optional_param('download', '', PARAM_ALPHA);
+$limitfrom        = optional_param('page', 0, PARAM_INT);
+$limitnum         = optional_param('perpage', 50, PARAM_INT);
 
 // Sterilize the url parameters and conditions for sql.
 $conditions = '1=1';

@@ -29,6 +29,10 @@ require_capability('enrol/wallet:manage', $frontpagectx);
 
 $courses = required_param_array('courses', PARAM_INT);
 $timeend = optional_param_array('timeend', [], PARAM_INT);
+$timestart = optional_param_array('timestart', [], PARAM_INT);
+$status = optional_param('status', -1, PARAM_INT);
+$plugins = optional_param_array('plugins', [], PARAM_TEXT);
+
 if (!empty($timeend)) {
     $end = mktime(
         $timeend['hour'],
@@ -42,7 +46,6 @@ if (!empty($timeend)) {
     $end = [];
 }
 
-$timestart = optional_param_array('timestart', [], PARAM_INT);
 if (!empty($timestart)) {
     $start = mktime(
         $timestart['hour'],
@@ -55,9 +58,6 @@ if (!empty($timestart)) {
 } else {
     $start = [];
 }
-
-$status = optional_param('status', -1, PARAM_INT);
-$plugins = optional_param_array('plugins', [], PARAM_TEXT);
 
 foreach ($plugins as $plugin) {
     $$plugin = enrol_get_plugin($plugin);

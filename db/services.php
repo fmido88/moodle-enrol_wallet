@@ -24,22 +24,22 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-$functions = array(
-    'enrol_wallet_get_instance_info' => array(
-        'classname' => 'enrol_wallet_external',
-        'methodname' => 'get_instance_info',
-        'classpath' => 'enrol/wallet/externallib.php',
+$functions = [
+    'enrol_wallet_get_instance_info' => [
+        'classname'   => 'enrol_wallet_external',
+        'methodname'  => 'get_instance_info',
+        'classpath'   => 'enrol/wallet/externallib.php',
         'description' => 'wallet enrolment instance information.',
-        'type' => 'read',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
-    ),
+        'type'        => 'read',
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
 
-    'enrol_wallet_enrol_user' => array(
-        'classname' => 'enrol_wallet_external',
-        'methodname' => 'enrol_user',
-        'classpath' => 'enrol/wallet/externallib.php',
+    'enrol_wallet_enrol_user' => [
+        'classname'   => 'enrol_wallet_external',
+        'methodname'  => 'enrol_user',
+        'classpath'   => 'enrol/wallet/externallib.php',
         'description' => 'wallet enrol the current user in the given course.',
-        'type' => 'write',
-        'services' => array(MOODLE_OFFICIAL_MOBILE_SERVICE),
-    ),
-);
+        'type'        => 'write',
+        'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
+    ],
+];

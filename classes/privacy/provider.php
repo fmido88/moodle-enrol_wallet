@@ -65,8 +65,8 @@ class provider implements
                     WHERE e.id = :enrolid AND e.enrol = :enrolname";
             $params = [
                 'contextcourse' => CONTEXT_COURSE,
-                'enrolid' => $itemid,
-                'enrolname' => 'wallet',
+                'enrolid'       => $itemid,
+                'enrolname'     => 'wallet',
             ];
             $contextid = $DB->get_field_sql($sql, $params);
         } else if ($paymentarea == 'wallettopup') {
@@ -90,7 +90,7 @@ class provider implements
                      WHERE e.courseid = :courseid";
             $params = [
                 'component' => 'enrol_wallet',
-                'courseid' => $context->instanceid,
+                'courseid'  => $context->instanceid,
             ];
             $userlist->add_from_sql('userid', $sql, $params);
         } else if ($context instanceof \context_system) {
@@ -109,7 +109,7 @@ class provider implements
                  LEFT JOIN {enrol_wallet_items} it ON (p.itemid = it.id AND p.userid = it.userid)
                      WHERE p.component = :component AND p.paymentarea = :paymentarea";
             $params = [
-                'component' => 'enrol_wallet',
+                'component'   => 'enrol_wallet',
                 'paymentarea' => 'wallettopup',
             ];
             $userlist->add_from_sql('userid', $sql, $params);
@@ -155,7 +155,7 @@ class provider implements
                      WHERE p.userid = :userid AND p.component = :component AND e.id IS NULL";
             $params = [
                 'component' => 'enrol_wallet',
-                'userid' => $contextlist->get_user()->id,
+                'userid'    => $contextlist->get_user()->id,
             ];
 
             $orphanedpayments = $DB->get_recordset_sql($sql, $params);
@@ -187,7 +187,7 @@ class provider implements
                      WHERE e.courseid = :courseid";
             $params = [
                 'component' => 'enrol_wallet',
-                'courseid' => $context->instanceid,
+                'courseid'  => $context->instanceid,
             ];
 
             \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
@@ -208,7 +208,7 @@ class provider implements
                  LEFT JOIN {enrol_wallet_items} it ON (p.itemid = it.id AND p.userid = it.userid)
                      WHERE p.component = :component AND p.paymentarea = :paymentarea";
             $params = [
-                'component' => 'enrol_wallet',
+                'component'   => 'enrol_wallet',
                 'paymentarea' => 'wallettopup',
             ];
             \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
@@ -273,16 +273,17 @@ class provider implements
                  LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
                      WHERE p.component = :component AND p.paymentarea = :paymentarea AND p.userid = :userid";
             $params = [
-                'component' => 'enrol_wallet',
-                'userid' => $contextlist->get_user()->id,
+                'component'   => 'enrol_wallet',
+                'userid'      => $contextlist->get_user()->id,
                 'paymentarea' => 'wallettopup',
             ];
             \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
             // Delete fake items.
             $ids = $DB->get_records('payments', [
-                'component' => 'enrol_wallet',
-                'paymentarea' => 'wallettopup',
-                'userid' => $contextlist->get_user()->id]);
+                                                    'component'   => 'enrol_wallet',
+                                                    'paymentarea' => 'wallettopup',
+                                                    'userid'      => $contextlist->get_user()->id
+                                                ]);
             foreach ($ids as $payment) {
                 $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid, 'userid' => $payment->userid]);
             }
@@ -307,7 +308,7 @@ class provider implements
                      WHERE e.courseid = :courseid AND p.userid $usersql";
             $params = $userparams + [
                 'component' => 'enrol_wallet',
-                'courseid' => $context->instanceid,
+                'courseid'  => $context->instanceid,
             ];
 
             \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
@@ -332,7 +333,7 @@ class provider implements
                        AND p.userid $usersql
                        AND it.userid = p.userid";
             $params = $userparams + [
-                'component' => 'enrol_wallet',
+                'component'   => 'enrol_wallet',
                 'paymentarea' => 'wallettopup',
             ];
             \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);

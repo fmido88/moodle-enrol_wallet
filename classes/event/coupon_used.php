@@ -61,7 +61,7 @@ class coupon_used extends \core\event\base {
     public function get_description() {
         $a = new \stdClass;
         $a->userid = $this->userid;
-        $a->code = $this->other['code'];
+        $a->code   = $this->other['code'];
 
         return get_string('event_coupon_desc', 'enrol_wallet', $a);
     }

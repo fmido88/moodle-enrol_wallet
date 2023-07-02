@@ -27,9 +27,9 @@ defined('MOODLE_INTERNAL') || die();
 $context = context_system::instance();
 
 $captransactions = has_capability('enrol/wallet:transaction', $context);
-$capcredit = has_capability('enrol/wallet:creditdebit', $context);
-$capbulkedit = has_capability('enrol/wallet:bulkedit', $context);
-$capcouponview = has_capability('enrol/wallet:viewcoupon', $context);
+$capcredit       = has_capability('enrol/wallet:creditdebit', $context);
+$capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
+$capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
 $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
 
 $ismoodle = (get_config('enrol_wallet', 'walletsource') === enrol_wallet\transactions::SOURCE_MOODLE);

@@ -92,12 +92,12 @@ class enrol_wallet_external extends external_api {
     public static function get_instance_info_returns() {
         return new external_single_structure(
             [
-                'id' => new external_value(PARAM_INT, 'id of course enrolment instance'),
+                'id'       => new external_value(PARAM_INT, 'id of course enrolment instance'),
                 'courseid' => new external_value(PARAM_INT, 'id of course'),
-                'type' => new external_value(PARAM_PLUGIN, 'type of enrolment plugin'),
-                'name' => new external_value(PARAM_RAW, 'name of enrolment plugin'),
-                'status' => new external_value(PARAM_RAW, 'status of enrolment plugin'),
-                'cost' => new external_value(PARAM_NUMBER, 'The cost of the course'),
+                'type'     => new external_value(PARAM_PLUGIN, 'type of enrolment plugin'),
+                'name'     => new external_value(PARAM_RAW, 'name of enrolment plugin'),
+                'status'   => new external_value(PARAM_RAW, 'status of enrolment plugin'),
+                'cost'     => new external_value(PARAM_NUMBER, 'The cost of the course'),
             ]
         );
     }
@@ -110,7 +110,7 @@ class enrol_wallet_external extends external_api {
     public static function enrol_user_parameters() {
         return new external_function_parameters(
             [
-                'courseid' => new external_value(PARAM_INT, 'Id of the course'),
+                'courseid'   => new external_value(PARAM_INT, 'Id of the course'),
                 'instanceid' => new external_value(PARAM_INT, 'Instance id of wallet enrolment plugin.', VALUE_DEFAULT, 0)
             ]
         );
@@ -131,7 +131,7 @@ class enrol_wallet_external extends external_api {
 
         $params = self::validate_parameters(self::enrol_user_parameters(),
                                                     [
-                                                        'courseid' => $courseid,
+                                                        'courseid'   => $courseid,
                                                         'instanceid' => $instanceid
                                                     ]);
 
@@ -187,8 +187,8 @@ class enrol_wallet_external extends external_api {
                 $cost = $instance->cost;
                 $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
                 $a = [
-                    'cost_before' => $cost,
-                    'cost_after' => $costafter,
+                    'cost_before'  => $cost,
+                    'cost_after'   => $costafter,
                     'user_balance' => $balance,
                 ];
                 if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE) {
@@ -198,10 +198,10 @@ class enrol_wallet_external extends external_api {
                 }
 
                 $warnings[] = [
-                    'item' => 'instance',
-                    'itemid' => $instance->id,
+                    'item'        => 'instance',
+                    'itemid'      => $instance->id,
                     'warningcode' => '1',
-                    'message' => $enrolstatus
+                    'message'     => $enrolstatus
                 ];
             }
         }
@@ -220,7 +220,7 @@ class enrol_wallet_external extends external_api {
     public static function enrol_user_returns() {
         return new external_single_structure(
             [
-                'status' => new external_value(PARAM_BOOL, 'status: true if the user is enrolled, false otherwise'),
+                'status'   => new external_value(PARAM_BOOL, 'status: true if the user is enrolled, false otherwise'),
                 'warnings' => new external_warnings()
             ]
         );

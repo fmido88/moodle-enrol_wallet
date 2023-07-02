@@ -25,26 +25,26 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
+$tasks = [
+    [
         'classname' => '\enrol_wallet\task\sync_enrolments',
-        'blocking' => 0,
-        'minute' => '*/10',
-        'hour' => '*',
-        'day' => '*',
-        'month' => '*',
+        'blocking'  => 0,
+        'minute'    => '*/10',
+        'hour'      => '*',
+        'day'       => '*',
+        'month'     => '*',
         'dayofweek' => '*',
-        'disabled' => 0
-    ),
-    array(
+        'disabled'  => 0
+    ],
+    [
         'classname' => '\enrol_wallet\task\send_expiry_notifications',
-        'blocking' => 0,
-        'minute' => '*/10',
-        'hour' => '*',
-        'day' => '*',
-        'month' => '*',
+        'blocking'  => 0,
+        'minute'    => '*/10',
+        'hour'      => '*',
+        'day'       => '*',
+        'month'     => '*',
         'dayofweek' => '*',
-        'disabled' => 0
-    )
-);
+        'disabled'  => 0
+    ]
+];
 

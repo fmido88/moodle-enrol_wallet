@@ -93,14 +93,17 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
             $updatesql[] = 'status = :status';
             $params['status'] = (int)$status;
         }
+
         if (!empty($timestart)) {
             $updatesql[] = 'timestart = :timestart';
             $params['timestart'] = (int)$timestart;
         }
+
         if (!empty($timeend)) {
             $updatesql[] = 'timeend = :timeend';
             $params['timeend'] = (int)$timeend;
         }
+
         if (empty($updatesql)) {
             return true;
         }

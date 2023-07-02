@@ -38,11 +38,12 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
     require_once(__DIR__.'/locallib.php');
     global $OUTPUT;
     $context = context_system::instance();
+    $cancredit = has_capability('enrol/wallet:creditdebit', $context);
+
     // Only the user with capability could see other user's ballance.
     if (!$iscurrentuser && !has_capability('enrol/wallet:viewotherbalance', $context)) {
         return;
     }
-    $cancredit = has_capability('enrol/wallet:creditdebit', $context);
 
     // Add the main category.
     $wdcategory = new core_user\output\myprofile\category('walletcreditdisplay',
@@ -77,6 +78,7 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
                                                         'enrol_wallet_display_node');
             $tree->add_node($node2);
         }
+
     } else {
         // Node 3 to display charger form and coupon view and generation pages links.
         $render3 = '';
@@ -107,11 +109,11 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
     $context = context_system::instance();
 
     $captransactions = has_capability('enrol/wallet:transaction', $context);
-    $capcredit = has_capability('enrol/wallet:creditdebit', $context);
-    $capbulkedit = has_capability('enrol/wallet:bulkedit', $context);
-    $capcouponview = has_capability('enrol/wallet:viewcoupon', $context);
+    $capcredit       = has_capability('enrol/wallet:creditdebit', $context);
+    $capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
+    $capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
     $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
-    $hassiteconfig = has_capability('moodle/site:config', $context);
+    $hassiteconfig   = has_capability('moodle/site:config', $context);
 
     $any = ($captransactions || $capcredit || $capbulkedit || $capcouponview || $capcouponcreate);
     $ismoodle = (get_config('enrol_wallet', 'walletsource') === enrol_wallet\transactions::SOURCE_MOODLE);

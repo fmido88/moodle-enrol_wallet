@@ -62,9 +62,9 @@ class deleteselectedusers_operation extends \enrol_bulk_enrolment_operation {
         if (!array($defaultcustomdata)) {
             $defaultcustomdata = array();
         }
-        $defaultcustomdata['title'] = $this->get_title();
+        $defaultcustomdata['title']   = $this->get_title();
         $defaultcustomdata['message'] = get_string('confirmbulkdeleteenrolment', 'enrol_wallet');
-        $defaultcustomdata['button'] = get_string('unenrolusers', 'enrol_wallet');
+        $defaultcustomdata['button']  = get_string('unenrolusers', 'enrol_wallet');
 
         return new deleteselectedusers_form($defaultaction, $defaultcustomdata);
     }

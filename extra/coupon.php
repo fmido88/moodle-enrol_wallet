@@ -69,7 +69,7 @@ $mform->setDefault('length', 8);
 $mform->hideIf('length' , 'method', 'eq', 'single');
 
 $types = [
-    'fixed' => get_string('fixedvaluecoupon', 'enrol_wallet'),
+    'fixed'   => get_string('fixedvaluecoupon', 'enrol_wallet'),
     'percent' => get_string('percentdiscountcoupon', 'enrol_wallet'),
 ];
 $mform->addElement('select', 'type', get_string('coupon_type', 'enrol_wallet'), $types);

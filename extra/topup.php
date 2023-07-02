@@ -24,11 +24,11 @@
 require_once('../../../config.php');
 require(__DIR__.'/../lib.php');
 $instanceid = required_param('instanceid', PARAM_INT);
-$courseid = required_param('courseid', PARAM_INT);
-$confirm = optional_param('confirm', 0, PARAM_BOOL);
-$account = required_param('account', PARAM_INT);
-$currency = required_param('currency', PARAM_TEXT);
-$val = optional_param('value', 0, PARAM_NUMBER);
+$courseid   = required_param('courseid', PARAM_INT);
+$confirm    = optional_param('confirm', 0, PARAM_BOOL);
+$account    = required_param('account', PARAM_INT);
+$currency   = required_param('currency', PARAM_TEXT);
+$val        = optional_param('value', 0, PARAM_NUMBER);
 
 // Check the conditional discount.
 $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
@@ -66,15 +66,15 @@ if (confirm_sesskey()) {
         $id = $DB->insert_record('enrol_wallet_items', ['cost' => $value, 'currency' => $currency, 'userid' => $USER->id]);
         // Prepare the payment button.
         $attributes = [
-            'class' => "btn btn-primary",
-            'type' => "button",
-            'id' => "gateways-modal-trigger-$account",
-            'data-action' => "core_payment/triggerPayment",
-            'data-component' => "enrol_wallet",
+            'class'            => "btn btn-primary",
+            'type'             => "button",
+            'id'               => "gateways-modal-trigger-$account",
+            'data-action'      => "core_payment/triggerPayment",
+            'data-component'   => "enrol_wallet",
             'data-paymentarea' => "wallettopup",
-            'data-itemid' => "$id",
-            'data-cost' => "$value",
-            'data-successurl' => "$url",
+            'data-itemid'      => "$id",
+            'data-cost'        => "$value",
+            'data-successurl'  => "$url",
             'data-description' => "$desc",
         ];
 
@@ -87,8 +87,8 @@ if (confirm_sesskey()) {
 
         $policy = get_config('enrol_wallet', 'refundpolicy');
         $a = (object) [
-            'value' => $value,
-            'before' => $val,
+            'value'    => $value,
+            'before'   => $val,
             'currency' => $currency,
         ];
         if (!empty($policy)) {
