@@ -28,6 +28,7 @@
     {
         "balance": 50,
         "currency": "EGP",
+        "main" : "20",
         "transaction": "<a href='https://your-moodle.com/enrol/wallet/extra/transactions.php'>Wallet transactions</a>",
         "norefund": 30,
         "policy": "something",
@@ -40,9 +41,10 @@
     <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
     <p style="text-align: center; direction: ltr;">
         <span class="balance-card" style="text-align: center; direction: ltr;">{{# str }} youhavebalance, enrol_wallet {{/ str }}<br>
-            <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
+            <strong><span class="wallet-ballance" style="font-size: x-large;">{{main}} {{currency}}</span></strong><br>
             {{# str }} inyourwallet, enrol_wallet {{/ str }} <br>
             <span class="wallet-ballance">{{# str }} notrefund, enrol_wallet {{/ str }} {{norefund}} {{currency}}</span><br>
+            <span class="wallet-ballance">{{# str }} totalbalance, enrol_wallet {{/ str }} {{balance}} {{currency}}</span><br>
             {{# policy}}
             <a href="#" id="enrol_wallet_transactions-policy-url" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
             {{/ policy}}

@@ -264,7 +264,7 @@ $string['newusergift_desc'] = 'Apply wallet gift for new user in moodle website'
 $string['newusergift_enable'] = 'Enable new user gifts';
 $string['newusergift_enable_help'] = 'If enabled, new users will have the gift you decided in their wallet.';
 $string['not_set'] = 'Not set';
-$string['notrefund'] = ' but this amount is nonrefundable: ';
+$string['notrefund'] = ' Nonrefundable (extra): ';
 $string['nonrefundable'] = 'Nonrefundable';
 $string['nonrefundable_transform_desc'] = "Transform the transaction to nonrefundable due to expiring of refund period.\n";
 $string['nochange'] = 'No change';
@@ -318,6 +318,7 @@ $string['syncenrolmentstask'] = 'Wallet enrolment synchronise enrolments task';
 
 $string['transactions'] = 'Wallet Transactions';
 
+$string['totalbalance'] = 'Total balance: ';
 $string['topup'] = 'topup';
 $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';

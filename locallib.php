@@ -362,6 +362,7 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
     }
 
     $tempctx = new stdClass;
+    $tempctx->main = number_format($balance - $norefund, 2);
     $tempctx->balance = number_format($balance, 2);
     $tempctx->currency = $currency;
     $tempctx->norefund = number_format($norefund, 2);
