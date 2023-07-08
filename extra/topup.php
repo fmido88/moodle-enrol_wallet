@@ -23,6 +23,7 @@
 
 require_once('../../../config.php');
 require_once(__DIR__.'/../lib.php');
+
 $instanceid = required_param('instanceid', PARAM_INT);
 $courseid   = required_param('courseid', PARAM_INT);
 $confirm    = optional_param('confirm', 0, PARAM_BOOL);
@@ -43,73 +44,74 @@ if (!empty($enabled) && !empty($condition) && !empty($discount) && $val >= $cond
 
 $context = context_course::instance($courseid);
 
-if (confirm_sesskey()) {
+if (!confirm_sesskey()) {
+    throw new moodle_exception('invalidsesskey');
+}
 
-    if ($confirm) {
-        // No need for this condition as the payment button use its own success url.
-        $url = new moodle_url('/course/view.php', ['courseid' => $courseid]);
-        redirect($url);
-    } else {
-        global $USER, $DB;
+if ($confirm) {
+    // No need for this condition as the payment button use its own success url.
+    $url = new moodle_url('/course/view.php', ['courseid' => $courseid]);
+    redirect($url);
+} else {
+    global $DB, $USER;
 
-        $PAGE->set_context(context_system::instance());
-        $PAGE->set_pagelayout('standard');
-        $PAGE->set_url(new moodle_url('/enrol/wallet/extra/topup.php'));
-        $PAGE->set_title(new lang_string('confirm'));
+    $PAGE->set_context(context_system::instance());
+    $PAGE->set_pagelayout('standard');
+    $PAGE->set_url(new moodle_url('/enrol/wallet/extra/topup.php'));
+    $PAGE->set_title(new lang_string('confirm'));
 
-        require_login();
+    require_login();
 
-        echo $OUTPUT->header();
+    echo $OUTPUT->header();
 
-        $desc = get_string('paymenttopup_desc', 'enrol_wallet');
-        $url = ($courseid == SITEID) ? new \moodle_url('/') : new \moodle_url('/course/view.php', ['id' => $courseid]);
+    $desc = get_string('paymenttopup_desc', 'enrol_wallet');
+    $url = ($courseid == SITEID) ? new \moodle_url('/') : new \moodle_url('/course/view.php', ['id' => $courseid]);
 
-        // Set a fake item form payment.
-        $id = $DB->insert_record('enrol_wallet_items', ['cost' => $value, 'currency' => $currency, 'userid' => $USER->id]);
-        // Prepare the payment button.
-        $attributes = [
-            'class'            => "btn btn-primary",
-            'type'             => "button",
-            'id'               => "gateways-modal-trigger-$account",
-            'data-action'      => "core_payment/triggerPayment",
-            'data-component'   => "enrol_wallet",
-            'data-paymentarea' => "wallettopup",
-            'data-itemid'      => "$id",
-            'data-cost'        => "$value",
-            'data-successurl'  => "$url",
-            'data-description' => "$desc",
-        ];
+    // Set a fake item form payment.
+    $id = $DB->insert_record('enrol_wallet_items', ['cost' => $value, 'currency' => $currency, 'userid' => $USER->id]);
+    // Prepare the payment button.
+    $attributes = [
+        'class'            => "btn btn-primary",
+        'type'             => "button",
+        'id'               => "gateways-modal-trigger-$account",
+        'data-action'      => "core_payment/triggerPayment",
+        'data-component'   => "enrol_wallet",
+        'data-paymentarea' => "wallettopup",
+        'data-itemid'      => "$id",
+        'data-cost'        => "$value",
+        'data-successurl'  => "$url",
+        'data-description' => "$desc",
+    ];
 
-        // Again there is no need for this $yesurl as clicking the button trigger the payment.
-        // Just in case.
-        $yesurl = new moodle_url('/enrol/wallet/extra/topup.php');
-        $buttoncontinue = new single_button($yesurl, get_string('yes'), 'get', true, $attributes);
+    // Again there is no need for this $yesurl as clicking the button trigger the payment.
+    // Just in case.
+    $yesurl = new moodle_url('/enrol/wallet/extra/topup.php');
+    $buttoncontinue = new single_button($yesurl, get_string('yes'), 'get', true, $attributes);
 
-        $buttoncancel = new single_button($url, get_string('no'), 'get');
+    $buttoncancel = new single_button($url, get_string('no'), 'get');
 
-        $a = (object) [
-            'value'    => $value,
-            'before'   => $val,
-            'currency' => $currency,
-        ];
+    $a = (object) [
+        'value'    => $value,
+        'before'   => $val,
+        'currency' => $currency,
+    ];
 
-        $policy = get_config('enrol_wallet', 'refundpolicy');
-        if (!empty($policy)) {
-            $a->policy = $policy;
-        }
-        if ($val == $value) {
-            $message = get_string('confirmpayment', 'enrol_wallet', $a);
-        } else {
-            $message = get_string('confirmpayment_discounted', 'enrol_wallet', $a);
-        }
-
-        // This code is required for payment button.
-        $code = 'require([\'core_payment/gateways_modal\'], function(modal) {
-            modal.init();
-        });';
-        $PAGE->requires->js_init_code($code);
-
-        echo $OUTPUT->confirm($message, $buttoncontinue, $buttoncancel);
-        echo $OUTPUT->footer();
+    $policy = get_config('enrol_wallet', 'refundpolicy');
+    if (!empty($policy)) {
+        $a->policy = $policy;
     }
+    if ($val == $value) {
+        $message = get_string('confirmpayment', 'enrol_wallet', $a);
+    } else {
+        $message = get_string('confirmpayment_discounted', 'enrol_wallet', $a);
+    }
+
+    // This code is required for payment button.
+    $code = 'require([\'core_payment/gateways_modal\'], function(modal) {
+        modal.init();
+    });';
+    $PAGE->requires->js_init_code($code);
+
+    echo $OUTPUT->confirm($message, $buttoncontinue, $buttoncancel);
+    echo $OUTPUT->footer();
 }

@@ -392,6 +392,7 @@ class transactions {
      * @param string $coupon the coupon code.
      * @param int $userid
      * @param int $instanceid
+     * @param string $type percent or fixed.
      * @return void
      */
     public static function mark_coupon_used($coupon, $userid, $instanceid, $type = '') {

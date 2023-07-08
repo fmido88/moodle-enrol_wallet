@@ -235,6 +235,7 @@ class wordpress {
      * Creating or updating wordpress user associative with the moodle user.
      * return wordpress user's id.
      * @param int|object $user user id or user object.
+     * @param string $password raw password before hashing.
      * @return int|bool wordpress user id or false on fail.
      */
     public function create_wordpress_user($user, $password = null) {
@@ -285,10 +286,13 @@ class wordpress {
             || empty($wordpressurl) // If the wp url is not set.
             || !$user // If this is a valid user.
             || isguestuser($user) // Not guest.
+            || ($method == 'login' && !isloggedin())
+            || ($method == 'logout' && isloggedin())
             ) {
             // Redirect to the home page.
             redirect(new \moodle_url('/'));
         }
+
         // The data to send to wordpress.
         $data = [
             'moodle_user_id' => $userid,
