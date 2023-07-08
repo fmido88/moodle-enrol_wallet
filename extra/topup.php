@@ -22,7 +22,7 @@
  */
 
 require_once('../../../config.php');
-require(__DIR__.'/../lib.php');
+require_once(__DIR__.'/../lib.php');
 $instanceid = required_param('instanceid', PARAM_INT);
 $courseid   = required_param('courseid', PARAM_INT);
 $confirm    = optional_param('confirm', 0, PARAM_BOOL);
@@ -41,7 +41,6 @@ if (!empty($enabled) && !empty($condition) && !empty($discount) && $val >= $cond
     $value = $val;
 }
 
-require_login();
 $context = context_course::instance($courseid);
 
 if (confirm_sesskey()) {
@@ -52,10 +51,13 @@ if (confirm_sesskey()) {
         redirect($url);
     } else {
         global $USER, $DB;
+
         $PAGE->set_context(context_system::instance());
         $PAGE->set_pagelayout('standard');
         $PAGE->set_url(new moodle_url('/enrol/wallet/extra/topup.php'));
         $PAGE->set_title(new lang_string('confirm'));
+
+        require_login();
 
         echo $OUTPUT->header();
 
@@ -85,12 +87,13 @@ if (confirm_sesskey()) {
 
         $buttoncancel = new single_button($url, get_string('no'), 'get');
 
-        $policy = get_config('enrol_wallet', 'refundpolicy');
         $a = (object) [
             'value'    => $value,
             'before'   => $val,
             'currency' => $currency,
         ];
+
+        $policy = get_config('enrol_wallet', 'refundpolicy');
         if (!empty($policy)) {
             $a->policy = $policy;
         }

@@ -380,6 +380,15 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
 function enrol_wallet_display_topup_options() {
     global $CFG, $OUTPUT;
     require_once($CFG->dirroot.'/enrol/wallet/classes/form/topup_form.php');
+    require_once(__DIR__.'/lib.php');
+    $username = optional_param('s', '', PARAM_RAW);
+    if (!empty($username)) {
+        $user = get_complete_user_data('username', $username);
+    } else {
+        global $USER;
+        $user = $USER;
+    }
+
     // Get the default currency.
     $currency = get_config('enrol_wallet', 'currency');
     // Get the default payment account.
@@ -396,6 +405,7 @@ function enrol_wallet_display_topup_options() {
     $instance->customint1 = $account;
 
     $data->instance = $instance;
+    $data->user = $user;
     $render = '';
     // First check if payments is enabled.
     if (enrol_wallet_is_valid_account($account)) {

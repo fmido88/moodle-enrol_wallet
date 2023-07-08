@@ -205,3 +205,39 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
         }
     }
 }
+
+/**
+ * Callback after user signup to create wordpress user.
+ * @param object $user
+ * @return void
+ */
+function enrol_wallet_post_signup_requests($user) {
+    $source = get_config('enrol_wallet', 'walletsource');
+    if ($source == enrol_wallet\transactions::SOURCE_WORDPRESS) {
+        $wordpress = new \enrol_wallet\wordpress;
+        $wordpress->create_wordpress_user($user, $user->password);
+    }
+}
+
+/**
+ * Callback after set new password to update it in wordpress.
+ * @param object $data
+ * @param object $user
+ * @return void
+ */
+function enrol_wallet_post_set_password_requests($data, $user) {
+    $user->password = $data->password;
+    return enrol_wallet_post_signup_requests($user);
+}
+
+/**
+ * Callback after set new password to update it in wordpress
+ * @param object $data
+ * @return void
+ */
+function enrol_wallet_post_change_password_requests($data) {
+    global  $USER;
+    $user = $USER;
+    $user->password = $data->newpassword1;
+    return enrol_wallet_post_signup_requests($user);
+}

@@ -161,7 +161,7 @@ class wordpress {
      * @param bool $apply
      * @return array|string
      */
-    public function get_coupon($coupon, $userid, $instanceid, $apply) {
+    public function get_coupon($coupon, $userid, $instanceid, $apply = false) {
         $method = 'get_coupon_value';
         $data = [
             'coupon'         => $coupon,
@@ -194,10 +194,12 @@ class wordpress {
             return get_string('coupon_novalue', 'enrol_wallet');
         }
 
-        if ($coupontype == 'fixed_cart' || $coupontype == 'fixed_product') {
+        if (strpos($coupontype, 'fixed') !== false) {
             $coupontype = 'fixed';
-        } else if (strpos($coupontype, 'percent')) {
+        } else if (strpos($coupontype, 'percent') !== false) {
             $coupontype = 'percent';
+        } else {
+            throw new \moodle_exception('invalidcoupontype');
         }
 
         $coupondata = [
@@ -230,21 +232,35 @@ class wordpress {
     }
 
     /**
-     * Creating wordpress user associative with the moodle user.
+     * Creating or updating wordpress user associative with the moodle user.
      * return wordpress user's id.
-     * @param int $userid
-     * @return int|bool
+     * @param int|object $user user id or user object.
+     * @return int|bool wordpress user id or false on fail.
      */
-    private function create_wordpress_user($userid) {
-        $user = \core_user::get_user($userid);
-        if (!$user) {
+    public function create_wordpress_user($user, $password = null) {
+
+        if (is_number($user)) {
+            $user = \core_user::get_user($user);
+        }
+
+        if (empty($user) || !is_object($user)) {
             return false;
         }
+
+        // If the request is from post signup request, create the user here to get user id.
+        if (!get_complete_user_data('username', $user->username)) {
+            $auth = get_auth_plugin($user->auth);
+            $auth->user_signup($user, false);
+            if (!$user = get_complete_user_data('username', $user->username)) {
+                return false;
+            }
+        }
+
         $data = [
             'username'       => $user->username,
-            'password'       => random_string(12),
+            'password'       => (empty($password)) ? generate_password() : $password,
             'email'          => $user->email,
-            'moodle_user_id' => $userid,
+            'moodle_user_id' => empty($user->id) ? '' : $user->id,
         ];
 
         return $this->request('create_user', $data);
@@ -283,6 +299,6 @@ class wordpress {
         ];
 
         $encdata = $this->encrypt_data($data);
-        redirect($wordpressurl . '?encdata=' . $encdata . '&moodleurl=' . (new \moodle_url('/'))->out());
+        redirect($wordpressurl . '?encdata=' . $encdata . '&moodleurl=' . (new \moodle_url('/'))->out(false));
     }
 }

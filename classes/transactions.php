@@ -394,7 +394,7 @@ class transactions {
      * @param int $instanceid
      * @return void
      */
-    public static function mark_coupon_used($coupon, $userid, $instanceid) {
+    public static function mark_coupon_used($coupon, $userid, $instanceid, $type = '') {
         global $DB;
 
         // Unset the session coupon to make sure not used again.
@@ -405,9 +405,12 @@ class transactions {
 
         $source = get_config('enrol_wallet', 'walletsource');
 
-        if ($source == self::SOURCE_WORDPRESS) {
+        if ($source == self::SOURCE_WORDPRESS && $type == 'percent') {
             // It is already included in the wordpress plugin code.
             $couponrecord = (object)self::get_coupon_value($coupon, $userid, $instanceid, true);
+
+        } else if ($source == self::SOURCE_WORDPRESS) {
+            $couponrecord = (object)self::get_coupon_value($coupon, $userid, $instanceid, false);
 
         } else {
 

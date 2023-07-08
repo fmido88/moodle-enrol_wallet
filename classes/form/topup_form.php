@@ -36,8 +36,8 @@ class topup_form extends \moodleform {
      * @return void
      */
     public function definition() {
-
         $instance = $this->_customdata->instance;
+
         $mform = $this->_form;
         $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'));
         $mform->setType('value', PARAM_NUMBER);

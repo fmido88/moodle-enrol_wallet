@@ -243,7 +243,7 @@ class observer {
         $params['action'] = 'login';
 
         // Using the observer to set redirect page so the operation done on foreground client side.
-        $SESSION->wantsurl = (new \moodle_url('/enrol/wallet/wplogin.php', $params))->out();
+        $SESSION->wantsurl = (new \moodle_url('/enrol/wallet/wplogin.php', $params))->out(false);
     }
 
     /**

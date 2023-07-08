@@ -34,24 +34,18 @@ if ($action == 'login') {
     global $SESSION;
     require_login();
 
-    if (!empty($wantsurl)) {
-        unset($SESSION->wantsurl);
-        $redirect = $wantsurl;
-    } else {
-        $redirect = core_login_get_return_url();
-    }
+    $redirect = core_login_get_return_url();
 
     $wordpress = new \enrol_wallet\wordpress;
     $wordpress->login_logout_user_to_wordpress($userid, 'login', $redirect);
 
 } else if ($action == 'logout') {
     global $redirect;
-    require_logout();
 
     if (!empty($newredirect)) {
         $redirect = $newredirect;
     } else {
-        $redirect = (new \moodle_url('/'))->out();
+        $redirect = (new \moodle_url('/'))->out(false);
     }
 
     $wordpress = new \enrol_wallet\wordpress;
