@@ -215,6 +215,8 @@ This is a notification that your enrolment in the course \'{$a->course}\' is due
 <br>
 If you need help, please contact {$a->enroller}.';
 
+$string['filter_coupons'] = 'Filter Coupons';
+$string['filter_transaction'] = 'Filter Transactions';
 $string['fixedvaluecoupon'] = 'Fixed value coupon';
 $string['fixedcoupondisabled'] = 'Fixed value coupons are disabled in this website.';
 
@@ -316,14 +318,13 @@ $string['sourcewordpress'] = 'External Tera-wallet (WooWallet)';
 $string['submit_coupongenerator'] = 'Create';
 $string['syncenrolmentstask'] = 'Wallet enrolment synchronise enrolments task';
 
-$string['transactions'] = 'Wallet Transactions';
-
 $string['totalbalance'] = 'Total balance: ';
 $string['topup'] = 'topup';
 $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
 $string['topuppayment_desc'] = 'Topping up the wallet by payment of {$a} using payment gateway.';
+$string['transactions'] = 'Wallet Transactions';
 $string['transaction_type'] = 'Type of transaction';
 $string['transaction_perpage'] = 'Trasactions per page';
 $string['transfer'] = 'Transfer balance to other user';

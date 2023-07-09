@@ -86,6 +86,8 @@ echo $OUTPUT->header();
 // Create the filtration form.
 $mform = new MoodleQuickForm('transactions', 'GET', $thisurl);
 
+$mform->addElement('header', 'filter', get_string('filter_transaction', 'enrol_wallet'));
+
 if ($viewall) {
     // Borrow potential users selectors from enrol_manual.
     $options = [
@@ -271,9 +273,11 @@ foreach ($records as $record) {
 }
 
 // -------------------------------------------------------------------------------------------
-ob_start();
+
 // Display the filtration form.
 $mform->display();
+
+echo $OUTPUT->heading(get_string('transactions', 'enrol_wallet'), 3);
 
 // Display pages links.
 echo $pageslinks;
@@ -283,7 +287,5 @@ $table->finish_output();
 
 // Page links again.
 echo $pageslinks;
-
-echo $OUTPUT->box(ob_get_clean());
 
 echo $OUTPUT->footer();

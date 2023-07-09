@@ -117,6 +117,8 @@ $PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
 // Setup the filtration form.
 $mform = new \MoodleQuickForm('couponfilter', 'get', 'coupontable.php');
 
+$mform->addElement('header', 'filter', get_string('filter_coupons', 'enrol_wallet'));
+
 $mform->addElement('text', 'code', get_string('coupon_code', 'enrol_wallet'));
 $mform->setType('code', PARAM_TEXT);
 $mform->setDefault('code', $code);
@@ -302,6 +304,7 @@ foreach ($records as $record) {
 }
 
 if (!$table->is_downloading()) {
+    echo $OUTPUT->heading(get_string('coupons', 'enrol_wallet'), 3);
     echo $OUTPUT->box($pageslinks);
 }
 
