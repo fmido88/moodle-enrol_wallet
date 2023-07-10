@@ -121,7 +121,7 @@ class wordpress {
      * @param float $amount
      * @param int $userid
      * @param string $description
-     * @param string $charger
+     * @param int $charger
      * @return array|string
      */
     public function credit($amount, $userid, $description = '', $charger = '') {

@@ -35,13 +35,13 @@ class notifications {
      * @return int the id of the message.
      */
     public static function transaction_notify($data) {
-        $userid = $data['userid'];
-        $type = $data['type'];
-        $amount = $data['amount'];
-        $before = $data['balbefore'];
+        $userid  = $data['userid'];
+        $type    = $data['type'];
+        $amount  = $data['amount'];
+        $before  = $data['balbefore'];
         $balance = $data['balance'];
-        $desc = $data['descripe'];
-        $time = userdate($data['timecreated']);
+        $desc    = $data['descripe'];
+        $time    = userdate($data['timecreated']);
 
         $a = (object)[
             'type'    => $type,
@@ -75,26 +75,13 @@ class notifications {
         $content = ['*' => ['header' => ' Wallet Transaction ', 'footer' => '']]; // Extra content for specific processor.
         $message->set_additional_content('email', $content);
 
+        // Set the page context to resolve the coding problem with airnotifier processor.
+        global $PAGE;
+        if (empty($PAGE->context)) {
+            $PAGE->set_context(\context_course::instance(SITEID));
+        }
         // Actually send the message.
         $messageid = message_send($message);
-
-        // BUG: there is an error with message processor airnotifier.
-        // I don't think that this error is from this plugin but this long comment to remind me to lookup for it.
-        // The main problem is with format_string() function and cannot determine the reason exactly.
-        /* Coding problem: $PAGE->context was not set.
-        You may have forgotten to call require_login() or $PAGE->set_context().
-        The page may not display correctly as a result
-        line 567 of /lib/pagelib.php: call to debugging()
-        line 962 of /lib/pagelib.php: call to moodle_page->magic_get_context()
-        line 1466 of /lib/weblib.php: call to moodle_page->__get()
-        line 91 of /message/output/airnotifier/message_output_airnotifier.php: call to format_string()
-        line 506 of /lib/classes/message/manager.php: call to message_output_airnotifier->send_message()
-        line 382 of /lib/classes/message/manager.php: call to core\message\manager::call_processors()
-        line 349 of /lib/classes/message/manager.php: call to core\message\manager::send_message_to_processors()
-        line 341 of /lib/messagelib.php: call to core\message\manager::send_message()
-        line 80 of /enrol/wallet/classes/notifications.php: call to message_send()
-        line 112 of /enrol/wallet/classes/transactions.php: call to enrol_wallet\notifications::transaction_notify()
-        line 63 of /enrol/wallet/extra/charger.php: call to enrol_wallet\transactions::payment_topup() */
 
         return $messageid;
     }

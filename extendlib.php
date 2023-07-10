@@ -212,8 +212,10 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
  * @return void
  */
 function enrol_wallet_post_signup_requests($user) {
+    // Check the wallet source first.
     $source = get_config('enrol_wallet', 'walletsource');
     if ($source == enrol_wallet\transactions::SOURCE_WORDPRESS) {
+        // Create or update corresponding user in wordpress.
         $wordpress = new \enrol_wallet\wordpress;
         $wordpress->create_wordpress_user($user, $user->password);
     }
@@ -236,25 +238,34 @@ function enrol_wallet_post_set_password_requests($data, $user) {
  * @return void
  */
 function enrol_wallet_post_change_password_requests($data) {
-    global  $USER;
+    global $USER;
     $user = $USER;
     $user->password = $data->newpassword1;
     return enrol_wallet_post_signup_requests($user);
 }
 
 /**
- * Notify users for low balance.
+ * Callback function in every page to notify users for low balance.
  * @return void
  */
 function enrol_wallet_before_standard_top_of_body_html() {
     global $USER;
+    // Don't display notice for guests or logged out.
+    if (!isloggedin() || isguestuser()) {
+        return;
+    }
+
+    // Check if notice is enabled.
     $notice = get_config('enrol_wallet', 'lowbalancenotice');
     if (empty($notice)) {
         return;
     }
+
+    // Check the conditions.
     $condition = get_config('enrol_wallet', 'noticecondition');
     $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
-    if ($balance <= (int)$condition) {
+    if ($balance !== false && is_numeric($balance) && $balance <= (int)$condition) {
+        // Display the warning.
         \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
     }
 }

@@ -53,7 +53,7 @@ $mform->addHelpButton('code', 'coupon_code', 'enrol_wallet');
 $mform->hideIf('code' , 'method', 'eq', 'random');
 
 $mform->addElement('text', 'value', get_string('coupon_value', 'enrol_wallet'));
-$mform->setType('value', PARAM_NUMBER);
+$mform->setType('value', PARAM_FLOAT);
 $mform->addHelpButton('value', 'coupon_value', 'enrol_wallet');
 
 $mform->addElement('text', 'number', get_string('coupons_number', 'enrol_wallet'));

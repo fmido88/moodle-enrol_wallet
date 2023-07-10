@@ -35,7 +35,7 @@ $op = optional_param('op', '', PARAM_TEXT);
 
 if (!empty($op) && $op != 'result' && confirm_sesskey()) {
 
-    $value  = optional_param('value', '', PARAM_NUMBER);
+    $value  = optional_param('value', '', PARAM_FLOAT);
     $userid = required_param("userlist", PARAM_INT);
     $err = '';
 

@@ -40,7 +40,7 @@ $candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
 
 // Parameters.
 $code             = optional_param('code', '', PARAM_TEXT);
-$value            = optional_param('value', '', PARAM_NUMBER);
+$value            = optional_param('value', '', PARAM_FLOAT);
 $type             = optional_param('type', '', PARAM_TEXT);
 $validtoarray     = optional_param_array('validto', [], PARAM_INT);
 $validfromarray   = optional_param_array('validfrom', [], PARAM_INT);
@@ -124,7 +124,7 @@ $mform->setType('code', PARAM_TEXT);
 $mform->setDefault('code', $code);
 
 $mform->addElement('text', 'value', get_string('coupon_value', 'enrol_wallet'));
-$mform->setType('value', PARAM_NUMBER);
+$mform->setType('value', PARAM_FLOAT);
 $mform->setDefault('value', $value);
 
 $types = [

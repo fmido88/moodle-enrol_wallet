@@ -97,7 +97,7 @@ class enrol_wallet_external extends external_api {
                 'type'     => new external_value(PARAM_PLUGIN, 'type of enrolment plugin'),
                 'name'     => new external_value(PARAM_RAW, 'name of enrolment plugin'),
                 'status'   => new external_value(PARAM_RAW, 'status of enrolment plugin'),
-                'cost'     => new external_value(PARAM_NUMBER, 'The cost of the course'),
+                'cost'     => new external_value(PARAM_FLOAT, 'The cost of the course'),
             ]
         );
     }

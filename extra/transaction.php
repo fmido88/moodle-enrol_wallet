@@ -39,7 +39,7 @@ $userid    = (!$viewall) ? $USER->id : optional_param('user', '', PARAM_INT);
 $datefrom  = optional_param_array('datefrom', [], PARAM_INT);
 $dateto    = optional_param_array('dateto', [], PARAM_INT);
 $ttype     = optional_param('ttype', '', PARAM_TEXT);
-$value     = optional_param('value', '', PARAM_NUMBER);
+$value     = optional_param('value', '', PARAM_FLOAT);
 $limitnum  = optional_param('perpage', 50, PARAM_INT);
 $limitfrom = optional_param('page', 0, PARAM_INT);
 
@@ -116,7 +116,7 @@ $mform->addElement('select', 'ttype', get_string('transaction_type', 'enrol_wall
 
 // Select specific value.
 $mform->addElement('text', 'value', get_string('value', 'enrol_wallet'));
-$mform->setType('value', PARAM_NUMBER);
+$mform->setType('value', PARAM_FLOAT);
 
 // Transaction perpage.
 $limits = [];

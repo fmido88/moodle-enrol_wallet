@@ -41,7 +41,7 @@ $confirm = optional_param('confirm', '', PARAM_BOOL);
 if ($confirm && confirm_sesskey()) {
     global $USER;
     $email  = required_param('email', PARAM_EMAIL);
-    $amount = required_param('amount', PARAM_NUMBER);
+    $amount = required_param('amount', PARAM_FLOAT);
 
     // No email or invalid email format.
     if (empty($email)) {

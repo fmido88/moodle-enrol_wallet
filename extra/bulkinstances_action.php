@@ -42,7 +42,7 @@ if ($name != '') {
     $data->name = $name;
 }
 
-$cost = optional_param('cost', '', PARAM_NUMBER);
+$cost = optional_param('cost', '', PARAM_FLOAT);
 if ($cost != '' && $cost > 0.01) {
     $data->cost = $cost;
 }
@@ -105,8 +105,8 @@ if ($awards) {
     }
 
     if (!empty($customint8)) {
-        $customdec1 = required_param('customdec1', PARAM_NUMBER);
-        $customdec2 = required_param('customdec2', PARAM_NUMBER);
+        $customdec1 = required_param('customdec1', PARAM_FLOAT);
+        $customdec2 = required_param('customdec2', PARAM_FLOAT);
         $data->customdec1 = $customdec1;
         $data->customdec2 = $customdec2;
     } else {
