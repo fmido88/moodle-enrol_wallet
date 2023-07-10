@@ -59,6 +59,7 @@ So there is two options:
 
 9. Cohorts restrictions.
     * In each enrol_wallet instance, course creator can decide if only users in a certain course can enrol (using any of previous methods) or not.
+
 10. Another course enrollment restriction.
     * Course creator can decide to restrict using wallet enrollment so only users enrolled in a set of other selected courses can enrol themselves in this course.
     * Also the creator can select a set of 10 courses in example, and set number of of required courses 5 for example, so the user must be enrolled at least in five courses from the 10 selected.
@@ -120,6 +121,10 @@ So there is two options:
 21. Notifications for every transaction.
     * Users gets a notifications for every debit or credit type of transaction in their wallet.
     * Admins can change the way users get notify from messages setting.
+
+22. Low balance notice.
+    * Display a warning notice to the user in case of low balance.
+    * This is optional and admin can decide the minimum balance to call it a low balance.
 
 22. Events.
     * Almost any action in this plugin triggers its own event.

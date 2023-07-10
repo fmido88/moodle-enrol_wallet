@@ -249,7 +249,7 @@ class wordpress {
         }
 
         // If the request is from post signup request, create the user here to get user id.
-        if (!get_complete_user_data('username', $user->username)) {
+        if (!get_complete_user_data('username', $user->username) || empty($user->id)) {
             $auth = get_auth_plugin($user->auth);
             $auth->user_signup($user, false);
             if (!$user = get_complete_user_data('username', $user->username)) {

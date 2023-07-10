@@ -233,6 +233,10 @@ $string['invalidcoupon_operation'] = 'Invalid coupon operation, This coupon type
 
 $string['longtimenosee'] = 'Un-enrol inactive after';
 $string['longtimenosee_help'] = 'If users haven\'t accessed a course for a long time, then they are automatically unenrolled. This parameter specifies that time limit.';
+$string['lowbalancenotification'] = 'Low Wallet Balance<br>Your balance is {$a}.';
+$string['lowbalancenotify'] = 'Low Balance Notification.';
+$string['lowbalancenotify_desc'] = 'If enabled and the user\'s balance is smaller than or equal the condition, a warrning notifications appears in every page in the website.';
+$string['lowbalancenotice'] = 'Enable low balance notice';
 $string['lowerletters'] = 'lower case';
 
 $string['maxenrolled'] = 'Max enrolled users';
@@ -272,6 +276,8 @@ $string['nonrefundable_transform_desc'] = "Transform the transaction to nonrefun
 $string['nochange'] = 'No change';
 $string['nocost'] = 'this course has invalid cost';
 $string['nocoupons'] = 'Disable coupons';
+$string['noticecondition'] = 'Min balance for notify';
+$string['noticecondition_desc'] = 'If the balance is smaller than or equal this condition, a notification appear to the user.';
 
 $string['othercourserestriction'] = 'Unable to enrol your self in this course unless you are enrolled in these courses {$a}';
 

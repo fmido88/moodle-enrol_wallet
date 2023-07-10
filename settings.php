@@ -246,6 +246,19 @@ if ($ADMIN->fulltree) {
                                             0,
                                             PARAM_NUMBER));
 
+    // Add low balance notification settings.
+    $settings->add(new admin_setting_heading('enrol_wallet_notify',
+                                            get_string('lowbalancenotify', 'enrol_wallet'),
+                                            get_string('lowbalancenotify_desc', 'enrol_wallet')));
+
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/lowbalancenotice',
+                                            get_string('lowbalancenotice', 'enrol_wallet'), '', 0));
+
+    $settings->add(new admin_setting_configtext('enrol_wallet/noticecondition',
+                                            get_string('noticecondition', 'enrol_wallet'),
+                                            get_string('noticecondition_desc', 'enrol_wallet'),
+                                            0, PARAM_INT));
+
     // Enrol instance defaults.
     $settings->add(new admin_setting_heading('enrol_wallet_defaults',
         get_string('enrolinstancedefaults', 'admin'), get_string('enrolinstancedefaults_desc', 'admin')));

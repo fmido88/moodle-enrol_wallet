@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 2.0.0 ##
+- Add option to display a notice for low balance.
+- Enhance user creation in wordpress.
+- Fix minor bugs.
+
 ## V 1.8.2 ##
 - Fix the the table name in get_record().
 - Fix the functionality of the function get_unenrolself_link().

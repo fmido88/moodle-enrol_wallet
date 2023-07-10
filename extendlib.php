@@ -241,3 +241,20 @@ function enrol_wallet_post_change_password_requests($data) {
     $user->password = $data->newpassword1;
     return enrol_wallet_post_signup_requests($user);
 }
+
+/**
+ * Notify users for low balance.
+ * @return void
+ */
+function enrol_wallet_before_standard_top_of_body_html() {
+    global $USER;
+    $notice = get_config('enrol_wallet', 'lowbalancenotice');
+    if (empty($notice)) {
+        return;
+    }
+    $condition = get_config('enrol_wallet', 'noticecondition');
+    $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
+    if ($balance <= (int)$condition) {
+        \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
+    }
+}
