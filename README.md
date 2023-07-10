@@ -126,7 +126,7 @@ So there is two options:
     * Display a warning notice to the user in case of low balance.
     * This is optional and admin can decide the minimum balance to call it a low balance.
 
-22. Events.
+23. Events.
     * Almost any action in this plugin triggers its own event.
     * Transactions events: with every credit or debit action to users wallet.
     * Using coupon: if a coupon used it triggers its own event.
@@ -135,14 +135,19 @@ So there is two options:
     * Gift: If a new user get gifted.
 These events helps administrators or managers to track the wallet workflow.
 
-23. Enhanced security.
+24. Enhanced security.
     * In the latest version, connection to wordpress is secure using encrypted data.
     * Also using shared secret key which the admin must match those in moodle and wordpress in order for secure connection.
 
-24. Login and logout to wordpress.
+25. Login and logout to wordpress.
     * When a user login or logout from moodle website, automatically logged in or out from wordpress website.
     * Admin can disable this option of course.
 
+26. Auto create wordpress user.
+    * only active if the wallet source is wordpress.
+    * Creating new user in wordpress website with same username and password.
+    * Update the password automatically when updated in moodle.
+    * Updating another user data not available yet in current version.
 
 # Wallet block #
 
