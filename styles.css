@@ -1,0 +1,7 @@
+label#charge-operation_label,
+label#charge-value_label,
+label#id_userlist_label,
+label#id_value_label,
+p#fgroup_id_coupons_label {
+    word-break: normal!important;
+}
