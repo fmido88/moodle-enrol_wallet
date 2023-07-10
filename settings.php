@@ -244,7 +244,7 @@ if ($ADMIN->fulltree) {
                                             get_string('giftvalue', 'enrol_wallet'),
                                             get_string('giftvalue_help', 'enrol_wallet'),
                                             0,
-                                            PARAM_NUMBER));
+                                            PARAM_FLOAT));
 
     // Add low balance notification settings.
     $settings->add(new admin_setting_heading('enrol_wallet_notify',
@@ -343,12 +343,12 @@ if ($ADMIN->fulltree) {
                                                                 get_string('awardcreteria', 'enrol_wallet'),
                                                                 get_string('awardcreteria_help', 'enrol_wallet'),
                                                                 0,
-                                                                PARAM_NUMBER,
+                                                                PARAM_FLOAT,
                                                                 null,
                                                                 2));
     // Award value.
     $settings->add(new admin_setting_configtext('enrol_wallet/awardvalue', get_string('awardvalue', 'enrol_wallet'),
-                                                    get_string('awardvalue_help', 'enrol_wallet'), 0, PARAM_NUMBER));
+                                                    get_string('awardvalue_help', 'enrol_wallet'), 0, PARAM_FLOAT));
 }
 // Include extra pages.
 require_once('extrasettings.php');

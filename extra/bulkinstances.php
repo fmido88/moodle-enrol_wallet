@@ -206,13 +206,13 @@ $mform->addHelpButton('customint8', 'awards', 'enrol_wallet');
 $mform->disabledIf('customint8', 'awards', 'notchecked');
 
 $mform->addElement('text', 'customdec1', get_string('awardcreteria', 'enrol_wallet'));
-$mform->setType('customdec1', PARAM_NUMBER);
+$mform->setType('customdec1', PARAM_FLOAT);
 $mform->disabledIf('customdec1', 'customint8', 'notchecked');
 $mform->addHelpButton('customdec1', 'awardcreteria', 'enrol_wallet');
 $mform->hideIf('customdec1', 'awards', 'notchecked');
 
 $mform->addElement('text', 'customdec2', get_string('awardvalue', 'enrol_wallet'));
-$mform->setType('customdec2', PARAM_NUMBER);
+$mform->setType('customdec2', PARAM_FLOAT);
 $mform->disabledIf('customdec2', 'customint8', 'notchecked');
 $mform->addHelpButton('customdec2', 'awardvalue', 'enrol_wallet');
 $mform->hideIf('customdec2', 'awards', 'notchecked');

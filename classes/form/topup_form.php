@@ -40,7 +40,7 @@ class topup_form extends \moodleform {
 
         $mform = $this->_form;
         $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'));
-        $mform->setType('value', PARAM_NUMBER);
+        $mform->setType('value', PARAM_FLOAT);
         $mform->addHelpButton('value', 'topupvalue', 'enrol_wallet');
 
         $mform->addElement('hidden', 'courseid');

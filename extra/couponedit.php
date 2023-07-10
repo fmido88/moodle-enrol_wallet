@@ -36,7 +36,7 @@ if ($edit) { // The edit form.
     $id        = required_param('id', PARAM_INT);
     $code      = required_param('code', PARAM_TEXT);
     $type      = required_param('type', PARAM_TEXT);
-    $value     = required_param('value', PARAM_NUMBER);
+    $value     = required_param('value', PARAM_FLOAT);
     $maxusage  = optional_param('maxusage', 0, PARAM_INT);
     $usetimes  = optional_param('usetimes', 0, PARAM_INT);
     $validfrom = optional_param('validfrom', 0, PARAM_INT);
@@ -66,7 +66,7 @@ if ($edit) { // The edit form.
     $mform->setDefault('code', $code);
 
     $mform->addElement('text', 'value', get_string('coupon_value', 'enrol_wallet'));
-    $mform->setType('value', PARAM_NUMBER);
+    $mform->setType('value', PARAM_FLOAT);
     $mform->addHelpButton('value', 'coupon_value', 'enrol_wallet');
     $mform->setDefault('value', $value);
 
@@ -116,7 +116,7 @@ if ($edit) { // The edit form.
     $id            = required_param('id', PARAM_INT);
     $code          = required_param('code', PARAM_TEXT);
     $type          = required_param('type', PARAM_TEXT);
-    $value         = required_param('value', PARAM_NUMBER);
+    $value         = required_param('value', PARAM_FLOAT);
     $maxusage      = optional_param('maxusage', 0, PARAM_INT);
     $validfrom     = optional_param_array('validfrom', [], PARAM_INT);
     $validto       = optional_param_array('validto', [], PARAM_INT);

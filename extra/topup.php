@@ -29,12 +29,12 @@ $courseid   = required_param('courseid', PARAM_INT);
 $confirm    = optional_param('confirm', 0, PARAM_BOOL);
 $account    = required_param('account', PARAM_INT);
 $currency   = required_param('currency', PARAM_TEXT);
-$val        = optional_param('value', 0, PARAM_NUMBER);
+$val        = optional_param('value', 0, PARAM_FLOAT);
 
 // Check the conditional discount.
-$enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+$enabled   = get_config('enrol_wallet', 'conditionaldiscount_apply');
 $condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
-$discount = get_config('enrol_wallet', 'conditionaldiscount_percent');
+$discount  = get_config('enrol_wallet', 'conditionaldiscount_percent');
 
 if (!empty($enabled) && !empty($condition) && !empty($discount) && $val >= $condition) {
     $value = (float)($val * (1 - $discount / 100));

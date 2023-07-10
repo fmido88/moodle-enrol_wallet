@@ -40,7 +40,7 @@ if ($method == 'single') {
     $characters = required_param_array('characters', PARAM_BOOL);
 }
 
-$value     = required_param('value', PARAM_NUMBER);
+$value     = required_param('value', PARAM_FLOAT);
 $type      = required_param('type', PARAM_TEXT);
 $maxusage  = required_param('maxusage', PARAM_INT);
 $validto   = optional_param_array('validto', [], PARAM_INT);
@@ -77,8 +77,8 @@ if (!empty($validfrom)) {
 $options = new stdClass;
 
 if (!empty($characters)) {
-    $options->lower = isset($characters['lower']) ? $characters['lower'] : false;
-    $options->upper = isset($characters['upper']) ? $characters['upper'] : false;
+    $options->lower  = isset($characters['lower']) ? $characters['lower'] : false;
+    $options->upper  = isset($characters['upper']) ? $characters['upper'] : false;
     $options->digits = isset($characters['digits']) ? $characters['digits'] : false;
 }
 

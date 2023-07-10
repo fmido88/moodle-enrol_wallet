@@ -186,7 +186,7 @@ function enrol_wallet_display_charger_form() {
     $valuetitle = get_string('chargingvalue', 'enrol_wallet');
     $attr = ['id' => 'charge-value', 'onkeyup' => 'calculateCharge()', 'onchange' => 'calculateCharge()'];
     $mform->addElement('text', 'value', $valuetitle, $attr);
-    $mform->setType('value', PARAM_NUMBER);
+    $mform->setType('value', PARAM_FLOAT);
     $mform->hideIf('value', 'op', 'eq', 'balance');
 
     $context = context_system::instance();
@@ -212,11 +212,11 @@ function enrol_wallet_display_charger_form() {
 
     // The next two elements only used to pass the values to js code.
     $mform->addElement('hidden', 'discount', '', ['id' => 'discounted-value']);
-    $mform->setType('discount', PARAM_NUMBER);
+    $mform->setType('discount', PARAM_FLOAT);
     $mform->setDefault('discount', $discount);
 
     $mform->addElement('hidden', 'condition', '', ['id' => 'discount-condition']);
-    $mform->setType('condition', PARAM_NUMBER);
+    $mform->setType('condition', PARAM_FLOAT);
     $mform->setDefault('condition', $condition);
 
     // Add some js code to display the actual value to charge the wallet with.
@@ -281,8 +281,8 @@ function enrol_wallet_display_transaction_results() {
         return '';
     }
     $result = optional_param('result', '', PARAM_ALPHANUM);
-    $before = optional_param('before', '', PARAM_NUMBER);
-    $after = optional_param('after', '', PARAM_NUMBER);
+    $before = optional_param('before', '', PARAM_FLOAT);
+    $after = optional_param('after', '', PARAM_FLOAT);
     $userid = optional_param('userid', '', PARAM_INT);
     $err = optional_param('error', '', PARAM_TEXT);
 
@@ -480,7 +480,7 @@ function enrol_wallet_get_transfer_form() {
     $mform->setType('email', PARAM_EMAIL);
 
     $mform->addElement('text', 'amount', get_string('amount', 'enrol_wallet'));
-    $mform->setType('amount', PARAM_NUMBER);
+    $mform->setType('amount', PARAM_FLOAT);
 
     $percentfee = get_config('enrol_wallet', 'transferpercent');
     if (!empty($percentfee)) {

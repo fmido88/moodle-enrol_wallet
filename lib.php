@@ -1174,15 +1174,18 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         unset($instance->notifyall);
 
+        // Instance name.
         $nameattribs = ['size' => '20', 'maxlength' => '255'];
         $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'), $nameattribs);
         $mform->setType('name', PARAM_TEXT);
         $mform->addRule('name', get_string('maximumchars', '', 255), 'maxlength', 255, 'server');
 
+        // Cost.
         $mform->addElement('text', 'cost', get_string('credit_cost', 'enrol_wallet'));
         $mform->setType('cost', PARAM_INT);
         $mform->addHelpButton('cost', 'credit_cost', 'enrol_wallet');
 
+        // Payment account.
         $accounts = \core_payment\helper::get_payment_accounts_menu($context);
         if ($accounts) {
             $accounts = ((count($accounts) > 1) ? ['' => ''] : []) + $accounts;
@@ -1195,55 +1198,67 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
 
+        // Currency.
         $supportedcurrencies = $this->get_possible_currencies();
         $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'), $supportedcurrencies);
         $mform->addHelpButton('currency', 'currency', 'enrol_wallet');
 
+        // Instance status (Enabled or Disabled).
         $options = $this->get_status_options();
         $mform->addElement('select', 'status', get_string('status', 'enrol_wallet'), $options);
         $mform->addHelpButton('status', 'status', 'enrol_wallet');
 
         // TODO add password as an optional restriction.
 
+        // New enrolments option.
         $options = $this->get_newenrols_options();
         $mform->addElement('select', 'customint6', get_string('newenrols', 'enrol_wallet'), $options);
         $mform->addHelpButton('customint6', 'newenrols', 'enrol_wallet');
         $mform->disabledIf('customint6', 'status', 'eq', ENROL_INSTANCE_DISABLED);
 
+        // Role.
         $roles = $this->extend_assignable_roles($context, $instance->roleid);
         $mform->addElement('select', 'roleid', get_string('role', 'enrol_wallet'), $roles);
 
+        // Enrol period.
         $options = ['optional' => true, 'defaultunit' => 86400];
         $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_wallet'), $options);
         $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_wallet');
 
+        // Expiry notification.
         $options = $this->get_expirynotify_options();
         $mform->addElement('select', 'expirynotify', get_string('expirynotify', 'core_enrol'), $options);
         $mform->addHelpButton('expirynotify', 'expirynotify', 'core_enrol');
 
+        // Expiry notification notify threshold.
         $options = ['optional' => false, 'defaultunit' => 86400];
         $mform->addElement('duration', 'expirythreshold', get_string('expirythreshold', 'core_enrol'), $options);
         $mform->addHelpButton('expirythreshold', 'expirythreshold', 'core_enrol');
         $mform->disabledIf('expirythreshold', 'expirynotify', 'eq', 0);
 
+        // Enrol start date.
         $options = ['optional' => true];
         $mform->addElement('date_time_selector', 'enrolstartdate', get_string('enrolstartdate', 'enrol_wallet'), $options);
         $mform->setDefault('enrolstartdate', 0);
         $mform->addHelpButton('enrolstartdate', 'enrolstartdate', 'enrol_wallet');
 
+        // Enrol end date.
         $options = ['optional' => true];
         $mform->addElement('date_time_selector', 'enrolenddate', get_string('enrolenddate', 'enrol_wallet'), $options);
         $mform->setDefault('enrolenddate', 0);
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_wallet');
 
+        // Unenrol inactive users.
         $options = $this->get_longtimenosee_options();
         $mform->addElement('select', 'customint2', get_string('longtimenosee', 'enrol_wallet'), $options);
         $mform->addHelpButton('customint2', 'longtimenosee', 'enrol_wallet');
 
+        // Maximun number of enrolled users.
         $mform->addElement('text', 'customint3', get_string('maxenrolled', 'enrol_wallet'));
         $mform->addHelpButton('customint3', 'maxenrolled', 'enrol_wallet');
         $mform->setType('customint3', PARAM_INT);
 
+        // Cohort restriction.
         $cohorts = $this->get_cohorts_options($instance, $context);
         if (count($cohorts) > 1) {
             $mform->addElement('select', 'customint5', get_string('cohortonly', 'enrol_wallet'), $cohorts);
@@ -1254,26 +1269,30 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->setConstant('customint5', 0);
         }
 
+        // Course restriction.
         $coursesoptions = $this->get_courses_options($instance->courseid);
         $this->course_restriction_edit($coursesoptions, $mform);
 
+        // Send welcone email option.
         $options = $this->get_send_welcome_email_option();
         $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
         $mform->addHelpButton('customint4', 'sendcoursewelcomemessage', 'enrol_wallet');
 
+        // Welcone email content.
         $options = ['cols' => '60', 'rows' => '8'];
         $mform->addElement('textarea', 'customtext1', get_string('customwelcomemessage', 'enrol_wallet'), $options);
         $mform->addHelpButton('customtext1', 'customwelcomemessage', 'enrol_wallet');
 
         // Adding the awarding program options for this course.
+        // Enable or disable awards.
         $mform->addElement('advcheckbox', 'customint8', get_string('awards', 'enrol_wallet'), '', [], [false, true]);
         $mform->setDefault('customint8', false);
         $mform->addHelpButton('customint8', 'awards', 'enrol_wallet');
-
+        // Getting award condition.
         $mform->addElement('float', 'customdec1', get_string('awardcreteria', 'enrol_wallet'));
         $mform->disabledIf('customdec1', 'customint8', 'notchecked');
         $mform->addHelpButton('customdec1', 'awardcreteria', 'enrol_wallet');
-
+        // Award value per each grage.
         $mform->addElement('float', 'customdec2', get_string('awardvalue', 'enrol_wallet'));
         $mform->disabledIf('customdec2', 'customint8', 'notchecked');
         $mform->addHelpButton('customdec2', 'awardvalue', 'enrol_wallet');
@@ -1329,31 +1348,29 @@ class enrol_wallet_plugin extends enrol_plugin {
             $errors['name'] = get_string('err_maxlength', 'form', 255);
         }
 
-        $validstatus = array_keys($this->get_status_options());
-        $validnewenrols = array_keys($this->get_newenrols_options());
-
         $context = context_course::instance($instance->courseid);
-        $validroles = array_keys($this->extend_assignable_roles($context, $instance->roleid));
-        $validexpirynotify = array_keys($this->get_expirynotify_options());
+
+        $validstatus        = array_keys($this->get_status_options());
+        $validnewenrols     = array_keys($this->get_newenrols_options());
+        $validroles         = array_keys($this->extend_assignable_roles($context, $instance->roleid));
+        $validexpirynotify  = array_keys($this->get_expirynotify_options());
         $validlongtimenosee = array_keys($this->get_longtimenosee_options());
-        $validswep = array_keys($this->get_send_welcome_email_option());
-        $cohorts = $this->get_cohorts_options($instance, $context);
-        $validcohorts = array_keys($cohorts);
-        $validcurrencies = array_keys($this->get_possible_currencies());
+        $validswep          = array_keys($this->get_send_welcome_email_option());
+        $cohorts            = $this->get_cohorts_options($instance, $context);
+        $validcohorts       = array_keys($cohorts);
+        $validcurrencies    = array_keys($this->get_possible_currencies());
         $tovalidate = [
             'enrolstartdate' => PARAM_INT,
             'enrolenddate'   => PARAM_INT,
             'name'           => PARAM_TEXT,
             'currency'       => $validcurrencies,
-            'cost'           => PARAM_NUMBER,
+            'cost'           => PARAM_FLOAT,
             'customint2'     => $validlongtimenosee,
             'customint3'     => PARAM_INT,
             'customint4'     => $validswep,
             'customint6'     => $validnewenrols,
             'customint7'     => PARAM_INT,
             'customint8'     => PARAM_BOOL,
-            'customdec1'     => PARAM_NUMBER,
-            'customdec2'     => PARAM_NUMBER,
             'status'         => $validstatus,
             'enrolperiod'    => PARAM_INT,
             'expirynotify'   => $validexpirynotify,
@@ -1368,6 +1385,11 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         if ($data['expirynotify'] != 0) {
             $tovalidate['expirythreshold'] = PARAM_INT;
+        }
+
+        if (!empty($data['customint8'])) {
+            $tovalidate['customdec1'] = PARAM_FLOAT;
+            $tovalidate['customdec2'] = PARAM_FLOAT;
         }
 
         $typeerrors = $this->validate_param_types($data, $tovalidate);
