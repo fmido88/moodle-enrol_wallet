@@ -324,7 +324,7 @@ $string['sourcewordpress'] = 'External Tera-wallet (WooWallet)';
 $string['submit_coupongenerator'] = 'Create';
 $string['syncenrolmentstask'] = 'Wallet enrolment synchronise enrolments task';
 
-$string['totalbalance'] = 'Total balance: ';
+$string['mainbalance'] = 'Main balance: ';
 $string['topup'] = 'topup';
 $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
