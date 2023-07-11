@@ -359,7 +359,7 @@ class transactions {
             self::payment_topup($coupondata['value'], $userid, $desc, $userid);
 
             // Mark the coupon as used.
-            self::mark_coupon_used($coupon, $userid, $instanceid);
+            self::mark_coupon_used($coupon, $userid, $instanceid, $coupondata['type'], $coupondata['value']);
         }
 
         // After we get the coupon data now we check if this coupon used from enrolment page.
@@ -394,9 +394,10 @@ class transactions {
      * @param int $userid
      * @param int $instanceid
      * @param string $type percent or fixed.
+     * @param float $value the value of the coupon
      * @return void
      */
-    public static function mark_coupon_used($coupon, $userid, $instanceid, $type = '') {
+    public static function mark_coupon_used($coupon, $userid, $instanceid = 0, $type = '', $value = '') {
         global $DB;
 
         // Unset the session coupon to make sure not used again.
@@ -429,8 +430,8 @@ class transactions {
         // Logging the usage in the coupon usage table.
         $logdata = (object)[
             'code'       => $coupon,
-            'type'       => $couponrecord->type,
-            'value'      => $couponrecord->value,
+            'type'       => !empty($type) ? $type : $couponrecord->type,
+            'value'      => !empty($value) ? $value : $couponrecord->value,
             'userid'     => $userid,
             'instanceid' => $instanceid,
             'timeused'   => time(),

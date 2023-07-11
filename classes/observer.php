@@ -227,7 +227,7 @@ class observer {
 
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
-        $allowed = get_config('enrol_wallet', 'wordpressloggins');
+        $allowed      = get_config('enrol_wallet', 'wordpressloggins');
         if (empty($allowed) || empty($wordpressurl)) {
             return;
         }
