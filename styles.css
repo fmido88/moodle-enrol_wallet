@@ -3,5 +3,18 @@ label#charge-value_label,
 label#id_userlist_label,
 label#id_value_label,
 p#fgroup_id_coupons_label {
-    word-break: normal!important;
+    min-width: max-content;
+    margin-left: -15px;
+}
+
+div#fitem_id_value,
+div#fitem_id_userlist,
+div#fitem_charge-value,
+div#fitem_charge-operation,
+div#fgroup_id_coupons {
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    min-width: 100%;
 }
