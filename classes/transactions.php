@@ -125,11 +125,11 @@ class transactions {
      * @param float $amount
      * @param string $coursename the name of the course.
      * @param int $charger the id of the charger user.
+     * @param string $other another description.
      * @return mixed
      */
-    public static function debit($userid, float $amount, $coursename = '', $charger = '') {
+    public static function debit($userid, float $amount, $coursename = '', $charger = '', $other = '') {
         global $DB;
-
         if (empty($charger)) {
             $charger = $userid;
         }
@@ -173,6 +173,8 @@ class transactions {
 
         if (!empty($coursename)) {
             $description = get_string('debitdesc_course', 'enrol_wallet', $a);
+        } else if (!empty($other)) {
+            $description = $other;
         } else {
             $description = get_string('debitdesc_user', 'enrol_wallet', $a);
         }
