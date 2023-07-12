@@ -86,18 +86,18 @@ if ($capbulkedit) {
     $bulkeditor = get_string('bulkeditor', 'enrol_wallet');
 
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_bulkedit',
-            $bulkeditor,
-            new moodle_url('/enrol/wallet/extra/bulkedit.php'),
-            "enrol/wallet:bulkedit",
-            false,
-            $context));
+                                                                $bulkeditor,
+                                                                new moodle_url('/enrol/wallet/extra/bulkedit.php'),
+                                                                "enrol/wallet:bulkedit",
+                                                                false,
+                                                                $context));
 
     // Adding page to bulk edit all instances.
     $walletbulk = get_string('walletbulk', 'enrol_wallet');
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_bulkedit',
-                $walletbulk,
-                new moodle_url('/enrol/wallet/extra/bulkinstances.php'),
-                "enrol/wallet:bulkedit",
-                false,
-                $context));
+                                                                $walletbulk,
+                                                                new moodle_url('/enrol/wallet/extra/bulkinstances.php'),
+                                                                "enrol/wallet:bulkedit",
+                                                                false,
+                                                                $context));
 }
