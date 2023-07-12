@@ -175,8 +175,8 @@ function enrol_wallet_display_charger_form() {
     $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
 
     $operations = [
-        'credit' => 'credit',
-        'debit' => 'debit',
+        'credit'  => 'credit',
+        'debit'   => 'debit',
         'balance' => 'balance'
     ];
     $oplabel = get_string('chargingoperation', 'enrol_wallet');
@@ -191,6 +191,7 @@ function enrol_wallet_display_charger_form() {
 
     $context = context_system::instance();
     $options = [
+        'id'         => 'charger-userlist',
         'ajax'       => 'enrol_manual/form-potential-user-selector',
         'multiple'   => false,
         'courseid'   => SITEID,
@@ -282,9 +283,9 @@ function enrol_wallet_display_transaction_results() {
     }
     $result = optional_param('result', '', PARAM_ALPHANUM);
     $before = optional_param('before', '', PARAM_FLOAT);
-    $after = optional_param('after', '', PARAM_FLOAT);
+    $after  = optional_param('after', '', PARAM_FLOAT);
     $userid = optional_param('userid', '', PARAM_INT);
-    $err = optional_param('error', '', PARAM_TEXT);
+    $err    = optional_param('error', '', PARAM_TEXT);
 
     if ($err !== '') {
         $info = '<span style="text-align: center; width: 100%;"><h5>'
@@ -362,13 +363,13 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
     }
 
     $tempctx = new stdClass;
-    $tempctx->main = number_format($balance - $norefund, 2);
-    $tempctx->balance = number_format($balance, 2);
-    $tempctx->currency = $currency;
-    $tempctx->norefund = number_format($norefund, 2);
+    $tempctx->main         = number_format($balance - $norefund, 2);
+    $tempctx->balance      = number_format($balance, 2);
+    $tempctx->currency     = $currency;
+    $tempctx->norefund     = number_format($norefund, 2);
     $tempctx->transactions = $transactions;
-    $tempctx->transfer = !empty($transferenabled) ? $transfer : false;
-    $tempctx->policy = !empty($policy) ? $policy : false;
+    $tempctx->transfer     = !empty($transferenabled) ? $transfer : false;
+    $tempctx->policy       = !empty($policy) ? $policy : false;
     // Display the current user's balance in the wallet.
     $render = $OUTPUT->render_from_template('enrol_wallet/display', $tempctx);
     return $render;
@@ -400,13 +401,13 @@ function enrol_wallet_display_topup_options() {
     $instance = new \stdClass;
     $data = new \stdClass;
 
-    $instance->id = 0;
-    $instance->courseid = SITEID;
-    $instance->currency = $currency;
+    $instance->id         = 0;
+    $instance->courseid   = SITEID;
+    $instance->currency   = $currency;
     $instance->customint1 = $account;
 
     $data->instance = $instance;
-    $data->user = $user;
+    $data->user     = $user;
     $render = '';
     // First check if payments is enabled.
     if (enrol_wallet_is_valid_account($account)) {
@@ -467,14 +468,20 @@ function enrol_wallet_get_transfer_form() {
         return '';
     }
 
-    global $CFG;
+    global $CFG, $USER;
     require_once($CFG->libdir.'/formslib.php');
 
     $url = new moodle_url('/enrol/wallet/extra/transfer.php');
 
     $mform = new MoodleQuickForm('wallet_transfer', 'post', $url);
 
+    $balance = enrol_wallet\transactions::get_user_balance($USER->id);
+    $currency = get_config('enrol_wallet', 'currency');
+
     $mform->addElement('header', 'transferformhead', get_string('transfer', 'enrol_wallet'));
+
+    $displaybalance = format_string(format_float($balance, 2) . ' ' . $currency);
+    $mform->addElement('static', 'displaybalance', get_string('availablebalance', 'enrol_wallet'), $displaybalance);
 
     $mform->addElement('text', 'email', get_string('email'));
     $mform->setType('email', PARAM_EMAIL);

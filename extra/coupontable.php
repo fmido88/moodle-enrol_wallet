@@ -55,15 +55,15 @@ $limitnum         = optional_param('perpage', 50, PARAM_INT);
 $conditions = '1=1';
 $urlparams = [];
 
-$urlparams['tsort'] = (!empty($sort)) ? $sort : null;
-$urlparams['page'] = (!empty($limitfrom)) ? $limitfrom : null;
+$urlparams['tsort']   = (!empty($sort)) ? $sort : null;
+$urlparams['page']    = (!empty($limitfrom)) ? $limitfrom : null;
 $urlparams['perpage'] = (!empty($limitnum)) ? $limitnum : null;
 
 $conditions .= (!empty($code)) ? ' AND code = \''.$code.'\'' : '';
 $urlparams['code'] = (!empty($code)) ? $code : null;
 
 $conditions .= (!empty($value)) ? ' AND value = \''.$value.'\'' : '';
-$urlparams['value'] = (!empty($value)) ? $value : null;
+$urlparams['value'] = (!empty($value) || (int)$value === 0) ? $value : null;
 
 $conditions .= (!empty($type)) ? ' AND type = \''.$type.'\'' : '';
 $urlparams['type'] = (!empty($type)) ? $type : null;
@@ -125,34 +125,47 @@ $mform->setDefault('code', $code);
 
 $mform->addElement('text', 'value', get_string('coupon_value', 'enrol_wallet'));
 $mform->setType('value', PARAM_FLOAT);
-$mform->setDefault('value', $value);
+if (!empty($value) || (int)$value === 0) {
+    $mform->setDefault('value', $value);
+}
 
 $types = [
-    'fixed' => get_string('fixedvaluecoupon', 'enrol_wallet'),
+    ''        => get_string('any'),
+    'fixed'   => get_string('fixedvaluecoupon', 'enrol_wallet'),
     'percent' => get_string('percentdiscountcoupon', 'enrol_wallet'),
 ];
 $mform->addElement('select', 'type', get_string('coupon_type', 'enrol_wallet'), $types);
 $mform->setDefault('type', $type);
 
 $mform->addElement('date_time_selector', 'validfrom', get_string('validfrom', 'enrol_wallet'), array('optional' => true));
+if (!empty($validfrom)) {
+    $mform->setDefault('validfrom', $validfrom);
+}
+
 $mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol_wallet'), array('optional' => true));
+if (!empty($validto)) {
+    $mform->setDefault('validto', $validto);
+}
 
 $mform->addElement('date_time_selector', 'createdfrom', get_string('createdfrom', 'enrol_wallet'), array('optional' => true));
+if (!empty($createdfrom)) {
+    $mform->setDefault('createdfrom', $createdfrom);
+}
+
 $mform->addElement('date_time_selector', 'createdto', get_string('createdto', 'enrol_wallet'), array('optional' => true));
+if (!empty($createdto)) {
+    $mform->setDefault('createdto', $createdto);
+}
 
 $limits = [];
 for ($i = 25; $i <= 1000; $i = $i + 25) {
     $limits[$i] = $i;
 }
+
 $mform->addElement('select', 'perpage', get_string('coupon_perpage', 'enrol_wallet'), $limits);
 $mform->setDefault('perpage', $limitnum);
 
 $mform->addElement('submit', 'submit', get_string('coupon_applyfilter', 'enrol_wallet'));
-
-// Now let's display the form.
-ob_start();
-$mform->display();
-$filterform = ob_get_clean();
 
 // ----------------------------------------------------------------------------------------------
 // Table.
@@ -163,11 +176,14 @@ $table->define_baseurl($baseurl->out());
 
 if (!$table->is_downloading($download, 'walletcoupons')) {
     if ($candelete) {
-        echo '<form name="coupondelete" method="post" action="coupondelete.php">';
+        // Only way to not mix this form with the download button is to print this before the header (till I figure something else).
+        echo '<form id="enrolwallet_coupondelet" name="coupondelete" method="post" action="coupondelete.php">';
     }
-    echo $OUTPUT->header();
 
-    echo $OUTPUT->box($filterform);
+    echo $OUTPUT->header();
+    $mform->display();
+
+    echo $OUTPUT->single_button($baseurl, get_string('clear_filter', 'enrol_wallet'));
 }
 
 // Set up the coupons table.
@@ -204,7 +220,7 @@ $table->sortable(true);
 // Make the table downloadable.
 if ($candownload) {
     $table->is_downloadable(true);
-    $table->show_download_buttons_at([TABLE_P_TOP]);
+    $table->show_download_buttons_at([TABLE_P_TOP, TABLE_P_BOTTOM]);
 } else {
     $table->is_downloadable(false);
 }
@@ -249,6 +265,7 @@ if ($table->is_downloading()) {
     $limitfrom = 0;
     $limitnum = 0;
 }
+
 // The sql for records.
 $sqlr = 'SELECT * '. $sql;
 $records = $DB->get_records_sql($sqlr, [], $limitfrom, $limitnum);

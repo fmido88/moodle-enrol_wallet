@@ -72,14 +72,14 @@ class applycoupon_form extends \moodleform {
             $coupongroup[] = $mform->createElement('html', $html);
             $coupongroup[] = $mform->createElement('cancel');
         } else {
-            $coupongroup[] = $mform->createElement('text', 'coupon', get_string('applycoupon', 'enrol_wallet'), 'maxlength="50"');
+            $coupongroup[] = $mform->createElement('text', 'coupon', get_string('applycoupon', 'enrol_wallet'), '"maxlength"="50"');
             $mform->setType('coupon', PARAM_TEXT);
             $coupongroup[] = $mform->createElement('submit', 'submitcoupon', get_string('applycoupon', 'enrol_wallet'));
         }
 
         if (empty($instance->cmid) && empty($instance->sectionid)) {
-            $mform->addGroup($coupongroup, 'coupons', get_string('applycoupon', 'enrol_wallet'), null, false);
-            $mform->addHelpButton('coupons', 'applycoupon', 'enrol_wallet');
+            $mform->addGroup($coupongroup, 'applycoupon', get_string('applycoupon', 'enrol_wallet'), null, false);
+            $mform->addHelpButton('applycoupon', 'applycoupon', 'enrol_wallet');
         } else {
             $mform->addGroup($coupongroup, 'coupons', null, null, false);
         }

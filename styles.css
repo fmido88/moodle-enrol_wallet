@@ -1,17 +1,17 @@
 label#charge-operation_label,
 label#charge-value_label,
-label#id_userlist_label,
-label#id_value_label,
-p#fgroup_id_coupons_label {
+label#charger-userlist_label,
+label#topup-value_label,
+p#fgroup_id_applycoupon_label {
     min-width: max-content;
     margin-left: -15px;
 }
 
-div#fitem_id_value,
-div#fitem_id_userlist,
+div#fitem_topup-value,
+div#fitem_charger-userlist,
 div#fitem_charge-value,
 div#fitem_charge-operation,
-div#fgroup_id_coupons {
+div#fgroup_id_applycoupon {
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;

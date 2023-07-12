@@ -33,7 +33,11 @@ require_capability('enrol/wallet:creditdebit', $context);
 global $USER, $DB;
 $op = optional_param('op', '', PARAM_TEXT);
 
-if (!empty($op) && $op != 'result' && confirm_sesskey()) {
+if (!empty($op) && $op != 'result') {
+    // Don't do any action until confirming sesskey.
+    if (!confirm_sesskey()) {
+        throw new moodle_exception('invalidsesskey');
+    }
 
     $value  = optional_param('value', '', PARAM_FLOAT);
     $userid = required_param("userlist", PARAM_INT);

@@ -53,14 +53,14 @@ $urlparams = [
     'value'   => $value,
 ];
 if (!empty($datefrom)) {
-    foreach ($datafrom as $key => $value) {
-        $urlparam["datafrom[$key]"] = $value;
+    foreach ($datefrom as $key => $v) {
+        $urlparam["datafrom[$key]"] = $v;
     }
 }
 
 if (!empty($dateto)) {
-    foreach ($datato as $key => $value) {
-        $urlparam["datato[$key]"] = $value;
+    foreach ($dateto as $key => $v) {
+        $urlparam["dateto[$key]"] = $v;
     }
 }
 
@@ -76,6 +76,7 @@ $PAGE->set_context($systemcontext);
 $PAGE->set_title("Wallet Transactions");
 $PAGE->set_heading('Wallet Transactions');
 
+$baseurl = new moodle_url('/enrol/wallet/extra/transaction.php');
 $thisurl = new moodle_url('/enrol/wallet/extra/transaction.php', $urlparams);
 $PAGE->set_url($thisurl);
 
@@ -100,23 +101,39 @@ if ($viewall) {
         'noselectionstring' => get_string('allusers', 'enrol_wallet'),
     ];
     $mform->addElement('autocomplete', 'user', get_string('selectusers', 'enrol_manual'), array(), $options);
+    if (!empty($userid)) {
+        $mform->setDefault('user', $userid);
+    }
 }
 
 // Adding starting and ending dates for transactions.
 $mform->addElement('date_time_selector', 'datefrom', get_string('datefrom', 'enrol_wallet'), array('optional' => true));
+if (!empty($datefrom)) {
+    $mform->setDefault('datefrom', $datefrom);
+}
+
 $mform->addElement('date_time_selector', 'dateto', get_string('dateto', 'enrol_wallet'), array('optional' => true));
+if (!empty($dateto)) {
+    $mform->setDefault('dateto', $dateto);
+}
 
 // Select specific type of transaction.
 $options = [
-    '' => 'All',
-    'debit' => 'debit',
+    ''       => 'All',
+    'debit'  => 'debit',
     'credit' => 'credit',
 ];
 $mform->addElement('select', 'ttype', get_string('transaction_type', 'enrol_wallet'), $options);
+if (!empty($ttype)) {
+    $mform->setDefault('ttype', $ttype);
+}
 
 // Select specific value.
 $mform->addElement('text', 'value', get_string('value', 'enrol_wallet'));
 $mform->setType('value', PARAM_FLOAT);
+if (!empty($value) || (int)$value === 0) {
+    $mform->setDefault('value', $value);
+}
 
 // Transaction perpage.
 $limits = [];
@@ -124,9 +141,11 @@ for ($i = 25; $i <= 1000; $i = $i + 25) {
     $limits[$i] = $i;
 }
 $mform->addElement('select', 'perpage', get_string('transaction_perpage', 'enrol_wallet'), $limits);
+if (!empty($limitnum)) {
+    $mform->setDefault('perpage', $limitnum);
+}
 
-$mform->addElement('submit', '', get_string('submit'));
-
+$mform->addElement('submit', 'submit', get_string('submit'));
 // -------------------------------------------------------------------------------------------------
 
 // Setup the transactions table.
@@ -143,7 +162,6 @@ $columns = [
 
 $table = new flexible_table('wallet_transactions');
 
-$baseurl = new moodle_url('/enrol/wallet/extra/transaction.php');
 $table->define_baseurl($baseurl->out(true));
 
 $table->define_columns(array_keys($columns));
@@ -165,6 +183,7 @@ $allowedsort = array_diff(array_keys($table->columns), $table->column_nosort);
 if (!in_array($sort, $allowedsort)) {
     $sort = '';
 }
+
 // Doing the sorting.
 $orderby = 'id DESC';
 if (!empty($sort)) {
@@ -276,6 +295,8 @@ foreach ($records as $record) {
 
 // Display the filtration form.
 $mform->display();
+
+echo $OUTPUT->single_button($baseurl, get_string('clear_filter', 'enrol_wallet'));
 
 echo $OUTPUT->heading(get_string('transactions', 'enrol_wallet'), 3);
 

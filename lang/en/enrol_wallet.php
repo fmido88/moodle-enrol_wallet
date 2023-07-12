@@ -28,7 +28,6 @@ $string['allowmultiple_help'] = 'Select the number of instances allowed in a sin
 $string['applycoupon'] = 'Apply Coupon';
 $string['applycoupon_help'] = 'Apply Coupon code to get discount or have a fixed value to charge your wallet. <br>
 If the coupon is a fixed value and it is greater than the fee of the course you will get enrolled.';
-
 $string['amount'] = 'Amount';
 $string['awards'] = 'awards program';
 $string['awards_help'] = 'enable or disable the awards program in this course';
@@ -39,6 +38,7 @@ $string['awardvalue_help'] = 'How much did the student get for each one grade ab
 $string['awardingdesc'] = 'The user get awarded by {$a->amount} in course {$a->courseshortname} for getting {$a->usergrade} out of {$a->maxgrade}';
 $string['awardsalter'] = 'Alter awards';
 $string['awardsalter_help'] = 'Alter the status of awards program';
+$string['availablebalance'] = 'Available Balance:';
 
 $string['balance_after'] = 'Balance after';
 $string['balance_before'] = 'Balance before';
@@ -71,6 +71,7 @@ $string['charger_invalid_operation'] = 'Invalid operation.';
 $string['chargingoptions'] = 'Charging user\'s wallet';
 $string['chargingoperation'] = 'Operation';
 $string['chargingvalue'] = 'Value';
+$string['clear_filter'] = 'Clear Filters';
 $string['cohortnonmemberinfo'] = 'Only members of cohort \'{$a}\' can enrol.';
 $string['cohortonly'] = 'Only cohort members';
 $string['cohortonly_help'] = 'Enrolment may be restricted to members of a specified cohort only. Note that changing this setting has no effect on existing enrollments.';
@@ -337,6 +338,7 @@ $string['transfer'] = 'Transfer balance to other user';
 $string['transfer_desc'] = 'Enable or disable the ability of users to transfer balance to other users and determine the transfer fee per each operation.';
 $string['transfer_enabled'] = 'Transfer to other user';
 $string['transfer_enabled_desc'] = 'Enable or disable the abiity for users to transfer balance to other users by email.';
+$string['transfer_notenabled'] = 'User to user transfer isn\'t enabled in this site.';
 $string['transferfee_desc'] = 'Note that there is a {$a->fee}% will be deducted from the {$a->from}.';
 $string['transferfee_from'] = 'Deduct fees from:';
 $string['transferfee_from_desc'] = 'Select how the fees get deducted.<br>

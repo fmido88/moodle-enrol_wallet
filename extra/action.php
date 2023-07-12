@@ -51,7 +51,10 @@ $sectionid  = optional_param('sectionid', 0, PARAM_INT);
 
 $couponsetting = get_config('enrol_wallet', 'coupons');
 
-confirm_sesskey();
+if (!confirm_sesskey()) {
+    throw new moodle_exception('invalidsesskey');
+}
+
 // Get the coupon data.
 $coupondata = enrol_wallet\transactions::get_coupon_value($coupon, $userid, $instanceid, false);
 if (empty($coupondata) || is_string($coupondata)) {

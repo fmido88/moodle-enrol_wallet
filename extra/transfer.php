@@ -30,15 +30,21 @@ $context = context_system::instance();
 require_login();
 require_capability('enrol/wallet:transfer', $context);
 
+// Check if transfer isn't enabled in this website.
 $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
 if (empty($transferenabled)) {
-    redirect(new moodle_url('/'));
+    redirect(new moodle_url('/'), get_string('transfer_notenabled', 'enrol_wallet'), null, 'error');
 }
 
 $url = new moodle_url('/enrol/wallet/extra/transfer.php');
 $confirm = optional_param('confirm', '', PARAM_BOOL);
 
-if ($confirm && confirm_sesskey()) {
+if ($confirm) {
+    // Don't do any action until confirming sesskey.
+    if (!confirm_sesskey()) {
+        throw new moodle_exception('invalidsesskey');
+    }
+
     global $USER;
     $email  = required_param('email', PARAM_EMAIL);
     $amount = required_param('amount', PARAM_FLOAT);
