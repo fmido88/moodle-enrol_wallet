@@ -54,7 +54,9 @@ class transactions {
      * @param string $description the description of this transaction.
      * @param string|int $charger the user id who charged this amount.
      * @param bool $refundable If this transaction is refundable or not.
-     * @return int|string the id of transaction record or error string response from the wordpress website.
+     * @param bool $trigger Trigger the transaction event or not.
+     * (not triggered in case of conditional discount to prevent multiple charge).
+     * @return int|string the id of transaction record or error string.
      */
     public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true, $trigger = true) {
         global $DB;

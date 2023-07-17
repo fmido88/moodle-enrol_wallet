@@ -1602,6 +1602,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Returns the list of currencies that the payment subsystem supports and therefore we can work with.
      *
+     * @param int $account The payment account id if exist.
      * @return array[currencycode => currencyname]
      */
     public function get_possible_currencies($account = null) {

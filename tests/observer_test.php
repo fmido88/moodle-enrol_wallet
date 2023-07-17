@@ -193,9 +193,15 @@ class observer_test extends \advanced_testcase {
         $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
 
         transactions::payment_topup(200, $user1->id);
-        transactions::payment_topup(500, $user2->id);
-        transactions::payment_topup(700, $user3->id);
-        transactions::payment_topup(1000, $user4->id);
+        // The user tries to pay 500, this is the number passes to the function.
+        $extra2 = 500 * 0.15 / 0.85;
+        transactions::payment_topup(500 - $extra2, $user2->id);
+
+        $extra3 = 700 * 0.2 / 0.8;
+        transactions::payment_topup(700 - $extra3, $user3->id);
+
+        $extra4 = 1000 * 0.25 / 0.75;
+        transactions::payment_topup(1000 - $extra4, $user4->id);
 
         $balance1 = transactions::get_user_balance($user1->id);
         $norefund1 = transactions::get_nonrefund_balance($user1->id);
@@ -212,16 +218,13 @@ class observer_test extends \advanced_testcase {
         $this->assertEquals(200, $balance1);
         $this->assertEquals(0, $norefund1);
 
-        $extra = 500 * 0.15 / 0.85;
-        $this->assertEquals(500 + $extra, $balance2);
-        $this->assertEquals($extra, $norefund2);
+        $this->assertEquals(500 + $extra2, $balance2);
+        $this->assertEquals($extra2, $norefund2);
 
-        $extra = 700 * 0.2 / 0.8;
-        $this->assertEquals(500 + $extra, $balance3);
-        $this->assertEquals($extra, $norefund3);
+        $this->assertEquals(500 + $extra3, $balance3);
+        $this->assertEquals($extra3, $norefund3);
 
-        $extra = 1000 * 0.25 / 0.75;
-        $this->assertEquals(1000 + $extra, $balance4);
-        $this->assertEquals($extra, $norefund4);
+        $this->assertEquals(1000 + $extra4, $balance4);
+        $this->assertEquals($extra4, $norefund4);
     }
 }
