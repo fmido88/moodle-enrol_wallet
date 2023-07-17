@@ -36,12 +36,46 @@ class topup_form extends \moodleform {
      * @return void
      */
     public function definition() {
+        global $DB;
         $instance = $this->_customdata->instance;
 
         $mform = $this->_form;
-        $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'), ['id' => 'topup-value']);
+        // Check the conditional discount.
+        $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+        if (!empty($enabled)) {
+            $params = [
+                'time1' => time(),
+                'time2' => time(),
+            ];
+            $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
+            $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
+
+            $i = 0;
+            foreach ($records as $record) {
+                $i++;
+                // The next two elements only used to pass the values to js code.
+                $mform->addElement('hidden', 'discount'.$i, '', ['id' => "discounted-value[$i]"]);
+                $mform->setType('discount'.$i, PARAM_FLOAT);
+                $mform->setConstant('discount'.$i, $record->percent / 100);
+
+                $mform->addElement('hidden', 'condition'.$i, '', ['id' => "discount-condition[$i]"]);
+                $mform->setType('condition'.$i, PARAM_FLOAT);
+                $mform->setConstant('condition'.$i, $record->cond);
+            }
+            $mform->addElement('hidden', 'number', '', ['id' => "ndiscounts"]);
+            $mform->setType('number', PARAM_INT);
+            $mform->setDefault('number', $i);
+        }
+
+        $attr = !empty($i) ? ['id' => 'topup-value', 'onkeyup' => 'calculateCharge()', 'onchange' => 'calculateCharge()'] : [];
+        $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'), $attr);
         $mform->setType('value', PARAM_FLOAT);
         $mform->addHelpButton('value', 'topupvalue', 'enrol_wallet');
+
+        if (!empty($enabled)) {
+            // Empty div used by js to display the calculated final value.
+            $mform->addElement('html', '<div id="calculated-value" style="font-weight: 700;" class="alert alert-info"></div>');
+        }
 
         $mform->addElement('hidden', 'courseid');
         $mform->setType('courseid', PARAM_INT);
@@ -62,6 +96,31 @@ class topup_form extends \moodleform {
         $mform->addElement('hidden', 'sesskey');
         $mform->setType('sesskey', PARAM_TEXT);
         $mform->setDefault('sesskey', sesskey());
+
+        // Add some js code to display the actual value to charge the wallet with.
+        $js = <<<JS
+                function calculateCharge() {
+                    var number = parseInt(document.getElementById("ndiscounts").value);
+                    var value = parseFloat(document.getElementById("topup-value").value);
+
+                    var maxDiscount = 0;
+                    for (var i = 1; i <= number; i++) {
+                        var discount = parseFloat(document.getElementById("discounted-value["+ i +"]").value);
+                        var condition = parseFloat(document.getElementById("discount-condition["+ i +"]").value);
+
+                        if (value >= condition && discount > maxDiscount) {
+                            maxDiscount = discount;
+                        }
+                    }
+
+                    var calculatedValue = value - (value * maxDiscount);
+                    document.getElementById("calculated-value").innerHTML = "You will pay: " + calculatedValue;
+                }
+                JS;
+
+        if (!empty($i)) {
+            $mform->addElement('html', '<script>'.$js.'</script>');
+        }
 
         $this->add_action_buttons(false, get_string('topup', 'enrol_wallet'));
     }

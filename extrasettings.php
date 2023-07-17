@@ -32,7 +32,7 @@ $capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
 $capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
 $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
 
-$ismoodle = (get_config('enrol_wallet', 'walletsource') === enrol_wallet\transactions::SOURCE_MOODLE);
+$ismoodle = (get_config('enrol_wallet', 'walletsource') == enrol_wallet\transactions::SOURCE_MOODLE);
 // Adding these pages for only users with required capability.
 // These aren't appear to user's with capabilities, Only admins!.
 // That is because enrolment plugins not loading the settings unless the user has the capability moodle/site:config.

@@ -56,7 +56,7 @@ class transactions {
      * @param bool $refundable If this transaction is refundable or not.
      * @return int|string the id of transaction record or error string response from the wordpress website.
      */
-    public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true) {
+    public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true, $trigger = true) {
         global $DB;
 
         if (empty($charger)) {
@@ -114,8 +114,9 @@ class transactions {
         }
 
         self::notify()->transaction_notify($recorddata);
-
-        self::trigger_transaction_event($amount, 'credit', $charger, $userid, $description, $id, $refundable);
+        if ($trigger) {
+            self::trigger_transaction_event($amount, 'credit', $charger, $userid, $description, $id, $refundable);
+        }
 
         return $id;
     }

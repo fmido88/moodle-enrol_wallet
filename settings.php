@@ -30,7 +30,7 @@ if ($ADMIN->fulltree) {
     global $DB;
 
     require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-    $walletplugin = enrol_get_plugin('wallet');
+    $walletplugin = new enrol_wallet_plugin;
     // General settings.
     $settings->add(new admin_setting_heading('enrol_wallet_settings', '',
                         get_string('pluginname_desc', 'enrol_wallet')));
@@ -60,6 +60,7 @@ if ($ADMIN->fulltree) {
                                                 get_string('wordpress_secretkey_help', 'enrol_wallet'),
                                                 'S0mTh1ng/123'
                                                 ));
+
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
     // it describes what should happened when users are not supposed to be enrolled any more.
     $options = [
@@ -168,7 +169,7 @@ if ($ADMIN->fulltree) {
                         2));
 
     $options = [
-        'sender' => get_string('sender', 'enrol_wallet'),
+        'sender'   => get_string('sender', 'enrol_wallet'),
         'receiver' => get_string('receiver', 'enrol_wallet'),
     ];
     $settings->add(new admin_setting_configselect('enrol_wallet/transferfee_from',
@@ -204,21 +205,17 @@ if ($ADMIN->fulltree) {
                                                 get_string('couponstype_help', 'enrol_wallet'),
                                                 enrol_wallet_plugin::WALLET_NOCOUPONS,
                                                 $choices));
+
     // Add settings for conditional discount.
     // Enable conditional discount.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/conditionaldiscount_apply',
                         get_string('conditionaldiscount_apply', 'enrol_wallet'),
                         get_string('conditionaldiscount_apply_help', 'enrol_wallet'), 0));
-    // Condtion for applying conditional discount.
-    $settings->add(new admin_setting_configtext('enrol_wallet/conditionaldiscount_condition',
-                        get_string('conditionaldiscount_condition', 'enrol_wallet'),
-                        get_string('conditionaldiscount_condition_help', 'enrol_wallet'),
-                        0, PARAM_INT));
-    // Percentage discount.
-    $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/conditionaldiscount_percent',
-                        get_string('conditionaldiscount_percent', 'enrol_wallet'),
-                        get_string('conditionaldiscount_percent_help', 'enrol_wallet'),
-                        0, PARAM_INT, null, 2));
+    // Link to conditional discount page.
+    $discountspage = new moodle_url('/enrol/wallet/extra/conditionaldiscount.php');
+    $conditionaldiscount = html_writer::link($discountspage, get_string('conditionaldiscount_link_desc', 'enrol_wallet'));
+    $settings->add(new admin_setting_description('conditionaldiscount',
+                        get_string('conditionaldiscount', 'enrol_wallet'), $conditionaldiscount));
 
     // Adding settings for applying cashback.
     $settings->add(new admin_setting_heading('enrol_wallet_cashback',
@@ -268,21 +265,31 @@ if ($ADMIN->fulltree) {
 
     // Adding default payment account.
     $accounts = \core_payment\helper::get_payment_accounts_menu($context);
-    if ($accounts) {
-        $accounts = ((count($accounts) > 1) ? ['' => ''] : []) + $accounts;
-        $settings->add(new admin_setting_configselect('enrol_wallet/paymentaccount', get_string('paymentaccount', 'payment'),
-                                                            get_string('paymentaccount_help', 'enrol_wallet'), '', $accounts));
+    if (empty($accounts)) {
+        $alert = html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning');
+        $settings->add(new admin_setting_configempty('enrol_wallet/emptypaymentaccount', '', $alert));
+        $accounts = [0 => get_string('noaccount', 'enrol_wallet')];
     } else {
-        $alert = html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-danger');
-        $settings->add(new admin_setting_configempty('enrol_wallet/paymentaccount',
-                                                    get_string('paymentaccount', 'payment'),
-                                                    $alert));
+        $accounts = [0 => get_string('noaccount', 'enrol_wallet')] + $accounts;
     }
+    $settings->add(new admin_setting_configselect('enrol_wallet/paymentaccount', get_string('paymentaccount', 'payment'),
+                                                        get_string('paymentaccount_help', 'enrol_wallet'), 0, $accounts));
 
     // Add default currency.
-    $supportedcurrencies = $walletplugin->get_possible_currencies();
+    $supportedcurrencies = $walletplugin->get_possible_currencies(get_config('enrol_wallet', 'paymentaccount'));
     $settings->add(new admin_setting_configselect('enrol_wallet/currency', get_string('currency', 'enrol_wallet'),
                                             get_string('currency_help', 'enrol_wallet'), '', $supportedcurrencies));
+
+    // Add custom currency.
+    $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/customcurrencycode',
+                                                get_string('customcurrencycode', 'enrol_wallet'),
+                                                get_string('customcurrencycode_desc', 'enrol_wallet'), '', PARAM_TEXT, 5, 3));
+    $settings->add(new admin_setting_configtext('enrol_wallet/customcurrency',
+                                                get_string('customcurrency', 'enrol_wallet'),
+                                                get_string('customcurrency_desc', 'enrol_wallet'), ''));
+    $settings->hide_if('enrol_wallet/customcurrency', 'enrol_wallet/paymentaccount', 'neq', '0');
+    $settings->hide_if('enrol_wallet/customcurrencycode', 'enrol_wallet/paymentaccount', 'neq', '0');
+
     // Is instance enabled.
     $options = [ENROL_INSTANCE_ENABLED  => get_string('yes'),
                 ENROL_INSTANCE_DISABLED => get_string('no')];

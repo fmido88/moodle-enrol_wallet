@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * wallet enrolment plugin callback function to extend navigation and profile.
+ * wallet enrolment plugin callback functions to extend navigation and profile.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
@@ -116,7 +116,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
     $hassiteconfig   = has_capability('moodle/site:config', $context);
 
     $any = ($captransactions || $capcredit || $capbulkedit || $capcouponview || $capcouponcreate);
-    $ismoodle = (get_config('enrol_wallet', 'walletsource') === enrol_wallet\transactions::SOURCE_MOODLE);
+    $ismoodle = (get_config('enrol_wallet', 'walletsource') == enrol_wallet\transactions::SOURCE_MOODLE);
 
     if ($hassiteconfig && $any) {
 

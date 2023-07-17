@@ -23,20 +23,32 @@
 
 require_once('../../../config.php');
 require_once(__DIR__.'/../lib.php');
-
+global $DB;
 $instanceid = required_param('instanceid', PARAM_INT);
 $courseid   = required_param('courseid', PARAM_INT);
 $confirm    = optional_param('confirm', 0, PARAM_BOOL);
 $account    = required_param('account', PARAM_INT);
 $currency   = required_param('currency', PARAM_TEXT);
-$val        = optional_param('value', 0, PARAM_FLOAT);
+$val      = optional_param('value', 0, PARAM_FLOAT);
 
 // Check the conditional discount.
 $enabled   = get_config('enrol_wallet', 'conditionaldiscount_apply');
-$condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
-$discount  = get_config('enrol_wallet', 'conditionaldiscount_percent');
+$discount  = 0;
 
-if (!empty($enabled) && !empty($condition) && !empty($discount) && $val >= $condition) {
+if (!empty($enabled)) {
+    $params = [
+        'time1' => time(),
+        'time2' => time(),
+    ];
+    $select = '(timefrom <= :time1 OR timefrom = 0 ) AND (timeto >= :time2 OR timeto = 0)';
+    $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
+
+    foreach ($records as $record) {
+        if ($val >= $record->cond && $record->percent > $discount) {
+            $discount = $record->percent;
+        }
+    }
+
     $value = (float)($val * (1 - $discount / 100));
 } else {
     $value = $val;

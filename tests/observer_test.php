@@ -151,27 +151,77 @@ class observer_test extends \advanced_testcase {
      * @return void
      */
     public function test_conditional_discount_charging() {
+        global $DB;
         $this->resetAfterTest();
 
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user();
 
         set_config('conditionaldiscount_apply', 1, 'enrol_wallet');
-        set_config('conditionaldiscount_condition', 400, 'enrol_wallet');
-        set_config('conditionaldiscount_percent', 20, 'enrol_wallet');
+        $params = [
+            'cond' => 400,
+            'percent' => 15,
+        ];
+        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
+
+        $params = [
+            'cond' => 600,
+            'percent' => 20,
+        ];
+        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
+
+        $params = [
+            'cond' => 800,
+            'percent' => 25,
+        ];
+        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
+
+        $params = [
+            'cond' => 200,
+            'percent' => 50,
+            'timeto' => time() - DAYSECS, // Expired.
+        ];
+        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
+
+        $params = [
+            'cond' => 400,
+            'percent' => 50,
+            'timefrom' => time() + DAYSECS, // Not available yet.
+        ];
+        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
 
         transactions::payment_topup(200, $user1->id);
         transactions::payment_topup(500, $user2->id);
+        transactions::payment_topup(700, $user3->id);
+        transactions::payment_topup(1000, $user4->id);
 
         $balance1 = transactions::get_user_balance($user1->id);
         $norefund1 = transactions::get_nonrefund_balance($user1->id);
+
         $balance2 = transactions::get_user_balance($user2->id);
         $norefund2 = transactions::get_nonrefund_balance($user2->id);
 
+        $balance3 = transactions::get_user_balance($user3->id);
+        $norefund3 = transactions::get_nonrefund_balance($user3->id);
+
+        $balance4 = transactions::get_user_balance($user4->id);
+        $norefund4 = transactions::get_nonrefund_balance($user4->id);
+
         $this->assertEquals(200, $balance1);
         $this->assertEquals(0, $norefund1);
-        $extra = 500 * 0.2 / 0.8;
+
+        $extra = 500 * 0.15 / 0.85;
         $this->assertEquals(500 + $extra, $balance2);
         $this->assertEquals($extra, $norefund2);
+
+        $extra = 700 * 0.2 / 0.8;
+        $this->assertEquals(500 + $extra, $balance3);
+        $this->assertEquals($extra, $norefund3);
+
+        $extra = 1000 * 0.25 / 0.75;
+        $this->assertEquals(1000 + $extra, $balance4);
+        $this->assertEquals($extra, $norefund4);
     }
 }

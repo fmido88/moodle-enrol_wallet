@@ -173,19 +173,33 @@ class observer {
      * @return void
      */
     public static function conditional_discount_charging(\enrol_wallet\event\transactions_triggered $event) {
+        global $DB;
         $charger = $event->userid;
-        $userid = $event->relateduserid;
-        $amount = $event->other['amount'];
+        $userid  = $event->relateduserid;
+        $amount  = $event->other['amount'];
 
         $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
-        $condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
-        $percentdiscount = get_config('enrol_wallet', 'conditionaldiscount_percent');
+        $percentdiscount = 0;
+        if (!empty($enabled)) {
+            $params = [
+                'time1' => time(),
+                'time2' => time(),
+            ];
+            $select = '(timefrom <= :time1 OR timefrom = 0 ) AND (timeto >= :time2 OR timeto = 0)';
+            $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
 
+            foreach ($records as $record) {
+                $beforediscount = $amount + ($amount * $record->percent / (100 - $record->percent));
+                if ($beforediscount >= $record->cond && $record->percent > $percentdiscount) {
+
+                    $percentdiscount = $record->percent;
+                    $condition = $record->cond;
+                }
+            }
+        }
         if (
             empty($enabled) // If the discount enabled.
             || empty($percentdiscount) // If there is a value for discount.
-            || !is_numeric($percentdiscount) // If it is a valid value.
-            || $amount < $condition // If the amount fulfill the criteria.
             || $event->other['type'] != 'credit' // Only apply to credit transaction.
             ) {
             return;
@@ -194,12 +208,13 @@ class observer {
         // Discount more than 100 is not acceptable.
         $percentdiscount = min(100, $percentdiscount);
         $discount = $percentdiscount / 100;
+
         // The rest of the amount after subtract the part the user paid.
         $rest = $amount * $discount / (1 - $discount);
 
         $desc = get_string('conditionaldiscount_desc', 'enrol_wallet', ['rest' => $rest, 'condition' => $condition]);
         // Credit the user with the rest amount.
-        transactions::payment_topup($rest, $userid, $desc, $charger, false);
+        transactions::payment_topup($rest, $userid, $desc, $charger, false, false);
     }
 
     /**

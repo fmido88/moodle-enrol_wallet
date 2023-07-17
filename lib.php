@@ -1187,8 +1187,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param MoodleQuickForm $mform
      * @param context $context
      */
-    public function edit_instance_form($instance, MoodleQuickForm $mform, $context) {
-
+    public function edit_instance_form($instance, \MoodleQuickForm $mform, $context) {
         // Merge these two settings to one value for the single selection element.
         if ($instance->notifyall && $instance->expirynotify) {
             $instance->expirynotify = 2;
@@ -1205,22 +1204,25 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addElement('text', 'cost', get_string('credit_cost', 'enrol_wallet'));
         $mform->setType('cost', PARAM_INT);
         $mform->addHelpButton('cost', 'credit_cost', 'enrol_wallet');
+        $mform->addRule('cost', get_string('invalidvalue', 'enrol_wallet'), 'required', null, 'client');
+        $mform->addRule('cost', get_string('invalidvalue', 'enrol_wallet'), 'numeric', null, 'client');
 
         // Payment account.
         $accounts = \core_payment\helper::get_payment_accounts_menu($context);
         if ($accounts) {
             $accounts = ((count($accounts) > 1) ? ['' => ''] : []) + $accounts;
             $mform->addElement('select', 'customint1', get_string('paymentaccount', 'payment'), $accounts);
+            $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
         } else {
             $mform->addElement('static', 'customint1_text', get_string('paymentaccount', 'payment'),
-                html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-danger'));
+                html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning'));
             $mform->addElement('hidden', 'customint1');
             $mform->setType('customint1', PARAM_INT);
+            $mform->setConstant('customint1', 0);
         }
-        $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
 
         // Currency.
-        $supportedcurrencies = $this->get_possible_currencies();
+        $supportedcurrencies = $this->get_possible_currencies($instance->customint1);
         $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'), $supportedcurrencies);
         $mform->addHelpButton('currency', 'currency', 'enrol_wallet');
 
@@ -1278,6 +1280,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addElement('text', 'customint3', get_string('maxenrolled', 'enrol_wallet'));
         $mform->addHelpButton('customint3', 'maxenrolled', 'enrol_wallet');
         $mform->setType('customint3', PARAM_INT);
+        $mform->addRule('customint3', get_string('invalidvalue', 'enrol_wallet'), 'numeric', null, 'client');
 
         // Cohort restriction.
         $cohorts = $this->get_cohorts_options($instance, $context);
@@ -1342,6 +1345,131 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
+     * Adds enrol instance UI to course edit form
+     *
+     * @param object $instance enrol instance or null if does not exist yet
+     * @param MoodleQuickForm $mform
+     * @param object $data
+     * @param object $context context of existing course or parent category if course does not exist
+     * @return void
+     */
+    public function course_edit_form($instance, \MoodleQuickForm $mform, $data, $context) {
+        global $DB, $OUTPUT;
+
+        $courseid = $data->id ?? optional_param('id', null, PARAM_INT);
+        // If the course not created yet, we cannot display the form as it needs the course id.
+        if ($context instanceof \context_coursecat) {
+            if (empty($courseid) || $courseid == SITEID) {
+                $mform->addElement('header', 'enrol_wallet', 'Enrol Wallet Availabe after creation of the course');
+                $mform->addElement('static', 'warn', '', 'The course not created yet.');
+                return;
+            }
+        }
+
+        if (empty($courseid) || $courseid == SITEID) {
+            return;
+        }
+
+        $count = $DB->count_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet']);
+
+        // In case of many wallet enrolment instances it will be a mess if we try to edit from here.
+        if ($count > 1) {
+            return;
+        }
+
+        // In case there is no wallet enrol instance in this course (This part of the code never reached).
+        // I leave this part of the code in case if the core code in /course/edit.php changed.
+        if (empty($count) || empty($instance)) {
+            $wallet = optional_param('wallet', false, PARAM_BOOL);
+            if (!$wallet) {
+                $mform->addElement('header', 'enrol_wallet', 'Enrol Wallet Availabe after creation of the course');
+                unset($data->id);
+                unset($data->summary_editor);
+                $params = ['id' => $courseid, 'wallet' => true, 'sesskey' => sesskey()] + (array)$data;
+                $url = (new \moodle_url('/course/edit.php', $params))->out(false);
+                $mform->addElement('button', 'wallet', 'insert wallet enrolment instance', [
+                    'onclick' => "createWallet('$url')"
+                ]);
+
+                $code = <<<JS
+                    function createWallet(url) {
+                        window.location.href = url;
+                    }
+                JS;
+                $mform->addElement('html', "<script>$code</script>");
+                return;
+            } else {
+                $course = get_course($courseid);
+                $instanceid = $this->add_default_instance($course);
+                $instance = $this->get_instance_by_id($instanceid);
+            }
+        }
+
+        $mform->addElement('header', 'enrol_wallet', $this->get_instance_name($instance));
+        $this->edit_instance_form($instance, $mform, $context);
+
+        $data->instanceid = $instance->id;
+        unset($instance->id);
+
+        $mform->addElement('hidden', 'instanceid');
+        $mform->setType('instanceid', PARAM_INT);
+
+        $mform->setDefaults((array)$instance + ['instanceid' => $data->instanceid]);
+    }
+
+    /**
+     * Called after updating/inserting course.
+     *
+     * @param bool $inserted true if course just inserted
+     * @param object $course
+     * @param object $data form data
+     * @return void
+     */
+    public function course_updated($inserted, $course, $data) {
+        global $DB;
+        if (isset($data->instanceid)) {
+            $instance = $this->get_instance_by_id($data->instanceid);
+        } else {
+            $instances = $DB->get_records('enrol', ['courseid' => $course->id, 'enrol' => 'wallet']);
+            $instance = array_pop($instances);
+            if (empty($instances) || count($instances) > 1) {
+                return parent::course_updated($inserted, $course, $data);
+            }
+        }
+
+        $this->update_instance($instance, $data);
+        parent::course_updated($inserted, $course, $data);
+    }
+
+    /**
+     * Validates course edit form data
+     *
+     * @param object $instance enrol instance or null if does not exist yet
+     * @param array $data
+     * @param object $context context of existing course or parent category if course does not exist
+     * @return array errors array
+     */
+    public function course_edit_validation($instance, array $data, $context) {
+        if (empty($instance)) {
+            if (isset($data['instanceid'])) {
+                $data['id'] = $data['instanceid'];
+                $instance = $this->get_instance_by_id($data['instanceid']);
+            } else if (!empty($data['id'])) {
+                global $DB;
+                $instances = $DB->get_records('enrol', ['courseid' => $data['id'], 'enrol' => 'wallet']);
+                if (empty($instances) || count($instances) > 1) {
+                    return [];
+                }
+                $instance = array_pop($instances);
+            }
+        }
+        if (!empty($instance)) {
+            $data['id'] = $instance->id;
+            return $this->edit_instance_validation($data, [], $instance, $context);
+        }
+        return [];
+    }
+    /**
      * Perform custom validation of the data used to edit the instance.
      *
      * @param array $data array of ("fieldname"=>value) of submitted data
@@ -1379,7 +1507,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $validswep          = array_keys($this->get_send_welcome_email_option());
         $cohorts            = $this->get_cohorts_options($instance, $context);
         $validcohorts       = array_keys($cohorts);
-        $validcurrencies    = array_keys($this->get_possible_currencies());
+        $validcurrencies    = array_keys($this->get_possible_currencies($instance->customint1));
         $tovalidate = [
             'enrolstartdate' => PARAM_INT,
             'enrolenddate'   => PARAM_INT,
@@ -1476,7 +1604,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      *
      * @return array[currencycode => currencyname]
      */
-    public function get_possible_currencies(): array {
+    public function get_possible_currencies($account = null) {
         $codes = \core_payment\helper::get_supported_currencies();
 
         $currencies = [];
@@ -1488,10 +1616,22 @@ class enrol_wallet_plugin extends enrol_plugin {
             return strcmp($a, $b);
         });
 
+        // Adding Wallet Coins currency and empty currency.
         if (empty($currencies)) {
-            $currencies = ['' => ''];
+            $currencies = [
+                ''    => '',
+                'MCW' => get_string('MWC', 'enrol_wallet'),
+            ];
         }
-
+        // Adding custom currency in case of there is no available payment gateway or customize the wallet.
+        if (empty($currencies) || (empty($account))) {
+            $customcurrency = $this->get_config('customcurrency') ?? '';
+            $cc = $this->get_config('customcurrencycode') ?? '';
+            // Don't override standard currencies.
+            if (!array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MCW') {
+                $currencies[$cc] = $customcurrency;
+            }
+        }
         return $currencies;
     }
 

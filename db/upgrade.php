@@ -23,7 +23,7 @@
  */
 
 /**
- * Upgarding database.
+ * Upgrading database.
  *
  * @param int $oldversion the old version of this plugin.
  * @return bool
@@ -132,6 +132,38 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
         // ...enrol_wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2023060608, 'enrol', 'wallet');
+    }
+
+    if ($oldversion < 2023071512) {
+        $table = new xmldb_table('enrol_wallet_items');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, true);
+        $table->add_field('cost', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, false, 0);
+        $table->add_field('currency', XMLDB_TYPE_CHAR, 3, null, XMLDB_NOTNULL, false, 'EGP');
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
+        }
+        $dbman->create_table($table);
+        // ...enrol_wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2023071512, 'enrol', 'wallet');
+    }
+    if ($oldversion < 2023071707) {
+        $table = new xmldb_table('enrol_wallet_cond_discount');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, true);
+        $table->add_field('cond', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, false);
+        $table->add_field('percent', XMLDB_TYPE_INTEGER, 3, null, XMLDB_NOTNULL, false);
+        $table->add_field('timefrom', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
+        $table->add_field('timeto', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2023071707, 'enrol', 'wallet');
     }
     return true;
 }

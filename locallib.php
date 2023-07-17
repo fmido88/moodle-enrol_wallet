@@ -155,23 +155,41 @@ function enrol_wallet_generate_coupons($options) {
  * @return string
  */
 function enrol_wallet_display_charger_form() {
-    global $CFG;
+    global $CFG, $DB;
     require_once($CFG->libdir.'/formslib.php');
     if (!has_capability('enrol/wallet:creditdebit', context_system::instance())) {
         return '';
     }
-    // Check the conditional discount.
-    $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
-    $condition = get_config('enrol_wallet', 'conditionaldiscount_condition');
-    $discount = get_config('enrol_wallet', 'conditionaldiscount_percent');
-
-    if (!empty($enabled) && isset($condition) && !empty($discount)) {
-        $discount = $discount / 100;
-    } else {
-        $discount = 0;
-    }
 
     $mform = new \MoodleQuickForm('credit2', 'POST', $CFG->wwwroot.'/enrol/wallet/extra/charger.php');
+
+    // Check the conditional discount.
+    $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+    if (!empty($enabled)) {
+        $params = [
+            'time1' => time(),
+            'time2' => time(),
+        ];
+        $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
+        $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
+
+        $i = 0;
+        foreach ($records as $record) {
+            $i++;
+            // The next two elements only used to pass the values to js code.
+            $mform->addElement('hidden', 'discount'.$i, '', ['id' => "discounted-value[$i]"]);
+            $mform->setType('discount'.$i, PARAM_FLOAT);
+            $mform->setConstant('discount'.$i, $record->percent / 100);
+
+            $mform->addElement('hidden', 'condition'.$i, '', ['id' => "discount-condition[$i]"]);
+            $mform->setType('condition'.$i, PARAM_FLOAT);
+            $mform->setConstant('condition'.$i, $record->cond);
+        }
+        $mform->addElement('hidden', 'number', '', ['id' => "ndiscounts"]);
+        $mform->setType('number', PARAM_INT);
+        $mform->setDefault('number', $i);
+    }
+
     $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
 
     $operations = [
@@ -180,11 +198,11 @@ function enrol_wallet_display_charger_form() {
         'balance' => 'balance'
     ];
     $oplabel = get_string('chargingoperation', 'enrol_wallet');
-    $attr = ['id' => 'charge-operation', 'onchange' => 'calculateCharge()'];
+    $attr = !empty($i) ? ['id' => 'charge-operation', 'onchange' => 'calculateCharge()'] : [];
     $mform->addElement('select', 'op', $oplabel, $operations, $attr);
 
     $valuetitle = get_string('chargingvalue', 'enrol_wallet');
-    $attr = ['id' => 'charge-value', 'onkeyup' => 'calculateCharge()', 'onchange' => 'calculateCharge()'];
+    $attr = !empty($i) ? ['id' => 'charge-value', 'onkeyup' => 'calculateCharge()', 'onchange' => 'calculateCharge()'] : [];
     $mform->addElement('text', 'value', $valuetitle, $attr);
     $mform->setType('value', PARAM_FLOAT);
     $mform->hideIf('value', 'op', 'eq', 'balance');
@@ -200,10 +218,12 @@ function enrol_wallet_display_charger_form() {
         'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true))
     ];
     $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), [], $options);
-    $mform->addRule('userlist', 'select user', 'required');
+    $mform->addRule('userlist', 'select user', 'required', null, 'client');
 
-    // Empty div used by js to display the calculated final value.
-    $mform->addElement('html', '<div id="calculated-value" style="font-weight: 700;">please enter a value</div>');
+    if (!empty($enabled)) {
+        // Empty div used by js to display the calculated final value.
+        $mform->addElement('html', '<div id="calculated-value" style="font-weight: 700;">please enter a value</div>');
+    }
 
     $mform->addElement('submit', 'submit', get_string('submit'));
 
@@ -211,35 +231,36 @@ function enrol_wallet_display_charger_form() {
     $mform->setType('sesskey', PARAM_TEXT);
     $mform->setDefault('sesskey', sesskey());
 
-    // The next two elements only used to pass the values to js code.
-    $mform->addElement('hidden', 'discount', '', ['id' => 'discounted-value']);
-    $mform->setType('discount', PARAM_FLOAT);
-    $mform->setDefault('discount', $discount);
-
-    $mform->addElement('hidden', 'condition', '', ['id' => 'discount-condition']);
-    $mform->setType('condition', PARAM_FLOAT);
-    $mform->setDefault('condition', $condition);
-
     // Add some js code to display the actual value to charge the wallet with.
     $js = <<<JS
             function calculateCharge() {
+                var number = parseInt(document.getElementById("ndiscounts").value);
                 var value = parseFloat(document.getElementById("charge-value").value);
-                var discount = parseFloat(document.getElementById("discounted-value").value);
-                var condition = parseFloat(document.getElementById("discount-condition").value);
                 var op = document.getElementById("charge-operation").value;
-                if (op == 'credit') {
-                    if (value >= condition) {
-                        var calculatedValue = value + (value * discount / (1 - discount));
-                    } else {
-                        var calculatedValue = value;
+
+                var maxDiscount = 0;
+                var calculatedValue = value;
+                for (var i = 1; i <= number; i++) {
+                    var discount = parseFloat(document.getElementById("discounted-value["+ i +"]").value);
+                    var condition = parseFloat(document.getElementById("discount-condition["+ i +"]").value);
+                    var valueBefore = value + (value * discount / (1 - discount));
+                    console.log('Value before: '+ valueBefore)
+                    if (valueBefore >= condition && discount > maxDiscount) {
+                        maxDiscount = discount;
+                        var calculatedValue = valueBefore;
                     }
+                }
+
+                if (op == 'credit') {
                     document.getElementById("calculated-value").innerHTML = "Charging Value: " + calculatedValue;
                 } else {
                     document.getElementById("calculated-value").innerHTML = "";
                 }
             }
             JS;
-    $mform->addElement('html', '<script>'.$js.'</script>');
+    if (!empty($i)) {
+        $mform->addElement('html', '<script>'.$js.'</script>');
+    }
 
     ob_start();
     $mform->display();
