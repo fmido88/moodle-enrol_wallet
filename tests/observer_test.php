@@ -194,14 +194,14 @@ class observer_test extends \advanced_testcase {
 
         transactions::payment_topup(200, $user1->id);
         // The user tries to pay 500, this is the number passes to the function.
-        $extra2 = 500 * 0.15 / 0.85;
-        transactions::payment_topup(500 - $extra2, $user2->id);
+        $extra2 = 500 * 0.15;
+        transactions::payment_topup(500 * 0.85, $user2->id);
 
-        $extra3 = 700 * 0.2 / 0.8;
-        transactions::payment_topup(700 - $extra3, $user3->id);
+        $extra3 = 700 * 0.2;
+        transactions::payment_topup(700 * 0.8, $user3->id);
 
-        $extra4 = 1000 * 0.25 / 0.75;
-        transactions::payment_topup(1000 - $extra4, $user4->id);
+        $extra4 = 1000 * 0.25;
+        transactions::payment_topup(1000 * 0.75, $user4->id);
 
         $balance1 = transactions::get_user_balance($user1->id);
         $norefund1 = transactions::get_nonrefund_balance($user1->id);
