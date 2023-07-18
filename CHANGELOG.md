@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 2.5.0 ##
+- Display a warning in case of low balance.
+- Add multiple rules for conditional discount.
+- Fix bugs.
+
 ## V 2.0.0 ##
 - Add option to display a notice for low balance.
 - Enhance user creation in wordpress.
