@@ -147,7 +147,7 @@ $mform->setType('sesskey', PARAM_RAW);
 $mform->setConstant('sesskey', sesskey());
 
 if ($edit) {
-    $mform->addElement('submit', 'confirmedit', get_string('confirm'));
+    $mform->addElement('submit', 'confirmedit', get_string('confirmedit', 'enrol_wallet'));
 } else {
     $mform->addElement('submit', 'add', get_string('add'));
 }

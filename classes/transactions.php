@@ -91,7 +91,7 @@ class transactions {
 
             $newbalance = $before + $amount;
         }
-        // Check if a valid operation done.
+        // Check if it is a valid operation done.
         if ($newbalance <= $before) {
             return false;
         }
@@ -361,7 +361,7 @@ class transactions {
             ) {
 
             $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
-            self::payment_topup($coupondata['value'], $userid, $desc, $userid);
+            self::payment_topup($coupondata['value'], $userid, $desc, $userid, false);
 
             // Mark the coupon as used.
             self::mark_coupon_used($coupon, $userid, $instanceid, $coupondata['type'], $coupondata['value']);
@@ -483,7 +483,7 @@ class transactions {
             $percent = get_config('enrol_wallet', 'cashbackpercent');
             $desc = get_string('cashbackdesc', 'enrol_wallet', $coursename);
             $value = $costafter * $percent / 100;
-            $id = self::payment_topup($value, $userid, $desc, $userid, false);
+            $id = self::payment_topup($value, $userid, $desc, $userid, false, false);
             // Trigger cashback event.
             $eventdata = [
                 'context'       => \context_course::instance($courseid),

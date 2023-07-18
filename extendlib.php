@@ -269,3 +269,30 @@ function enrol_wallet_before_standard_top_of_body_html() {
         \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
     }
 }
+
+/**
+ * Callback to login the user to wordpress.
+ * @return void
+ */
+function enrol_wallet_after_require_login() {
+    global $USER, $CFG, $SESSION;
+    require_once($CFG->dirroot.'/login/lib.php');
+    if (isguestuser() || empty($USER->id)) {
+        return;
+    }
+
+    // Prevent multiple calls.
+    $done = get_user_preferences('enrol_wallet_wploggedin', false, $USER);
+    if ($done) {
+        return;
+    }
+
+    if (isset($SESSION->wantsurl)) {
+        $return = $SESSION->wantsurl;
+    } else {
+        $return = (new moodle_url('/'))->out(false);
+    }
+
+    $wordpress = new \enrol_wallet\wordpress;
+    $wordpress->login_logout_user_to_wordpress($USER->id, 'login', $return);
+}

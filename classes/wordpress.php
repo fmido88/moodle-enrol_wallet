@@ -252,6 +252,7 @@ class wordpress {
         if (!get_complete_user_data('username', $user->username) || empty($user->id)) {
             $auth = get_auth_plugin($user->auth);
             $auth->user_signup($user, false);
+
             if (!$user = get_complete_user_data('username', $user->username)) {
                 return false;
             }
@@ -272,7 +273,6 @@ class wordpress {
      * @param int $userid moodle user id
      * @param string $method either login or logout
      * @param string $redirect redirection url after login or logout from wordpress website
-     * @return bool|string
      */
     public function login_logout_user_to_wordpress($userid, $method, $redirect) {
         $allowed = get_config('enrol_wallet', 'wordpressloggins');
@@ -287,10 +287,24 @@ class wordpress {
             || !$user // If this is a valid user.
             || isguestuser($user) // Not guest.
             || ($method == 'login' && !isloggedin())
-            || ($method == 'logout' && isloggedin())
             ) {
-            // Redirect to the home page.
-            redirect(new \moodle_url('/'));
+            // Redirect.
+            return;
+        }
+
+        if ($method == 'logout' && isloggedin()) {
+            redirect($redirect);
+        }
+
+        $done = get_user_preferences('enrol_wallet_wploggedin', false, $user);
+        if ($done && $method == 'login') {
+            return;
+        }
+
+        if ($method == 'login') {
+            set_user_preference('enrol_wallet_wploggedin', true, $user);
+        } else {
+            unset_user_preference('enrol_wallet_wploggedin', $user);
         }
 
         // The data to send to wordpress.
@@ -299,10 +313,10 @@ class wordpress {
             'method'         => $method,
             'url'            => $redirect,
             'email'          => $user->email,
-            'username'       => $user->username, // ...username and email used for login only in case user need to be created.
+            'username'       => $user->username, // ...username and email used for signup only in case user need to be created.
         ];
-
         $encdata = $this->encrypt_data($data);
-        redirect($wordpressurl . '?encdata=' . $encdata . '&moodleurl=' . (new \moodle_url('/'))->out(false));
+        $moodleurl = urlencode((new \moodle_url('/'))->out(false));
+        redirect($wordpressurl . '?encdata=' . $encdata . '&moodleurl=' . $moodleurl);
     }
 }

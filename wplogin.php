@@ -31,7 +31,6 @@ $wantsurl    = optional_param('wantsurl', '', PARAM_URL);
 $newredirect = optional_param('redirect', '', PARAM_URL);
 
 if ($action == 'login') {
-    global $SESSION;
     require_login();
 
     $redirect = core_login_get_return_url();
@@ -52,5 +51,5 @@ if ($action == 'login') {
     $wordpress->login_logout_user_to_wordpress($userid, 'logout', $redirect);
 
 } else {
-    redirect(new \moodle_url('/'));
+    throw new moodle_exception('invalidoperation');
 }

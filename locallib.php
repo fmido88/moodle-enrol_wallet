@@ -185,9 +185,6 @@ function enrol_wallet_display_charger_form() {
             $mform->setType('condition'.$i, PARAM_FLOAT);
             $mform->setConstant('condition'.$i, $record->cond);
         }
-        $mform->addElement('hidden', 'number', '', ['id' => "ndiscounts"]);
-        $mform->setType('number', PARAM_INT);
-        $mform->setDefault('number', $i);
     }
 
     $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
@@ -207,6 +204,13 @@ function enrol_wallet_display_charger_form() {
     $mform->setType('value', PARAM_FLOAT);
     $mform->hideIf('value', 'op', 'eq', 'balance');
 
+    if (!empty($enabled)) {
+        // Empty div used by js to display the calculated final value.
+        $enter = get_string('entervalue', 'enrol_wallet');
+        $html = '<div id="calculated-value" style="font-weight: 700;" class="alert alert-warning">'.$enter.'</div>';
+        $mform->addElement('html', $html);
+    }
+
     $context = context_system::instance();
     $options = [
         'id'         => 'charger-userlist',
@@ -220,39 +224,34 @@ function enrol_wallet_display_charger_form() {
     $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), [], $options);
     $mform->addRule('userlist', 'select user', 'required', null, 'client');
 
-    if (!empty($enabled)) {
-        // Empty div used by js to display the calculated final value.
-        $mform->addElement('html', '<div id="calculated-value" style="font-weight: 700;">please enter a value</div>');
-    }
-
     $mform->addElement('submit', 'submit', get_string('submit'));
 
     $mform->addElement('hidden', 'sesskey');
     $mform->setType('sesskey', PARAM_TEXT);
     $mform->setDefault('sesskey', sesskey());
 
+    $charginglabel = get_string('charging_value', 'enrol_wallet');
     // Add some js code to display the actual value to charge the wallet with.
     $js = <<<JS
             function calculateCharge() {
-                var number = parseInt(document.getElementById("ndiscounts").value);
                 var value = parseFloat(document.getElementById("charge-value").value);
                 var op = document.getElementById("charge-operation").value;
 
                 var maxDiscount = 0;
                 var calculatedValue = value;
-                for (var i = 1; i <= number; i++) {
+                for (var i = 1; i <= '$i'; i++) {
                     var discount = parseFloat(document.getElementById("discounted-value["+ i +"]").value);
                     var condition = parseFloat(document.getElementById("discount-condition["+ i +"]").value);
                     var valueBefore = value + (value * discount / (1 - discount));
-                    console.log('Value before: '+ valueBefore)
+
                     if (valueBefore >= condition && discount > maxDiscount) {
                         maxDiscount = discount;
                         var calculatedValue = valueBefore;
                     }
                 }
 
-                if (op == 'credit') {
-                    document.getElementById("calculated-value").innerHTML = "Charging Value: " + calculatedValue;
+                if (op == "credit") {
+                    document.getElementById("calculated-value").innerHTML = '$charginglabel' + calculatedValue;
                 } else {
                     document.getElementById("calculated-value").innerHTML = "";
                 }

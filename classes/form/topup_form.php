@@ -62,9 +62,6 @@ class topup_form extends \moodleform {
                 $mform->setType('condition'.$i, PARAM_FLOAT);
                 $mform->setConstant('condition'.$i, $record->cond);
             }
-            $mform->addElement('hidden', 'number', '', ['id' => "ndiscounts"]);
-            $mform->setType('number', PARAM_INT);
-            $mform->setDefault('number', $i);
         }
 
         $attr = !empty($i) ? ['id' => 'topup-value', 'onkeyup' => 'calculateCharge()', 'onchange' => 'calculateCharge()'] : [];
@@ -97,14 +94,15 @@ class topup_form extends \moodleform {
         $mform->setType('sesskey', PARAM_TEXT);
         $mform->setDefault('sesskey', sesskey());
 
+        $paylabel = get_string('paylabel', 'enrol_wallet');
+        $only = get_string('only');
         // Add some js code to display the actual value to charge the wallet with.
         $js = <<<JS
                 function calculateCharge() {
-                    var number = parseInt(document.getElementById("ndiscounts").value);
                     var value = parseFloat(document.getElementById("topup-value").value);
 
                     var maxDiscount = 0;
-                    for (var i = 1; i <= number; i++) {
+                    for (var i = 1; i <= '$i'; i++) {
                         var discount = parseFloat(document.getElementById("discounted-value["+ i +"]").value);
                         var condition = parseFloat(document.getElementById("discount-condition["+ i +"]").value);
 
@@ -114,7 +112,11 @@ class topup_form extends \moodleform {
                     }
 
                     var calculatedValue = value - (value * maxDiscount);
-                    document.getElementById("calculated-value").innerHTML = "You will pay: " + calculatedValue;
+                    if (calculatedValue < value) {
+                        document.getElementById("calculated-value").innerHTML = '$paylabel'+calculatedValue+' $only';
+                    } else {
+                        document.getElementById("calculated-value").innerHTML = '$paylabel' + calculatedValue;
+                    }
                 }
                 JS;
 

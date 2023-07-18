@@ -142,13 +142,17 @@ class observer {
         $time = $event->timecreated;
         $giftvalue = get_config('enrol_wallet', 'newusergiftvalue');
 
+        $balance = transactions::get_user_balance($userid);
+        if (is_numeric($balance) && $balance > 0) {
+            return;
+        }
         $a = new \stdClass;
         $a->userid = $userid;
         $a->time = userdate($time);
         $a->amount = $giftvalue;
         $desc = get_string('giftdesc', 'enrol_wallet', $a);
 
-        $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false);
+        $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false, false);
 
         // Trigger gifts event.
         $eventdata = [

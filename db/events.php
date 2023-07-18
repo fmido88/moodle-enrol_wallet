@@ -41,12 +41,6 @@ $observers = [
         'callback'    => '\enrol_wallet\observer::wallet_gifting_new_user',
         'includefile' => '/enrol/wallet/classes/observer.php'
     ],
-    // Login user to wordpress.
-    [
-        'eventname'   => '\core\event\user_loggedin',
-        'callback'    => '\enrol_wallet\observer::login_to_wordpress',
-        'includefile' => '/enrol/wallet/classes/observer.php'
-    ],
     // Logout user from wordpress.
     [
         'eventname'   => '\core\event\user_loggedout',
