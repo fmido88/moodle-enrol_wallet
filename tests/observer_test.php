@@ -281,7 +281,6 @@ class observer_test extends \advanced_testcase {
 
         $user2 = get_complete_user_data('username', 'something');
         $DB->set_field('user', 'confirmed', 1, ['id' => $user2->id]);
-        $sink->close();
 
         // Check the database changes.
         $refer = $DB->get_record('enrol_wallet_referral', ['userid' => $user1->id]);
@@ -331,5 +330,6 @@ class observer_test extends \advanced_testcase {
         $balance2 = transactions::get_user_balance($user2->id);
         $this->assertEquals(50, $balance1);
         $this->assertEquals(50, $balance2);
+        $sink->close();
     }
 }

@@ -288,9 +288,6 @@ function enrol_wallet_post_signup_requests($user) {
     $maxref     = get_config('enrol_wallet', 'referral_max');
     $amount     = get_config('enrol_wallet', 'referral_amount');
 
-    echo '<pre>';
-    var_dump($user, $refenabled, $maxref, $amount);
-    echo '</pre>';
     // Check the referral code.
     if (!empty($user->refcode) && $refenabled && !empty($amount)) {
         global $DB;
@@ -299,7 +296,11 @@ function enrol_wallet_post_signup_requests($user) {
         // If $maxref is zero means no limit.
         if (!empty($refrecord) && (empty($maxref) || $refrecord->usetimes < $maxref)) {
             // Update the record.
-            $users = json_decode($refrecord->users, true);
+            if (!empty($refrecord->users)) {
+                $users = json_decode($refrecord->users, true);
+            } else {
+                $users = [];
+            }
             $users[] = $user->username;
 
             $update = (object)[
