@@ -331,5 +331,31 @@ class observer_test extends \advanced_testcase {
         $this->assertEquals(50, $balance1);
         $this->assertEquals(50, $balance2);
         $sink->close();
+
+        // Set max referrals to 1 and check validation.
+        set_config('referral_max', 1, 'enrol_wallet');
+
+        $this->setUser(null);
+        $user3 = [
+            'username' => 'anotheruser',
+            'password' => 'P@ssw0rd',
+            'email' => 'fake@fake.com',
+            'email2' => 'fake@fake.com',
+            'firstname' => 'Adam',
+            'lastname' => 'Ali',
+            'country' => 'EG',
+            'refcode' => $code,
+            'sesskey' => sesskey(),
+        ];
+
+        $errors = signup_validate_data($user3, []);
+        $this->assertNotEmpty($errors['refcode']);
+        $this->assertStringContainsString(get_string('referral_exceeded', 'enrol_wallet', $code), $errors['refcode']);
+
+        // Check validation of a non-exist code.
+        $user3['refcode'] = 'NotExistCode';
+        $errors = signup_validate_data($user3, []);
+        $this->assertNotEmpty($errors['refcode']);
+        $this->assertStringContainsString(get_string('referral_notexist', 'enrol_wallet', $code), $errors['refcode']);
     }
 }
