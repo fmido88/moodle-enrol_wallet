@@ -296,12 +296,12 @@ class wordpress {
             redirect($redirect);
         }
 
-        $done = get_user_preferences('enrol_wallet_wploggedin', false, $user);
-        if ($done && $method == 'login') {
-            return;
-        }
-
         if ($method == 'login') {
+            $done = get_user_preferences('enrol_wallet_wploggedin', false, $user);
+            if ($done) {
+                return;
+            }
+
             set_user_preference('enrol_wallet_wploggedin', true, $user);
         } else {
             unset_user_preference('enrol_wallet_wploggedin', $user);

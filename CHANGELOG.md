@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 3.1.0 ##
+- Add Referral program.
+- Fix some bugs.
+- Fix typo.
+
 ## V 2.5.0 ##
 - Display a warning in case of low balance.
 - Add multiple rules for conditional discount.

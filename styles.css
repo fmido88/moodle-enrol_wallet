@@ -2,12 +2,14 @@ label#charge-operation_label,
 label#charge-value_label,
 label#charger-userlist_label,
 label#topup-value_label,
+label#topup-value-discount_label,
 p#fgroup_id_applycoupon_label {
     min-width: max-content;
     margin-left: -15px;
 }
 
 div#fitem_topup-value,
+div#fitem_topup-value-discount,
 div#fitem_charger-userlist,
 div#fitem_charge-value,
 div#fitem_charge-operation,

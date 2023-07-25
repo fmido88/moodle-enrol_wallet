@@ -132,40 +132,38 @@ class observer {
      * @return void
      */
     public static function wallet_gifting_new_user(\core\event\user_created $event) {
-
-        $giftenabled = get_config('enrol_wallet', 'newusergift');
-        if (empty($giftenabled)) {
-            return;
-        }
-
         $userid = $event->relateduserid;
-        $time = $event->timecreated;
-        $giftvalue = get_config('enrol_wallet', 'newusergiftvalue');
 
-        $balance = transactions::get_user_balance($userid);
-        if (is_numeric($balance) && $balance > 0) {
-            return;
+        // First check if we gifting new users.
+        $giftenabled = get_config('enrol_wallet', 'newusergift');
+        if (!empty($giftenabled)) {
+            $time   = $event->timecreated;
+            $giftvalue = get_config('enrol_wallet', 'newusergiftvalue');
+
+            $balance = transactions::get_user_balance($userid);
+            if (!is_numeric($balance) || $balance == 0) {
+                $a = new \stdClass;
+                $a->userid = $userid;
+                $a->time = userdate($time);
+                $a->amount = $giftvalue;
+                $desc = get_string('giftdesc', 'enrol_wallet', $a);
+
+                $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false, false);
+
+                // Trigger gifts event.
+                $eventdata = [
+                    'context'       => \context_system::instance(),
+                    'userid'        => $userid,
+                    'relateduserid' => $userid,
+                    'objectid'      => $id,
+                    'other' => [
+                        'amount' => $giftvalue,
+                    ],
+                ];
+                $giftevent = \enrol_wallet\event\newuser_gifted::create($eventdata);
+                $giftevent->trigger();
+            }
         }
-        $a = new \stdClass;
-        $a->userid = $userid;
-        $a->time = userdate($time);
-        $a->amount = $giftvalue;
-        $desc = get_string('giftdesc', 'enrol_wallet', $a);
-
-        $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false, false);
-
-        // Trigger gifts event.
-        $eventdata = [
-            'context'       => \context_system::instance(),
-            'userid'        => $userid,
-            'relateduserid' => $userid,
-            'objectid'      => $id,
-            'other' => [
-                'amount' => $giftvalue,
-            ],
-        ];
-        $event = \enrol_wallet\event\newuser_gifted::create($eventdata);
-        $event->trigger();
     }
 
     /**
@@ -219,6 +217,51 @@ class observer {
         $desc = get_string('conditionaldiscount_desc', 'enrol_wallet', ['rest' => $rest, 'condition' => $condition]);
         // Credit the user with the rest amount.
         transactions::payment_topup($rest, $userid, $desc, $charger, false, false);
+    }
+
+    /**
+     * Release referral gift after making sure that the referred user is an active user and enrolled in a course already.
+     * @param \core\event\user_enrolment_created $event
+     * @return void
+     */
+    public static function release_referral_gift(\core\event\user_enrolment_created $event) {
+        $courseid = $event->courseid;
+        $enrolmethod = $event->other['enrol'];
+        $userid = $event->relateduserid;
+
+        $plugins = explode(',', get_config('enrol_wallet', 'referral_plugins'));
+        if (empty($plugins) || !in_array($enrolmethod, $plugins, true)) {
+            return;
+        }
+
+        $enabled = get_config('enrol_wallet', 'referral_enabled');
+        if (!$enabled) {
+            return;
+        }
+
+        global $DB;
+        $referred = \core_user::get_user($userid, 'username,firstname');
+
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $referred->username]);
+
+        if (empty($hold) || !empty($hold->released)) {
+            return;
+        }
+
+        $referrer = \core_user::get_user($hold->referrer, 'id,firstname');
+        // TopUp the referred user.
+        $desc = get_string('referral_gift', 'enrol_wallet', $referrer->firstname);
+        transactions::payment_topup($hold->amount, $userid, $desc, $referrer->id, false, false);
+
+        // TopUp the referrer user.
+        $refdesc = get_string('referral_topup', 'enrol_wallet', $referred->firstname);
+        transactions::payment_topup($hold->amount, $referrer->id, $refdesc, $userid, false, false);
+
+        // Updating the hold_gift record.
+        $hold->timemodified = time();
+        $hold->released = 1;
+        $hold->courseid = $courseid;
+        $DB->update_record('enrol_wallet_hold_gift', $hold);
     }
 
     /**

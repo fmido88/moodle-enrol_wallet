@@ -137,6 +137,10 @@ class transactions {
             $charger = $userid;
         }
 
+        if (!is_numeric($amount) || $amount < 0) {
+            return false;
+        }
+
         $before = self::get_user_balance($userid);
 
         $source = get_config('enrol_wallet', 'walletsource');
@@ -146,6 +150,10 @@ class transactions {
             $wordpress = new \enrol_wallet\wordpress;
 
             $response = $wordpress->debit($userid, $amount, $coursename, $charger);
+
+            if (!is_numeric($response)) {
+                return false;
+            }
 
             $newbalance = self::get_user_balance($userid);
 
@@ -158,12 +166,10 @@ class transactions {
                 // TODO throw error.
                 return false;
             }
-
-            $response = 'done';
         }
 
         // No debit occurs.
-        if ($newbalance >= $before) {
+        if ($newbalance != $before - $amount) {
             return false;
         }
 

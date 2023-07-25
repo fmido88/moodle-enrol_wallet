@@ -207,11 +207,67 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
 }
 
 /**
- * Callback after user signup to create wordpress user.
- * @param object $user
+ * Extend the signup form to add the referral code.
+ * @param MoodleQuickForm $mform
  * @return void
  */
-function enrol_wallet_post_signup_requests($user) {
+function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
+    $refenabled = get_config('enrol_wallet', 'referral_enabled');
+    $maxref     = get_config('enrol_wallet', 'referral_max');
+    if (!$refenabled) {
+        return;
+    }
+    // Add field for the referral code.
+    $mform->addElement('text', 'refcode', get_string('referral_code', 'enrol_wallet'));
+    $mform->addHelpButton('refcode', 'referral_code_signup', 'enrol_wallet');
+    $mform->setType('refcode', PARAM_ALPHANUM);
+
+    $refcode = optional_param('refcode', '', PARAM_ALPHANUM);
+    if (!empty($refcode)) {
+        global $DB;
+        $mform->setDefault('refcode', $refcode);
+        if (!empty($maxref)) {
+            // Check if this code exceeds the max limit.
+            $refrecord = $DB->get_record('enrol_wallet_referral', ['code' => $refcode]);
+            if (!empty($refrecord) && $refrecord->usetimes >= $maxref) {
+                $mform->addElement('static', 'refcode_warn', get_string('referral_exceeded', 'enrol_wallet', $refcode));
+                $mform->updateElementAttr('refcode_warn', ['class' => 'notify notify-error']);
+            }
+        }
+    }
+}
+
+/**
+ * Validate the data from signup request to validate the referral code.
+ * @param array $data
+ * @return array<string>
+ */
+function enrol_wallet_validate_extend_signup_form($data) {
+    $refenabled = get_config('enrol_wallet', 'referral_enabled');
+    $maxref     = get_config('enrol_wallet', 'referral_max');
+    $errors = [];
+    if (!$refenabled || empty($data['refcode']) || empty($maxref)) {
+        return $errors;
+    }
+
+    global $DB;
+    // Check if this code exceeds the max limit.
+    $refrecord = $DB->get_record('enrol_wallet_referral', ['code' => $data['refcode']]);
+    if (empty($refrecord)) {
+        $errors['refcode'] = get_string('referral_notexist', 'enrol_wallet', $data['refcode']);
+    } else if ($refrecord->usetimes >= $maxref) {
+        $errors['refcode'] = get_string('referral_exceeded', 'enrol_wallet', $data['refcode']);
+    }
+
+    return $errors;
+}
+
+/**
+ * Function to update or create user in wordpress.
+ * @param stdClass $user
+ * @return void
+ */
+function enrol_wallet_update_wordpress_user($user) {
     // Check the wallet source first.
     $source = get_config('enrol_wallet', 'walletsource');
     if ($source == enrol_wallet\transactions::SOURCE_WORDPRESS) {
@@ -219,6 +275,52 @@ function enrol_wallet_post_signup_requests($user) {
         $wordpress = new \enrol_wallet\wordpress;
         $wordpress->create_wordpress_user($user, $user->password);
     }
+}
+/**
+ * Callback after user signup to create wordpress user and check referral data.
+ * @param object $user // The data submitted from the signup form.
+ * @return void
+ */
+function enrol_wallet_post_signup_requests($user) {
+
+    // Referral program.
+    $refenabled = get_config('enrol_wallet', 'referral_enabled');
+    $maxref     = get_config('enrol_wallet', 'referral_max');
+    $amount     = get_config('enrol_wallet', 'referral_amount');
+
+    echo '<pre>';
+    var_dump($user, $refenabled, $maxref, $amount);
+    echo '</pre>';
+    // Check the referral code.
+    if (!empty($user->refcode) && $refenabled && !empty($amount)) {
+        global $DB;
+        $refrecord = $DB->get_record('enrol_wallet_referral', ['code' => $user->refcode]); // The code should be unique.
+        // Check if the reference code is available and the user didn't exceed the available referral times.
+        // If $maxref is zero means no limit.
+        if (!empty($refrecord) && (empty($maxref) || $refrecord->usetimes < $maxref)) {
+            // Update the record.
+            $users = json_decode($refrecord->users, true);
+            $users[] = $user->username;
+
+            $update = (object)[
+                'id'       => $refrecord->id,
+                'usetimes' => $refrecord->usetimes + 1,
+                'users'    => json_encode($users),
+            ];
+            $DB->update_record('enrol_wallet_referral', $update);
+            // Insert the hold record.
+            $hold = [
+                'referrer'    => $refrecord->userid,
+                'referred'    => $user->username,
+                'amount'      => $amount,
+                'timecreated' => time()
+            ];
+            $DB->insert_record('enrol_wallet_hold_gift', $hold);
+        }
+    }
+
+    // Update or create wordpress user.
+    enrol_wallet_update_wordpress_user($user);
 }
 
 /**
@@ -229,7 +331,7 @@ function enrol_wallet_post_signup_requests($user) {
  */
 function enrol_wallet_post_set_password_requests($data, $user) {
     $user->password = $data->password;
-    return enrol_wallet_post_signup_requests($user);
+    return enrol_wallet_update_wordpress_user($user);
 }
 
 /**
@@ -241,7 +343,7 @@ function enrol_wallet_post_change_password_requests($data) {
     global $USER;
     $user = $USER;
     $user->password = $data->newpassword1;
-    return enrol_wallet_post_signup_requests($user);
+    return enrol_wallet_update_wordpress_user($user);
 }
 
 /**
@@ -288,7 +390,7 @@ function enrol_wallet_after_require_login() {
     }
 
     if (isset($SESSION->wantsurl)) {
-        $return = $SESSION->wantsurl;
+        $return = (new moodle_url($SESSION->wantsurl))->out(false);
     } else {
         $return = (new moodle_url('/'))->out(false);
     }

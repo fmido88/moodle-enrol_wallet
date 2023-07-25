@@ -165,5 +165,40 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         }
         upgrade_plugin_savepoint(true, 2023071707, 'enrol', 'wallet');
     }
+    if ($oldversion < 2023072509) {
+        $table = new xmldb_table('enrol_wallet_referral');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, true);
+        $table->add_field('code', XMLDB_TYPE_CHAR, 30, null, null, false);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, 10, null, null, false);
+        $table->add_field('usetimes', XMLDB_TYPE_INTEGER, 10, null, null, false);
+        $table->add_field('users', XMLDB_TYPE_TEXT, 3000, null, null, false);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('code', XMLDB_KEY_UNIQUE, ['code']);
+        $table->add_key('userid', XMLDB_KEY_UNIQUE, ['userid']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        $table = new xmldb_table('enrol_wallet_hold_gift');
+        $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, true);
+        $table->add_field('referrer', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false);
+        $table->add_field('referred', XMLDB_TYPE_CHAR, 225, null, XMLDB_NOTNULL, false);
+        $table->add_field('courseid', XMLDB_TYPE_INTEGER, 10, null, null, false);
+        $table->add_field('amount', XMLDB_TYPE_NUMBER, '10,5', null, XMLDB_NOTNULL, false);
+        $table->add_field('released', XMLDB_TYPE_INTEGER, 1, null, XMLDB_NOTNULL, false, 0);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
+
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('referred', XMLDB_KEY_UNIQUE, ['referred']);
+
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+        upgrade_plugin_savepoint(true, 2023072509, 'enrol', 'wallet');
+    }
     return true;
 }

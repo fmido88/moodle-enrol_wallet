@@ -21,18 +21,22 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+$string['agreepolicy_intro'] = 'In order to perform any wallet top up process it means that you have <strong>read and agreed</strong> the manual refund policy.<br/>
+Click on the link below to read the policy.<br/>';
+$string['agreepolicy_label'] = 'I Agree to the manual refund policy.';
 $string['alreadyenroled'] = 'You are already enrolled in this course, may be your time is out or you got suspended <br> contact your TA or TS for more assistance';
 $string['allusers'] = 'transactions for all users selected';
 $string['allowmultiple'] = 'Number of allowed instances';
 $string['allowmultiple_help'] = 'Select the number of instances allowed in a single course, 0 means unlimited.';
 $string['applycoupon'] = 'Apply Coupon';
-$string['applycoupon_help'] = 'Apply Coupon code to get discount or have a fixed value to charge your wallet. <br>
+$string['applycoupon_help'] = 'Apply Coupon code to get a discount or have a fixed value to charge your wallet. <br>
 If the coupon is a fixed value and it is greater than the fee of the course you will get enrolled.';
 $string['amount'] = 'Amount';
 $string['awards'] = 'awards program';
 $string['awards_help'] = 'enable or disable the awards program in this course';
 $string['awardcreteria'] = 'condition for getting awarded';
-$string['awardcreteria_help'] = 'Awards is works when the student completed a course. What is the percent of the full mark the student get awarded if he exceeds it?';
+$string['awardcreteria_help'] = 'Awards\' works when the student completed a course. What is the percentage of the full mark the student gets awarded if he exceeds it?';
 $string['awardvalue'] = 'Award value';
 $string['awardvalue_help'] = 'How much did the student get for each one grade above the condition?';
 $string['awardingdesc'] = 'The user get awarded by {$a->amount} in course {$a->courseshortname} for getting {$a->usergrade} out of {$a->maxgrade}';
@@ -54,10 +58,11 @@ $string['cashbackdesc'] = 'added by cashback due to enrolment in {$a}';
 $string['cashbackenable'] = 'Enable cashback';
 $string['cashbackenable_desc'] = 'When this is enabled the student will receive a percentage cashback amount each time he uses the wallet to buy a course.';
 $string['cashbackpercent'] = 'Percentage amount for cashback';
-$string['cashbackpercent_help'] = 'The percentage amount as a cashback to the wallet from the paid amount by the wallet ballance.';
+$string['cashbackpercent_help'] = 'The percentage amount as a cashback to the wallet from the paid amount by the wallet balance.';
 $string['canntenrol'] = 'Enrolment is disabled or inactive';
 $string['canntenrolearly'] = 'You cannot enrol yet; enrolment starts on {$a}.';
 $string['canntenrollate'] = 'You cannot enrol any more, since enrolment ended on {$a}.';
+$string['cannotdeductbalance'] = 'Cannot deduct balance due to an error. Please try again and if the problem still exist contact site support.';
 $string['checkout'] = '{$a->credit_cost} EGP will be deducted from your balance of {$a->user_balance} EGP.';
 $string['checkout_discounted'] = '<del>{$a->credit_cost} EGP</del> {$a->after_discount} EGP will be deducted from your balance of {$a->user_balance} EGP.';
 $string['characters'] = 'Characters in code.';
@@ -163,7 +168,7 @@ $string['currency_help'] = 'select the currency for payment for the course.';
 $string['customcurrency'] = 'Custom Currency';
 $string['customcurrency_desc'] = 'Adding custom currency name for the wallet credit.<br>Note that this is not valid along with using actual payment gateway.<br>If left blank a Wallet Coins will be added to currencies list.';
 $string['customcurrencycode'] = 'Custom Currency Code';
-$string['customcurrencycode_desc'] = 'Adding a code for the custom currency, Something like USD but make sure that this code not already exist as an available currency code in the available payment gateways because it will not ne overridden, but you can override Moodle Wallet Coin (MWC).';
+$string['customcurrencycode_desc'] = 'Adding a code for the custom currency, Something like USD but make sure that this code not already exist as an available currency code in the available payment gateways because it will not be overridden, but you can override Moodle Wallet Coin (MWC).';
 $string['customwelcomemessage'] = 'Custom welcome message';
 $string['customwelcomemessage_help'] = 'A custom welcome message may be added as plain text or Moodle-auto format, including HTML tags and multi-lang tags.
 
@@ -200,8 +205,8 @@ $string['enrolenddaterror'] = 'Enrolment end date cannot be earlier than start d
 $string['enrollmentupdated'] = 'enrollment(s) has been updated';
 $string['enrolme'] = 'Enrol me';
 $string['enrolperiod'] = 'Enrolment duration';
-$string['enrolperiod_desc'] = 'Default length of time that the enrolment is valid. If set to zero, the enrolment duration will be unlimited by default.';
-$string['enrolperiod_help'] = 'Length of time that the enrolment is valid, starting with the moment the user enrols themselves. If disabled, the enrolment duration will be unlimited.';
+$string['enrolperiod_desc'] = 'Default length of time that the enrollment is valid. If set to zero, the enrollment duration will be unlimited by default.';
+$string['enrolperiod_help'] = 'Length of time that the enrollment is valid, starting with the moment the user enrols themselves. If disabled, the enrollment duration will be unlimited.';
 $string['enrolstartdate'] = 'Start date';
 $string['enrolstartdate_help'] = 'If enabled, users can enrol themselves from this date onward only.';
 $string['entervalue'] = 'Please enter a value.';
@@ -215,22 +220,20 @@ $string['event_cashback_desc'] = 'User with id {$a->userid} get a cashback in th
 $string['event_coupon'] = 'Wallet Coupon used';
 $string['event_coupon_desc'] = 'The coupon ( {$a->code} ) has been used by user of id {$a->userid}';
 $string['event_newuser_gifted'] = 'New user gifted';
-$string['event_newuser_gifted_desc'] = 'New user with id {$a->userid} gifted by {$a->amount} as a wallet ballance.';
+$string['event_newuser_gifted_desc'] = 'New user with id {$a->userid} gifted by {$a->amount} as a wallet balance.';
 $string['expiredaction'] = 'Enrolment expiry action';
 $string['expiredaction_help'] = 'Select action to carry out when user enrolment expires. Please note that some user data and settings are purged from course during course un-enrolment.';
 $string['expirymessageenrollersubject'] = 'Enrolment expiry notification';
 $string['expirymessageenrollerbody'] = 'Enrolment in the course \'{$a->course}\' will expire within the next {$a->threshold} for the following users:
 <br>
 {$a->users}
-
 To extend their enrolment, go to {$a->extendurl}';
 $string['expirymessageenrolledsubject'] = 'Enrolment expiry notification';
 $string['expirymessageenrolledbody'] = 'Dear {$a->user},
 <br>
-This is a notification that your enrolment in the course \'{$a->course}\' is due to expire on {$a->timeend}.
+This is a notification that your enrollment in the course \'{$a->course}\' is due to expire on {$a->timeend}.
 <br>
 If you need help, please contact {$a->enroller}.';
-
 $string['filter_coupons'] = 'Filter Coupons';
 $string['filter_transaction'] = 'Filter Transactions';
 $string['fixedvaluecoupon'] = 'Fixed value coupon';
@@ -252,10 +255,11 @@ $string['longtimenosee'] = 'Un-enrol inactive after';
 $string['longtimenosee_help'] = 'If users haven\'t accessed a course for a long time, then they are automatically unenrolled. This parameter specifies that time limit.';
 $string['lowbalancenotification'] = 'Low Wallet Balance<br>Your balance is {$a}.';
 $string['lowbalancenotify'] = 'Low Balance Notification.';
-$string['lowbalancenotify_desc'] = 'If enabled and the user\'s balance is smaller than or equal the condition, a warrning notifications appears in every page in the website.';
+$string['lowbalancenotify_desc'] = 'If enabled and the user\'s balance is smaller than or equal the condition, a warning notifications appears in every page in the website.';
 $string['lowbalancenotice'] = 'Enable low balance notice';
 $string['lowerletters'] = 'lower case';
 
+$string['mainbalance'] = 'Main balance: ';
 $string['maxenrolled'] = 'Max enrolled users';
 $string['maxenrolled_help'] = 'Specifies the maximum number of users that can enrol. 0 means no limit.';
 $string['maxenrolledreached'] = 'Maximum number of users allowed to enrol was already reached.';
@@ -276,11 +280,14 @@ Your balance now is: {$a->balance}
 more info: {$a->desc}. at: {$a->time}';
 $string['messageprovider:expiry_notification'] = 'Wallet enrolment expiry notifications';
 $string['messageprovider:wallet_transaction'] = 'Wallet transaction notifications';
-$string['mustselectchar'] = 'Must select at least one charachter type.';
+$string['mustselectchar'] = 'Must select at least one character type.';
+$string['mintransfer'] = 'The minimum transfer amount is {$a}';
+$string['mintransfer_config'] = 'Minimum allowed transfer';
+$string['mintransfer_config_desc'] = 'Minimum allowed transfer amount, users cannot transfer balance to each others less than this amount.';
 $string['MWC'] = 'Wallet Coins';
 $string['mywallet'] = 'My Wallet';
 
-$string['newenrols'] = 'Allow new enrolments';
+$string['newenrols'] = 'Allow new enrollments';
 $string['newenrols_desc'] = 'Allow users to enrol into new courses by default.';
 $string['newenrols_help'] = 'This setting determines whether a user can enrol into this course.';
 $string['newusergift'] = 'New users gifts';
@@ -292,33 +299,61 @@ $string['nodiscountstoshow'] = 'No discounts to show.';
 $string['not_set'] = 'Not set';
 $string['notrefund'] = ' Nonrefundable (extra): ';
 $string['nonrefundable'] = 'Nonrefundable';
-$string['nonrefundable_transform_desc'] = "Transform the transaction to nonrefundable due to expiring of refund period.\n";
+$string['nonrefundable_transform_desc'] = "Transform the transaction to non refundable due to expiring of refund period.\n";
 $string['nochange'] = 'No change';
 $string['nocost'] = 'this course has invalid cost';
 $string['nocoupons'] = 'Disable coupons';
+$string['noreferraldata'] = 'No Past Referrals.';
 $string['noticecondition'] = 'Min balance for notify';
-$string['noticecondition_desc'] = 'If the balance is smaller than or equal this condition, a notification appear to the user.';
+$string['noticecondition_desc'] = 'If the balance is smaller than or equal to this condition, a notification appears to the user.';
 
-$string['othercourserestriction'] = 'Unable to enrol your self in this course unless you are enrolled in these courses {$a}';
-$string['only'] = 'Only';
+$string['othercourserestriction'] = 'Unable to enrol yourself in this course unless you are enrolled in these courses {$a}';
 
 $string['paymentaccount'] = 'Payment account';
 $string['paymentaccount_help'] = 'choose the payment account in which you will accept payments';
 $string['paymentrequired'] = 'You can pay for this course directly using available payment methods';
 $string['paymenttopup_desc'] = 'Payment to topup the wallet';
-$string['paylabel'] = 'You suppose to pay: ';
 $string['percentdiscountcoupon'] = 'Percentage discount coupon';
 $string['pluginname'] = 'Wallet enrolment';
 $string['pluginname_desc'] = '';
 $string['purchase'] = 'Purchase';
 $string['purchasedescription'] = 'Enrolment in course {$a}';
 $string['profile_field_map'] = 'Profile field mapping';
-$string['profile_field_map_help'] = 'Select the profile field that stores informations about discounts in user profiles.';
+$string['profile_field_map_help'] = 'Select the profile field that stores information about discounts in user profiles.';
 $string['privacy:metadata'] = 'The Wallet enrolment plugin does not store any personal data.';
 
 $string['randomcoupons'] = 'Random Coupons';
+$string['referral_code'] = 'Referral Code';
+$string['referral_code_signup'] = '';
+$string['referral_code_help'] = 'Instate of the referral URL you can send this referral code instead and the new user enter it in the signup page.';
+$string['referral_code_signup_help'] = 'If this is empty, enter a referral code to receive the referral gift.';
+$string['referral_amount'] = 'Referral Amount.';
+$string['referral_amount_help'] = 'The gift amount that you and the new user will receive in the wallet.';
+$string['referral_amount_desc'] = 'The gift amount that both referring and referred users will receive in their wallets.';
+$string['referral_max'] = 'Maximum Referrals';
+$string['referral_max_desc'] = 'The maximum times a user can receive referral gifts (0 means unlimited).';
+$string['referral_user'] = 'Referrals';
+$string['referral_program'] = 'Referrals Program';
+$string['referral_program_desc'] = 'Existence users can refer new user to join this website and both receive a referral gift.';
+$string['referral_plugins'] = 'Enrol plugins';
+$string['referral_plugins_desc'] = 'As users does not receive the referral gift until the referred user get enrolled in a course to make sure that this is an active user.<br/>Choose the enrolment methods allowed to make the users receive this gift';
+$string['referral_enabled'] = 'Enable Referral Program';
+$string['referral_hold'] = 'Gift in hold';
+$string['referral_done'] = 'Gift granted';
+$string['referral_timecreated'] = 'Signed up time';
+$string['referral_timereleased'] = 'Gifted at:';
+$string['referral_exceeded'] = 'The referral code: {$a} exceeds it\'s max usage.';
+$string['referral_notexist'] = 'The code: \'{$a}\' not exist in the database.';
+$string['referral_topup'] = 'Due to referral for user: {$a}.';
+$string['referral_gift'] = 'Due to referral code from user: {$a}';
+$string['referral_url'] = 'Referral URL';
+$string['referral_url_help'] = 'Send this url to your friend to signup in this website and get a referral gift with the following amount in your wallet.';
+$string['referral_remain'] = 'Remained Referrals.';
+$string['referral_remain_help'] = 'Remained times available to receive the referral gift.';
+$string['referral_past'] = 'Past Referrals';
+$string['referral_data'] = 'Referral Data';
 $string['refundpolicy'] = 'Manual Refund Policy';
-$string['refundpolicy_help'] = 'Define custom refund policy for users to be aware of the condition of how they get back their money or not before they topping up their wallet. This policy will be displayed to users in any form to recharge their wallet, or displying their balance.';
+$string['refundpolicy_help'] = 'Define custom refund policy for users to be aware of the condition of how they get back their money or not before topping up their wallet. This policy will be displayed to users in any form to recharge their wallet, or displaying their balance.';
 $string['refundpolicy_default'] = '<h5>Refund Policy</h5>
 please note that:<br>
 Payment to top-up your wallet cannot be refunded in the following cases:<br>
@@ -338,65 +373,66 @@ $string['sender'] = 'Sender';
 $string['sendexpirynotificationstask'] = "Wallet enrolment send expiry notifications task";
 $string['sendpaymentbutton'] = 'direct payment';
 $string['singlecoupon'] = 'Single coupon';
-$string['status'] = 'Allow existing enrolments';
+$string['status'] = 'Allow existing enrollments';
 $string['status_desc'] = 'Enable Wallet enrolment method in new courses.';
-$string['status_help'] = 'If enabled together with \'Allow new enrolments\' disabled, only users who enrolled previously can access the course. If disabled, this enrolment method is effectively disabled, since all existing enrolments are suspended and new users cannot enrol.';
+$string['status_help'] = 'If enabled together with \'Allow new enrollments\' disabled, only users who enrolled previously can access the course. If disabled, this enrolment method is effectively disabled, since all existing enrollments are suspended and new users cannot enrol.';
 $string['sourcemoodle'] = 'Internal moodle wallet';
 $string['sourcewordpress'] = 'External Tera-wallet (WooWallet)';
 $string['submit_coupongenerator'] = 'Create';
-$string['syncenrolmentstask'] = 'Wallet enrolment synchronise enrolments task';
+$string['syncenrolmentstask'] = 'Wallet enrolment synchronize enrollments task';
 
-$string['mainbalance'] = 'Main balance: ';
 $string['topup'] = 'topup';
+$string['topupafterdiscount'] = 'Actual payment';
+$string['topupafterdiscount_help'] = 'The amount after discount.';
 $string['topupvalue'] = 'TopUp Value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
 $string['topuppayment_desc'] = 'Topping up the wallet by payment of {$a} using payment gateway.';
 $string['transactions'] = 'Wallet Transactions';
 $string['transaction_type'] = 'Type of transaction';
-$string['transaction_perpage'] = 'Trasactions per page';
+$string['transaction_perpage'] = 'Transactions per page';
 $string['transfer'] = 'Transfer balance to other user';
 $string['transfer_desc'] = 'Enable or disable the ability of users to transfer balance to other users and determine the transfer fee per each operation.';
 $string['transfer_enabled'] = 'Transfer to other user';
-$string['transfer_enabled_desc'] = 'Enable or disable the abiity for users to transfer balance to other users by email.';
+$string['transfer_enabled_desc'] = 'Enable or disable the ability for users to transfer balance to other users by email.';
 $string['transfer_notenabled'] = 'User to user transfer isn\'t enabled in this site.';
 $string['transferfee_desc'] = 'Note that there is a {$a->fee}% will be deducted from the {$a->from}.';
 $string['transferfee_from'] = 'Deduct fees from:';
 $string['transferfee_from_desc'] = 'Select how the fees get deducted.<br>
-From sender: means that amount completely transfered and extra credit deducted from the sender.<br>
-From receiver: means that the amount transfered to the reciever less than the sent amount by the fees.';
-$string['transferop_desc'] = 'Transfering a net amount of {$a->amount} with a transfer fees {$a->fee} to {$a->receiver}';
+From sender: means that amount completely transferred and extra credit deducted from the sender.<br>
+From receiver: means that the amount transferred to the receiver less than the sent amount by the fees.';
+$string['transferop_desc'] = 'Transferring a net amount of {$a->amount} with a transfer fees {$a->fee} to {$a->receiver}';
 $string['transferpercent'] = 'Transfer fees %';
-$string['transferpercent_desc'] = 'In order to transfer some amount to other user a percentage fees will be deducted from the sender by default. Set it to 0 so there is no fee deducted.';
-$string['transferpage'] = 'Transfer ballance';
+$string['transferpercent_desc'] = 'In order to transfer some amount to another user a percentage fee will be deducted from the sender by default. Set it to 0 so there is no fee deducted.';
+$string['transferpage'] = 'Transfer balance';
 $string['turn_not_refundable_task'] = 'Turn balance to non-refundable.';
 
 $string['unenrol'] = 'Unenrol user';
 $string['unenrollimitafter'] = 'Cannot unenrol self after:';
-$string['unenrollimitafter_desc'] = 'Users cannot enrol themselfs after this period from enrolment start date. 0 means unlimited.';
+$string['unenrollimitafter_desc'] = 'Users cannot enrol themselves after this period from enrolment start date. 0 means unlimited.';
 $string['unenrollimitbefor'] = 'Cannot unenrol self before:';
-$string['unenrollimitbefor_desc'] = 'Users cannot unenrol themselfs before this period from enrolment end date. 0 means no limit.';
+$string['unenrollimitbefor_desc'] = 'Users cannot unenrol themselves before this period from enrolment end date. 0 means no limit.';
 $string['unenrolrefund'] = 'Refund upon unenrol?';
-$string['unenrolrefund_desc'] = 'If enabled users will be refunded if they unenrolled from the corse.';
+$string['unenrolrefund_desc'] = 'If enabled, users will be refunded if they unenrolled from the course.';
 $string['unenrolrefundperiod'] = 'Refund upon unenrol grace period';
 $string['unenrolrefundperiod_desc'] = 'If the user unenrolled within this period from the enrol start date he will be refunded.';
 $string['unenrolrefundfee'] = 'Refund percentage fee';
 $string['unenrolrefundfee_desc'] = 'Choose a percentage amount that will not be refunded after unenrol as a fee.';
 $string['unenrolrefundpolicy'] = 'Unenrol Refunding Policy';
-$string['unenrolrefundpolicy_help'] = 'If refunding upon unernol enabled, this policy will be visible to users befor enrol themselves to courses using wallet enrolment.<br>
+$string['unenrolrefundpolicy_help'] = 'If refunding upon unenrol enabled, this policy will be visible to users before enrol themselves to courses using wallet enrolment.<br>
 placing {fee} in the policy will be replaced by the percentage fee.<br>
 placing {period} will be replaced by the grace period in days.';
 $string['unenrolrefundpolicy_default'] = '<p dir="ltr" style="text-align: left;"><strong>Conditions for refunding upon unenrol:</strong></p>
 <p dir="ltr" style="text-align: left;">
 If you are unenrolled from the course within {period} days from the start date you will be refunded with the amount you pay after deducting a {fee}% from the paid amount.
- This amount will return to your wallet and can use it to enrol in other courses but not be able to be manually refunded.<br>
-By pressing purchace means you have agreed to this conditions.
+This amount will return to your wallet and can use it to enrol in other courses but not be able to be manually refunded.<br>
+By pressing purchase means you have agreed to these conditions.
 </p>';
 $string['unenrolrefund_head'] = 'Refund users upon unenrol.';
 $string['unenrolrefund_head_desc'] = 'Return the paid fee of a course after unenrol from the course.';
 $string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
 $string['unenrolselfenabled'] = 'Enable self unenrol';
-$string['unenrolselfenabled_desc'] = 'If enable, then users are allowed to unenrol themselfs from the course.';
+$string['unenrolselfenabled_desc'] = 'If enable, then users are allowed to unenrol themselves from the course.';
 $string['unenrolself_notallowed'] = 'You are not unenrol yourself from this course.';
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolusers'] = 'Unenrol users';
@@ -405,7 +441,7 @@ $string['usernotfound'] = 'No user found with this email {$a}';
 
 $string['value'] = 'Amount per transaction';
 
-$string['wallet:bulkedit'] = 'Bulk edit the enrolments in all courses';
+$string['wallet:bulkedit'] = 'Bulk edit the enrollments in all courses';
 $string['wallet:config'] = 'Configure Wallet enrol instances';
 $string['wallet:creditdebit'] = 'Credit and Debit other users';
 $string['wallet:createcoupon'] = 'Creating wallet coupons';
@@ -428,11 +464,11 @@ $string['welcometocoursetext'] = 'Welcome to {$a->coursename}!
 
 If you have not done so already, you should edit your profile page so that we can learn more about you:
 
-  {$a->profileurl}';
+{$a->profileurl}';
 $string['wordpressurl'] = 'Wordpress url';
 $string['wordpressurl_desc'] = 'Wordpress url with woo-wallet (tera wallet) plugin on it';
 $string['wordpressloggins'] = 'Login/logout user from wordpress';
-$string['wordpressloggins_desc'] = 'If enabled users is logged in and out from wordpress website when they logged in or out from moodle. (note that is one way only)';
+$string['wordpressloggins_desc'] = 'If enabled users are logged in and out from wordpress website when they logged in or out from moodle. (note that is one way only)';
 $string['wordpress_secretkey'] = 'Secret Key';
 $string['wordpress_secretkey_help'] = 'Admin must add any value here and the same value in moo-wallet setting in wordpress site.';
 $string['wrongemailformat'] = 'Wrong Email format.';

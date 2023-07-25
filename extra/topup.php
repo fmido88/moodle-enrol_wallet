@@ -29,7 +29,8 @@ $courseid   = required_param('courseid', PARAM_INT);
 $confirm    = optional_param('confirm', 0, PARAM_BOOL);
 $account    = required_param('account', PARAM_INT);
 $currency   = required_param('currency', PARAM_TEXT);
-$val      = optional_param('value', 0, PARAM_FLOAT);
+$val        = optional_param('value', 0, PARAM_FLOAT);
+$return     = optional_param('return', '', PARAM_LOCALURL);
 
 // Check the conditional discount.
 $enabled   = get_config('enrol_wallet', 'conditionaldiscount_apply');
@@ -60,9 +61,19 @@ if (!confirm_sesskey()) {
     throw new moodle_exception('invalidsesskey');
 }
 
+if (!empty($return)) {
+    $url = new moodle_url($return);
+} else {
+    $url = ($courseid == SITEID) ? new \moodle_url('/') : new \moodle_url('/course/view.php', ['id' => $courseid]);
+}
+
+if ($value <= 0) {
+    redirect($url, get_string('invalidvalue', 'enrol_wallet'), null, 'error');
+}
+
 if ($confirm) {
     // No need for this condition as the payment button use its own success url.
-    $url = new moodle_url('/course/view.php', ['courseid' => $courseid]);
+    // Just in case.
     redirect($url);
 } else {
     global $DB, $USER;
@@ -77,7 +88,6 @@ if ($confirm) {
     echo $OUTPUT->header();
 
     $desc = get_string('paymenttopup_desc', 'enrol_wallet');
-    $url = ($courseid == SITEID) ? new \moodle_url('/') : new \moodle_url('/course/view.php', ['id' => $courseid]);
 
     // Set a fake item form payment.
     $id = $DB->insert_record('enrol_wallet_items', ['cost' => $value, 'currency' => $currency, 'userid' => $USER->id]);

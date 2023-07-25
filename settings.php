@@ -159,6 +159,11 @@ if ($ADMIN->fulltree) {
                         get_string('transfer_enabled', 'enrol_wallet'),
                         get_string('transfer_enabled_desc', 'enrol_wallet'),
                         0));
+    // Min transfer amount.
+    $settings->add(new admin_setting_configtext('enrol_wallet/mintransfer',
+                        get_string('mintransfer_config', 'enrol_wallet'),
+                        get_string('mintransfer_config_desc', 'enrol_wallet'),
+                        0, PARAM_FLOAT));
     // Transfer fee.
     $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/transferpercent',
                         get_string('transferpercent', 'enrol_wallet'),
@@ -242,6 +247,34 @@ if ($ADMIN->fulltree) {
                                             get_string('giftvalue_help', 'enrol_wallet'),
                                             0,
                                             PARAM_FLOAT));
+    // Adding settings for referal program.
+    $settings->add(new admin_setting_heading('enrol_wallet_referral',
+                                            get_string('referral_program', 'enrol_wallet'),
+                                            get_string('referral_program_desc', 'enrol_wallet')));
+    // Enable referrals.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/referral_enabled',
+                                            get_string('referral_enabled', 'enrol_wallet'),
+                                            '',
+                                            0));
+    // Referral value.
+    $settings->add(new admin_setting_configtext('enrol_wallet/referral_amount',
+                                            get_string('referral_amount', 'enrol_wallet'),
+                                            get_string('referral_amount_desc', 'enrol_wallet'),
+                                            0,
+                                            PARAM_FLOAT));
+    // Maximum Referal times.
+    $settings->add(new admin_setting_configtext('enrol_wallet/referral_max',
+                                            get_string('referral_max', 'enrol_wallet'),
+                                            get_string('referral_max_desc', 'enrol_wallet'),
+                                            0,
+                                            PARAM_INT));
+    $enrolmethods = array_keys(enrol_get_plugins(false));
+    $options = array_combine($enrolmethods, $enrolmethods);
+    $settings->add(new admin_setting_configmultiselect('enrol_wallet/referral_plugins',
+                                            get_string('referral_plugins', 'enrol_wallet'),
+                                            get_string('referral_plugins_desc', 'enrol_wallet'),
+                                            ['wallet'],
+                                            $options));
 
     // Add low balance notification settings.
     $settings->add(new admin_setting_heading('enrol_wallet_notify',

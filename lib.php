@@ -326,18 +326,25 @@ class enrol_wallet_plugin extends enrol_plugin {
         // Get the final cost after discount (if there is no discount it return the full cost).
         $costafter = (!empty($this->costafter)) ? $this->costafter : $this->get_cost_after_discount($user->id, $instance, $coupon);
 
-        $timestart = time();
-        $timeend = ($instance->enrolperiod) ? $timestart + $instance->enrolperiod : 0;
-
-        $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend);
-
-        \core\notification::success(get_string('youenrolledincourse', 'enrol'));
-
         $balance = transactions::get_user_balance($user->id);
         $deduct = min($balance, $costafter);
 
-        // Deduct fees from user's account after ensure that he got enroled.
-        transactions::debit($user->id, $deduct, $coursename);
+        // Deduct fees from user's account.
+        if (!transactions::debit($user->id, $deduct, $coursename)) {
+            throw new moodle_exception('cannotdeductbalance', 'enrol_wallet');
+        }
+
+        $timestart = time();
+        $timeend = ($instance->enrolperiod) ? $timestart + $instance->enrolperiod : 0;
+        try {
+            $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend);
+        } catch (\moodle_exception $e) {
+            // Rollback the transaction in case of error.
+            transactions::payment_topup($deduct, $user->id, '', '', false, false);
+            throw $e;
+        }
+
+        \core\notification::success(get_string('youenrolledincourse', 'enrol'));
 
         // Mark coupon as used (this is for percentage discount coupons only).
         if ($coupon != null && $costafter < $instance->cost) {

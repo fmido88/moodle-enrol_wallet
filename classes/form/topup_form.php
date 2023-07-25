@@ -36,7 +36,7 @@ class topup_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $DB;
+        global $DB, $PAGE;
         $instance = $this->_customdata->instance;
 
         $mform = $this->_form;
@@ -68,10 +68,15 @@ class topup_form extends \moodleform {
         $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'), $attr);
         $mform->setType('value', PARAM_FLOAT);
         $mform->addHelpButton('value', 'topupvalue', 'enrol_wallet');
+        $mform->addRule('value', get_string('invalidvalue', 'enrol_wallet'), 'numeric', null, 'client');
+        $mform->addRule('value', get_string('charger_novalue', 'enrol_wallet'), 'required', null, 'client');
+        $mform->addRule('value', get_string('charger_novalue', 'enrol_wallet'), 'nonzero', null, 'client');
 
-        if (!empty($enabled)) {
-            // Empty div used by js to display the calculated final value.
-            $mform->addElement('html', '<div id="calculated-value" style="font-weight: 700;" class="alert alert-info"></div>');
+        if (!empty($i)) {
+            $attr = ['id' => 'topup-value-discount', 'onkeyup' => 'calculateBefore()', 'onchange' => 'calculateBefore()'];
+            $mform->addElement('text', 'value-after', get_string('topupafterdiscount', 'enrol_wallet'), $attr);
+            $mform->setType('value-after', PARAM_FLOAT);
+            $mform->addHelpButton('value-after', 'topupafterdiscount', 'enrol_wallet');
         }
 
         $mform->addElement('hidden', 'courseid');
@@ -94,8 +99,12 @@ class topup_form extends \moodleform {
         $mform->setType('sesskey', PARAM_TEXT);
         $mform->setDefault('sesskey', sesskey());
 
-        $paylabel = get_string('paylabel', 'enrol_wallet');
-        $only = get_string('only');
+        if (empty($instance->courseid) || $instance->courseid == SITEID) {
+            $mform->addElement('hidden', 'return');
+            $mform->setType('return', PARAM_LOCALURL);
+            $mform->setDefault('return', $PAGE->url);
+        }
+
         // Add some js code to display the actual value to charge the wallet with.
         $js = <<<JS
                 function calculateCharge() {
@@ -112,13 +121,27 @@ class topup_form extends \moodleform {
                     }
 
                     var calculatedValue = value - (value * maxDiscount);
-                    if (calculatedValue < value) {
-                        document.getElementById("calculated-value").innerHTML = '$paylabel'+calculatedValue+' $only';
-                    } else {
-                        document.getElementById("calculated-value").innerHTML = '$paylabel' + calculatedValue;
-                    }
+                    document.getElementById("topup-value-discount").value = calculatedValue;
                 }
-                JS;
+
+                function calculateBefore() {
+                    var value = parseFloat(document.getElementById("topup-value-discount").value);
+
+                    var maxDiscount = 0;
+                    for (var i = 1; i <= '$i'; i++) {
+                        var discount = parseFloat(document.getElementById("discounted-value["+ i +"]").value);
+                        var condition = parseFloat(document.getElementById("discount-condition["+ i +"]").value);
+
+                        var valueBefore = value / (1 - discount);
+                        if (valueBefore >= condition && discount > maxDiscount) {
+                            maxDiscount = discount;
+                        }
+                    }
+
+                    var realValueBefore = value / (1 - maxDiscount);
+                    document.getElementById("topup-value").value = realValueBefore;
+                }
+            JS;
 
         if (!empty($i)) {
             $mform->addElement('html', '<script>'.$js.'</script>');

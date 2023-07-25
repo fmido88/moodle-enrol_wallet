@@ -34,6 +34,11 @@ $observers = [
         'callback'    => '\enrol_wallet\observer::wallet_completion_awards',
         'includefile' => '/enrol/wallet/classes/observer.php'
     ],
+    // Release the hold referral gift.
+    [
+        'eventname'   => '\core\event\user_enrolment_created',
+        'callback'    => '\enrol_wallet\observer::release_referral_gift',
+    ],
     // The observer to check for new user creation and gift the student.
     // Include the file containing the callback just in case.
     [

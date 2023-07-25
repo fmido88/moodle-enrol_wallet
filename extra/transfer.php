@@ -48,17 +48,22 @@ if ($confirm) {
     global $USER;
     $email  = required_param('email', PARAM_EMAIL);
     $amount = required_param('amount', PARAM_FLOAT);
-
+    $condition = get_config('enrol_wallet', 'mintransfer');
     // No email or invalid email format.
     if (empty($email)) {
         $msg = get_string('wrongemailformat', 'enrol_wallet');
-        redirect($url, $msg, null, 'warning');
+        redirect($url, $msg, null, 'error');
     }
 
     // No amount or invalid amount.
     if (empty($amount) || $amount < 0) {
         $msg = get_string('charger_novalue', 'enrol_wallet');
-        redirect($url, $msg, null, 'warning');
+        redirect($url, $msg, null, 'error');
+    }
+
+    if ($amount < $condition) {
+        $msg = get_string('mintransfer', 'enrol_wallet', $condition);
+        redirect($url, $msg, null, 'error');
     }
 
     // Check the transfer fees.
@@ -79,14 +84,14 @@ if ($confirm) {
     // No sufficient balance.
     if ($debit > $balance) {
         $msg = get_string('insufficientbalance', 'enrol_wallet', ['amount' => $debit, 'balance' => $balance]);
-        redirect($url, $msg, null, 'warning');
+        redirect($url, $msg, null, 'error');
     }
 
     $receiver = core_user::get_user_by_email($email);
     // No active user found with this email.
     if (empty($receiver) || !empty($receiver->deleted) || !empty($receiver->suspended)) {
         $msg = get_string('usernotfound', 'enrol_wallet', $email);
-        redirect($url, $msg, null, 'warning');
+        redirect($url, $msg, null, 'error');
     }
 
     // Debit the sender.

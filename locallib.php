@@ -380,6 +380,11 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
         $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
         $transferurl = new moodle_url('/enrol/wallet/extra/transfer.php');
         $transfer = html_writer::link($transferurl, get_string('transfer', 'enrol_wallet'));
+        // Referral link.
+        $refenabled = get_config('enrol_wallet', 'referral_enabled');
+        $referralurl = new moodle_url('/enrol/wallet/extra/referral.php');
+        $referral = html_writer::link($referralurl, get_string('referral_program', 'enrol_wallet'));
+
     }
 
     $tempctx = new stdClass;
@@ -389,6 +394,7 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
     $tempctx->norefund     = number_format($norefund, 2);
     $tempctx->transactions = $transactions;
     $tempctx->transfer     = !empty($transferenabled) ? $transfer : false;
+    $tempctx->referral     = !empty($refenabled) ? $referral : false;
     $tempctx->policy       = !empty($policy) ? $policy : false;
     // Display the current user's balance in the wallet.
     $render = $OUTPUT->render_from_template('enrol_wallet/display', $tempctx);
@@ -400,9 +406,11 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
  * @return string
  */
 function enrol_wallet_display_topup_options() {
-    global $CFG, $OUTPUT;
+    global $CFG, $OUTPUT, $PAGE;
+
     require_once($CFG->dirroot.'/enrol/wallet/classes/form/topup_form.php');
     require_once(__DIR__.'/lib.php');
+
     $username = optional_param('s', '', PARAM_RAW);
     if (!empty($username)) {
         $user = get_complete_user_data('username', $username);
@@ -450,6 +458,71 @@ function enrol_wallet_display_topup_options() {
             ob_start();
             $couponform->display();
             $render .= ob_get_clean();
+    }
+
+    // If plugin block_vc exist, add credit options byt it.
+    if (file_exists("$CFG->dirroot/blocks/vc/lib.php")
+            && get_config('block_vc', 'enablecredit')) {
+
+        require_once("$CFG->dirroot/blocks/vc/lib.php");
+        $vcform = new \MoodleQuickForm('vc_credit', 'POST', $CFG->wwwroot.'/blocks/vc/credit.php');
+        $vcform->addElement('header', 'vccredit', get_string('pluginname', 'block_vc'));
+        $vcform->setExpanded('vccredit', false, true); // Not working.
+
+        block_vc_credit_form($vcform); // Elements.
+
+        ob_start();
+        $vcform->display();
+        $render .= $OUTPUT->box(ob_get_clean());
+
+        // This code make the container collapsed at the load of the page, where setExpanded not working.
+        $jscode = "
+            var vcContainer = document.getElementById('id_vccreditcontainer');
+            vcContainer.setAttribute('class', 'fcontainer collapseable collapse');
+        ";
+        $PAGE->requires->js_init_code($jscode, true);
+    }
+
+    // Display the manual refund policy.
+    $policy = get_config('enrol_wallet', 'refundpolicy');
+    if (!empty($policy)) {
+        $id = random_int(1000, 9999); // So the JS codes not interfere.
+        // Policy Wrapper.
+        $warn = html_writer::start_div('alert alert-warning');
+        // Intro.
+        $warn .= html_writer::span(get_string('agreepolicy_intro', 'enrol_wallet'));
+
+        // Hidden policy until the user click the link.
+        $data = new stdClass;
+        $data->policy = $policy;
+        $data->id     = $id;
+        $warn .= $OUTPUT->render_from_template('enrol_wallet/manualpolicy', $data);
+
+        // Agree checkbox, the whole topping up options hidden until the user check the box.
+        $attributes = ['id' => 'wallet_topup_policy_confirm_'.$id];
+        $warn .= html_writer::checkbox('wallet_topup_policy_confirm_'.$id, '1', false,
+                                        get_string('agreepolicy_label', 'enrol_wallet'), $attributes);
+        $warn .= html_writer::end_div();
+
+        // All topping up options inside a box to control it using JS.
+        $attr = ['style' => 'display: none;'];
+        $box = $OUTPUT->box_start('enrol_wallet_topup_options generalbox', 'enrol_wallet_topup_box_'.$id, $attr);
+        $render = $warn . $box . $render;
+        $render .= $OUTPUT->box_end();
+
+        // JS code to Hide/Show topping up options.
+        $jscode = "
+            var walletPolicyAgreed = document.getElementById('wallet_topup_policy_confirm_$id');
+            walletPolicyAgreed.addEventListener('change', function() {
+                var topUpBox = document.getElementById('enrol_wallet_topup_box_$id');
+                if (walletPolicyAgreed.checked == true) {
+                    topUpBox.style.display = 'block';
+                } else {
+                    topUpBox.style.display = 'none';
+                }
+            })
+        ";
+        $PAGE->requires->js_init_code($jscode);
     }
 
     if (!empty($render)) {
