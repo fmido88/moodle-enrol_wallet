@@ -230,13 +230,13 @@ class observer_test extends \advanced_testcase {
 
     /**
      * Test Referrals.
-     * @covers enrol_wallet/observer::release_referral_gift()
+     * @covers /enrol_wallet/observer::release_referral_gift()
      * @return void
      */
     public function test_release_referral_gift() {
         global $DB, $CFG;
         $this->resetAfterTest();
-        require_once("$CFG->libroot/authlib.php");
+        require_once("$CFG->libdir/authlib.php");
         require_once("$CFG->dirroot/login/lib.php");
         // Enable referrals.
         set_config('referral_enabled', 1, 'enrol_wallet');
