@@ -227,4 +227,27 @@ class observer_test extends \advanced_testcase {
         $this->assertEquals(1000, $balance4);
         $this->assertEquals($extra4, $norefund4);
     }
+
+    public function test_release_referral_gift() {
+        global $DB, $CFG;
+        $this->resetAfterTest();
+
+        // Enable referrals.
+        set_config('referral_enabled', 1, 'enrol_wallet');
+        set_config('referral_amount', 50,'enrol_wallet');
+        $CFG->registerauth = 'email';
+
+        // Create the first user.
+        $user1 = $this->getDataGenerator()->create_user();
+
+        // Generate a referral code.
+        $data = (object)[
+            'userid' => $user1->id,
+            'code' => random_string(15) . $user1->id,
+        ];
+        $DB->insert_record('enrol_wallet_referral', $data);
+        $code = $DB->get_record('enrol_wallet_referral', ['userid' => $user1->id])->code;
+        $this->assertTrue(!empty($code));
+        $authplugin = signup_is_enabled();
+    }
 }

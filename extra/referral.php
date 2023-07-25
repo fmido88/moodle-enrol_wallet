@@ -60,6 +60,7 @@ if (!empty($refusers)) {
     $headers = [
         get_string('user'),
         get_string('status'),
+        get_string('referral_amount', 'enrol_wallet'),
         get_string('referral_timecreated', 'enrol_wallet'),
         get_string('referral_timereleased' , 'enrol_wallet')
     ];
@@ -69,8 +70,9 @@ if (!empty($refusers)) {
         $status = empty($data->released) ? get_string('referral_hold', 'enrol_wallet')
                                          : get_string('referral_done', 'enrol_wallet');
         $table->data[] = [
-            $referred->firstname,
+            $referred->firstname . ' ' . $referred->lastname,
             $status,
+            format_float($data->amount, 2),
             userdate($data->timecreated),
             !empty($data->timemodified) ? userdate($data->timemodified) : ''
         ];

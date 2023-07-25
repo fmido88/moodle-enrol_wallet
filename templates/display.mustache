@@ -41,18 +41,18 @@
 <div style="text-align: left; padding-bottom: 0px;">
     <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
     <p style="text-align: center; direction: ltr;">
-        <span class="balance-card" style="text-align: center; direction: ltr;">{{# str }} youhavebalance, enrol_wallet {{/ str }}<br/>
-            <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br/>
+        <span class="balance-card" style="text-align: center; direction: ltr;">{{# str }} youhavebalance, enrol_wallet {{/ str }}<br>
+            <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
             {{# str }} inyourwallet, enrol_wallet {{/ str }} <br/>
-            <span class="wallet-ballance">{{# str }} mainbalance, enrol_wallet {{/ str }} {{main}} {{currency}}</span><br/>
-            <span class="wallet-ballance">{{# str }} notrefund, enrol_wallet {{/ str }} {{norefund}} {{currency}}</span><br/>
+            <span class="wallet-ballance">{{# str }} mainbalance, enrol_wallet {{/ str }} {{main}} {{currency}}</span><br>
+            <span class="wallet-ballance">{{# str }} notrefund, enrol_wallet {{/ str }} {{norefund}} {{currency}}</span><br>
             {{# policy}}
-            <a href="#" id="enrol_wallet_transactions-policy-url" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br/>
+            <a href="#" id="enrol_wallet_transactions-policy-url" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
             {{/ policy}}
         </span>
-        <span class="transactions-url" style="text-align: center; direction: ltr;">{{{transactions}}}</span><br/>
+        <span class="transactions-url" style="text-align: center; direction: ltr;">{{{transactions}}}</span><br>
         {{# transfer}}
-        <span class="transfer-url" style="text-align: center; direction: ltr;">{{{transfer}}}</span><br/>
+        <span class="transfer-url" style="text-align: center; direction: ltr;">{{{transfer}}}</span><br>
         {{/ transfer}}
         {{# referral}}
         <span class="referral-url" style="text-align: center; direction: ltr;">{{{referral}}}</span>
