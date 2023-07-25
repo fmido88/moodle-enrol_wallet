@@ -322,7 +322,7 @@ class observer_test extends \advanced_testcase {
         $this->assertEquals(50, $balance2);
         $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $user2->username]);
         $this->assertEquals(1, $hold->released);
-        $this->assertEquals($course1->id, $hold->courseid);
+        $this->assertEquals($course2->id, $hold->courseid);
 
         // Check that is no repetition to the gift.
         $course3 = $this->getDataGenerator()->create_course();
