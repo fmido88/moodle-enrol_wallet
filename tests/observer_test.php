@@ -228,18 +228,26 @@ class observer_test extends \advanced_testcase {
         $this->assertEquals($extra4, $norefund4);
     }
 
+    /**
+     * Test Referrals.
+     * @covers enrol_wallet/observer::release_referral_gift()
+     * @return void
+     */
     public function test_release_referral_gift() {
         global $DB, $CFG;
         $this->resetAfterTest();
-
+        require_once("$CFG->libroot/authlib.php");
+        require_once("$CFG->dirroot/login/lib.php");
         // Enable referrals.
         set_config('referral_enabled', 1, 'enrol_wallet');
-        set_config('referral_amount', 50,'enrol_wallet');
+        set_config('referral_amount', 50, 'enrol_wallet');
         $CFG->registerauth = 'email';
 
         // Create the first user.
         $user1 = $this->getDataGenerator()->create_user();
+        $balance1 = transactions::get_user_balance($user1->id);
 
+        $this->assertEquals(0, $balance1);
         // Generate a referral code.
         $data = (object)[
             'userid' => $user1->id,
@@ -248,6 +256,79 @@ class observer_test extends \advanced_testcase {
         $DB->insert_record('enrol_wallet_referral', $data);
         $code = $DB->get_record('enrol_wallet_referral', ['userid' => $user1->id])->code;
         $this->assertTrue(!empty($code));
+
+        // Try to simulate the signup process as the referral program work with self-registration only.
+        $this->setUser(null);
         $authplugin = signup_is_enabled();
+        $user2 = new \stdClass;
+        $user2->username  = 'something';
+        $user2->password  = 'P@ssw0rd';
+        $user2->email     = 'fake@fake.com';
+        $user2->email2    = 'fake@fake.com';
+        $user2->firstname = 'Mohammad';
+        $user2->lastname  = 'Farouk';
+        $user2->country   = 'EG';
+        $user2->refcode   = $code;
+        $user2->sesskey   = sesskey();
+
+        $sink = $this->redirectEmails();
+        $user2 = signup_setup_new_user($user2);
+
+        core_login_post_signup_requests($user2);
+
+        $authplugin->user_signup($user2, false);
+
+        $user2 = get_complete_user_data('username', 'something');
+        $DB->set_field('user', 'confirmed', 1, ['id' => $user2->id]);
+        $sink->close();
+
+        // Check the database changes.
+        $refer = $DB->get_record('enrol_wallet_referral', ['userid' => $user1->id]);
+        $this->assertEquals(1, $refer->usetimes);
+        $users = json_decode($refer->users);
+        $this->assertEquals(1, count($users));
+        $this->assertEquals('something', $users[0]);
+
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => 'something']);
+        $this->assertNotEmpty($hold);
+        $this->assertEquals($user1->id, $hold->referrer);
+        $this->assertEmpty($hold->released);
+        $this->assertEmpty($hold->courseid);
+
+        $balance2 = transactions::get_user_balance($user2->id);
+        $this->assertEquals(0, $balance2);
+
+        $this->setAdminUser();
+
+        // Enrol by manual enrolment not trigger the gift release.
+        $course1 = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
+
+        $balance1 = transactions::get_user_balance($user1->id);
+        $balance2 = transactions::get_user_balance($user2->id);
+        $this->assertEquals(0, $balance1);
+        $this->assertEquals(0, $balance2);
+
+        // Add manual enrolment to the list.
+        set_config('referral_plugins', 'wallet,manual', 'enrol_wallet');
+
+        $course2 = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->enrol_user($user2->id, $course2->id);
+
+        $balance1 = transactions::get_user_balance($user1->id);
+        $balance2 = transactions::get_user_balance($user2->id);
+        $this->assertEquals(50, $balance1);
+        $this->assertEquals(50, $balance2);
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $user2->username]);
+        $this->assertEquals(1, $hold->released);
+        $this->assertEquals($course1->id, $hold->courseid);
+
+        // Check that is no repetition to the gift.
+        $course3 = $this->getDataGenerator()->create_course();
+        $this->getDataGenerator()->enrol_user($user2->id, $course3->id);
+        $balance1 = transactions::get_user_balance($user1->id);
+        $balance2 = transactions::get_user_balance($user2->id);
+        $this->assertEquals(50, $balance1);
+        $this->assertEquals(50, $balance2);
     }
 }
