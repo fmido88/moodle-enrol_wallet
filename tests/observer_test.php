@@ -358,6 +358,6 @@ class observer_test extends \advanced_testcase {
         $user3['refcode'] = 'NotExistCode';
         $errors = $mform->validation($user3, []);
         $this->assertNotEmpty($errors['refcode']);
-        $this->assertStringContainsString(get_string('referral_notexist', 'enrol_wallet', $code), $errors['refcode']);
+        $this->assertStringContainsString(get_string('referral_notexist', 'enrol_wallet', $user3['refcode']), $errors['refcode']);
     }
 }
