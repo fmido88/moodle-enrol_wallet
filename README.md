@@ -41,10 +41,17 @@ So there is two options:
 6. Awarding students in a given course if they completed the course with high mark (optional).
     * Encourage your students by awarding them for completing a course.
     * In each course, the course creator can enable awarding program with a certain condition and amount.
-    * For example set the condition for 80, means that only students completed the course with 80% or more of the fullmark of the course will get awarded.
+    * For example set the condition for 80, means that only students completed the course with 80% or more of the full mark of the course will get awarded.
     * Setting up the value for 0.2 USD for awarding means that for every raw mark the student get above the condition will add 0.2 to his wallet (student grade is 900 out of max grade for the course 1000, this is a 100 grade above the condition, so 20 USD award added to his wallet).
 
-7. Generate coupons with limiting the usage, and time.
+7. Referral Program.
+    * You can enable referral program in the website.
+    * Users can send their referral code or url to new user and both gets a referral gift.
+    * Referral gift is in hold state until the new user get enrolled in at least one course.
+    * Admin can choose what is the enrolment method able to release the hold gift.
+    * Times users can use their referral code can be limited by a maximum value.
+
+8. Generate coupons with limiting the usage, and time.
     * If you use moodle as a wallet source, you can add a coupon manually or generate any number you need of coupons.
     * Coupons could be of type fixed of percent.
     * Determine the interval of time at which the coupon could be used or just anytime.
@@ -53,50 +60,50 @@ So there is two options:
     * Editing coupons is not an option now but I'll try to add it in the future.
     * You can choose the length of random coupon, the type of characters in the generated random coupon (lowercase, uppercase and digits).
 
-8. Admin can switch to use woocommerce Tera wallet and woocommerce coupons.
+9. Admin can switch to use woocommerce Tera wallet and woocommerce coupons.
     * If you use woocommerce as a wallet source, so you can't use moodle coupons.
     * Instate you use woocommerce coupons so you can generate and create it their.
 
-9. Cohorts restrictions.
+10. Cohorts restrictions.
     * In each enrol_wallet instance, course creator can decide if only users in a certain course can enrol (using any of previous methods) or not.
 
-10. Another course enrollment restriction.
+11. Another course enrollment restriction.
     * Course creator can decide to restrict using wallet enrollment so only users enrolled in a set of other selected courses can enrol themselves in this course.
     * Also the creator can select a set of 10 courses in example, and set number of of required courses 5 for example, so the user must be enrolled at least in five courses from the 10 selected.
 
-11. Configure self-unenrol option.
+12. Configure self-unenrol option.
     * Enable or disable the ability for users to unenrol themselves.
     * Can enable with period condition.
 
-12. Display the transactions of wallet.
+13. Display the transactions of wallet.
     * Users with capability "enrol/wallet:transactions" can see all wallet transaction can review any transaction in the website.
     * Other user can see only their own transactions.
     * Using Wallet Balance block plugin to allow users to see their balance anywhere and recharge it by payment.
 
-13. Optional ability to transfer credit between users.
+14. Optional ability to transfer credit between users.
     * Admin can enable the option for users to transfer credit to each other by email.
     * The capability enrol/wallet:transfer is set to all users by default, can be altered by admin.
     * A transfer fee can be set.
     * Admin can configure if the fee deducted from the sender balance or from the receiver balance.
 
-14. Bulk edit all enrollments in selected courses.
+15. Bulk edit all enrollments in selected courses.
     * Their is an option for admins to edit all users enrollments in selected courses in bulk from a central place.
 
-15. Bulk edit all wallet enrolment instances in selected courses.
+16. Bulk edit all wallet enrolment instances in selected courses.
     * Admins can edit all wallet enrolment instances in all or selected courses from a central place.
 
-16. Enable gifts as wallet credits upon creation of a user.
+17. Enable gifts as wallet credits upon creation of a user.
     * From settings, admins can enable new user gift program.
     * This gives new users a balance in their wallet as a gift for joining the website.
 
-17. Discounts on courses for specific users depend on custom profile field.
+18. Discounts on courses for specific users depend on custom profile field.
     * Want to give certain student a discount 50%? Or another student want to give him courses for free?
     * If yes, create a custom profile field and make it locked, also invisible if needed.
     * In wallet enrolment setting, select this field as a discount field.
     * Users with 20 in this field will get 20% discount in all courses.
     * Users with 100 or 'free' in this field will get courses for free.
 
-18. Conditional discounts.
+19. Conditional discounts.
     * In the latest version a conditional discount rules added.
     * Admin can enable or disable conditional discounts.
     * Conditional discount applied for charging the wallet only.
@@ -105,7 +112,7 @@ So there is two options:
     * Discount appear on confirmation when user top-up their wallet using payment along with the refund policy (if admin left it blank nothing appears).
     * Also discount appear to users with capability 'creditdebit' as a final calculated value when they try to recharge other user wallet.
 
-19. Manual refunding and Policy.
+20. Manual refunding and Policy.
     * Admins can customize a refunding policy to display it to users.
     * Users can see how much of their wallet balance is refundable.
     * All gifts, cashback, credit from discount and awards are not refundable.
@@ -113,20 +120,20 @@ So there is two options:
     * Setting grace period to 0 means that is no grace period and no transformations for the balance.
     * If Admin unchecked 'enable refund' so all balance now on will be nonrefundable.
 
-20. Auto refund upon unenrol.
+21. Auto refund upon unenrol.
     * Enable or disable refunding users by unenrol.
     * Conditions like grace period could be configured.
     * Unenrol deduction fee can be configured.
 
-21. Notifications for every transaction.
+22. Notifications for every transaction.
     * Users gets a notifications for every debit or credit type of transaction in their wallet.
     * Admins can change the way users get notify from messages setting.
 
-22. Low balance notice.
+23. Low balance notice.
     * Display a warning notice to the user in case of low balance.
     * This is optional and admin can decide the minimum balance to call it a low balance.
 
-23. Events.
+24. Events.
     * Almost any action in this plugin triggers its own event.
     * Transactions events: with every credit or debit action to users wallet.
     * Using coupon: if a coupon used it triggers its own event.
@@ -135,15 +142,15 @@ So there is two options:
     * Gift: If a new user get gifted.
 These events helps administrators or managers to track the wallet workflow.
 
-24. Enhanced security.
+25. Enhanced security.
     * In the latest version, connection to wordpress is secure using encrypted data.
     * Also using shared secret key which the admin must match those in moodle and wordpress in order for secure connection.
 
-25. Login and logout to wordpress.
+26. Login and logout to wordpress.
     * When a user login or logout from moodle website, automatically logged in or out from wordpress website.
     * Admin can disable this option of course.
 
-26. Auto create wordpress user.
+27. Auto create wordpress user.
     * only active if the wallet source is wordpress.
     * Creating new user in wordpress website with same username and password.
     * Update the password automatically when updated in moodle.
