@@ -239,6 +239,8 @@ class observer_test extends \advanced_testcase {
         require_once("$CFG->libdir/authlib.php");
         require_once("$CFG->dirroot/login/lib.php");
         require_once("$CFG->dirroot/user/editlib.php");
+        require_once("$CFG->dirroot/login/signup_form.php");
+
         // Enable referrals.
         set_config('referral_enabled', 1, 'enrol_wallet');
         set_config('referral_amount', 50, 'enrol_wallet');
@@ -347,14 +349,14 @@ class observer_test extends \advanced_testcase {
             'refcode' => $code,
             'sesskey' => sesskey(),
         ];
-
-        $errors = signup_validate_data($user3, []);
+        $mform = new \login_signup_form();
+        $errors = $mform->validation($user3, []);
         $this->assertNotEmpty($errors['refcode']);
         $this->assertStringContainsString(get_string('referral_exceeded', 'enrol_wallet', $code), $errors['refcode']);
 
         // Check validation of a non-exist code.
         $user3['refcode'] = 'NotExistCode';
-        $errors = signup_validate_data($user3, []);
+        $errors = $mform->validation($user3, []);
         $this->assertNotEmpty($errors['refcode']);
         $this->assertStringContainsString(get_string('referral_notexist', 'enrol_wallet', $code), $errors['refcode']);
     }
