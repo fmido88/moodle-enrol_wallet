@@ -53,7 +53,7 @@ class observer {
         // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
         $instances = enrol_get_instances($courseid, true);
         $instance = null;
-        $con = 0;
+        $con = 100;
         foreach ($instances as $inst) {
             // Check for multiple wallet instances and get the higher cost.
             // Check if awards enabled in this instance.
@@ -130,7 +130,6 @@ class observer {
         ];
         $event = \enrol_wallet\event\award_granted::create($eventdata);
         $event->trigger();
-
     }
 
     /** This is a callback function when user created,
