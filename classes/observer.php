@@ -42,22 +42,28 @@ class observer {
      * @return void
      */
     public static function wallet_completion_awards(\core\event\course_completed $event) {
+        if (!get_config('enrol_wallet', 'awardssite')) {
+            return;
+        }
+
         $userid = $event->relateduserid;
         $courseid = $event->courseid;
 
         // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
         $instances = enrol_get_instances($courseid, true);
         $instance = null;
+        $con = 0;
         foreach ($instances as $inst) {
-            if ($inst->enrol === 'wallet') {
+            // Check for multiple wallet instances and get the higher cost.
+            // Check if awards enabled in this instance.
+            if ($inst->enrol === 'wallet' && !empty($inst->customint8) && $inst->customdec1 < $con) {
                 $instance = $inst;
-                break;
+                $con = $inst->customdec1;
             }
         }
 
         // Check if wallet enrolment instance found in this course.
-        // Check if awards enabled in this instance.
-        if (null === $instance || empty($instance->customint8)) {
+        if (null === $instance) {
             return;
         }
 

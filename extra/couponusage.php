@@ -34,12 +34,9 @@ require_login();
 $systemcontext = context_system::instance();
 require_capability('enrol/wallet:viewcoupon', $systemcontext);
 
-$candelete   = has_capability('enrol/wallet:deletecoupon', $systemcontext);
-$canedit     = has_capability('enrol/wallet:editcoupon', $systemcontext);
-$candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
-
 // Parameters.
 $code             = optional_param('code', '', PARAM_TEXT);
+$userid           = optional_param('userid', '', PARAM_INT);
 $value            = optional_param('value', '', PARAM_FLOAT);
 $valuerelation    = optional_param('valuerelation', '', PARAM_TEXT);
 $type             = optional_param('type', '', PARAM_TEXT);
@@ -49,6 +46,8 @@ $validtoarray     = optional_param_array('validto', [], PARAM_INT);
 $validfromarray   = optional_param_array('validfrom', [], PARAM_INT);
 $createdtoarray   = optional_param_array('createdto', [], PARAM_INT);
 $createdfromarray = optional_param_array('createdfrom', [], PARAM_INT);
+$usedtoarray      = optional_param_array('usedto', [], PARAM_INT);
+$usedfromarray    = optional_param_array('usedfrom', [], PARAM_INT);
 $maxusage         = optional_param('maxusage', '', PARAM_INT);
 $maxrelation      = optional_param('maxrelation', '', PARAM_TEXT);
 $usetimes         = optional_param('usetimes', '', PARAM_INT);
@@ -66,8 +65,11 @@ $urlparams['tsort']   = (!empty($sort)) ? $sort : null;
 $urlparams['page']    = (!empty($limitfrom)) ? $limitfrom : null;
 $urlparams['perpage'] = (!empty($limitnum)) ? $limitnum : null;
 
-$conditions .= (!empty($code)) ? ' AND code = \''.$code.'\'' : '';
+$conditions .= (!empty($code)) ? ' AND c.code = \''.$code.'\'' : '';
 $urlparams['code'] = (!empty($code)) ? $code : null;
+
+$conditions .= (!empty($userid)) ? ' AND u.userid = \''.$userid.'\'' : '';
+$urlparams['code'] = (!empty($userid)) ? $userid : null;
 
 if ($value != '' && $value != null) {
     switch ($valuerelation) {
@@ -92,13 +94,13 @@ if ($value != '' && $value != null) {
         default:
             $op = '=';
     }
-    $conditions .= ' AND value '.$op.' \''.$value.'\'';
+    $conditions .= ' AND u.value '.$op.' \''.$value.'\'';
     $urlparams['value'] = $value;
     $urlparams['valuerelation'] = $valuerelation;
 }
 
 
-$conditions .= (!empty($type)) ? ' AND type = \''.$type.'\'' : '';
+$conditions .= (!empty($type)) ? ' AND u.type = \''.$type.'\'' : '';
 $urlparams['type'] = (!empty($type)) ? $type : null;
 
 if ($maxusage != '' && $maxusage != null) {
@@ -124,7 +126,7 @@ if ($maxusage != '' && $maxusage != null) {
         default:
             $op = '=';
     }
-    $conditions .= ' AND maxusage '.$op.' \''.$maxusage.'\'';
+    $conditions .= ' AND c.maxusage '.$op.' \''.$maxusage.'\'';
     $urlparams['maxusage'] = $maxusage;
     $urlparams['maxrelation'] = $maxrelation;
 }
@@ -152,17 +154,17 @@ if ($usetimes != '' && $usetimes != null) {
         default:
             $op = '=';
     }
-    $conditions .= ' AND usetimes '.$op.' \''.$usetimes.'\'';
+    $conditions .= ' AND c.usetimes '.$op.' \''.$usetimes.'\'';
     $urlparams['usetimes'] = $usetimes;
     $urlparams['userelation'] = $userelation;
 }
 
-$conditions .= (!empty($category)) ? ' AND category = \''.$category.'\'' : '';
+$conditions .= (!empty($category)) ? ' AND c.category = \''.$category.'\'' : '';
 $urlparams['category'] = (!empty($category)) ? $category : null;
 
 if (!empty($courses)) {
     foreach ($courses as $courseid) {
-        $conditions .= (!empty($courses)) ? ' AND courses like \'%'.$courseid.'%\'' : '';
+        $conditions .= (!empty($courses)) ? ' AND c.courses like \'%'.$courseid.'%\'' : '';
     }
 }
 $urlparams['courses'] = (!empty($courses)) ? http_build_query($courses) : null;
@@ -172,6 +174,8 @@ $arraydates = [
     'createdto'   => $createdtoarray,
     'validfrom'   => $validfromarray,
     'validto'     => $validtoarray,
+    'usedfrom'    => $usedfromarray,
+    'usedto'      => $usedtoarray,
 ];
 // ...mktime all dates.
 foreach ($arraydates as $key => $date) {
@@ -191,10 +195,12 @@ foreach ($arraydates as $key => $date) {
     }
 }
 
-$conditions .= (!empty($cratedfrom)) ? ' AND timecreated >= \''.$createdfrom.'\'' : '';
-$conditions .= (!empty($cratedto)) ? ' AND timecreated <= \''.$createdto.'\'' : '';
-$conditions .= (!empty($validto)) ? ' AND validto = \''.$validto.'\'' : '';
-$conditions .= (!empty($validfrom)) ? ' AND validfrom = \''.$validfrom.'\'' : '';
+$conditions .= (!empty($cratedfrom)) ? ' AND c.timecreated >= \''.$createdfrom.'\'' : '';
+$conditions .= (!empty($cratedto)) ? ' AND c.timecreated <= \''.$createdto.'\'' : '';
+$conditions .= (!empty($validto)) ? ' AND c.validto = \''.$validto.'\'' : '';
+$conditions .= (!empty($validfrom)) ? ' AND c.validfrom = \''.$validfrom.'\'' : '';
+$conditions .= (!empty($usedto)) ? ' AND u.timeused <= \''.$usedto.'\'' : '';
+$conditions .= (!empty($usedfrom)) ? ' AND u.timeused >= \''.$usedfrom.'\'' : '';
 
 // Unset empty params.
 foreach ($urlparams as $key => $val) {
@@ -206,7 +212,7 @@ foreach ($urlparams as $key => $val) {
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
-$url = new moodle_url('/enrol/wallet/extra/coupontable.php', $urlparams);
+$url = new moodle_url('/enrol/wallet/extra/couponusage.php', $urlparams);
 $PAGE->set_url($url);
 $PAGE->set_title(get_string('coupons', 'enrol_wallet'));
 $PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
@@ -214,9 +220,42 @@ $PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
 // --------------------------------------------------------------------------------------
 // Form.
 // Setup the filtration form.
-$mform = new \MoodleQuickForm('couponfilter', 'get', 'coupontable.php');
+$mform = new \MoodleQuickForm('couponfilter', 'get', 'couponusage.php');
 
 $mform->addElement('header', 'filter', get_string('filter_coupons', 'enrol_wallet'));
+
+
+// User selector.
+$attributes = [
+    'multiple' => false,
+    'ajax' => 'core_user/form_user_selector',
+    'valuehtmlcallback' => function($userid) {
+        global $OUTPUT;
+
+        $context = \context_system::instance();
+        $fields = \core_user\fields::for_name()->with_identity($context, true);
+        $record = core_user::get_user($userid, 'id ' . $fields->get_sql()->selects, MUST_EXIST);
+
+        $user = (object)[
+            'id' => $record->id,
+            'fullname' => fullname($record, has_capability('moodle/site:viewfullnames', $context)),
+            'extrafields' => [],
+        ];
+
+        foreach ($fields->get_required_fields([\core_user\fields::PURPOSE_IDENTITY]) as $extrafield) {
+            $user->extrafields[] = (object)[
+                'name' => $extrafield,
+                'value' => s($record->$extrafield)
+            ];
+        }
+
+        return $OUTPUT->render_from_template('core_user/form_user_selector_suggestion', $user);
+    },
+];
+$mform->addElement('autocomplete', 'userid', get_string('user'), [], $attributes);
+if ($userid != null && $userid != '') {
+    $mform->setDefault('userid', $userid);
+}
 
 $mform->addElement('text', 'code', get_string('coupon_code', 'enrol_wallet'));
 $mform->setType('code', PARAM_TEXT);
@@ -254,6 +293,7 @@ $catoptions = ['' => get_string('any')];
 foreach ($categories as $cat) {
     $catoptions[$cat->id] = $cat->get_nested_name(false);
 }
+
 $mform->addElement('select', 'category',  get_string('category'),  $catoptions);
 $mform->addHelpButton('category', 'category_options', 'enrol_wallet');
 $mform->hideIf('category', 'type', 'neq', 'category');
@@ -316,6 +356,16 @@ if (!empty($createdto)) {
     $mform->setDefault('createdto', $createdto);
 }
 
+$mform->addElement('date_time_selector', 'usedfrom', get_string('usedfrom', 'enrol_wallet'), array('optional' => true));
+if (!empty($usedfrom)) {
+    $mform->setDefault('usedfrom', $usedfrom);
+}
+
+$mform->addElement('date_time_selector', 'usedto', get_string('usedto', 'enrol_wallet'), array('optional' => true));
+if (!empty($usedto)) {
+    $mform->setDefault('usedto', $usedto);
+}
+
 $limits = [];
 for ($i = 25; $i <= 1000; $i = $i + 25) {
     $limits[$i] = $i;
@@ -328,25 +378,20 @@ $mform->addElement('submit', 'submit', get_string('coupon_applyfilter', 'enrol_w
 
 // ----------------------------------------------------------------------------------------------
 // Table.
-$baseurl = new moodle_url('/enrol/wallet/extra/coupontable.php');
-$table = new flexible_table('walletcouponstable');
+$baseurl = new moodle_url('/enrol/wallet/extra/couponusage.php');
+$table = new flexible_table('walletcouponsusagetable');
 
 $table->define_baseurl($url->out(false));
 
-if (!$table->is_downloading($download, 'walletcoupons')) {
-    if ($candelete) {
-        // Only way to not mix this form with the download button is to print this before the header (till I figure something else).
-        echo '<form id="enrolwallet_coupondelet" name="coupondelete" method="post" action="coupondelete.php">';
-    }
+echo $OUTPUT->header();
 
-    echo $OUTPUT->header();
-    $mform->display();
-    echo $OUTPUT->single_button($baseurl, get_string('clear_filter', 'enrol_wallet'));
-}
+$mform->display();
+
+echo $OUTPUT->single_button($baseurl, get_string('clear_filter', 'enrol_wallet'));
+
 
 // Set up the coupons table.
 $columns = [
-            'checkbox'    => html_writer::link('#', get_string('selectall'), ['onClick' => 'selectAllToDelete()']),
             'id'          => 'id',
             'code'        => get_string('coupon_t_code', 'enrol_wallet'),
             'value'       => get_string('coupon_t_value', 'enrol_wallet'),
@@ -357,18 +402,11 @@ $columns = [
             'usetimes'    => get_string('coupon_t_usage', 'enrol_wallet'),
             'validfrom'   => get_string('validfrom', 'enrol_wallet'),
             'validto'     => get_string('validto', 'enrol_wallet'),
-            'lastuse'     => get_string('coupon_t_lastuse', 'enrol_wallet'),
+            'timeused'    => get_string('coupon_usetime', 'enrol_wallet'),
+            'user'        => get_string('user'),
+            'course'      => get_string('course'),
             'timecreated' => get_string('coupon_t_timecreated', 'enrol_wallet'),
-            'edit'        => null,
         ];
-
-if ($table->is_downloading() || !$candelete) {
-    unset($columns['checkbox']);
-}
-
-if ($table->is_downloading() || !$canedit) {
-    unset($columns['edit']);
-}
 
 $table->define_columns(array_keys($columns));
 $table->define_headers(array_values($columns));
@@ -376,6 +414,9 @@ $table->set_attribute('class', 'generaltable generalbox wallet-couponstable');
 
 // Setup the sorting properties.
 $table->sortable(true);
+
+$table->no_sorting('user');
+$table->no_sorting('course');
 
 $table->setup();
 
@@ -389,18 +430,22 @@ if (!in_array($sort, $allowedsort)) {
     $sort = '';
 }
 
-$orderby = 'id ASC';
+$orderby = 'c.id ASC';
 if (!empty($sort)) {
     $direction = ' DESC';
     if (!empty($sortcolumns[$sort]) && $sortcolumns[$sort] == SORT_ASC) {
         $direction = ' ASC';
     }
-    $orderby = " $sort $direction";
+    if ($sort == 'timeused' || $sort == 'id') {
+        $orderby = " u.$sort $direction";
+    } else {
+        $orderby = " c.$sort $direction";
+    }
 }
 
 // SQL.
 $sql = '';
-$sql = ' FROM {enrol_wallet_coupons} ';
+$sql = ' FROM {enrol_wallet_coupons_usage} u JOIN {enrol_wallet_coupons} c ON c.code = u.code ';
 if (!empty($conditions)) {
     $sql .= 'WHERE ' . $conditions;
 }
@@ -409,56 +454,38 @@ if (!empty($orderby)) {
     $sql .= ' ORDER BY ' . $orderby;
 }
 
-// Count all data to get the number of pages later.
-$count = $DB->count_records_select('enrol_wallet_coupons', $conditions, []);
-
-// If we download the table we need all the pages.
-if ($table->is_downloading()) {
-    $limitfrom = 0;
-    $limitnum = 0;
-}
-
 // The sql for records.
-$sqlr = 'SELECT * '. $sql;
-$records = $DB->get_records_sql($sqlr, [], $limitfrom, $limitnum);
+$sqlr = 'SELECT u.id as uid, c.id as id, u.userid, u.instanceid, u.timeused,
+        c.code, u.type, u.value, c.category, c.courses, c.maxusage,
+        c.usetimes, c.validfrom, c.validto, c.timecreated '. $sql;
 
-// Make the table downloadable.
-if ($candownload) {
-    $table->is_downloadable(true);
-    $table->show_download_buttons_at([TABLE_P_TOP, TABLE_P_BOTTOM]);
-} else {
-    $table->is_downloadable(false);
-}
+// Count all data to get the number of pages later.
+$count = count($DB->get_records_sql($sqlr, null));
+
+$records = $DB->get_records_sql($sqlr, null, $limitfrom, $limitnum);
 
 // Pages links.
-if (!$table->is_downloading()) {
-    $pages = $count / $limitnum;
-    $decimal = fmod($pages, 1);
-    $pages = ($decimal > 0) ? intval($pages) + 1 : intval($pages);
+$pages = $count / $limitnum;
+$decimal = fmod($pages, 1);
+$pages = ($decimal > 0) ? intval($pages) + 1 : intval($pages);
 
-    $content = '<p>Page: </p>';
-    for ($i = 1; $i <= $pages; $i++) {
-        $urlparams['page'] = ($i - 1) * $limitnum;
+$content = '<p>Page: </p>';
+for ($i = 1; $i <= $pages; $i++) {
+    $urlparams['page'] = ($i - 1) * $limitnum;
 
-        if ($urlparams['page'] == $limitfrom) {
-            $content .= $i;
-        } else {
-            $url = new moodle_url('/enrol/wallet/extra/coupontable.php', $urlparams);
-            $content .= html_writer::link($url, $i);
-        }
-
-        $content .= ' ';
+    if ($urlparams['page'] == $limitfrom) {
+        $content .= $i;
+    } else {
+        $url = new moodle_url('/enrol/wallet/extra/couponusage.php', $urlparams);
+        $content .= html_writer::link($url, $i);
     }
 
-    $pageslinks = html_writer::span($content);
+    $content .= ' ';
 }
 
+$pageslinks = html_writer::span($content);
+$wallet = enrol_get_plugin('wallet');
 foreach ($records as $record) {
-    $editparams = array_merge(['edit' => true], (array)$record);
-    $editurl = new moodle_url('couponedit.php', $editparams);
-    $editbutton = ($canedit) ? $OUTPUT->single_button($editurl, get_string('edit'), 'get') : '';
-
-    $chkbox = ($candelete) ? '<input type="checkbox" name="select['.$record->id.']" value="1" >' : '';
 
     if (!empty($record->category)) {
         if ($category = core_course_category::get($record->category, IGNORE_MISSING)) {
@@ -478,8 +505,20 @@ foreach ($records as $record) {
         $courses = implode('/', $courses);
     }
 
+    $username = '';
+    if (!empty($record->userid) && $user = \core_user::get_user($record->userid)) {
+        $username = fullname($user);
+        $userurl = new moodle_url('/user/profile.php', ['id' => $user->id]);
+        $username = html_writer::link($userurl, $username);
+    }
+
+    $coursename = '';
+    if (!empty($record->instanceid)) {
+        $course = $wallet->get_course_by_instance_id($record->instanceid);
+        $courseurl = new moodle_url('/course/view.php', ['id' => $course->id]);
+        $coursename = html_writer::link($courseurl, $course->fullname);
+    }
     $row = [
-        'checkbox'    => $chkbox,
         'id'          => $record->id,
         'code'        => $record->code,
         'value'       => number_format($record->value, 2),
@@ -490,9 +529,10 @@ foreach ($records as $record) {
         'usetimes'    => $record->usetimes,
         'validfrom'   => !empty($record->validfrom) ? userdate($record->validfrom) : '',
         'validto'     => !empty($record->validto) ? userdate($record->validto) : '',
-        'lastuse'     => !empty($record->lastuse) ? userdate($record->lastuse) : '',
+        'timeused'    => !empty($record->timeused) ? userdate($record->timeused) : '',
+        'user'        => $username,
+        'course'      => $coursename,
         'timecreated' => !empty($record->timecreated) ? userdate($record->timecreated) : '',
-        'edit'        => $editbutton,
     ];
 
     $table->add_data_keyed($row);
@@ -500,47 +540,10 @@ foreach ($records as $record) {
     flush();
 }
 
-if (!$table->is_downloading()) {
-    echo $OUTPUT->heading(get_string('coupons', 'enrol_wallet'), 3);
-    echo $OUTPUT->box($pageslinks);
-}
+echo $OUTPUT->heading(get_string('coupons', 'enrol_wallet'), 3);
+echo $OUTPUT->box($pageslinks);
 
 $table->finish_output();
 
-if (!$table->is_downloading($download, 'walletcoupons') && $candelete) {
-    echo '<button name="delete" value="delete" type="submit" class="btn btn-secondary">'.get_string('delete').'</button>';
-    echo '<input type="hidden" value="'.sesskey().'" name="sesskey">';
-    echo '</form>';
-
-}
-
-if (!$table->is_downloading()) {
-    echo $OUTPUT->box($pageslinks);
-    echo $OUTPUT->footer();
-    if ($candelete) {
-        $code = <<<JS
-            function selectAllToDelete() {
-                var form = document.getElementById('enrolwallet_coupondelet');
-                var checkBoxes = form.querySelectorAll('input[type="checkbox"]');
-
-                if (checkBoxes) {
-                    var i = 0;
-                    checkBoxes.forEach((checkBox) => {
-                        if (!checkBox.checked && checkBox.id == '') {
-                            checkBox.checked = true;
-                            i++;
-                        }
-                    })
-                    if (i == 0) {
-                        checkBoxes.forEach((checkBox) => {
-                            if (checkBox.checked) {
-                                checkBox.checked = false;
-                            }
-                        })
-                    }
-                }
-            }
-        JS;
-        echo "<script>$code</script>";
-    }
-}
+echo $OUTPUT->box($pageslinks);
+echo $OUTPUT->footer();

@@ -77,7 +77,7 @@ class notifications {
 
         // Set the page context to resolve the coding problem with airnotifier processor.
         global $PAGE;
-        if (empty($PAGE->context)) {
+        if (!is_object($PAGE->context)) {
             $PAGE->set_context(\context_course::instance(SITEID));
         }
         // Actually send the message.

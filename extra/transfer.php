@@ -48,6 +48,7 @@ if ($confirm) {
     global $USER;
     $email  = required_param('email', PARAM_EMAIL);
     $amount = required_param('amount', PARAM_FLOAT);
+    $parent = optional_param('parent', false, PARAM_BOOL);
     $condition = get_config('enrol_wallet', 'mintransfer');
     // No email or invalid email format.
     if (empty($email)) {
@@ -66,10 +67,15 @@ if ($confirm) {
         redirect($url, $msg, null, 'error');
     }
 
-    // Check the transfer fees.
-    $percentfee = get_config('enrol_wallet', 'transferpercent');
-    $percentfee = (!empty($percentfee)) ? $percentfee : 0;
-    $fee = $amount * $percentfee / 100;
+    if ($parent) {
+        $fee = 0;
+    } else {
+        // Check the transfer fees.
+        $percentfee = get_config('enrol_wallet', 'transferpercent');
+        $percentfee = (!empty($percentfee)) ? $percentfee : 0;
+        $fee = $amount * $percentfee / 100;
+    }
+
 
     $feefrom = get_config('enrol_wallet', 'transferfee_from');
     if ($feefrom == 'sender') {

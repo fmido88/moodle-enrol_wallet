@@ -27,6 +27,18 @@ require_once(__DIR__.'/../lib.php');
 require_once($CFG->libdir.'/tablelib.php');
 require_once($CFG->libdir.'/formslib.php');
 
+$isparent = false;
+if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
+    require_once("$CFG->dirroot/auth/parent/auth.php");
+    require_once("$CFG->dirroot/auth/parent/lib.php");
+    $authparent = new auth_plugin_parent;
+    $isparent = $authparent->is_parent($USER);
+}
+
+if ($isparent) {
+    redirect(new moodle_url('/'), 'Parents not allow to access referral program.');
+}
+
 global $DB, $USER;
 // Adding some security.
 require_login();
@@ -98,17 +110,17 @@ $mform->setType('refamount', PARAM_FLOAT);
 $mform->setConstant('refamount', $amount);
 
 $mform->addElement('hidden', 'disable');
-$mform->setType('disable', PARAM_BOOL);
-$mform->setConstant('disable', false);
+$mform->setType('disable', PARAM_INT);
+$mform->setConstant('disable', 0);
 
-$mform->disabledIf('refamount',  'disable',  'neq',  true);
+$mform->disabledIf('refamount',  'disable',  'neq',  1);
 
 if (!empty($maxref)) {
-    $mform->addElement('text', 'refremain', get_string('referral_remain', 'enrol_wallet'), ['class' => 'notify notify-info']);
+    $mform->addElement('text', 'refremain', get_string('referral_remain', 'enrol_wallet'));
     $mform->setType('refremain', PARAM_INT);
     $mform->addHelpButton('refremain', 'referral_remain', 'enrol_wallet');
     $mform->setConstant('refremain', $maxref - $exist->usetimes);
-    $mform->disabledIf('refremain',  'disable',  'neq',  true);
+    $mform->disabledIf('refremain',  'disable',  'neq',  1);
 }
 
 echo $OUTPUT->header();

@@ -105,8 +105,9 @@ class topup_form extends \moodleform {
             $mform->setDefault('return', $PAGE->url);
         }
 
-        // Add some js code to display the actual value to charge the wallet with.
-        $js = <<<JS
+        if (!empty($i)) {
+            // Add some js code to display the actual value to charge the wallet with.
+            $js = <<<JS
                 function calculateCharge() {
                     var value = parseFloat(document.getElementById("topup-value").value);
 
@@ -142,11 +143,10 @@ class topup_form extends \moodleform {
                     document.getElementById("topup-value").value = realValueBefore;
                 }
             JS;
-
-        if (!empty($i)) {
             $mform->addElement('html', '<script>'.$js.'</script>');
         }
 
         $this->add_action_buttons(false, get_string('topup', 'enrol_wallet'));
+        $this->set_display_vertical();
     }
 }

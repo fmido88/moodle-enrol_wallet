@@ -59,6 +59,7 @@ class applycoupon_form extends \moodleform {
      * @return void
      */
     public function definition() {
+        global $USER;
         $mform = $this->_form;
         $instance = $this->_customdata->instance;
         $url = new \moodle_url('course/view.php', ['id' => $instance->courseid]);
@@ -66,16 +67,27 @@ class applycoupon_form extends \moodleform {
         $wallet = enrol_get_plugin('wallet');
         $coupon = $wallet->check_discount_coupon();
         $coupongroup = [];
+        $cancel = optional_param('cancel', false, PARAM_BOOL);
+        $coupondata = \enrol_wallet\transactions::get_coupon_value($coupon, $USER->id, $instance->id);
 
-        if (!empty($coupon)) {
+        $area['instanceid'] = $instance->id ?? null;
+        $area['cmid'] = $instance->cmid ?? null;
+        $area['sectionid'] = $instance->sectionid ?? null;
+        $validate = \enrol_wallet\transactions::validate_coupon($coupondata, $area);
+
+        $type = $coupondata['type'] ?? null;
+        if (!empty($coupon) && !$cancel &&  $type == 'percent' && $validate === true) {
             $html = '<span>coupon code ( '.$coupon.' ) applied.';
             $coupongroup[] = $mform->createElement('html', $html);
             $coupongroup[] = $mform->createElement('cancel');
+            $coupongroup[] = $mform->createElement('hidden', 'coupon');
+
         } else {
             $coupongroup[] = $mform->createElement('text', 'coupon', get_string('applycoupon', 'enrol_wallet'), '"maxlength"="50"');
-            $mform->setType('coupon', PARAM_TEXT);
             $coupongroup[] = $mform->createElement('submit', 'submitcoupon', get_string('applycoupon', 'enrol_wallet'));
         }
+
+        $mform->setType('coupon', PARAM_TEXT);
 
         if (empty($instance->cmid) && empty($instance->sectionid)) {
             $mform->addGroup($coupongroup, 'applycoupon', get_string('applycoupon', 'enrol_wallet'), null, false);
@@ -102,16 +114,55 @@ class applycoupon_form extends \moodleform {
             $mform->setDefault('sectionid', $instance->sectionid);
         }
 
-        $mform->addElement('hidden', 'courseid');
-        $mform->setType('courseid', PARAM_INT);
-        $mform->setDefault('courseid', $instance->courseid);
+        $mform->addElement('hidden', 'id');
+        $mform->setType('id', PARAM_INT);
+        $mform->setDefault('id', $instance->courseid);
 
         $mform->addElement('hidden', 'url');
         $mform->setType('url', PARAM_URL);
         $mform->setDefault('url', $url);
 
-        $mform->addElement('hidden', 'sesskey');
-        $mform->setType('sesskey', PARAM_TEXT);
-        $mform->setDefault('sesskey', sesskey());
+        $this->set_display_vertical();
+    }
+
+    /**
+     * Dummy stub method - override if you needed to perform some extra validation.
+     * If there are errors return array of errors ("fieldname"=>"error message"),
+     * otherwise true if ok.
+     * Server side rules do not work for uploaded files, implement serverside rules here if needed.
+     * @param array $data array of ("fieldname"=>value) of submitted data
+     * @param array $files array of uploaded files "element_name"=>tmp_file_path
+     */
+    public function validation($data, $files) {
+
+        global $DB, $USER;
+        $errors = parent::validation($data, $files);
+
+        $area = [];
+        if (!empty($data['instanceid'])) {
+            $area['instanceid'] = $data['instanceid'];
+            $instanceid = $data['instanceid'];
+        } else {
+            $instanceid = 0;
+        }
+
+        if (!empty($data['cmid'])) {
+            $area['cmid'] = $data['cmid'];
+        }
+
+        if (!empty($data['sectionid'])) {
+            $area['sectionid'] = $data['sectionid'];
+        }
+
+        $coupon = $data['coupon'];
+        $coupondata = \enrol_wallet\transactions::get_coupon_value($coupon, $USER->id, $instanceid);
+
+        $validate = \enrol_wallet\transactions::validate_coupon($coupondata, $area);
+        if ($validate !== true) {
+            $errors['applycoupon'] = $validate;
+            $errors['coupons'] = $validate;
+        }
+
+        return $errors;
     }
 }

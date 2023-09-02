@@ -40,13 +40,16 @@ if ($method == 'single') {
     $characters = required_param_array('characters', PARAM_BOOL);
 }
 
-$value     = required_param('value', PARAM_FLOAT);
+$value     = optional_param('value', 0, PARAM_FLOAT);
 $type      = required_param('type', PARAM_TEXT);
 $maxusage  = required_param('maxusage', PARAM_INT);
 $validto   = optional_param_array('validto', [], PARAM_INT);
 $validfrom = optional_param_array('validfrom', [], PARAM_INT);
+$catid     = optional_param('category', '', PARAM_INT);
+$courses   = optional_param_array('courses', '', PARAM_INT);
 
 $redirecturl = new moodle_url('/enrol/wallet/extra/coupontable.php');
+
 
 if (!empty($validto)) {
     $to = mktime(
@@ -82,14 +85,16 @@ if (!empty($characters)) {
     $options->digits = isset($characters['digits']) ? $characters['digits'] : false;
 }
 
-$options->number = $number;
-$options->length = $length;
+$options->number   = $number;
+$options->length   = $length;
 $options->maxusage = $maxusage;
-$options->from = $from;
-$options->to = $to;
-$options->type = $type;
-$options->value = $value;
-$options->code = $code;
+$options->from     = $from;
+$options->to       = $to;
+$options->type     = $type;
+$options->value    = $value;
+$options->code     = $code;
+$options->category = $catid;
+$options->courses  = !empty($courses) ? implode(',', $courses) : '';
 
 // Generate coupons with the options specified.
 if (confirm_sesskey()) {

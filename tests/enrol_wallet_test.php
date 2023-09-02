@@ -1451,4 +1451,65 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
     }
+
+    /**
+     * Summary of test_enrol_wallet_is_borrow_eligible
+     * @covers ::enrol_wallet_is_borrow_eligible()
+     * @return void
+     */
+    public function test_enrol_wallet_is_borrow_eligible() {
+        global $CFG;
+        $this->resetAfterTest();
+        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+        $user1 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
+        $user2 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 10 * DAYSECS]);
+
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
+
+        set_config('borrowenable', 1, 'enrol_wallet');
+        set_config('borrowtrans', 3, 'enrol_wallet');
+        set_config('borrowperiod', 15 * DAYSECS, 'enrol_wallet');
+        transactions::payment_topup(20, $user1->id);
+        transactions::payment_topup(20, $user1->id);
+        transactions::payment_topup(20, $user1->id);
+
+        transactions::payment_topup(20, $user2->id);
+        transactions::payment_topup(20, $user2->id);
+        transactions::payment_topup(20, $user2->id);
+
+        $this->assertTrue(enrol_wallet_is_borrow_eligible($user1));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
+
+        $course = $this->getDataGenerator()->create_course();
+        $context = \context_course::instance($course->id);
+
+        $wallet = enrol_get_plugin('wallet');
+        // Update the instance such that the enrol duration is 2 hours.
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance->customint6 = 1;
+        $instance->cost = 100;
+        $DB->update_record('enrol', $instance);
+        $wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
+        $this->setUser($user1);
+        $this->assertTrue($wallet->can_self_enrol($instance));
+        $wallet->enrol_self($instance, $user1);
+
+        $this->setUser($user2);
+        $this->assertEquals(2, $wallet->can_self_enrol($instance));
+        try {
+            $wallet->enrol_self($instance, $user2);
+        } catch (\moodle_exception $e) {
+            $error = $e;
+        }
+
+        $this->setAdminUser();
+
+        $this->assertTrue(is_enrolled($context, $user1));
+        $this->assertFalse(is_enrolled($context, $user2, $error->getMessage()));
+
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));
+        $this->assertEquals(-40, transactions::get_user_balance($user1->id));
+        $this->assertEquals(60, transactions::get_user_balance($user2->id));
+    }
 }

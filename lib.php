@@ -57,6 +57,14 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public const WALLET_COUPONSALL = 3;
     /**
+     * If enrol coupons available.
+     */
+    public const WALLET_COUPONSENROL = 4;
+    /**
+     * If category coupons available.
+     */
+    public const WALLET_COUPONCAT = 5;
+    /**
      * If the user has insufficient balance.
      */
     public const INSUFFICIENT_BALANCE = 2;
@@ -309,10 +317,12 @@ class enrol_wallet_plugin extends enrol_plugin {
      *
      * @param stdClass $instance enrolment instance
      * @param stdClass $user User to enrol and deduct fees from
+     * @param bool $charge Charge the user to enrol (only false in case of enrol coupons)
      * @return bool|array true if enrolled else error code and message
      */
-    public function enrol_self(stdClass $instance, \stdClass $user = null) {
-
+    public function enrol_self(stdClass $instance, \stdClass $user = null, $charge = true) {
+        global $CFG;
+        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
         if (empty($user)) {
             global $USER;
             $user = $USER;
@@ -326,12 +336,12 @@ class enrol_wallet_plugin extends enrol_plugin {
         // Get the final cost after discount (if there is no discount it return the full cost).
         $costafter = (!empty($this->costafter)) ? $this->costafter : $this->get_cost_after_discount($user->id, $instance, $coupon);
 
-        $balance = transactions::get_user_balance($user->id);
-        $deduct = min($balance, $costafter);
-
-        // Deduct fees from user's account.
-        if (!transactions::debit($user->id, $deduct, $coursename)) {
-            throw new moodle_exception('cannotdeductbalance', 'enrol_wallet');
+        if ($charge) {
+            $canborrow = enrol_wallet_is_borrow_eligible($user->id);
+            // Deduct fees from user's account.
+            if (!transactions::debit($user->id, $costafter, $coursename, '', '', $instance->courseid, $canborrow)) {
+                throw new moodle_exception('cannotdeductbalance', 'enrol_wallet');
+            }
         }
 
         $timestart = time();
@@ -340,7 +350,10 @@ class enrol_wallet_plugin extends enrol_plugin {
             $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend);
         } catch (\moodle_exception $e) {
             // Rollback the transaction in case of error.
-            transactions::payment_topup($deduct, $user->id, '', '', false, false);
+            if ($charge) {
+                transactions::payment_topup($costafter, $user->id, 'Refund due to error', '', false, false);
+            }
+
             throw $e;
         }
 
@@ -480,6 +493,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function enrol_page_hook(stdClass $instance) {
         global $OUTPUT, $USER, $CFG;
+        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
 
         $coupon = $this->check_discount_coupon();
         $couponsetting = get_config('enrol_wallet', 'coupons');
@@ -523,7 +537,10 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $data->instance = $instance;
 
                 $action = new moodle_url('/enrol/wallet/extra/action.php');
-                $couponform = new applycoupon_form($action, $data);
+                $couponform = new applycoupon_form(null, $data);
+                if ($submitteddata = $couponform->get_data()) {
+                    enrol_wallet_process_coupon_data($submitteddata);
+                }
                 ob_start();
                 $couponform->display();
                 $output .= ob_get_clean();
@@ -542,7 +559,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $a = [
                 'cost_before'  => $costbefore,
                 'cost_after'   => $costafter,
-                'user_balance' => $balance
+                'user_balance' => $balance,
             ];
             if ($enrolstatus == self::INSUFFICIENT_BALANCE) {
                 $data->info = get_string('insufficient_balance', 'enrol_wallet', $a);
@@ -559,8 +576,10 @@ class enrol_wallet_plugin extends enrol_plugin {
             if ($couponsetting != self::WALLET_NOCOUPONS) {
 
                 $action = new moodle_url('/enrol/wallet/extra/action.php');
-                $couponform = new applycoupon_form($action, $data);
-
+                $couponform = new applycoupon_form(null, $data);
+                if ($submitteddata = $couponform->get_data()) {
+                    enrol_wallet_process_coupon_data($submitteddata);
+                }
                 ob_start();
                 $couponform->display();
                 $output .= ob_get_clean();
@@ -573,7 +592,6 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             // If payment is enabled in general, adding topup option.
             $account = get_config('enrol_wallet', 'paymentaccount');
-            require_once("$CFG->dirroot/enrol/wallet/locallib.php");
             if (enrol_wallet_is_valid_account($account)) {
                 $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
                 $topupform = new topup_form($topupurl, $data);
@@ -616,11 +634,12 @@ class enrol_wallet_plugin extends enrol_plugin {
     public function can_self_enrol(stdClass $instance, $checkuserenrolment = true) {
         global $CFG, $DB, $OUTPUT, $USER;
 
+        if (isguestuser()) {
+            // Can not enrol guest.
+            return get_string('noguestaccess', 'enrol') . $OUTPUT->continue_button(get_login_url());
+        }
+
         if ($checkuserenrolment) {
-            if (isguestuser()) {
-                // Can not enrol guest.
-                return get_string('noguestaccess', 'enrol') . $OUTPUT->continue_button(get_login_url());
-            }
             // Check if user is already enroled.
             if ($DB->record_exists('user_enrolments', ['userid' => $USER->id, 'enrolid' => $instance->id])) {
                 return get_string('alreadyenroled', 'enrol_wallet');
@@ -693,11 +712,12 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (!is_numeric($costafter) || $costafter < 0) {
             return get_string('nocost', 'enrol_wallet');
         }
-
+        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
         $this->costafter = $costafter;
         $costbefore      = $instance->cost;
         $balance         = transactions::get_user_balance($USER->id);
-        if ($balance < $costafter) {
+        $canborrow       = enrol_wallet_is_borrow_eligible($USER->id);
+        if ($balance < $costafter && !$canborrow) {
             if ($costbefore == $costafter) {
                 return self::INSUFFICIENT_BALANCE;
             } else {
@@ -1315,18 +1335,20 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addHelpButton('customtext1', 'customwelcomemessage', 'enrol_wallet');
 
         // Adding the awarding program options for this course.
-        // Enable or disable awards.
-        $mform->addElement('advcheckbox', 'customint8', get_string('awards', 'enrol_wallet'), '', [], [false, true]);
-        $mform->setDefault('customint8', false);
-        $mform->addHelpButton('customint8', 'awards', 'enrol_wallet');
-        // Getting award condition.
-        $mform->addElement('float', 'customdec1', get_string('awardcreteria', 'enrol_wallet'));
-        $mform->disabledIf('customdec1', 'customint8', 'notchecked');
-        $mform->addHelpButton('customdec1', 'awardcreteria', 'enrol_wallet');
-        // Award value per each grage.
-        $mform->addElement('float', 'customdec2', get_string('awardvalue', 'enrol_wallet'));
-        $mform->disabledIf('customdec2', 'customint8', 'notchecked');
-        $mform->addHelpButton('customdec2', 'awardvalue', 'enrol_wallet');
+        if (get_config('enrol_wallet', 'awardssite')) {
+            // Enable or disable awards.
+            $mform->addElement('advcheckbox', 'customint8', get_string('awards', 'enrol_wallet'), '', [], [false, true]);
+            $mform->setDefault('customint8', false);
+            $mform->addHelpButton('customint8', 'awards', 'enrol_wallet');
+            // Getting award condition.
+            $mform->addElement('float', 'customdec1', get_string('awardcreteria', 'enrol_wallet'));
+            $mform->disabledIf('customdec1', 'customint8', 'notchecked');
+            $mform->addHelpButton('customdec1', 'awardcreteria', 'enrol_wallet');
+            // Award value per each grage.
+            $mform->addElement('float', 'customdec2', get_string('awardvalue', 'enrol_wallet'));
+            $mform->disabledIf('customdec2', 'customint8', 'notchecked');
+            $mform->addHelpButton('customdec2', 'awardvalue', 'enrol_wallet');
+        }
 
         if (enrol_accessing_via_instance($instance)) {
             $warntext = get_string('instanceeditselfwarningtext', 'core_enrol');
@@ -1526,7 +1548,6 @@ class enrol_wallet_plugin extends enrol_plugin {
             'customint4'     => $validswep,
             'customint6'     => $validnewenrols,
             'customint7'     => PARAM_INT,
-            'customint8'     => PARAM_BOOL,
             'status'         => $validstatus,
             'enrolperiod'    => PARAM_INT,
             'expirynotify'   => $validexpirynotify,
@@ -1543,9 +1564,12 @@ class enrol_wallet_plugin extends enrol_plugin {
             $tovalidate['expirythreshold'] = PARAM_INT;
         }
 
-        if (!empty($data['customint8'])) {
-            $tovalidate['customdec1'] = PARAM_FLOAT;
-            $tovalidate['customdec2'] = PARAM_FLOAT;
+        if (get_config('enrol_wallet', 'awardssite')) {
+            $tovalidate['customint8'] = PARAM_BOOL;
+            if (!empty($data['customint8'])) {
+                $tovalidate['customdec1'] = PARAM_FLOAT;
+                $tovalidate['customdec2'] = PARAM_FLOAT;
+            }
         }
 
         $typeerrors = $this->validate_param_types($data, $tovalidate);
@@ -1583,15 +1607,16 @@ class enrol_wallet_plugin extends enrol_plugin {
             'customint6'      => $this->get_config('newenrols'),
             'customint7'      => 0,
         ];
-
-        $awards = $this->get_config('awards');
-        $fields['customint8'] = !empty($awards) ? $awards : 0;
-        if (!empty($awards)) {
-            $fields['customdec1'] = $this->get_config('awardcreteria');
-            $fields['customdec2'] = $this->get_config('awardvalue');
-        } else {
-            $fields['customdec1'] = 0;
-            $fields['customdec2'] = 0;
+        if (get_config('enrol_wallet', 'awardssite')) {
+            $awards = $this->get_config('awards');
+            $fields['customint8'] = !empty($awards) ? $awards : 0;
+            if (!empty($awards)) {
+                $fields['customdec1'] = $this->get_config('awardcreteria');
+                $fields['customdec2'] = $this->get_config('awardvalue');
+            } else {
+                $fields['customdec1'] = 0;
+                $fields['customdec2'] = 0;
+            }
         }
 
         return $fields;
@@ -1784,6 +1809,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public static function check_discount_coupon() {
         $coupon = optional_param('coupon', null, PARAM_RAW);
+        if (!empty($coupon)) {
+            $_SESSION['coupon'] = $coupon;
+        }
         return !empty($_SESSION['coupon']) ? $_SESSION['coupon'] : $coupon;
     }
 
@@ -1799,6 +1827,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     public static function get_cost_after_discount($userid, $instance, $coupon = null) {
         global $DB;
         $couponsetting = get_config('enrol_wallet', 'coupons');
+        $percentav = $couponsetting == self::WALLET_COUPONSALL || $couponsetting == self::WALLET_COUPONSDISCOUNT;
         // Check if there is a discount coupon first.
         if (empty($coupon)) {
             $coupon = self::check_discount_coupon();
@@ -1806,24 +1835,17 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $costaftercoupon = $instance->cost;
 
-        if (!empty($coupon) && $couponsetting != self::WALLET_NOCOUPONS) {
+        if (!empty($coupon) && $percentav) {
             // Save coupon in session.
             $_SESSION['coupon'] = $coupon;
 
-            $coupondata = transactions::get_coupon_value($coupon, $userid);
+            $coupondata = transactions::get_coupon_value($coupon, $userid, $instance->id);
 
             $type = (is_array($coupondata)) ? $coupondata['type'] : '';
-            if ($type == 'percent' && $couponsetting != self::WALLET_COUPONSFIXED && $coupondata['value'] <= 100) {
+            if ($type == 'percent' && $coupondata['value'] <= 100) {
 
                 $costaftercoupon = $instance->cost * (1 - $coupondata['value'] / 100);
 
-            } else if ($type == 'fixed' && $couponsetting != self::WALLET_COUPONSDISCOUNT) {
-                // There is no need for this condition as if the type is fixed.
-                // we add the value to the wallet then redirect to enrolment page again.
-                // I added id just in case of future change in the code.
-                $difference = $instance->cost - $coupondata['value'];
-                // Cannot allow negative cost.
-                $costaftercoupon = max(0, $difference);
             }
         }
 

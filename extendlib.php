@@ -66,8 +66,9 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
         $tree->add_node($node1);
 
         // Second node to display the topping up options.
-        $render2 = enrol_wallet_display_topup_options();
-        if (!empty($render2) && $iscurrentuser) {
+        if ($iscurrentuser) {
+            $render2 = enrol_wallet_display_topup_options();
+
             $node2 = new core_user\output\myprofile\node('walletcreditdisplay',
                                                         'wallettopupnode',
                                                         '',

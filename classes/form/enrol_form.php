@@ -63,6 +63,7 @@ class enrol_form extends \moodleform {
 
         $mform = $this->_form;
         $costbefore = $instance->cost;
+        $currency = $instance->currency;
         $plugin = enrol_get_plugin('wallet');
 
         $coupon = $plugin->check_discount_coupon();
@@ -73,13 +74,26 @@ class enrol_form extends \moodleform {
         $heading = $plugin->get_instance_name($instance);
         $mform->addElement('header', 'walletheader', $heading);
 
+        $a = [
+            'credit_cost'   => $costbefore,
+            'user_balance'   => $balance,
+            'after_discount' => $costafter,
+            'currency'       => $currency
+        ];
         // Display cost and balance.
-        if ($costafter == $costbefore) {
-            $mform->addElement('html', get_string('checkout', 'enrol_wallet',
-            ['credit_cost' => $costbefore, 'user_balance' => $balance]));
+        if ($balance >= $costafter) {
+            if ($costafter == $costbefore) {
+                $mform->addElement('html', get_string('checkout', 'enrol_wallet', $a));
+            } else {
+                $mform->addElement('html', get_string('checkout_discounted', 'enrol_wallet', $a));
+            }
         } else {
-            $mform->addElement('html', get_string('checkout_discounted', 'enrol_wallet',
-            ['credit_cost' => $costbefore, 'user_balance' => $balance, 'after_discount' => $costafter]));
+            $a['borrow'] = $costafter - $balance;
+            if ($costafter == $costbefore) {
+                $mform->addElement('html', get_string('checkout_borrow', 'enrol_wallet', $a));
+            } else {
+                $mform->addElement('html', get_string('checkout_borrow_discounted', 'enrol_wallet', $a));
+            }
         }
 
         // Display refund policy if enabled.
@@ -132,7 +146,6 @@ class enrol_form extends \moodleform {
 
         if ($this->toomany) {
             $errors['notice'] = get_string('error');
-            return $errors;
         }
 
         return $errors;

@@ -27,106 +27,56 @@ require_once('../../../config.php');
 require_login();
 require_capability('enrol/wallet:editcoupon', context_system::instance());
 
-$edit    = optional_param('edit', 0, PARAM_BOOL);
-$confirm = optional_param('confirm', 0, PARAM_BOOL); // Edit confirmation.
-
-if ($edit) { // The edit form.
-    require_once("$CFG->libdir/formslib.php");
-
-    $id        = required_param('id', PARAM_INT);
-    $code      = required_param('code', PARAM_TEXT);
-    $type      = required_param('type', PARAM_TEXT);
-    $value     = required_param('value', PARAM_FLOAT);
-    $maxusage  = optional_param('maxusage', 0, PARAM_INT);
-    $usetimes  = optional_param('usetimes', 0, PARAM_INT);
-    $validfrom = optional_param('validfrom', 0, PARAM_INT);
-    $validto   = optional_param('validto', 0, PARAM_INT);
-
-    $validfromedit = false;
-    if (!empty($validfrom)) {
-        $validfromedit = true;
+$edit = optional_param('edit', false, PARAM_BOOL);
+$defaultdata = [
+    'id'        => required_param('id', PARAM_INT),
+    'code'      => required_param('code', PARAM_TEXT),
+    'type'      => required_param('type', PARAM_TEXT),
+    'category'  => optional_param('category', '', PARAM_INT),
+    'value'     => optional_param('value', 0, PARAM_FLOAT),
+    'maxusage'  => optional_param('maxusage', 0, PARAM_INT),
+    'usetimes'  => optional_param('usetimes', 0, PARAM_INT),
+    'validfrom' => optional_param('validfrom', 0, PARAM_INT),
+    'validto'   => optional_param('validto', 0, PARAM_INT),
+];
+if ($edit) {
+    $defaultdata['courses'] = optional_param('courses', '', PARAM_INT);
+} else {
+    $courses = optional_param_array('courses', '', PARAM_INT);
+    if (!empty($courses)) {
+        $defaultdata['courses'] = implode(',', $courses);
     }
+}
 
-    $validtoedit = false;
-    if (!empty($validto)) {
-        $validtoedit = true;
-    }
+// Setup the page.
+$PAGE->set_context(context_system::instance());
+$PAGE->set_url(new moodle_url('/enrol/wallet/extra/couponedit.php'));
+$PAGE->set_title(get_string('coupon_edit_title', 'enrol_wallet'));
+$PAGE->set_heading(get_string('coupon_edit_heading', 'enrol_wallet'));
 
-    // Setup the page.
-    $PAGE->set_context(context_system::instance());
-    $PAGE->set_url(new moodle_url('/enrol/wallet/extra/couponedit.php'));
-    $PAGE->set_title(get_string('coupon_edit_title', 'enrol_wallet'));
-    $PAGE->set_heading(get_string('coupon_edit_heading', 'enrol_wallet'));
+$mform = new enrol_wallet\form\coupons_edit(null, $defaultdata);
 
-    $mform = new MoodleQuickForm('wallet_coupons', 'post', 'couponedit.php');
-
-    $mform->addElement('text', 'code', get_string('coupon_code', 'enrol_wallet'));
-    $mform->setType('code', PARAM_TEXT);
-    $mform->addHelpButton('code', 'coupon_code', 'enrol_wallet');
-    $mform->setDefault('code', $code);
-
-    $mform->addElement('text', 'value', get_string('coupon_value', 'enrol_wallet'));
-    $mform->setType('value', PARAM_FLOAT);
-    $mform->addHelpButton('value', 'coupon_value', 'enrol_wallet');
-    $mform->setDefault('value', $value);
-
-    $types = [
-        'fixed'   => get_string('fixedvaluecoupon', 'enrol_wallet'),
-        'percent' => get_string('percentdiscountcoupon', 'enrol_wallet'),
-    ];
-    $mform->addElement('select', 'type', get_string('coupon_type', 'enrol_wallet'), $types);
-    $mform->addHelpButton('type', 'coupon_type', 'enrol_wallet');
-    $mform->setDefault('type', $type);
-
-    $mform->addElement('text', 'maxusage', get_string('coupons_maxusage', 'enrol_wallet'));
-    $mform->setType('maxusage', PARAM_INT);
-    $mform->addHelpButton('maxusage', 'coupons_maxusage', 'enrol_wallet');
-    $mform->setDefault('maxusage', $maxusage);
-
-    $mform->addElement('static', 'usetimes', get_string('coupon_usetimes', 'enrol_wallet'), $usetimes);
-
-    $mform->addElement('checkbox', 'usetimesreset', get_string('coupon_resetusetime', 'enrol_wallet'));
-    $mform->addHelpButton('usetimesreset', 'coupon_resetusetime', 'enrol_wallet');
-
-    $mform->addElement('date_time_selector', 'validfrom', get_string('validfrom', 'enrol_wallet'), ['optional' => true]);
-    $mform->setDefault('validfrom', $validfrom);
-
-    $mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol_wallet'), ['optional' => true]);
-    $mform->setDefault('validto', $validto);
-
-    $mform->addElement('submit', 'confirm', get_string('confirm'));
-    $mform->disabledIf('confirm', 'value', 'eq', 0);
-    $mform->disabledIf('confirm', 'value', 'eq', '');
-
-    $mform->addElement('hidden', 'sesskey');
-    $mform->setType('sesskey', PARAM_TEXT);
-    $mform->setDefault('sesskey', sesskey());
-
-    $mform->addElement('hidden', 'id');
-    $mform->setType('id', PARAM_INT);
-    $mform->setDefault('id', $id);
-
-    echo $OUTPUT->header();
-    $mform->display();
-    echo $OUTPUT->footer();
-
-} else if ($confirm && confirm_sesskey()) { // The edit action.
+if ($data = $mform->get_data()) {
     global $DB;
 
-    $id            = required_param('id', PARAM_INT);
-    $code          = required_param('code', PARAM_TEXT);
-    $type          = required_param('type', PARAM_TEXT);
-    $value         = required_param('value', PARAM_FLOAT);
-    $maxusage      = optional_param('maxusage', 0, PARAM_INT);
-    $validfrom     = optional_param_array('validfrom', [], PARAM_INT);
-    $validto       = optional_param_array('validto', [], PARAM_INT);
-    $usetimesreset = optional_param('usetimesreset', false, PARAM_BOOL);
+    $id            = $data->id;
+    $code          = $data->code;
+    $type          = $data->type;
+    $value         = $data->value ?? 0;
+    $category      = $data->category ?? null;
+    $courses       = !empty($data->courses) ? implode(',', $data->courses) : null;
+    $maxusage      = $data->maxusage ?? 0;
+    $validfrom     = $data->validfrom ?? [];
+    $validto       = $data->validto ?? [];
+    $usetimesreset = $data->usetimesreset ?? false;
 
     $coupondata = [
         'id'       => $id,
         'code'     => $code,
         'type'     => $type,
         'value'    => $value,
+        'category' => $category,
+        'courses'  => $courses,
         'maxusage' => $maxusage,
     ];
 
@@ -179,6 +129,7 @@ if ($edit) { // The edit form.
     $url = new moodle_url('coupontable.php');
     redirect($url, $msg, null, $notify);
 } else {
-    $url = new moodle_url('coupontable.php');
-    redirect($url);
+    echo $OUTPUT->header();
+    $mform->display();
+    echo $OUTPUT->footer();
 }

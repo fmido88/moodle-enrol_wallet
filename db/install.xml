@@ -7,7 +7,7 @@
     <TABLE NAME="enrol_wallet_items" COMMENT="Fake items added to be purchased during wallet topup">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="cost" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" SEQUENCE="false" COMMENT="the price should be added"/>
+        <FIELD NAME="cost" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="the price should be added"/>
         <FIELD NAME="currency" TYPE="char" LENGTH="3" NOTNULL="true" DEFAULT="EGP" SEQUENCE="false" COMMENT="the currency"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the id of the user doing the operation"/>
       </FIELDS>
@@ -52,6 +52,8 @@
         <FIELD NAME="code" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="type" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="value" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="category" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="courses" TYPE="text" LENGTH="3000" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="maxusage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="usetimes" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="validfrom" TYPE="int" LENGTH="20" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -82,7 +84,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="cond" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="percent" TYPE="number" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="percent" TYPE="int" LENGTH="3" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="timefrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timeto" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>

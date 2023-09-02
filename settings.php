@@ -48,18 +48,23 @@ if ($ADMIN->fulltree) {
                                                 get_string('wordpressloggins', 'enrol_wallet'),
                                                 get_string('wordpressloggins_desc', 'enrol_wallet'),
                                                 0));
+    $settings->hide_if('enrol_wallet/wordpressloggins', 'enrol_wallet/walletsource',
+                                                'eq', enrol_wallet\transactions::SOURCE_MOODLE);
     // Define the WordPress site URL configuration setting.
     $settings->add(new admin_setting_configtext('enrol_wallet/wordpress_url',
                                                 get_string('wordpressurl', 'enrol_wallet'),
                                                 get_string('wordpressurl_desc', 'enrol_wallet'),
                                                 'https://example.com' // Default value for the WordPress site URL.
                                                 ));
+    $settings->hide_if('enrol_wallet/wordpress_url', 'enrol_wallet/walletsource', 'eq', enrol_wallet\transactions::SOURCE_MOODLE);
     // Secret shared key.
     $settings->add(new admin_setting_configtext('enrol_wallet/wordpress_secretkey',
                                                 get_string('wordpress_secretkey', 'enrol_wallet'),
                                                 get_string('wordpress_secretkey_help', 'enrol_wallet'),
                                                 'S0mTh1ng/123'
                                                 ));
+    $settings->hide_if('enrol_wallet/wordpress_secretkey', 'enrol_wallet/walletsource',
+                                                'eq', enrol_wallet\transactions::SOURCE_MOODLE);
 
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
     // it describes what should happened when users are not supposed to be enrolled any more.
@@ -82,7 +87,11 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('enrol_wallet/allowmultipleinstances',
                         get_string('allowmultiple', 'enrol_wallet'),
                         get_string('allowmultiple_help', 'enrol_wallet'), 1, PARAM_INT));
-
+    // Enable or disable awards across the whole site.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/awardssite',
+                        get_string('awardssite', 'enrol_wallet'),
+                        get_string('awardssite_help', 'enrol_wallet'),
+                        1));
     // Enable or disable unenrol self.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/unenrolselfenabled',
                         get_string('unenrolselfenabled', 'enrol_wallet'),
@@ -247,7 +256,27 @@ if ($ADMIN->fulltree) {
                                             get_string('giftvalue_help', 'enrol_wallet'),
                                             0,
                                             PARAM_FLOAT));
-    // Adding settings for referal program.
+
+    // Adding settings for borrowing credit.
+    $settings->add(new admin_setting_heading('enrol_wallet_borrow',
+                                            get_string('borrow', 'enrol_wallet'),
+                                            get_string('borrow_desc', 'enrol_wallet')));
+    // Enable Borrow.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/borrowenable',
+                                            get_string('borrow_enable', 'enrol_wallet'),
+                                            get_string('borrow_enable_help', 'enrol_wallet'),
+                                            0));
+    // Eligibility for borrowing as number of transactions.
+    $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/borrowtrans',
+                                            get_string('borrow_trans', 'enrol_wallet'),
+                                            get_string('borrow_trans_help', 'enrol_wallet'), 20, PARAM_INT, null, 4));
+    // Eligibility for borrowing as period for the selected transaction.
+    $settings->add(new admin_setting_configduration('enrol_wallet/borrowperiod',
+                                            get_string('borrow_period', 'enrol_wallet'),
+                                            get_string('borrow_period_help', 'enrol_wallet'),
+                                            30 * DAYSECS, DAYSECS));
+
+    // Adding settings for referral program.
     $settings->add(new admin_setting_heading('enrol_wallet_referral',
                                             get_string('referral_program', 'enrol_wallet'),
                                             get_string('referral_program_desc', 'enrol_wallet')));
@@ -389,6 +418,10 @@ if ($ADMIN->fulltree) {
     // Award value.
     $settings->add(new admin_setting_configtext('enrol_wallet/awardvalue', get_string('awardvalue', 'enrol_wallet'),
                                                     get_string('awardvalue_help', 'enrol_wallet'), 0, PARAM_FLOAT));
+
+    $settings->hide_if('enrol_wallet/awards', 'enrol_wallet/awardssite');
+    $settings->hide_if('enrol_wallet/awardcreteria', 'enrol_wallet/awardssite');
+    $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awardssite');
 }
 // Include extra pages.
 require_once('extrasettings.php');

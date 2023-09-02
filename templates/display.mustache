@@ -63,12 +63,14 @@
 
 {{#js}}
     var enrolWalletPolicyUrl = document.getElementById('enrol_wallet_transactions-policy-url');
-    enrolWalletPolicyUrl.addEventListener("click", function() {
-        var policy = document.getElementById('enrol_wallet_transactions-policy');
-        if (policy.style.display === "none") {
-            policy.style.display = "block";
-        } else {
-            policy.style.display = "none";
-        }
-    });
+    if (enrolWalletPolicyUrl != null) {
+        enrolWalletPolicyUrl.addEventListener("click", function() {
+            var policy = document.getElementById('enrol_wallet_transactions-policy');
+            if (policy.style.display === "none") {
+                policy.style.display = "block";
+            } else {
+                policy.style.display = "none";
+            }
+        });
+    }
 {{/js}}

@@ -120,14 +120,30 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
             $user = \core_user::get_user($userid);
 
-            // Now enrol the user after successful payment.
-            $enroled = $plugin->enrol_self($instance, $user);
-
-            if (true === $enroled) {
-                return true;
-            } else {
-                return false;
+            try {
+                $payable = self::get_payable($paymentarea, $itemid);
+                $cost = $payable->get_amount();
+                $currency = $payable->get_currency();
+            } catch (\moodle_exception $e) {
+                $balance = transactions::get_user_balance($userid);
+                $costafter = $plugin->get_cost_after_discount($userid, $instance);
+                $cost = $costafter - $balance;
+                $currency = $instance->currency;
             }
+
+            $coststring = \core_payment\helper::get_cost_as_string($cost, $currency);
+            $desc = get_string('topuppayment_desc', 'enrol_wallet', $coststring);
+            $id = transactions::payment_topup($cost, $userid, $desc);
+            if (is_number($id)) {
+                // Now enrol the user after successful payment.
+                $enroled = $plugin->enrol_self($instance, $user);
+
+                if (true === $enroled) {
+                    return true;
+                }
+            }
+
+            return false;
 
         } else {
             // Get the fake item in case of topping up the wallet.

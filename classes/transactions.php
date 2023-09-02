@@ -129,9 +129,19 @@ class transactions {
      * @param string $coursename the name of the course.
      * @param int $charger the id of the charger user.
      * @param string $other another description.
+     * @param int $courseid
+     * @param bool $neg Allow negative balance.
      * @return mixed
      */
-    public static function debit($userid, float $amount, $coursename = '', $charger = '', $other = '') {
+    public static function debit(
+                                $userid,
+                                float $amount,
+                                $coursename = '',
+                                $charger = '',
+                                $other = '',
+                                $courseid = 0,
+                                $neg = false
+                                ) {
         global $DB;
         if (empty($charger)) {
             $charger = $userid;
@@ -161,10 +171,10 @@ class transactions {
 
             $newbalance = $before - $amount;
 
-            if ($newbalance < 0) {
+            if ($newbalance < 0 && !$neg) {
                 // This is mean that value to debit is greater than the balance and the new balance is negative.
-                // TODO throw error.
-                return false;
+                $a = ['value' => $amount, 'before' => $before];
+                throw new \moodle_exception('negativebalance', 'enrol_wallet', '', $a, 'charger_debit_err');
             }
         }
 
@@ -205,7 +215,7 @@ class transactions {
 
         self::notify()->transaction_notify($recorddata);
 
-        self::trigger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false);
+        self::trigger_transaction_event($amount, 'debit', $charger, $userid, $description, $id, false, $courseid);
 
         return $id;
     }
@@ -286,9 +296,11 @@ class transactions {
      * @param int $userid
      * @param int $instanceid
      * @param bool $apply Apply for fixed values only.
+     * @param int $cmid
+     * @param int $sectionid
      * @return array|string the value of the coupon and its type in array or string represent the error if the code is not valid
      */
-    public static function get_coupon_value($coupon, $userid, $instanceid = 0, $apply = false) {
+    public static function get_coupon_value($coupon, $userid, $instanceid = 0, $apply = false, $cmid = 0, $sectionid = 0) {
         global $DB;
         $couponsetting = get_config('enrol_wallet', 'coupons');
 
@@ -300,7 +312,7 @@ class transactions {
         $source = get_config('enrol_wallet', 'walletsource');
         if ($source == self::SOURCE_WORDPRESS) {
             $wordpress = new \enrol_wallet\wordpress;
-            $coupondata = $wordpress->get_coupon($coupon, $userid, $instanceid = 0, $apply);
+            $coupondata = $wordpress->get_coupon($coupon, $userid, $instanceid, $apply);
 
             if (!is_array($coupondata)) {
                 return $coupondata;
@@ -310,6 +322,211 @@ class transactions {
             // If it is on moodle website.
             // Get the coupon data from the database.
             $couponrecord = $DB->get_record('enrol_wallet_coupons', ['code' => $coupon]);
+            if (!$couponrecord) {
+                return get_string('coupon_notexist', 'enrol_wallet');
+            }
+
+            // Set the returning coupon data.
+            $coupondata = [
+                'value' => $couponrecord->value,
+                'type'  => $couponrecord->type,
+            ];
+            if (!empty($couponrecord->courses)) {
+                $coupondata['courses'] = explode(',', $couponrecord->courses);
+            }
+            if (!empty($couponrecord->category)) {
+                $coupondata['category'] = $couponrecord->category;
+            }
+        }
+
+        $coupondata['code'] = $coupon;
+        $area = [];
+        $area['instanceid'] = !empty($instanceid) ? $instanceid : null;
+        $area['cmid'] = !empty($cmid) ? $cmid : null;
+        $area['sectionid'] = !empty($sectionid) ? $sectionid : null;
+
+        $validate = self::validate_coupon($coupondata, $area);
+
+        if ($validate !== true) {
+            return $validate;
+        }
+
+        if ($apply) {
+            self::apply_coupon($coupondata, $userid, $instanceid);
+        }
+
+        return $coupondata;
+    }
+
+    /**
+     * Apply the coupon for enrolment or topping up the wallet.
+     * @param array $coupondata
+     * @param int $userid
+     * @param int $instanceid
+     * @return void
+     */
+    public static function apply_coupon($coupondata, $userid, $instanceid) {
+        global $DB;
+        $used = false;
+        $coupon = $coupondata['code'];
+        $balance = self::get_user_balance($userid);
+        // Check if we applying the coupon (fixed value coupons) charge the wallet directly.
+        if ($coupondata['type'] == 'fixed') {
+
+            $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
+            self::payment_topup($coupondata['value'], $userid, $desc, $userid, false);
+            $used = true;
+        }
+
+        // After we get the coupon data now we check if this coupon used from enrolment page.
+        // If true and the value >= the fee, save time for student and enrol directly.
+        if (!empty($instanceid)) {
+            $plugin = new enrol_wallet_plugin;
+            $instance = $plugin->get_instance_by_id($instanceid);
+            $user = \core_user::get_user($userid);
+            $fee = (float)$plugin->get_cost_after_discount($userid, $instance);
+
+            if ($coupondata['type'] == 'fixed') {
+                // Check if the coupon value is grater than or equal the fee.
+                // Enrol the user in the course.
+                if ($coupondata['value'] + $balance >= $fee) {
+                    $plugin->enrol_self($instance, $user);
+                    $used = true;
+                }
+
+            } else if ($coupondata['type'] == 'enrol') {
+
+                $plugin->enrol_self($instance, $user, false);
+                self::mark_coupon_used($coupon, $userid, $instanceid, $coupondata['type'], $coupondata['value']);
+
+            } else if ($coupondata['type'] == 'category') {
+
+                if ($coupondata['value'] + $balance >= $fee) {
+                    $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
+                    self::payment_topup($coupondata['value'], $userid, $desc, $userid, false);
+                    $plugin->enrol_self($instance, $user);
+                    $used = true;
+                } else {
+                    $error = get_string('coupon_cat_notsufficient', 'enrol_wallet');
+                    \core\notification::error($error);
+                }
+            }
+        }
+
+        if ($used) {
+            // Mark the coupon as used.
+            self::mark_coupon_used($coupon, $userid, $instanceid, $coupondata['type'], $coupondata['value']);
+        }
+    }
+
+    /**
+     * Check if the coupon is valid to be used in this area.
+     * returns string on error and true if valid.
+     * @param array $coupondata code, value, type, courses, category
+     * @param array $area the area at which the coupon applied (instanceid, cmid, sectionid)
+     * @return bool|string
+     */
+    public static function validate_coupon($coupondata, $area = []) {
+        global $DB, $USER;
+        $wallet = new enrol_wallet_plugin;
+
+        if (is_string($coupondata)) {
+            return $coupondata;
+        }
+
+        $type = $coupondata['type'];
+        $av = get_config('enrol_wallet', 'coupons');
+        $fixedav = $av == enrol_wallet_plugin::WALLET_COUPONSALL || $av == enrol_wallet_plugin::WALLET_COUPONSFIXED;
+        $percentav = $av == enrol_wallet_plugin::WALLET_COUPONSALL || $av == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT;
+        $enrolav = $av == enrol_wallet_plugin::WALLET_COUPONSALL || $av == enrol_wallet_plugin::WALLET_COUPONSENROL;
+        $catav = $av == enrol_wallet_plugin::WALLET_COUPONSALL || $av == enrol_wallet_plugin::WALLET_COUPONCAT;
+        // First check if this type is enabled in the website.
+        switch ($type) {
+            case 'percent':
+                if (!$percentav) {
+                    return get_string('discountcoupondisabled', 'enrol_wallet');
+                }
+                // Check if discount coupon applied in discountable area.
+                $ok = false;
+                foreach ($area as $a) {
+                    if (!empty($a)) {
+                        $ok = true;
+                        break;
+                    }
+                }
+                if (!$ok) {
+                    return get_string('coupon_applynothere', 'enrol_wallet');
+                }
+                break;
+            case 'fixed':
+                if (!$fixedav) {
+                    return get_string('fixedcoupondisabled', 'enrol_wallet');
+                }
+                break;
+            case 'category':
+
+                if (!$catav) {
+                    return get_string('categorycoupondisabled', 'enrol_wallet');
+                }
+
+                if (empty($area['instanceid']) || empty($coupondata['category'])) {
+                    return get_string('coupon_applynothere', 'enrol_wallet');
+                }
+
+                $catid = $coupondata['category'];
+                // This type of coupons is restricted to be used in certain categories.
+                $course = $wallet->get_course_by_instance_id($area['instanceid']);
+                $ok = false;
+                if ($catid == $course->category) {
+                    $ok = true;
+                } else {
+                    $parents = \core_course_category::get($course->category)->get_parents();
+                    if (in_array($catid, $parents)) {
+                        $ok = true;
+                    }
+                }
+
+                if (!$ok) {
+                    $categoryname = \core_course_category::get($coupondata['category'])->get_nested_name(false);
+                    return get_string('coupon_categoryfail', 'enrol_wallet', $categoryname);
+                }
+                // @codingStandardsIgnoreStart
+                // $instance = $wallet->get_instance_by_id($area['instanceid']);
+                // $fee = (float)$wallet->get_cost_after_discount($USER->id, $instance);
+                // $balance = self::get_user_balance($USER->id);
+
+                // if ($coupondata['value'] + $balance < $fee) {
+                //     return get_string('coupon_cat_notsufficient', 'enrol_wallet');
+                // }
+                // @codingStandardsIgnoreEnd
+                break;
+            case 'enrol':
+                if (!$enrolav) {
+                    return get_string('enrolcoupondisabled', 'enrol_wallet');
+                }
+
+                if (empty($area['instanceid']) || empty($coupondata['courses'])) {
+                    return get_string('coupon_applynothere', 'enrol_wallet');
+                }
+
+                $courseid = $DB->get_field('enrol', 'courseid', ['id' => $area['instanceid'], 'enrol' => 'wallet'], MUST_EXIST);
+                if (!empty($coupondata['courses']) && !in_array($courseid, $coupondata['courses'])) {
+                    $available = '';
+                    foreach ($coupondata['courses'] as $courseid) {
+                        $coursename = get_course($courseid)->fullname;
+                        $available .= '- ' . $coursename . '<br>';
+                    }
+
+                    return get_string('coupon_enrolerror', 'enrol_wallet', $available);
+                }
+                break;
+            default:
+        }
+
+        if (get_config('enrol_wallet', 'walletsource') == self::SOURCE_MOODLE) {
+            // If it is on moodle website.
+            // Get the coupon data from the database.
+            $couponrecord = $DB->get_record('enrol_wallet_coupons', ['code' => $coupondata['code']]);
             if (!$couponrecord) {
                 return get_string('coupon_notexist', 'enrol_wallet');
             }
@@ -328,77 +545,10 @@ class transactions {
             if (!empty($couponrecord->validto) && $couponrecord->validto < time()) {
                 return get_string('coupon_expired', 'enrol_wallet');
             }
-
-            // Set the returning coupon data.
-            $coupondata = [
-                'value' => $couponrecord->value,
-                'type'  => $couponrecord->type,
-            ];
         }
 
-        // Check if the coupon type is enabled in this site.
-        if (
-            $coupondata['type'] == 'percent' &&
-            (
-                $couponsetting == enrol_wallet_plugin::WALLET_COUPONSFIXED ||
-                $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS
-            )
-            ) {
-
-            return get_string('discountcoupondisabled', 'enrol_wallet');
-        }
-
-        if (
-            $coupondata['type'] == 'fixed' &&
-            (
-                $couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT ||
-                $couponsetting == enrol_wallet_plugin::WALLET_NOCOUPONS
-            )
-            ) {
-
-            return get_string('fixedcoupondisabled', 'enrol_wallet');
-        }
-
-        // Check if we applying the coupon (fixed value coupons) charge the wallet directly.
-        if (
-            $apply
-            && $coupondata['type'] == 'fixed'
-            && $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
-            ) {
-
-            $desc = get_string('topupcoupon_desc', 'enrol_wallet', $coupon);
-            self::payment_topup($coupondata['value'], $userid, $desc, $userid, false);
-
-            // Mark the coupon as used.
-            self::mark_coupon_used($coupon, $userid, $instanceid, $coupondata['type'], $coupondata['value']);
-        }
-
-        // After we get the coupon data now we check if this coupon used from enrolment page.
-        // If true and the value >= the fee, save time for student and enrol directly.
-        if (
-            $apply &&
-            0 != $instanceid &&
-            $coupondata['type'] == 'fixed' &&
-            $couponsetting != enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
-            ) {
-
-            $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
-            $user = \core_user::get_user($userid);
-
-            $plugin = enrol_get_plugin('wallet');
-            $fee = (float)$plugin->get_cost_after_discount($userid, $instance);
-
-            // Check if the coupon value is grater than or equal the fee.
-            // Enrol the user in the course.
-            if ($coupondata['value'] >= $fee) {
-                $plugin->enrol_self($instance, $user);
-                // And the coupon will be marked as used in enrol_self() function.
-            }
-        }
-
-        return $coupondata;
+        return true;
     }
-
     /**
      * Called when the coupon get used and mark it as used.
      * @param string $coupon the coupon code.
@@ -439,7 +589,7 @@ class transactions {
         }
 
         // Logging the usage in the coupon usage table.
-        $logdata = (object)[
+        $logdata = [
             'code'       => $coupon,
             'type'       => !empty($type) ? $type : $couponrecord->type,
             'value'      => !empty($value) ? $value : $couponrecord->value,
@@ -447,15 +597,14 @@ class transactions {
             'instanceid' => $instanceid,
             'timeused'   => time(),
         ];
-        $id = $DB->insert_record('enrol_wallet_coupons_usage', $logdata);
+        $id = $DB->insert_record('enrol_wallet_coupons_usage', (object)$logdata);
 
+        unset($logdata['userid'], $logdata['timeused']);
         $eventdata = [
             'userid'        => $userid,
             'relateduserid' => $userid,
             'objectid'      => !empty($id) ? $id : null,
-            'other'         => [
-                                'code' => $coupon,
-                                ]
+            'other'         => $logdata
         ];
 
         if (!empty($instanceid)) {
@@ -474,7 +623,7 @@ class transactions {
     }
 
     /**
-     * Apply cashback after course purchace.
+     * Apply cashback after course purchase.
      * @param int $userid the user id
      * @param float $costafter the cost of the course after discounts
      * @param string $coursename the full name of the course
@@ -506,6 +655,7 @@ class transactions {
             $event->trigger();
         }
     }
+
     /**
      * Triggering transactions event.
      * @param float $amount amount of the transaction.
@@ -515,11 +665,16 @@ class transactions {
      * @param string $desc reason of the transaction
      * @param int $id id of the record in the transaction table
      * @param bool $refundable is the transaction is refundable
+     * @param int $courseid
      * @return void
      */
-    private static function trigger_transaction_event($amount, $type, $charger, $userid, $desc, $id, $refundable) {
+    private static function trigger_transaction_event($amount, $type, $charger, $userid, $desc, $id, $refundable, $courseid = 0) {
         require_once(__DIR__.'/event/transactions_triggered.php');
-        $context = \context_system::instance();
+        if (empty($courseid)) {
+            $context = \context_system::instance();
+        } else {
+            $context = \context_course::instance($courseid);
+        }
 
         $eventarray = [
                         'context'       => $context,
@@ -539,7 +694,7 @@ class transactions {
     }
 
     /**
-     * Quene the tast to Transform the amount of a certain credit transaction to be nonrefundable
+     * Queue the task to Transform the amount of a certain credit transaction to be nonrefundable
      * after the grace period is over.
      * @param int $id the id of the transaction record.
      * @return void

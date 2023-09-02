@@ -91,7 +91,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         $table->add_field('code', XMLDB_TYPE_CHAR, 20, null, XMLDB_NOTNULL, false);
         $table->add_field('type', XMLDB_TYPE_CHAR, 10, null, XMLDB_NOTNULL, false);
         $table->add_field('value', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, false, 0);
-        $table->add_field('maxusage', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false);
+        $table->add_field('maxusage', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
         $table->add_field('usetimes', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
         $table->add_field('validfrom', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
         $table->add_field('validto', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
@@ -200,5 +200,19 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         }
         upgrade_plugin_savepoint(true, 2023072509, 'enrol', 'wallet');
     }
+
+    if ($oldversion < 2023080814) {
+        $table = new xmldb_table('enrol_wallet_coupons');
+        $field = new xmldb_field('category', XMLDB_TYPE_INTEGER, 10, null, null, false, null, 'value');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        $field = new xmldb_field('courses', XMLDB_TYPE_TEXT, 3000, null, null, false, null, 'category');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        upgrade_plugin_savepoint(true, 2023080814, 'enrol', 'wallet');
+    }
+
     return true;
 }
