@@ -42,7 +42,8 @@ class observer {
      * @return void
      */
     public static function wallet_completion_awards(\core\event\course_completed $event) {
-        if (!get_config('enrol_wallet', 'awardssite')) {
+        $siteaward = get_config('enrol_wallet', 'awardssite');
+        if (empty($siteaward)) {
             return;
         }
 
