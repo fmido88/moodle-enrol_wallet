@@ -63,7 +63,7 @@
 
 {{#js}}
     var enrolWalletPolicyUrl = document.getElementById('enrol_wallet_transactions-policy-url');
-    if (enrolWalletPolicyUrl != null) {
+    if (enrolWalletPolicyUrl !== null) {
         enrolWalletPolicyUrl.addEventListener("click", function() {
             var policy = document.getElementById('enrol_wallet_transactions-policy');
             if (policy.style.display === "none") {

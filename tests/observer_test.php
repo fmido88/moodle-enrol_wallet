@@ -49,6 +49,7 @@ class observer_test extends \advanced_testcase {
         $walletplugin = enrol_get_plugin('wallet');
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;
+        set_config('awardssite', 1, 'enrol_wallet');
         // Create user and check that there is no balance.
         $user1 = $this->getDataGenerator()->create_user();
         $balance1 = transactions::get_user_balance($user1->id);

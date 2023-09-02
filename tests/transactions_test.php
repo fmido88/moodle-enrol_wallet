@@ -104,9 +104,13 @@ class transactions_test extends \advanced_testcase {
         $balance = $this->transactions->get_user_balance($user->id);
         $this->assertEquals(200, $balance);
 
-        $this->transactions->debit($user->id, 250);
+        try {
+            $this->transactions->debit($user->id, 250);
+        } catch (\moodle_exception $e) {
+            $msg = $e->getMessage();
+        }
         $balance = $this->transactions->get_user_balance($user->id);
-        $this->assertEquals(200, $balance);
+        $this->assertEquals(200, $balance, $msg);
         // Check that the value is nonrefundable.
         $user2 = $this->getDataGenerator()->create_user();
         $this->transactions->payment_topup(50, $user2->id, '', '', false);
