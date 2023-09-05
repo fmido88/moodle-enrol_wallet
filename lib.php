@@ -234,16 +234,23 @@ class enrol_wallet_plugin extends enrol_plugin {
         $cost = $rawcost - ($rawcost * $fee / 100);
 
         // Check for previously used coupon.
-        $coupon = $DB->get_record('enrol_wallet_coupons_usage', ['userid' => $userid, 'instanceid' => $instance->id]);
-        if (!empty($coupon)) {
-            if ($coupon->type == 'fixed') {
-                $credit = $cost - $coupon->value;
-            } else if ($coupon->type == 'percent') {
-                $credit = $cost - ($cost * $coupon->value / 100);
-            } else {
-                $credit = $cost;
+        $coupons = $DB->get_records('enrol_wallet_coupons_usage', ['userid' => $userid, 'instanceid' => $instance->id]);
+        $credit = $cost;
+        if (!empty($coupons)) {
+            foreach ($coupons as $coupon) {
+                if ($coupon->type == 'fixed' || $coupon->type == 'category') {
+                    $credit -= $coupon->value;
+                } else if ($coupon->type == 'percent') {
+                    $credit -= ($cost * $coupon->value / 100);
+                } else if ($coupon->type == 'enrol') {
+                    $credit -= $cost;
+                }
             }
-        } else {
+        }
+
+        if ($credit <= 0) {
+            return parent::unenrol_user($instance, $userid);
+        } else if ($credit > $cost) {
             $credit = $cost;
         }
 
@@ -254,7 +261,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             'coursename' => get_course($instance->courseid)->fullname,
         ];
         $desc = get_string('refunduponunenrol_desc', 'enrol_wallet', $a);
-        transactions::payment_topup($credit, $userid, $desc, $userid, false);
+        transactions::payment_topup($credit, $userid, $desc, $userid, false, false);
 
         return parent::unenrol_user($instance, $userid);
     }

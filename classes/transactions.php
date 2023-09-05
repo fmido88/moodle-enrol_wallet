@@ -48,7 +48,7 @@ class transactions {
         return new notifications();
     }
     /**
-     * Function needed to topup the wallet in the corresponding wordpress website.
+     * Function needed to topup the wallet in the corresponding wordpress website or internal moodle wallet system.
      * @param float $amount
      * @param int $userid
      * @param string $description the description of this transaction.

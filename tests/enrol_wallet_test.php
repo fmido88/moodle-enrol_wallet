@@ -1247,7 +1247,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Check the refund.
         $balance = transactions::get_user_balance($user->id);
-        $this->assertEquals(100, $balance);
+        $this->assertEquals(100, $balance); // This assertion sometime fails and on re-run it passes?
 
         $this->setAdminUser();
         set_config('unenrolrefund', 0, 'enrol_wallet');

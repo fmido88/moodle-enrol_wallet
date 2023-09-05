@@ -64,7 +64,7 @@ class observer_test extends \advanced_testcase {
 
         $course1 = $this->getDataGenerator()->create_course(['enablecompletion' => true]);
 
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->customint6 = 1;
         // Enable awarding.
         $instance1->customint8 = 1;
