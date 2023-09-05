@@ -779,9 +779,10 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
 
     $params = [
         'period' => time() - $period,
-        'type' => 'credit'
+        'type' => 'credit',
+        'userid' => $userid,
     ];
-    $where = 'timecreated >= :period AND type = :type';
+    $where = 'timecreated >= :period AND type = :type AND userid = :userid';
     $count = $DB->count_records_select('enrol_wallet_transactions', $where, $params);
     if ($count >= $number) {
         return true;
