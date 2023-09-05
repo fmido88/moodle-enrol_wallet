@@ -1463,11 +1463,11 @@ class enrol_wallet_test extends \advanced_testcase {
         transactions::debit($user3->id, 10);
 
         $transaction = ['userid' => $user4->id, 'amount' => 20, 'type' => 'credit', 'timecreated' => time() - 20 * DAYSECS];
-        $transaction = ['balance' => 20];
+        $transaction['balance'] = 20;
         $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
-        $transaction = ['balance' => 40];
+        $transaction['balance'] = 40;
         $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
-        $transaction = ['balance' => 60];
+        $transaction['balance'] = 60;
         $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
 
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));

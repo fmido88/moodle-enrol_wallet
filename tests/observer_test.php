@@ -84,7 +84,7 @@ class observer_test extends \advanced_testcase {
 
         $cm = $this->course_completion_init($course1);
         $this->course_completion_trigger($cm, $user1, $course1, 90);
-        $this->course_completion_trigger($cm, $user2, $course1, 90);
+        $this->course_completion_trigger($cm, $user2, $course1, 50);
         // The event should be triggered and caught by our observer.
         $balance3 = transactions::get_user_balance($user1->id);
         $norefund = transactions::get_nonrefund_balance($user1->id);
@@ -102,18 +102,17 @@ class observer_test extends \advanced_testcase {
      * @return \stdClass
      */
     public function course_completion_init($course) {
-       // Make an assignment.
-       $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
-       $params = [
-           'course' => $course->id,
-           'completion' => COMPLETION_ENABLED,
-           'completionusegrade' => 1,
-       ];
-       $assign = $assigngenerator->create_instance($params);
+        // Make an assignment.
+        $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
+        $params = [
+            'course' => $course->id,
+            'completion' => COMPLETION_ENABLED,
+            'completionusegrade' => 1,
+        ];
+        $assign = $assigngenerator->create_instance($params);
 
-       // Try to mark the assignment.
-       return get_coursemodule_from_instance('assign', $assign->id);
-
+        // Try to mark the assignment.
+        return get_coursemodule_from_instance('assign', $assign->id);
     }
 
     /**
@@ -132,7 +131,7 @@ class observer_test extends \advanced_testcase {
         $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
         // Log in as the teacher.
         $this->setUser($teacher);
- 
+
         // Grade the student for this assignment.
         $assign = new \assign($usercm->context, $cm, $cm->course);
         $data = (object)[
@@ -141,14 +140,14 @@ class observer_test extends \advanced_testcase {
             'grade' => $grade,
         ];
         $assign->save_grade($user->id, $data);
- 
+
         // The target user already received a grade, so internal_get_state should be already complete.
         $completioninfo = new \completion_info($course);
         $this->assertEquals(COMPLETION_COMPLETE, $completioninfo->internal_get_state($cm, $user->id, null));
- 
+
         $this->setAdminUser();
         $ccompletion = new \completion_completion(array('course' => $course->id, 'userid' => $user->id));
- 
+
         // Mark course as complete.
         $ccompletion->mark_complete();
     }
