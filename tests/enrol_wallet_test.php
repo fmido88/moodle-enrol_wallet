@@ -1475,6 +1475,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user3));
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user4));
 
+        set_config('borrowenable', 1, 'enrol_wallet');
         // Enable Borrwing.
         $this->assertTrue(enrol_wallet_is_borrow_eligible($user1));
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));

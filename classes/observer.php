@@ -42,6 +42,7 @@ class observer {
      * @return void
      */
     public static function wallet_completion_awards(\core\event\course_completed $event) {
+        global $CFG, $DB;
         $siteaward = get_config('enrol_wallet', 'awardssite');
         if (empty($siteaward)) {
             return;
@@ -49,8 +50,11 @@ class observer {
 
         $userid = $event->relateduserid;
         $courseid = $event->courseid;
+        // If the user already rewarded for this course, ignore the event.
+        if ($DB->record_exists('enrol_wallet_awards', ['userid' => $userid, 'courseid' => $courseid])) {
+            return;
+        }
 
-        global $CFG, $DB;
         require_once($CFG->dirroot.'/grade/querylib.php');
         require_once($CFG->libdir . '/gradelib.php');
 
@@ -83,10 +87,6 @@ class observer {
 
         $condition = $instance->customdec1;
 
-        // If the user already rewarded for this course, ignore the event.
-        if ($DB->record_exists('enrol_wallet_awards', ['userid' => $userid, 'courseid' => $courseid])) {
-            return;
-        }
         // Award per each grade.
         $awardper = $instance->customdec2;
 

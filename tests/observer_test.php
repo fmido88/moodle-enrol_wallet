@@ -79,18 +79,20 @@ class observer_test extends \advanced_testcase {
         $walletplugin->enrol_self($instance1, $user1);
         $this->getDataGenerator()->enrol_user($user2->id, $course1->id, 'student');
 
-        $balance2 = transactions::get_user_balance($user1->id);
-        $this->assertEquals(50, $balance2);
+        $this->assertEquals(50, transactions::get_user_balance($user1->id));
+
+        $this->assertEquals(0, $DB->count_records('enrol_wallet_awards'));
 
         $cm = $this->course_completion_init($course1);
         $this->course_completion_trigger($cm, $user1, $course1, 90);
-        $this->course_completion_trigger($cm, $user2, $course1, 50);
+
+        $this->course_completion_trigger($cm, $user2, $course1, 40);
+
         // The event should be triggered and caught by our observer.
-        $balance3 = transactions::get_user_balance($user1->id);
-        $norefund = transactions::get_nonrefund_balance($user1->id);
-        $this->assertEquals(70, $balance3);
-        $this->assertEquals(20, $norefund);
+        $this->assertEquals(70, transactions::get_user_balance($user1->id));
+        $this->assertEquals(20, transactions::get_nonrefund_balance($user1->id));
         $this->assertEquals(0, transactions::get_user_balance($user2->id));
+
         // Trigger the completion again to make sure no more awards.
         $this->course_completion_trigger($cm, $user1, $course1, 90);
         $this->assertEquals(70, transactions::get_user_balance($user1->id));
