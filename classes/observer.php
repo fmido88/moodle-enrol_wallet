@@ -62,13 +62,17 @@ class observer {
         // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
         $instances = enrol_get_instances($courseid, true);
         $instance = null;
-        $ap = 0;
+        $ta = 0; // Estimated Total award (Just for check and not used again).
         foreach ($instances as $inst) {
             // Check for multiple wallet instances and get the higher award available.
             // Check if awards enabled in this instance & if the condition applied and the student deserve the award.
-            if ($inst->enrol === 'wallet' && !empty($inst->customint8) && $inst->customdec1 <= $percentage && $inst->customdec2 > $ap) {
+            if ($inst->enrol === 'wallet' // Wallet enrollments only.
+            && !empty($inst->customint8) // Awards enabled.
+            && $inst->customdec1 <= $percentage // Condition for award applied.
+            && $inst->customdec2 * (100 - $percentage) > $ta // Maximum award available.
+            ) {
                 $instance = $inst;
-                $ap = $inst->customdec2;
+                $ta = $inst->customdec2 * (100 - $percentage);
             }
         }
 
@@ -78,10 +82,7 @@ class observer {
         }
 
         $condition = $instance->customdec1;
-        // Check if the condition applied and the student deserve the award.
-        if ($percentage < $condition) {
-            return;
-        }
+
         // If the user already rewarded for this course, ignore the event.
         if ($DB->record_exists('enrol_wallet_awards', ['userid' => $userid, 'courseid' => $courseid])) {
             return;

@@ -92,8 +92,9 @@ class observer_test extends \advanced_testcase {
         $this->assertEquals(20, $norefund);
         $this->assertEquals(0, transactions::get_user_balance($user2->id));
         // Trigger the completion again to make sure no more awards.
-        $this->course_completion_trigger($cm, $user1, $course1);
+        $this->course_completion_trigger($cm, $user1, $course1, 90);
         $this->assertEquals(70, transactions::get_user_balance($user1->id));
+        $this->assertEquals(1, $DB->count_records('enrol_wallet_awards'));
     }
 
     /**
