@@ -1437,13 +1437,17 @@ class enrol_wallet_test extends \advanced_testcase {
         global $CFG, $DB;
         $this->resetAfterTest();
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+        // Eligibal user.
         $user1 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
+        // No borrow for new users.
         $user2 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 10 * DAYSECS]);
+        // No enough transactions.
+        $user3 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
+        // Old transactions.
+        $user4 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
 
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
 
-        set_config('borrowenable', 1, 'enrol_wallet');
         set_config('borrowtrans', 3, 'enrol_wallet');
         set_config('borrowperiod', 15 * DAYSECS, 'enrol_wallet');
         transactions::payment_topup(20, $user1->id);
@@ -1454,8 +1458,30 @@ class enrol_wallet_test extends \advanced_testcase {
         transactions::payment_topup(20, $user2->id);
         transactions::payment_topup(20, $user2->id);
 
+        transactions::payment_topup(20, $user3->id);
+        transactions::payment_topup(20, $user3->id);
+        transactions::debit($user3->id, 10);
+
+        $transaction = ['userid' => $user4->id, 'amount' => 20, 'type' => 'credit', 'timecreated' => time() - 20 * DAYSECS];
+        $transaction = ['balance' => 20];
+        $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
+        $transaction = ['balance' => 40];
+        $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
+        $transaction = ['balance' => 60];
+        $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
+
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user3));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user4));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user5));
+
+        // Enable Borrwing.
         $this->assertTrue(enrol_wallet_is_borrow_eligible($user1));
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user3));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user4));
+        $this->assertFalse(enrol_wallet_is_borrow_eligible($user5));
 
         $course = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course->id);
@@ -1478,6 +1504,9 @@ class enrol_wallet_test extends \advanced_testcase {
         } catch (\moodle_exception $e) {
             $error = $e;
         }
+
+        $this->setUser($user3);
+        $this->assertEquals(2, $wallet->can_self_enrol($instance));
 
         $this->setAdminUser();
 

@@ -45,13 +45,17 @@ class observer_test extends \advanced_testcase {
     public function test_wallet_completion_awards() {
         global $DB, $CFG;
         $this->resetAfterTest();
-
+        set_config('awardssite', 1, 'enrol_wallet');
         $walletplugin = enrol_get_plugin('wallet');
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;
-        set_config('awardssite', 1, 'enrol_wallet');
         // Create user and check that there is no balance.
         $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
+        $user4 = $this->getDataGenerator()->create_user();
+        $user5 = $this->getDataGenerator()->create_user();
+
         $balance1 = transactions::get_user_balance($user1->id);
 
         $this->assertEquals(0, $balance1);
@@ -59,14 +63,6 @@ class observer_test extends \advanced_testcase {
         transactions::payment_topup(100, $user1->id);
 
         $course1 = $this->getDataGenerator()->create_course(['enablecompletion' => true]);
-        // Make an assignment.
-        $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
-        $params = [
-            'course' => $course1->id,
-            'completion' => COMPLETION_ENABLED,
-            'completionusegrade' => 1,
-        ];
-        $assign = $assigngenerator->create_instance($params);
 
         $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
         $instance1->customint6 = 1;
@@ -81,44 +77,81 @@ class observer_test extends \advanced_testcase {
         $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
 
         $walletplugin->enrol_self($instance1, $user1);
+        $this->getDataGenerator()->enrol_user($user2->id, $course1->id, 'student');
+
         $balance2 = transactions::get_user_balance($user1->id);
         $this->assertEquals(50, $balance2);
 
-        // Try to mark the assignment.
-        $cm = get_coursemodule_from_instance('assign', $assign->id);
-        $usercm = \cm_info::create($cm, $user1->id);
-
-        // Create a teacher account.
-        $teacher = $this->getDataGenerator()->create_user();
-        $this->getDataGenerator()->enrol_user($teacher->id, $course1->id, 'editingteacher');
-        // Log in as the teacher.
-        $this->setUser($teacher);
-
-        // Grade the student for this assignment.
-        $assign = new \assign($usercm->context, $cm, $cm->course);
-        $data = (object)[
-            'sendstudentnotifications' => false,
-            'attemptnumber' => 1,
-            'grade' => 90,
-        ];
-        $assign->save_grade($user1->id, $data);
-
-        // The target user already received a grade, so internal_get_state should be already complete.
-        $completioninfo = new \completion_info($course1);
-        $this->assertEquals(COMPLETION_COMPLETE, $completioninfo->internal_get_state($cm, $user1->id, null));
-
-        $this->setAdminUser();
-        $ccompletion = new \completion_completion(array('course' => $course1->id, 'userid' => $user1->id));
-
-        // Mark course as complete.
-        $ccompletion->mark_complete();
+        $cm = $this->course_completion_init($course1);
+        $this->course_completion_trigger($cm, $user1, $course1, 90);
+        $this->course_completion_trigger($cm, $user2, $course1, 90);
         // The event should be triggered and caught by our observer.
         $balance3 = transactions::get_user_balance($user1->id);
         $norefund = transactions::get_nonrefund_balance($user1->id);
         $this->assertEquals(70, $balance3);
         $this->assertEquals(20, $norefund);
+        $this->assertEquals(0, transactions::get_user_balance($user2->id));
+        // Trigger the completion again to make sure no more awards.
+        $this->course_completion_trigger($cm, $user1, $course1);
+        $this->assertEquals(70, transactions::get_user_balance($user1->id));
     }
 
+    /**
+     * Add assignment with completion to a course.
+     * @param object $course
+     * @return \stdClass
+     */
+    public function course_completion_init($course) {
+       // Make an assignment.
+       $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
+       $params = [
+           'course' => $course->id,
+           'completion' => COMPLETION_ENABLED,
+           'completionusegrade' => 1,
+       ];
+       $assign = $assigngenerator->create_instance($params);
+
+       // Try to mark the assignment.
+       return get_coursemodule_from_instance('assign', $assign->id);
+
+    }
+
+    /**
+     * Trigger completion for a given user.
+     * @param object $cm
+     * @param object $user
+     * @param object $course
+     * @param int $grade
+     * @return void
+     */
+    public function course_completion_trigger($cm, $user, $course, $grade) {
+        $usercm = \cm_info::create($cm, $user->id);
+
+        // Create a teacher account.
+        $teacher = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($teacher->id, $course->id, 'editingteacher');
+        // Log in as the teacher.
+        $this->setUser($teacher);
+ 
+        // Grade the student for this assignment.
+        $assign = new \assign($usercm->context, $cm, $cm->course);
+        $data = (object)[
+            'sendstudentnotifications' => false,
+            'attemptnumber' => 1,
+            'grade' => $grade,
+        ];
+        $assign->save_grade($user->id, $data);
+ 
+        // The target user already received a grade, so internal_get_state should be already complete.
+        $completioninfo = new \completion_info($course);
+        $this->assertEquals(COMPLETION_COMPLETE, $completioninfo->internal_get_state($cm, $user->id, null));
+ 
+        $this->setAdminUser();
+        $ccompletion = new \completion_completion(array('course' => $course->id, 'userid' => $user->id));
+ 
+        // Mark course as complete.
+        $ccompletion->mark_complete();
+    }
     /**
      * Testing event observer gifting new users.
      * @covers ::wallet_gifting_new_user()

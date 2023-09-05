@@ -50,24 +50,6 @@ class observer {
         $userid = $event->relateduserid;
         $courseid = $event->courseid;
 
-        // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
-        $instances = enrol_get_instances($courseid, true);
-        $instance = null;
-        $con = 100;
-        foreach ($instances as $inst) {
-            // Check for multiple wallet instances and get the higher cost.
-            // Check if awards enabled in this instance.
-            if ($inst->enrol === 'wallet' && !empty($inst->customint8) && $inst->customdec1 < $con) {
-                $instance = $inst;
-                $con = $inst->customdec1;
-            }
-        }
-
-        // Check if wallet enrolment instance found in this course.
-        if (null === $instance) {
-            return;
-        }
-
         global $CFG, $DB;
         require_once($CFG->dirroot.'/grade/querylib.php');
         require_once($CFG->libdir . '/gradelib.php');
@@ -76,6 +58,24 @@ class observer {
         $maxgrade = (float)$grades->item->grademax;
         $usergrade = (float)$grades->grade;
         $percentage = ($usergrade / $maxgrade) * 100;
+
+        // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
+        $instances = enrol_get_instances($courseid, true);
+        $instance = null;
+        $ap = 0;
+        foreach ($instances as $inst) {
+            // Check for multiple wallet instances and get the higher award available.
+            // Check if awards enabled in this instance & if the condition applied and the student deserve the award.
+            if ($inst->enrol === 'wallet' && !empty($inst->customint8) && $inst->customdec1 <= $percentage && $inst->customdec2 > $ap) {
+                $instance = $inst;
+                $ap = $inst->customdec2;
+            }
+        }
+
+        // Check if wallet enrolment instance found in this course.
+        if (null === $instance) {
+            return;
+        }
 
         $condition = $instance->customdec1;
         // Check if the condition applied and the student deserve the award.
