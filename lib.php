@@ -101,7 +101,56 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return array of pix_icon
      */
     public function get_info_icons(array $instances) {
-        return [new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet')];
+        global $PAGE;
+        $att = [];
+        if (!empty(get_config('enrol_wallet', 'showprice'))) {
+            global $USER;
+            $cost = PHP_INT_MAX;
+            foreach ($instances as $instance) {
+                $newcost = $this->get_cost_after_discount($USER->id, $instance);
+                $enrolstat = $this->can_self_enrol($instance);
+                $canenrol  = (true === $enrolstat);
+                $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
+
+                // Get the cheapest cost.
+                if (($canenrol || $insuf) && $newcost < $cost) {
+                    $cost = $newcost;
+                }
+            }
+
+            $id = "wallet-icon-".random_int(100000, 999999999);
+            $idp = "wallet-price-".random_int(100000, 999999999);
+            $att = ['class' => 'wallet-icon', 'id' => $id];
+            if ($cost == 0) {
+                $cost = 'FREE';
+            } else if ($cost == PHP_INT_MAX) {
+                $cost = null;
+            }
+
+            $att += ['title' => $cost];
+
+            $script = "
+            var titleElement = document.createElement('div');
+            titleElement.textContent = '$cost';
+            titleElement.className = 'walletcost';
+            titleElement.id = '$idp';
+
+            var imageElement = document.getElementById('$id');
+            var x = setInterval(function() {
+                var exist = document.getElementById('$idp');
+                console.log(exist);
+                if (exist === null) {
+                    // Insert the new title element before the image element
+                    imageElement.parentNode.insertBefore(titleElement, imageElement);
+                } else {
+                    clearInterval(x);
+                }
+            }, 50);
+            ";
+            $PAGE->requires->js_init_code($script, true);
+        }
+
+        return [new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet', $att)];
     }
 
     /**
@@ -274,6 +323,10 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool - true means it is possible to change enrol period and status in user_enrolments table
      */
     public function allow_manage(stdClass $instance) {
+        $context = \context_course::instance($instance->courseid);
+        if (!has_capability('enrol/wallet:manage', $context)) {
+            return false;
+        }
         return true;
     }
 
@@ -538,7 +591,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             // Now prepare the coupon form.
             // Check the coupons settings first.
-            if ($couponsetting != self::WALLET_NOCOUPONS) {
+            if ($couponsetting != self::WALLET_NOCOUPONS && (empty($coupon) && $costafter != 0)) {
                 $data = new stdClass();
                 $data->header   = $this->get_instance_name($instance);
                 $data->instance = $instance;
@@ -646,6 +699,17 @@ class enrol_wallet_plugin extends enrol_plugin {
             return get_string('noguestaccess', 'enrol') . $OUTPUT->continue_button(get_login_url());
         }
 
+        // Check if user has the capability to enrol in this context.
+        if (!has_capability('enrol/wallet:enrolself', context_course::instance($instance->courseid))) {
+            return get_string('canntenrol', 'enrol_wallet');
+        }
+        // Check if user has the capability to enrol in this context.
+        if (file_exists($CFG->dirroot . '/auth/parent/lib.php')) {
+            require_once($CFG->dirroot . '/auth/parent/lib.php');
+            if (auth_parent_is_parent($USER)) {
+                return get_string('canntenrol', 'enrol_wallet');
+            }
+        }
         if ($checkuserenrolment) {
             // Check if user is already enroled.
             if ($DB->record_exists('user_enrolments', ['userid' => $USER->id, 'enrolid' => $instance->id])) {
@@ -1917,10 +1981,18 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         } else {
             require_once(__DIR__.'/classes/payment/service_provider.php');
+
+            $payrecord = [
+                'cost'       => $cost,
+                'currency'   => $instance->currency,
+                'userid'     => $USER->id,
+                'instanceid' => $instance->id
+            ];
+            $id = $DB->insert_record('enrol_wallet_items', $payrecord);
             $data = [
                 'isguestuser' => isguestuser() || !isloggedin(),
                 'cost'        => \core_payment\helper::get_cost_as_string($cost, $instance->currency),
-                'instanceid'  => $instance->id,
+                'itemid'      => $id,
                 'description' => get_string('purchasedescription', 'enrol_wallet',
                                         format_string($course->fullname, true, ['context' => $context])),
                 'successurl'  => \enrol_wallet\payment\service_provider::get_success_url('wallet', $instance->id)->out(false),

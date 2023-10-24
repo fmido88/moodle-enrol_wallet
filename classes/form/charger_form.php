@@ -36,7 +36,7 @@ class charger_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $CFG, $DB;
+        global $CFG, $DB, $USER;
 
         $mform = $this->_form;
         // Check the conditional discount.
@@ -87,12 +87,21 @@ class charger_form extends \moodleform {
             $mform->addElement('html', $html);
         }
 
+        $courses = enrol_get_users_courses($USER->id, false);
+        $courseid = SITEID;
+        foreach ($courses as $course) {
+            $context = \context_course::instance($course->id);
+            if (has_capability('moodle/course:enrolreview', $context)) {
+                $courseid = $course->id;
+                break;
+            }
+        }
         $context = \context_system::instance();
         $options = [
             'id'         => 'charger-userlist',
             'ajax'       => 'enrol_manual/form-potential-user-selector',
             'multiple'   => false,
-            'courseid'   => SITEID,
+            'courseid'   => $courseid,
             'enrolid'    => 0,
             'perpage'    => $CFG->maxusersperpage,
             'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true))
@@ -138,7 +147,12 @@ class charger_form extends \moodleform {
 
             $mform->addElement('html', '<script>'.$js.'</script>');
         }
-
+        $errors = optional_param_array('errors', null, PARAM_RAW);
+        if (!empty($errors)) {
+            foreach ($errors as $element => $error) {
+                $mform->setElementError($element, $error);
+            }
+        }
         $this->set_display_vertical();
     }
 

@@ -29,15 +29,16 @@ require_capability('enrol/wallet:editcoupon', context_system::instance());
 
 $edit = optional_param('edit', false, PARAM_BOOL);
 $defaultdata = [
-    'id'        => required_param('id', PARAM_INT),
-    'code'      => required_param('code', PARAM_TEXT),
-    'type'      => required_param('type', PARAM_TEXT),
-    'category'  => optional_param('category', '', PARAM_INT),
-    'value'     => optional_param('value', 0, PARAM_FLOAT),
-    'maxusage'  => optional_param('maxusage', 0, PARAM_INT),
-    'usetimes'  => optional_param('usetimes', 0, PARAM_INT),
-    'validfrom' => optional_param('validfrom', 0, PARAM_INT),
-    'validto'   => optional_param('validto', 0, PARAM_INT),
+    'id'         => required_param('id', PARAM_INT),
+    'code'       => required_param('code', PARAM_TEXT),
+    'type'       => required_param('type', PARAM_TEXT),
+    'category'   => optional_param('category', '', PARAM_INT),
+    'value'      => optional_param('value', 0, PARAM_FLOAT),
+    'maxusage'   => optional_param('maxusage', 1, PARAM_INT),
+    'maxperuser' => optional_param('maxperuser', 0, PARAM_INT),
+    'usetimes'   => optional_param('usetimes', 0, PARAM_INT),
+    'validfrom'  => optional_param('validfrom', 0, PARAM_INT),
+    'validto'    => optional_param('validto', 0, PARAM_INT),
 ];
 if ($edit) {
     $defaultdata['courses'] = optional_param('courses', '', PARAM_INT);
@@ -66,42 +67,54 @@ if ($data = $mform->get_data()) {
     $category      = $data->category ?? null;
     $courses       = !empty($data->courses) ? implode(',', $data->courses) : null;
     $maxusage      = $data->maxusage ?? 0;
+    $maxperuser    = $data->maxperuser ?? 0;
     $validfrom     = $data->validfrom ?? [];
     $validto       = $data->validto ?? [];
     $usetimesreset = $data->usetimesreset ?? false;
 
     $coupondata = [
-        'id'       => $id,
-        'code'     => $code,
-        'type'     => $type,
-        'value'    => $value,
-        'category' => $category,
-        'courses'  => $courses,
-        'maxusage' => $maxusage,
+        'id'         => $id,
+        'code'       => $code,
+        'type'       => $type,
+        'value'      => $value,
+        'category'   => $category,
+        'courses'    => $courses,
+        'maxusage'   => $maxusage,
+        'maxperuser' => $maxperuser,
     ];
 
     if (!empty($validfrom)) {
-        $coupondata['validfrom'] = mktime(
-            $validfrom['hour'],
-            $validfrom['minute'],
-            null,
-            $validfrom['month'],
-            $validfrom['day'],
-            $validfrom['year'],
-        );
+        if (is_array($validfrom)) {
+            $coupondata['validfrom'] = mktime(
+                $validfrom['hour'],
+                $validfrom['minute'],
+                null,
+                $validfrom['month'],
+                $validfrom['day'],
+                $validfrom['year'],
+            );
+        } else {
+            $coupondata['validfrom'] = $validfrom;
+        }
+
     } else {
         $coupondata['validfrom'] = 0;
     }
 
     if (!empty($validto)) {
-        $coupondata['validto'] = mktime(
-            $validto['hour'],
-            $validto['minute'],
-            null,
-            $validto['month'],
-            $validto['day'],
-            $validto['year'],
-        );
+        if (is_array($validto)) {
+            $coupondata['validto'] = mktime(
+                $validto['hour'],
+                $validto['minute'],
+                null,
+                $validto['month'],
+                $validto['day'],
+                $validto['year'],
+            );
+        } else {
+            $coupondata['validto'] = $validto;
+        }
+
     } else {
         $coupondata['validto'] = 0;
     }

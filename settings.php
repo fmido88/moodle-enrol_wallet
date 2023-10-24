@@ -109,6 +109,11 @@ if ($ADMIN->fulltree) {
                         get_string('unenrollimitbefor_desc', 'enrol_wallet'),
                         0));
 
+    // Show the price on the enrol icon?
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/showprice',
+                        get_string('showprice', 'enrol_wallet'),
+                        get_string('showprice_desc', 'enrol_wallet'),
+                        0));
     // Auto Refunding to wallet after unenrol.
     $settings->add(new admin_setting_heading('enrol_wallet_unenrolrefund',
                         get_string('unenrolrefund_head', 'enrol_wallet'),

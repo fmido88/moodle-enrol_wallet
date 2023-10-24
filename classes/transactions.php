@@ -545,6 +545,17 @@ class transactions {
             if (!empty($couponrecord->validto) && $couponrecord->validto < time()) {
                 return get_string('coupon_expired', 'enrol_wallet');
             }
+
+            // Check the maximum limit per each user has not been reached.
+            if (!empty($couponrecord->maxperuser)) {
+                $countperuser = $DB->count_records('enrol_wallet_coupons_usage', [
+                                                                                'code' => $coupondata['code'],
+                                                                                'userid' => $USER->id
+                                                                            ]);
+                if ($countperuser >= $couponrecord->maxperuser) {
+                    return get_string('coupon_exceedusage', 'enrol_wallet');
+                }
+            }
         }
 
         return true;

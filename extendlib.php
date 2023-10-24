@@ -36,12 +36,29 @@
  */
 function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
     require_once(__DIR__.'/locallib.php');
-    global $OUTPUT;
+    global $OUTPUT, $CFG, $USER;
     $context = context_system::instance();
     $cancredit = has_capability('enrol/wallet:creditdebit', $context);
 
+    // Check if the current user is a parent to the profile's owner.
+    $parent = false;
+    if (file_exists($CFG->dirroot . '/auth/parent/lib.php')) {
+        require_once($CFG->dirroot . '/auth/parent/lib.php');
+        if (auth_parent_is_parent($USER)) {
+            $children = auth_parent_get_children($USER);
+            if (!empty($children)) {
+                foreach ($children as $childid) {
+                    if ($childid == $user->id) {
+                        $parent = true;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
     // Only the user with capability could see other user's ballance.
-    if (!$iscurrentuser && !has_capability('enrol/wallet:viewotherbalance', $context)) {
+    if (!$iscurrentuser && !has_capability('enrol/wallet:viewotherbalance', $context) && !$parent) {
         return;
     }
 

@@ -39,6 +39,7 @@ $canedit     = has_capability('enrol/wallet:editcoupon', $systemcontext);
 $candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
 
 // Parameters.
+$ids              = optional_param('ids', false, PARAM_RAW);
 $code             = optional_param('code', '', PARAM_TEXT);
 $value            = optional_param('value', '', PARAM_FLOAT);
 $valuerelation    = optional_param('valuerelation', '', PARAM_TEXT);
@@ -65,6 +66,7 @@ $urlparams = [];
 $urlparams['tsort']   = (!empty($sort)) ? $sort : null;
 $urlparams['page']    = (!empty($limitfrom)) ? $limitfrom : null;
 $urlparams['perpage'] = (!empty($limitnum)) ? $limitnum : null;
+$urlparams['ids']     = (!empty($ids)) ? $ids : null;
 
 $conditions .= (!empty($code)) ? ' AND code = \''.$code.'\'' : '';
 $urlparams['code'] = (!empty($code)) ? $code : null;
@@ -354,6 +356,7 @@ $columns = [
             'category'    => get_string('category'),
             'courses'     => get_string('courses'),
             'maxusage'    => get_string('coupons_maxusage', 'enrol_wallet'),
+            'maxperuser'  => get_string('coupons_maxperuser', 'enrol_wallet'),
             'usetimes'    => get_string('coupon_t_usage', 'enrol_wallet'),
             'validfrom'   => get_string('validfrom', 'enrol_wallet'),
             'validto'     => get_string('validto', 'enrol_wallet'),
@@ -409,18 +412,28 @@ if (!empty($orderby)) {
     $sql .= ' ORDER BY ' . $orderby;
 }
 
-// Count all data to get the number of pages later.
-$count = $DB->count_records_select('enrol_wallet_coupons', $conditions, []);
-
 // If we download the table we need all the pages.
 if ($table->is_downloading()) {
     $limitfrom = 0;
     $limitnum = 0;
 }
 
-// The sql for records.
-$sqlr = 'SELECT * '. $sql;
-$records = $DB->get_records_sql($sqlr, [], $limitfrom, $limitnum);
+if (empty($ids)) {
+    // Count all data to get the number of pages later.
+    $count = $DB->count_records_select('enrol_wallet_coupons', $conditions, []);
+
+    // The sql for records.
+    $sqlr = 'SELECT * '. $sql;
+    $records = $DB->get_records_sql($sqlr, [], $limitfrom, $limitnum);
+} else {
+    $ids = explode(',', $ids);
+    foreach ($ids as $id) {
+        if ($record = $DB->get_record('enrol_wallet_coupons', ['id' => $id])) {
+            $records[$id] = $record;
+        }
+    }
+    $count = count($records);
+}
 
 // Make the table downloadable.
 if ($candownload) {
@@ -486,7 +499,8 @@ foreach ($records as $record) {
         'type'        => $record->type,
         'category'    => $category ?? '',
         'courses'     => $courses,
-        'maxusage'    => $record->maxusage,
+        'maxusage'    => !empty($record->maxusage) ? $record->maxusage : 'unlimited',
+        'maxperuser'  => !empty($record->maxperuser) ? $record->maxperuser : 'max. limit',
         'usetimes'    => $record->usetimes,
         'validfrom'   => !empty($record->validfrom) ? userdate($record->validfrom) : '',
         'validto'     => !empty($record->validto) ? userdate($record->validto) : '',

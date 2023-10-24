@@ -215,7 +215,7 @@ $PAGE->set_context($systemcontext);
 $url = new moodle_url('/enrol/wallet/extra/couponusage.php', $urlparams);
 $PAGE->set_url($url);
 $PAGE->set_title(get_string('coupons', 'enrol_wallet'));
-$PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
+$PAGE->set_heading(get_string('coupon_usage', 'enrol_wallet'));
 
 // --------------------------------------------------------------------------------------
 // Form.
@@ -402,7 +402,7 @@ $columns = [
             'usetimes'    => get_string('coupon_t_usage', 'enrol_wallet'),
             'validfrom'   => get_string('validfrom', 'enrol_wallet'),
             'validto'     => get_string('validto', 'enrol_wallet'),
-            'timeused'    => get_string('coupon_usetime', 'enrol_wallet'),
+            'timeused'    => get_string('coupon_usetimes', 'enrol_wallet'),
             'user'        => get_string('user'),
             'course'      => get_string('course'),
             'timecreated' => get_string('coupon_t_timecreated', 'enrol_wallet'),
@@ -512,11 +512,14 @@ foreach ($records as $record) {
         $username = html_writer::link($userurl, $username);
     }
 
-    $coursename = '';
     if (!empty($record->instanceid)) {
-        $course = $wallet->get_course_by_instance_id($record->instanceid);
-        $courseurl = new moodle_url('/course/view.php', ['id' => $course->id]);
-        $coursename = html_writer::link($courseurl, $course->fullname);
+        try {
+            $course = $wallet->get_course_by_instance_id($record->instanceid);
+            $courseurl = new moodle_url('/course/view.php', ['id' => $course->id]);
+            $coursename = html_writer::link($courseurl, $course->fullname);
+        } catch (moodle_exception $e) {
+            $coursename = '';
+        }
     }
     $row = [
         'id'          => $record->id,
@@ -540,7 +543,7 @@ foreach ($records as $record) {
     flush();
 }
 
-echo $OUTPUT->heading(get_string('coupons', 'enrol_wallet'), 3);
+echo $OUTPUT->heading(get_string('coupon_usage', 'enrol_wallet'), 3);
 echo $OUTPUT->box($pageslinks);
 
 $table->finish_output();

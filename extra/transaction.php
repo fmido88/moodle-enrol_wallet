@@ -131,7 +131,7 @@ if (!empty($ttype)) {
 // Select specific value.
 $mform->addElement('text', 'value', get_string('value', 'enrol_wallet'));
 $mform->setType('value', PARAM_FLOAT);
-if (!empty($value) || (int)$value === 0) {
+if (!empty($value) || $value === 0) {
     $mform->setDefault('value', $value);
 }
 

@@ -39,7 +39,7 @@
     Example context (json):
     {
         "cost": "$108.50",
-        "instanceid": 11,
+        "itemid": 11,
         "description": "Enrolment in course Introduction to algorithms",
         "successurl": "https://moodlesite/course/view.php?id=2",
         "isguestuser": false
@@ -69,7 +69,7 @@
             data-action="core_payment/triggerPayment"
             data-component="enrol_wallet"
             data-paymentarea="walletenrol"
-            data-itemid="{{instanceid}}"
+            data-itemid="{{itemid}}"
             data-cost="{{cost}}"
             data-successurl="{{successurl}}"
             data-description="{{description}}"

@@ -150,6 +150,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         // ...enrol_wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2023071512, 'enrol', 'wallet');
     }
+
     if ($oldversion < 2023071707) {
         $table = new xmldb_table('enrol_wallet_cond_discount');
         $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, true);
@@ -214,5 +215,25 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2023080814, 'enrol', 'wallet');
     }
 
+    if ($oldversion < 2023091617) {
+        $table = new xmldb_table('enrol_wallet_items');
+        $field = new xmldb_field('instanceid', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0, 'userid');
+
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // ...enrol_wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2023091617, 'enrol', 'wallet');
+    }
+
+    if ($oldversion < 2023102303) {
+        $table = new xmldb_table('enrol_wallet_coupons');
+        $field = new xmldb_field('maxperuser', XMLDB_TYPE_INTEGER, 10, null, null, false, 0, 'maxusage');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2023102303, 'enrol', 'wallet');
+    }
     return true;
 }

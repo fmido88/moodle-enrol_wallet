@@ -38,7 +38,77 @@ $PAGE->set_url(new moodle_url('/enrol/wallet/extra/coupon.php'));
 $PAGE->set_title(get_string('coupon_generation_title', 'enrol_wallet'));
 $PAGE->set_heading(get_string('coupon_generation_heading', 'enrol_wallet'));
 
-$mform = new enrol_wallet\form\coupons_generator('generator.php');
+$mform = new enrol_wallet\form\coupons_generator();
+
+if ($options = $mform->get_data()) {
+    $method = $options->method;
+    if ($method == 'single') {
+        $options->number = 1;
+        $options->length = '';
+        $options->characters = [];
+    } else if ($method == 'random') {
+        $options->code = '';
+    }
+
+    if (!empty($options->characters)) {
+        $characters = $options->characters;
+        $options->lower  = isset($characters['lower']) ? $characters['lower'] : false;
+        $options->upper  = isset($characters['upper']) ? $characters['upper'] : false;
+        $options->digits = isset($characters['digits']) ? $characters['digits'] : false;
+    }
+
+    if (!empty($options->validto)) {
+        $validto = $options->validto;
+        if (is_array($validto)) {
+            $options->to = mktime(
+                $validto['hour'],
+                $validto['minute'],
+                0,
+                $validto['month'],
+                $validto['day'],
+                $validto['year'],
+            );
+        } else {
+            $options->to = $validto;
+        }
+
+    } else {
+        $options->to = 0;
+    }
+    unset($options->validto);
+    if (!empty($options->validfrom)) {
+        $validfrom = $options->validfrom;
+        if (is_array($validfrom)) {
+            $options->from = mktime(
+                $validfrom['hour'],
+                $validfrom['minute'],
+                0,
+                $validfrom['month'],
+                $validfrom['day'],
+                $validfrom['year'],
+            );
+        } else {
+            $options->from = $validfrom;
+        }
+
+    } else {
+        $options->from = 0;
+    }
+    unset($options->validfrom);
+    $options->courses = !empty($options->courses) ? implode(',', $options->courses) : '';
+
+    // Generate coupons with the options specified.
+    $ids = enrol_wallet_generate_coupons($options);
+
+    if (is_string($ids)) {
+        core\notification::error($ids);
+    } else {
+        $count = count($ids);
+        $msg = get_string('coupons_generation_success', 'enrol_wallet', $count);
+        $redirecturl = new moodle_url('/enrol/wallet/extra/coupontable.php', ['ids' => implode(',', $ids)]);
+        redirect($redirecturl, $msg);
+    }
+}
 
 echo $OUTPUT->header();
 

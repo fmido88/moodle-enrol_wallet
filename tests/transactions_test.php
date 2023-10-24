@@ -196,4 +196,16 @@ class transactions_test extends \advanced_testcase {
         $this->assertEquals($user->id, $usage->userid);
     }
 
+    /**
+     * Summary of test_validate_coupon
+     *
+     * @covers ::validate_coupon
+     * @return void
+     */
+    public function test_validate_coupon() {
+        global $DB;
+        $this->resetAfterTest();
+
+    }
+
 }

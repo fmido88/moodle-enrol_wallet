@@ -46,51 +46,29 @@ class service_provider implements \core_payment\local\callback\service_provider 
     public static function get_payable(string $paymentarea, int $itemid): \core_payment\local\entities\payable {
         global $DB, $USER;
 
-        // Check if the payment is for enrolment or topup the wallet.
-        if ($paymentarea == 'walletenrol') {
+        // Get the fake item in case of topping up the wallet.
+        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
 
-            $enrolwallet = enrol_get_plugin('wallet');
-            $instance = $enrolwallet->get_instance_by_id($itemid);
+        // In this case we get the default settings.
+        $account = get_config('enrol_wallet', 'paymentaccount');
 
-            // See if there is discount coupon.
-            $coupon = $enrolwallet->check_discount_coupon();
-
-            // Get the cost and the balance.
-            $fee = (float)$enrolwallet->get_cost_after_discount($USER->id, $instance, $coupon);
-            $balance = (float)transactions::get_user_balance($USER->id);
-
-            // Since the user pay part of his balance and the rest by payment.
-            $cost = $fee - $balance;
-
-            return new \core_payment\local\entities\payable((float)$cost, $instance->currency, (int)$instance->customint1);
-
-        } else { // Payment area wallettopup.
-            global $DB;
-
-            // Get the fake item in case of topping up the wallet.
-            $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
-
-            // In this case we get the default settings.
-            $account = get_config('enrol_wallet', 'paymentaccount');
-
-            return new \core_payment\local\entities\payable($item->cost, $item->currency, $account);
-        }
+        return new \core_payment\local\entities\payable($item->cost, $item->currency, $account);
     }
 
     /**
      * Callback function that returns the URL of the page the user should be redirected to in the case of a successful payment.
      *
      * @param string $paymentarea Payment area
-     * @param int $instanceid The enrolment instance id
+     * @param int $itemid The enrolment instance id
      * @return \moodle_url
      */
-    public static function get_success_url(string $paymentarea, int $instanceid): \moodle_url {
+    public static function get_success_url(string $paymentarea, int $itemid): \moodle_url {
         global $DB;
-
+        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
         // Check if the payment is for enrolment or topping up the wallet.
-        if ($paymentarea == 'walletenrol') {
+        if ($paymentarea == 'walletenrol' && $item) {
 
-            $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $instanceid], MUST_EXIST);
+            $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->instanceid], MUST_EXIST);
 
             return new \moodle_url('/course/view.php', ['id' => $courseid]);
 
@@ -112,28 +90,20 @@ class service_provider implements \core_payment\local\callback\service_provider 
     public static function deliver_order(string $paymentarea, int $itemid, int $paymentid, int $userid): bool {
         global $DB, $CFG;
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
+        // Get the fake item in case of topping up the wallet.
+        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
 
         // Check if the payment is for enrolment or topping up the wallet.
         if ($paymentarea == 'walletenrol') {
             $plugin = enrol_get_plugin('wallet');
-            $instance = $plugin->get_instance_by_id($itemid);
+            $instance = $plugin->get_instance_by_id($item->instanceid);
 
             $user = \core_user::get_user($userid);
 
-            try {
-                $payable = self::get_payable($paymentarea, $itemid);
-                $cost = $payable->get_amount();
-                $currency = $payable->get_currency();
-            } catch (\moodle_exception $e) {
-                $balance = transactions::get_user_balance($userid);
-                $costafter = $plugin->get_cost_after_discount($userid, $instance);
-                $cost = $costafter - $balance;
-                $currency = $instance->currency;
-            }
-
-            $coststring = \core_payment\helper::get_cost_as_string($cost, $currency);
+            $coststring = \core_payment\helper::get_cost_as_string($item->cost, $item->currency);
             $desc = get_string('topuppayment_desc', 'enrol_wallet', $coststring);
-            $id = transactions::payment_topup($cost, $userid, $desc);
+            $id = transactions::payment_topup($item->cost, $userid, $desc, $userid, false, true);
+
             if (is_number($id)) {
                 // Now enrol the user after successful payment.
                 $enroled = $plugin->enrol_self($instance, $user);
@@ -146,8 +116,6 @@ class service_provider implements \core_payment\local\callback\service_provider 
             return false;
 
         } else {
-            // Get the fake item in case of topping up the wallet.
-            $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
 
             $coststring = \core_payment\helper::get_cost_as_string($item->cost, $item->currency);
             $desc = get_string('topuppayment_desc', 'enrol_wallet', $coststring);

@@ -24,22 +24,55 @@
 
 require_once(__DIR__.'/../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
-
+require_once($CFG->dirroot.'/enrol/wallet/classes/form/charger_form.php');
 $context = context_system::instance();
 
 require_login();
 require_capability('enrol/wallet:creditdebit', $context);
+$result = optional_param('result', '', PARAM_RAW);
+$return = optional_param('return', '', PARAM_LOCALURL);
 
 global $OUTPUT;
+$pageurl = new moodle_url("$CFG->wwwroot/enrol/wallet/extra/charger.php", ['result' => $result]);
+if (empty($return)) {
+    $returnurl = $pageurl;
+} else {
+    $returnurl = new moodle_url($return);
+}
 
 $PAGE->set_context($context);
-$PAGE->set_url($CFG->wwwroot.'/enrol/wallet/extra/charger.php');
+$PAGE->set_url($pageurl);
+
+$mform = new enrol_wallet\form\charger_form();
+
+$msg = '';
+$type = 'info';
+$data = [
+    'op' => optional_param('op', '', PARAM_TEXT),
+    'value' => optional_param('value', '', PARAM_FLOAT),
+    'userlist' => optional_param('userlist', '', PARAM_INT),
+];
+if (optional_param('submit', false, PARAM_BOOL)) {
+    $errors = $mform->validation($data, []);
+    if (!empty($errors)) {
+        redirect($returnurl->out(false) . "?" . http_build_query(['errors' => $errors]));
+    }
+    $result = enrol_wallet_handle_charger_form((object)$data);
+    if ($result) {
+        $msg = $result;
+        $type = 'success';
+    } else {
+        $type = 'error';
+    }
+    $returnurl = new moodle_url($return, ['result' => $result]);
+    redirect($return, $msg, null, $type);
+    exit;
+}
 
 echo $OUTPUT->header();
 // Display the results.
-if ($op == 'result') {
-    $results = enrol_wallet_display_transaction_results();
-    echo $OUTPUT->box($results);
+if (!empty($result)) {
+    echo $OUTPUT->box($result);
 }
 
 // Display the charger form.

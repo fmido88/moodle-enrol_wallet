@@ -100,6 +100,11 @@ class coupons_generator extends \moodleform {
         $mform->addHelpButton('maxusage', 'coupons_maxusage', 'enrol_wallet');
         $mform->setDefault('maxusage', 1);
 
+        $mform->addElement('text', 'maxperuser', get_string('coupons_maxperuser', 'enrol_wallet'));
+        $mform->setType('maxperuser', PARAM_INT);
+        $mform->addHelpButton('maxperuser', 'coupons_maxperuser', 'enrol_wallet');
+        $mform->setDefault('maxperuser', 0);
+
         $mform->addElement('date_time_selector', 'validfrom', get_string('validfrom', 'enrol_wallet'), array('optional' => true));
         $mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol_wallet'), array('optional' => true));
 
@@ -168,6 +173,10 @@ class coupons_generator extends \moodleform {
             $errors['number'] = get_string('coupon_generator_nonumber', 'enrol_wallet');
         }
 
+        if (!empty($data['maxperuser']) && $data['maxperuser'] > $data['maxusage']) {
+            $errors['maxperuser'] = get_string('coupon_generator_peruser_gt_max', 'enrol_wallet');
+            $errors['maxusage'] = get_string('coupon_generator_peruser_gt_max', 'enrol_wallet');
+        }
         return $errors;
     }
 }

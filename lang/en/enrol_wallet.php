@@ -150,15 +150,21 @@ $string['coupon_generation_method_help'] = 'Choose if you need to create a singl
 $string['coupons_generation_success'] = '{$a} coupon codes successfully generated.';
 $string['coupon_generator_nonumber'] = 'No number of coupons specified.';
 $string['coupon_generator_error'] = 'Error while try to generate coupons.';
+$string['coupon_generator_peruser_gt_max'] = 'Max allowed usage per user should not exceeds the maximum usage of a coupon.';
+$string['coupon_invalidtype'] = 'Invalid coupon type, only fixed, percent, enrol and category allowed.';
+$string['coupon_invalidid'] = 'A coupon record with this id not exist or doesn\'t match the code.';
 $string['coupons_length'] = 'Length';
 $string['coupons_length_help'] = 'How many characters in a single coupon';
 $string['coupon_novalue'] = 'the coupon return with no value, likely the coupon code not exist';
 $string['coupon_notexist'] = 'This coupon not exist';
 $string['coupon_notvalidyet'] = 'This coupon is not valid until {$a}';
+$string['coupon_nocode'] = 'There is no code.';
 $string['coupons_number'] = 'Number of coupons';
 $string['coupons_number_help'] = 'Please don\'t set a large number to not overload the database.';
 $string['coupons_maxusage'] = 'Maximum Usage';
 $string['coupons_maxusage_help'] = 'How many times the coupon could be used. (0 means unlimited)';
+$string['coupons_maxperuser'] = 'Maximum Usage / user';
+$string['coupons_maxperuser_help'] = 'How many time a single user could use this coupon. (0 means max allowed usage)';
 $string['coupon_perpage'] = 'Coupons per page';
 $string['coupon_resetusetime'] = 'Reset used';
 $string['coupon_resetusetime_help'] = 'Reset the usage of the coupon to zero.';
@@ -178,8 +184,13 @@ Courses coupons: these coupons has no value, it is used to enrol the users in on
 $string['coupon_value'] = 'Coupon value';
 $string['coupon_value_help'] = 'Value of the coupon, fixed or percentage discounted value.';
 $string['coupon_usetimes'] = 'Used times';
+$string['coupon_usage'] = 'Coupons Usage History';
 $string['coupon_update_failed'] = 'Failed to update the coupon.';
 $string['coupon_update_success'] = 'The coupon updated successfully.';
+$string['coupons_uploadtotal'] = '{$a} of total coupons in the file.';
+$string['coupons_uploadcreated'] = '{$a} coupons has been successfully created.';
+$string['coupons_uploadupdated'] = '{$a} coupons has been successfully updated.';
+$string['coupons_uploaderrors'] = '{$a} coupons counters errors and not either updated or created.';
 $string['couponsall'] = 'Allow all types';
 $string['couponsdeleted'] = '{$a} Coupons are deleted successfully';
 $string['couponsdiscount'] = 'Discount coupons only';
@@ -194,6 +205,8 @@ $string['createdfrom'] = 'Created after';
 $string['createdto'] = 'Created before';
 $string['credit_cost'] = 'Cost';
 $string['credit_cost_help'] = 'The fee that will be deducted when enrolling.';
+$string['csvfile'] = 'CSV file';
+$string['csvfile_help'] = 'Only files with extension *.csv accepted';
 $string['currency'] = 'Currency';
 $string['currency_help'] = 'select the currency for payment for the course.';
 $string['customcurrency'] = 'Custom Currency';
@@ -382,6 +395,7 @@ $string['referral_exceeded'] = 'The referral code: {$a} exceeds it\'s max usage.
 $string['referral_notexist'] = 'The code: \'{$a}\' not exist in the database.';
 $string['referral_topup'] = 'Due to referral for user: {$a}.';
 $string['referral_gift'] = 'Due to referral code from user: {$a}';
+$string['referral_holdgift'] = 'You have a holding gift ({$a->amount}) due to use of referral code from {$a->name}, buy a course to get your gift.';
 $string['referral_url'] = 'Referral URL';
 $string['referral_url_help'] = 'Send this url to your friend to signup in this website and get a referral gift with the following amount in your wallet.';
 $string['referral_remain'] = 'Remained Referrals.';
@@ -408,6 +422,8 @@ $string['sendcoursewelcomemessage_help'] = 'When a user enrols in the course, th
 $string['sender'] = 'Sender';
 $string['sendexpirynotificationstask'] = "Wallet enrolment send expiry notifications task";
 $string['sendpaymentbutton'] = 'direct payment';
+$string['showprice'] = 'Show price on enrol icon';
+$string['showprice_desc'] = 'If selected the price of the course will be displayed over the enrollment icon in the course card.';
 $string['singlecoupon'] = 'Single coupon';
 $string['status'] = 'Allow existing enrollments';
 $string['status_desc'] = 'Enable Wallet enrolment method in new courses.';
@@ -475,7 +491,23 @@ $string['unenrolself_notallowed'] = 'You are not unenrol yourself from this cour
 $string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolusers'] = 'Unenrol users';
 $string['upperletters'] = 'UPPER case';
+$string['upload_coupons'] = 'Upload Coupons';
+$string['upload_coupons_help'] = 'Upload coupons in a csv file to bulk add or edit wallet coupons, the csv file should contain two primary columns:<br>
+\'code\': The code of the coupon to be added or updated.<br>
+\'value\': The value of the coupon and may be left 0 only if the type is (enrol).<br>
+and optional columns:<br>
+\'type\': the type of the coupon and only four values allowed (fixed, percent, category or enrol).<br>
+\'courses\': only effective when the type is (enrol) and if should contain the short names of the required courses separated by / .<br>
+\'category\': the id of the category at which the coupon is available for usage.<br>
+\'maxusage\': The maximum usage of the coupon code.<br>
+\'validfrom\': Time stamp of the date from which the coupon is available for usage.<br>
+\'validto\': Timestamp of the date after which the coupon is not available.<br>
+\'maxperuser\': Maximum time for a single user to use a coupon.<br>
+\'id\': The id of the coupon in case of updating it.';
+$string['upload_result'] = 'Result';
 $string['usernotfound'] = 'No user found with this email {$a}';
+$string['usedfrom'] = 'Used From';
+$string['usedto'] = 'Used To';
 
 $string['value'] = 'Amount per transaction';
 
@@ -485,10 +517,13 @@ $string['wallet:creditdebit'] = 'Credit and Debit other users';
 $string['wallet:createcoupon'] = 'Creating wallet coupons';
 $string['wallet:deletecoupon'] = 'Deleting wallet coupon';
 $string['wallet:downloadcoupon'] = 'Downloading wallet coupons';
+$string['wallet:editcoupon'] = 'Edit Coupons';
+$string['wallet:enrolself'] = 'Purchase a course through enrol wallet instance'.
 $string['wallet:manage'] = 'Manage enrolled users';
 $string['wallet:unenrol'] = 'Unenrol users from course';
 $string['wallet:unenrolself'] = 'Unenrol self from the course';
 $string['wallet:transaction'] = 'View the transaction table';
+$string['wallet:transfer'] = 'Transfer wallet balance to another user';
 $string['wallet:viewcoupon'] = 'View wallet coupons table';
 $string['wallet:viewotherbalance'] = 'View the wallet balance of others';
 $string['walletcashback'] = 'Cashback for using wallet';

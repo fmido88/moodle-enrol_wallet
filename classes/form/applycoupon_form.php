@@ -62,7 +62,7 @@ class applycoupon_form extends \moodleform {
         global $USER;
         $mform = $this->_form;
         $instance = $this->_customdata->instance;
-        $url = new \moodle_url('course/view.php', ['id' => $instance->courseid]);
+        $url = new \moodle_url('/course/view.php', ['id' => $instance->courseid]);
 
         $wallet = enrol_get_plugin('wallet');
         $coupon = $wallet->check_discount_coupon();
@@ -70,13 +70,23 @@ class applycoupon_form extends \moodleform {
         $cancel = optional_param('cancel', false, PARAM_BOOL);
         $coupondata = \enrol_wallet\transactions::get_coupon_value($coupon, $USER->id, $instance->id);
 
-        $area['instanceid'] = $instance->id ?? null;
-        $area['cmid'] = $instance->cmid ?? null;
-        $area['sectionid'] = $instance->sectionid ?? null;
-        $validate = \enrol_wallet\transactions::validate_coupon($coupondata, $area);
-
         $type = $coupondata['type'] ?? null;
-        if (!empty($coupon) && !$cancel &&  $type == 'percent' && $validate === true) {
+        $validate = false; // Validation for percentage discount coupons only.
+        if (!$cancel && !empty($coupon) && $type == 'percent') {
+            $area = [
+                'instanceid' => $instance->id ?? null,
+                'cmid'       => $instance->cmid ?? null,
+                'sectionid'  => $instance->sectionid ?? null,
+            ];
+            $validate = \enrol_wallet\transactions::validate_coupon($coupondata, $area);
+        } else if ($cancel) {
+            if (!empty($_SESSION['coupon'])) {
+                $_SESSION['coupon'] = '';
+                unset($_SESSION['coupon']);
+            }
+        }
+
+        if ($validate === true) {
             $html = '<span>coupon code ( '.$coupon.' ) applied.';
             $coupongroup[] = $mform->createElement('html', $html);
             $coupongroup[] = $mform->createElement('cancel');
@@ -119,8 +129,8 @@ class applycoupon_form extends \moodleform {
         $mform->setDefault('id', $instance->courseid);
 
         $mform->addElement('hidden', 'url');
-        $mform->setType('url', PARAM_URL);
-        $mform->setDefault('url', $url);
+        $mform->setType('url', PARAM_LOCALURL);
+        $mform->setDefault('url', $url->out(false));
 
         $this->set_display_vertical();
     }

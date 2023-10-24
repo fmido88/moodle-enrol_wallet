@@ -66,7 +66,21 @@ $PAGE->set_title(get_string('referral_user', 'enrol_wallet'));
 $PAGE->set_heading(get_string('referral_user', 'enrol_wallet'));
 $PAGE->set_pagelayout('frontpage');
 
+$holdgift = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $USER->username]);
+
 $refusers = $DB->get_records('enrol_wallet_hold_gift', ['referrer' => $USER->id]);
+
+$output = '';
+if (!empty($holdgift)) {
+    $referrer = \core_user::get_user($holdgift->referrer);
+    $a = [
+        'name' => fullname($referrer),
+        'amount' => format_float($holdgift->amount, 2),
+    ];
+    $message = get_string('referral_holdgift', 'enrol_wallet', );
+    $output .= $OUTPUT->notification($message);
+}
+
 if (!empty($refusers)) {
     $table = new html_table;
     $headers = [
@@ -89,10 +103,10 @@ if (!empty($refusers)) {
             !empty($data->timemodified) ? userdate($data->timemodified) : ''
         ];
     }
-    $output = html_writer::table($table);
+    $output .= html_writer::table($table);
 } else {
     $message = get_string('noreferraldata', 'enrol_wallet');
-    $output = $OUTPUT->notification($message);
+    $output .= $OUTPUT->notification($message);
 }
 
 $mform = new MoodleQuickForm('referral_info', 'get', $thisurl);

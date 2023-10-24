@@ -155,4 +155,12 @@ $capabilities = [
             'user' => CAP_ALLOW,
         ]
     ],
+    /* Ability to enrol self in courses. */
+    'enrol/wallet:enrolself' => [
+        'captype' => 'write',
+        'contextlevel' => CONTEXT_COURSE,
+        'archetypes' => [
+            'user' => CAP_ALLOW,
+        ]
+    ],
 ];
