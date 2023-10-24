@@ -31,6 +31,7 @@ $capcredit       = has_capability('enrol/wallet:creditdebit', $context);
 $capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
 $capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
 $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
+$capcouponedit   = has_capability('enrol/wallet:editcoupon', $context);
 
 $ismoodle = (get_config('enrol_wallet', 'walletsource') == enrol_wallet\transactions::SOURCE_MOODLE);
 // Adding these pages for only users with required capability.
@@ -39,7 +40,7 @@ $ismoodle = (get_config('enrol_wallet', 'walletsource') == enrol_wallet\transact
 // Working on solution.
 if ($captransactions || $capbulkedit || $capcouponview || $capcouponcreate || $capcredit) {
     // Adding new admin category.
-    $ADMIN->add('root', new admin_category('enrol_wallet_settings',
+    $ADMIN->add('modules', new admin_category('enrol_wallet_settings',
     get_string('bulkfolder', 'enrol_wallet'), false));
 }
 
@@ -53,11 +54,28 @@ if ($capcouponcreate && $ismoodle) {
                                                 $context));
 }
 
+if ($capcouponcreate && $capcouponedit && $ismoodle) {
+    // Adding page to upload coupons.
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_uploadcoupons',
+                                                get_string('upload_coupons', 'enrol_wallet'),
+                                                new moodle_url('/enrol/wallet/extra/couponupload.php'),
+                                                'enrol/wallet:createcoupon',
+                                                false,
+                                                $context));
+}
+
 if ($capcouponview && $ismoodle) {
     // Adding page to view coupons.
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_coupontable',
                                                 get_string('coupon_table', 'enrol_wallet'),
                                                 new moodle_url('/enrol/wallet/extra/coupontable.php'),
+                                                'enrol/wallet:viewcoupon',
+                                                false,
+                                                $context));
+    // Adding page to view coupons usage.
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_couponusage',
+                                                get_string('coupon_usage', 'enrol_wallet'),
+                                                new moodle_url('/enrol/wallet/extra/couponusage.php'),
                                                 'enrol/wallet:viewcoupon',
                                                 false,
                                                 $context));

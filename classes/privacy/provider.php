@@ -26,10 +26,7 @@ namespace enrol_wallet\privacy;
 
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
-use core_privacy\local\request\transform;
 use core_privacy\local\request\userlist;
-use core_privacy\local\request\writer;
-use core_payment\helper as payment_helper;
 
 /**
  * Privacy Subsystem for enrol_wallet implementing null_provider.
@@ -136,6 +133,9 @@ class provider implements
             $walletplugins = $DB->get_records('enrol', ['courseid' => $context->instanceid, 'enrol' => 'wallet']);
 
             foreach ($walletplugins as $walletplugin) {
+                if (!class_exists('\core_payment\privacy\provider')) {
+                    break;
+                }
                 \core_payment\privacy\provider::export_payment_data_for_user_in_context(
                     $context,
                     $subcontext,
@@ -148,6 +148,9 @@ class provider implements
         }
 
         if (in_array(SYSCONTEXTID, $contextlist->get_contextids())) {
+            if (!$DB->table_exists('payments')) {
+                return;
+            }
             // Orphaned payments for deleted enrollments.
             $sql = "SELECT p.*
                       FROM {payments} p
@@ -160,6 +163,9 @@ class provider implements
 
             $orphanedpayments = $DB->get_recordset_sql($sql, $params);
             foreach ($orphanedpayments as $payment) {
+                if (!class_exists('\core_payment\privacy\provider')) {
+                    break;
+                }
                 \core_payment\privacy\provider::export_payment_data_for_user_in_context(
                     \context_system::instance(),
                     $subcontext,
@@ -180,6 +186,9 @@ class provider implements
      */
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
+        if (!$DB->table_exists('payments')) {
+            return;
+        }
         if ($context instanceof \context_course) {
             $sql = "SELECT p.id
                       FROM {payments} p
@@ -189,8 +198,10 @@ class provider implements
                 'component' => 'enrol_wallet',
                 'courseid'  => $context->instanceid,
             ];
+            if (class_exists('\core_payment\privacy\provider')) {
+                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            }
 
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
         } else if ($context instanceof \context_system) {
             // If context is system, then the enrolment belongs to a deleted enrolment.
             $sql = "SELECT p.id
@@ -200,8 +211,9 @@ class provider implements
             $params = [
                 'component' => 'enrol_wallet',
             ];
-
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            if (class_exists('\core_payment\privacy\provider')) {
+                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            }
             // Also there if fake items for topping up the wallet.
             $sql = "SELECT p.userid
                       FROM {payments} p
@@ -211,7 +223,10 @@ class provider implements
                 'component'   => 'enrol_wallet',
                 'paymentarea' => 'wallettopup',
             ];
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+
+            if (class_exists('\core_payment\privacy\provider')) {
+                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            }
             // Delete fake items.
             $ids = $DB->get_records('payments', ['component' => 'enrol_wallet', 'paymentarea' => 'wallettopup']);
             foreach ($ids as $payment) {
@@ -231,7 +246,9 @@ class provider implements
         if (empty($contextlist->count())) {
             return;
         }
-
+        if (!$DB->table_exists('payments')) {
+            return;
+        }
         $contexts = $contextlist->get_contexts();
 
         $courseids = [];
@@ -251,8 +268,9 @@ class provider implements
             'component' => 'enrol_wallet',
             'userid' => $contextlist->get_user()->id,
         ];
-
-        \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+        if (class_exists('\core_payment\privacy\provider')) {
+            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+        }
 
         if (in_array(SYSCONTEXTID, $contextlist->get_contextids())) {
             // Orphaned payments.
@@ -265,8 +283,9 @@ class provider implements
                 'component' => 'enrol_wallet',
                 'userid' => $contextlist->get_user()->id,
             ];
-
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            if (class_exists('\core_payment\privacy\provider')) {
+                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            }
             // Also check for wallet topup.
             $sql = "SELECT p.id
                       FROM {payments} p
@@ -277,7 +296,9 @@ class provider implements
                 'userid'      => $contextlist->get_user()->id,
                 'paymentarea' => 'wallettopup',
             ];
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            if (class_exists('\core_payment\privacy\provider')) {
+                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            }
             // Delete fake items.
             $ids = $DB->get_records('payments', [
                                                     'component'   => 'enrol_wallet',

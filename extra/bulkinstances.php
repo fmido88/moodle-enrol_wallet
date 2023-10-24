@@ -77,7 +77,12 @@ $mform->addElement('text', 'cost', get_string('credit_cost', 'enrol_wallet'), ['
 $mform->setType('cost', PARAM_INT);
 $mform->addHelpButton('cost', 'credit_cost', 'enrol_wallet');
 
-$accounts = \core_payment\helper::get_payment_accounts_menu($systemcontext);
+if (class_exists('\core_payment\helper')) {
+    $accounts = \core_payment\helper::get_payment_accounts_menu($systemcontext);
+} else {
+    $accounts = false;
+}
+
 if ($accounts) {
     $accounts = ((count($accounts) > 1) ? ['' => ''] : []) + $accounts;
     $mform->addElement('select', 'customint1', get_string('paymentaccount', 'payment'), $accounts, ['optional' => true]);

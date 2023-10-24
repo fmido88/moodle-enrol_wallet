@@ -131,6 +131,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
     $capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
     $capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
     $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
+    $capcouponedit   = has_capability('enrol/wallet:editcoupon', $context);
     $hassiteconfig   = has_capability('moodle/site:config', $context);
 
     $any = ($captransactions || $capcredit || $capbulkedit || $capcouponview || $capcouponcreate);
@@ -188,6 +189,18 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             $parentnode->add_node($node);
         }
 
+        if ($capcouponcreate && $capcouponedit && $ismoodle) {
+            // Adding page to generate coupons.
+            $node = navigation_node::create(
+                get_string('upload_coupons', 'enrol_wallet'),
+                new moodle_url('/enrol/wallet/extra/couponupload.php'),
+                navigation_node::TYPE_CUSTOM,
+                'enrol_wallet_upload_coupons',
+                'enrol_wallet_upload_coupons'
+            );
+            $parentnode->add_node($node);
+        }
+
         if ($capcouponview && $ismoodle) {
             // Adding page to view coupons.
             $node = navigation_node::create(
@@ -196,6 +209,16 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
                 navigation_node::TYPE_CUSTOM,
                 'enrol_wallet_coupontable',
                 'enrol_wallet_coupontable'
+            );
+            $parentnode->add_node($node);
+
+            // Adding page to view coupons.
+            $node = navigation_node::create(
+                get_string('coupon_usage', 'enrol_wallet'),
+                new moodle_url('/enrol/wallet/extra/couponusage.php'),
+                navigation_node::TYPE_CUSTOM,
+                'enrol_wallet_coupon_usage',
+                'enrol_wallet_coupon_usage'
             );
             $parentnode->add_node($node);
         }

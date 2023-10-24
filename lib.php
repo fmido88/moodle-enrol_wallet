@@ -1306,7 +1306,12 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addRule('cost', get_string('invalidvalue', 'enrol_wallet'), 'numeric', null, 'client');
 
         // Payment account.
-        $accounts = \core_payment\helper::get_payment_accounts_menu($context);
+        if (class_exists('\core_payment\account')) {
+            $accounts = \core_payment\helper::get_payment_accounts_menu($context);
+        } else {
+            $accounts = false;
+        }
+
         if ($accounts) {
             $accounts = ((count($accounts) > 1) ? ['' => ''] : []) + $accounts;
             $mform->addElement('select', 'customint1', get_string('paymentaccount', 'payment'), $accounts);
@@ -1709,7 +1714,10 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return array[currencycode => currencyname]
      */
     public function get_possible_currencies($account = null) {
-        $codes = \core_payment\helper::get_supported_currencies();
+        $codes = [];
+        if (class_exists('\core_payment\helper')) {
+            $codes = \core_payment\helper::get_supported_currencies();
+        }
 
         $currencies = [];
         foreach ($codes as $c) {

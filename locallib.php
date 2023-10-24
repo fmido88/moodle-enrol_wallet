@@ -669,7 +669,9 @@ function enrol_wallet_is_valid_account($accountid) {
     if (empty($accountid) || !is_number($accountid) || $accountid < 0) {
         return false;
     }
-
+    if (!class_exists('\core_payment\account')) {
+        return false;
+    }
     $account = new \core_payment\account($accountid);
     if (!$account->is_available() || !$account->is_valid()) {
         return false;

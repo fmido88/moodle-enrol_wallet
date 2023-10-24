@@ -512,6 +512,7 @@ foreach ($records as $record) {
         $username = html_writer::link($userurl, $username);
     }
 
+    $coursename = '';
     if (!empty($record->instanceid)) {
         try {
             $course = $wallet->get_course_by_instance_id($record->instanceid);
