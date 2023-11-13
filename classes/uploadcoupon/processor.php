@@ -42,7 +42,7 @@ class processor {
     protected $cir;
 
     /** @var array CSV columns. */
-    protected $columns = array();
+    protected $columns = [];
 
     /** @var int line number. */
     protected $linenb = 0;
@@ -106,7 +106,7 @@ class processor {
             'maxperuser' => get_string('coupons_maxperuser', 'enrol_wallet'),
             'validfrom'  => get_string('validfrom', 'enrol_wallet'),
             'validto'    => get_string('validto', 'enrol_wallet'),
-            'result'     => get_string('upload_result', 'enrol_wallet')
+            'result'     => get_string('upload_result', 'enrol_wallet'),
         ];
         $tracker->start($reportheadings, true);
 
@@ -334,7 +334,7 @@ class processor {
             get_string('coupons_uploadtotal', 'enrol_wallet', $total),
             get_string('coupons_uploadcreated', 'enrol_wallet', $created),
             get_string('coupons_uploadupdated', 'enrol_wallet', $updated),
-            get_string('coupons_uploaderrors', 'enrol_wallet', $errors)
+            get_string('coupons_uploaderrors', 'enrol_wallet', $errors),
         ];
 
         $tracker->finish();
@@ -370,7 +370,7 @@ class processor {
         $this->processstarted = false;
         $this->linenb = 0;
         $this->cir->init();
-        $this->errors = array();
+        $this->errors = [];
     }
 
     /**

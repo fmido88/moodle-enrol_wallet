@@ -58,14 +58,9 @@ if (optional_param('submit', false, PARAM_BOOL)) {
         redirect($returnurl->out(false) . "?" . http_build_query(['errors' => $errors]));
     }
     $result = enrol_wallet_handle_charger_form((object)$data);
-    if ($result) {
-        $msg = $result;
-        $type = 'success';
-    } else {
-        $type = 'error';
-    }
-    $returnurl = new moodle_url($return, ['result' => $result]);
-    redirect($return, $msg, null, $type);
+
+    $returnurl = new moodle_url($return);
+    redirect($return);
     exit;
 }
 

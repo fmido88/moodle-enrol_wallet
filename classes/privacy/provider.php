@@ -303,7 +303,7 @@ class provider implements
             $ids = $DB->get_records('payments', [
                                                     'component'   => 'enrol_wallet',
                                                     'paymentarea' => 'wallettopup',
-                                                    'userid'      => $contextlist->get_user()->id
+                                                    'userid'      => $contextlist->get_user()->id,
                                                 ]);
             foreach ($ids as $payment) {
                 $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid, 'userid' => $payment->userid]);

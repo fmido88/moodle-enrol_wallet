@@ -30,5 +30,5 @@ $plugin->component = 'enrol_wallet';
 $plugin->release   = '4.0.0';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->dependencies = [
-    'enrol_manual' => ANY_VERSION
+    'enrol_manual' => ANY_VERSION,
 ];

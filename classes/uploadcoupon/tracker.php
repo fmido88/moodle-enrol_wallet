@@ -55,7 +55,7 @@ class tracker {
     /**
      * @var array columns to display.
      */
-    protected $columns = array();
+    protected $columns = [];
 
     /**
      * @var bool display visual outcome column.
@@ -118,17 +118,17 @@ class tracker {
         } else if ($this->outputmode == self::OUTPUT_HTML) {
             // Print HTML table.
             $ci = 0;
-            echo \html_writer::start_tag('table', array('class' => 'generaltable boxaligncenter flexible-wrap'));
+            echo \html_writer::start_tag('table', ['class' => 'generaltable boxaligncenter flexible-wrap']);
             echo \html_writer::start_tag('thead');
-            echo \html_writer::start_tag('tr', array('class' => 'heading r' . $this->rownb));
+            echo \html_writer::start_tag('tr', ['class' => 'heading r' . $this->rownb]);
             if ($this->outcomecol) {
-                echo \html_writer::tag('th', '', array('class' => 'c' . $ci++, 'scope' => 'col'));
+                echo \html_writer::tag('th', '', ['class' => 'c' . $ci++, 'scope' => 'col']);
             }
             // Print the headings in array order, and keep track of the columns and order for printing body rows.
             $ci = 0;
             foreach ($reportheadings as $hkey => $label) {
                 echo \html_writer::tag('th', $label,
-                    array('class' => 'c' . $ci++, 'scope' => 'col'));
+                    ['class' => 'c' . $ci++, 'scope' => 'col']);
             }
             echo \html_writer::end_tag('tr');
             echo \html_writer::end_tag('thead');
@@ -170,7 +170,7 @@ class tracker {
             $this->rownb++; // Use to mark odd and even rows for visual striping.
 
             // Print a row of output.
-            echo \html_writer::start_tag('tr', array('class' => 'r' . $this->rownb % 2));
+            echo \html_writer::start_tag('tr', ['class' => 'r' . $this->rownb % 2]);
             // Print a visual success indicator column (green tickbox or red x) for the outcome.
             if ($this->outcomecol) {
                 if ($outcome) {
@@ -178,15 +178,15 @@ class tracker {
                 } else {
                     $outcome = $OUTPUT->pix_icon('i/invalid', '');
                 }
-                echo \html_writer::tag('td', $outcome, array('class' => 'c' . $ci++));
+                echo \html_writer::tag('td', $outcome, ['class' => 'c' . $ci++]);
             }
 
             // Print a column for each heading.
             foreach ($this->columns as $key => $value) {
                 if (isset($rowdata[$key])) {
-                    echo \html_writer::tag('td', $rowdata[$key], array('class' => 'c' . $ci++));
+                    echo \html_writer::tag('td', $rowdata[$key], ['class' => 'c' . $ci++]);
                 } else {
-                    echo \html_writer::tag('td', '', array('class' => 'c' . $ci++));
+                    echo \html_writer::tag('td', '', ['class' => 'c' . $ci++]);
                 }
             }
             echo \html_writer::end_tag('tr');

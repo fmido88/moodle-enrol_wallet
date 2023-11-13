@@ -108,7 +108,7 @@ class wordpress {
             'moodle_user_id' => $userid,
             'amount'         => $amount,
             'course'         => $coursename,
-            'charger'        => $charger
+            'charger'        => $charger,
         ];
 
         return $this->request('debit', $data);
@@ -129,7 +129,7 @@ class wordpress {
             'amount'         => $amount,
             'moodle_user_id' => $userid,
             'description'    => $description,
-            'charger'        => $charger
+            'charger'        => $charger,
         ];
 
         $responsedata = $this->request('wallet_topup', $data);

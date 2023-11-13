@@ -355,7 +355,7 @@ function enrol_wallet_post_signup_requests($user) {
                 'referrer'    => $refrecord->userid,
                 'referred'    => $user->username,
                 'amount'      => $amount,
-                'timecreated' => time()
+                'timecreated' => time(),
             ];
             $DB->insert_record('enrol_wallet_hold_gift', $hold);
         }

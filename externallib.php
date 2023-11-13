@@ -44,7 +44,7 @@ class enrol_wallet_external extends external_api {
     public static function get_instance_info_parameters() {
         return new external_function_parameters(
                 [
-                    'instanceid' => new external_value(PARAM_INT, 'instance id of wallet enrolment plugin.')
+                    'instanceid' => new external_value(PARAM_INT, 'instance id of wallet enrolment plugin.'),
                 ]
             );
     }
@@ -111,7 +111,7 @@ class enrol_wallet_external extends external_api {
         return new external_function_parameters(
             [
                 'courseid'   => new external_value(PARAM_INT, 'Id of the course'),
-                'instanceid' => new external_value(PARAM_INT, 'Instance id of wallet enrolment plugin.', VALUE_DEFAULT, 0)
+                'instanceid' => new external_value(PARAM_INT, 'Instance id of wallet enrolment plugin.', VALUE_DEFAULT, 0),
             ]
         );
     }
@@ -132,7 +132,7 @@ class enrol_wallet_external extends external_api {
         $params = self::validate_parameters(self::enrol_user_parameters(),
                                                     [
                                                         'courseid'   => $courseid,
-                                                        'instanceid' => $instanceid
+                                                        'instanceid' => $instanceid,
                                                     ]);
 
         $warnings = [];
@@ -201,7 +201,7 @@ class enrol_wallet_external extends external_api {
                     'item'        => 'instance',
                     'itemid'      => $instance->id,
                     'warningcode' => '1',
-                    'message'     => $enrolstatus
+                    'message'     => $enrolstatus,
                 ];
             }
         }
@@ -221,7 +221,7 @@ class enrol_wallet_external extends external_api {
         return new external_single_structure(
             [
                 'status'   => new external_value(PARAM_BOOL, 'status: true if the user is enrolled, false otherwise'),
-                'warnings' => new external_warnings()
+                'warnings' => new external_warnings(),
             ]
         );
     }

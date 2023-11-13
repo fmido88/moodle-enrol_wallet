@@ -37,8 +37,9 @@ class turn_non_refundable_test extends \advanced_testcase {
     /**
      * Test adhoc task turn_non_refundable.
      * @covers \turn_non_refundable
+     * @return void
      */
-    public function test_turn_non_refundable() {
+    public function test_turn_non_refundable(): void {
         $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user();
@@ -111,7 +112,7 @@ class turn_non_refundable_test extends \advanced_testcase {
      * @covers ::check_transform_validation()
      * @return void
      */
-    public function test_check_transform_validation() {
+    public function test_check_transform_validation(): void {
         $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user();

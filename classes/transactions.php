@@ -106,7 +106,7 @@ class transactions {
             'balance'     => $newbalance,
             'norefund'    => $refundable ? $oldnotrefund : $amount + $oldnotrefund,
             'descripe'    => $description,
-            'timecreated' => time()
+            'timecreated' => time(),
         ];
 
         $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
@@ -208,7 +208,7 @@ class transactions {
             'balance'     => $newbalance,
             'norefund'    => ($newbalance >= $oldnotrefund) ? $oldnotrefund : $newbalance,
             'descripe'    => $description,
-            'timecreated' => time()
+            'timecreated' => time(),
         ];
 
         $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
@@ -532,7 +532,8 @@ class transactions {
             }
 
             // Make sure that the coupon didn't exceed the max usage (0 mean unlimited).
-            if (!empty($couponrecord->maxusage) && $couponrecord->maxusage <= $couponrecord->usetimes) {
+            $olduse = $DB->count_records('enrol_wallet_coupons_usage', ['code' => $coupondata['code']]);
+            if (!empty($couponrecord->maxusage) && $couponrecord->maxusage <= max($couponrecord->usetimes, $olduse)) {
                 return get_string('coupon_exceedusage', 'enrol_wallet');
             }
 
@@ -550,7 +551,7 @@ class transactions {
             if (!empty($couponrecord->maxperuser)) {
                 $countperuser = $DB->count_records('enrol_wallet_coupons_usage', [
                                                                                 'code' => $coupondata['code'],
-                                                                                'userid' => $USER->id
+                                                                                'userid' => $USER->id,
                                                                             ]);
                 if ($countperuser >= $couponrecord->maxperuser) {
                     return get_string('coupon_exceedusage', 'enrol_wallet');
@@ -590,13 +591,11 @@ class transactions {
         } else {
 
             $couponrecord = $DB->get_record('enrol_wallet_coupons', ['code' => $coupon]);
-            $usage = $couponrecord->usetimes + 1;
-            $data = (object)[
-                'id'       => $couponrecord->id,
-                'lastuse'  => time(),
-                'usetimes' => $usage,
-            ];
-            $DB->update_record('enrol_wallet_coupons', $data);
+            $olduse = $DB->count_records('enrol_wallet_coupons_usage', ['code' => $coupon]);
+            $usage = max($couponrecord->usetimes, $olduse) + 1;
+            $couponrecord->lastuse = time();
+            $couponrecord->usetimes = $usage;
+            $DB->update_record('enrol_wallet_coupons', $couponrecord);
         }
 
         // Logging the usage in the coupon usage table.
@@ -615,7 +614,7 @@ class transactions {
             'userid'        => $userid,
             'relateduserid' => $userid,
             'objectid'      => !empty($id) ? $id : null,
-            'other'         => $logdata
+            'other'         => $logdata,
         ];
 
         if (!empty($instanceid)) {

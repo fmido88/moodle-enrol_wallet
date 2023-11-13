@@ -27,16 +27,21 @@ require_once("$CFG->dirroot/login/lib.php");
 
 $userid      = required_param('userid', PARAM_INT);
 $action      = required_param('action', PARAM_TEXT);
-$wantsurl    = optional_param('wantsurl', '', PARAM_URL);
+$wantsurl    = optional_param('wantsurl', null, PARAM_URL);
 $newredirect = optional_param('redirect', '', PARAM_URL);
 
 if ($action == 'login') {
     require_login();
+    global $USER;
 
-    $redirect = core_login_get_return_url();
+    if ($USER->id != $userid || isguestuser()) {
+        throw new moodle_exception('invalidoperation');
+    }
+
+    $redirect = $wantsurl ?? core_login_get_return_url();
 
     $wordpress = new \enrol_wallet\wordpress;
-    $wordpress->login_logout_user_to_wordpress($userid, 'login', $redirect);
+    $wordpress->login_logout_user_to_wordpress($USER->id, 'login', $redirect);
 
 } else if ($action == 'logout') {
     global $redirect;

@@ -35,8 +35,9 @@ class service_provider_test extends \advanced_testcase {
      * For payment area walletenrol, which enrol user into the course after payment.
      *
      * @covers ::get_payable()
+     * @return void
      */
-    public function test_get_payable_walletenrol() {
+    public function test_get_payable_walletenrol(): void {
         global $DB;
         $this->resetAfterTest();
         if (class_exists('\core_payment\helper')) {
@@ -68,8 +69,9 @@ class service_provider_test extends \advanced_testcase {
      * For payment area wallettopup, which topping up the wallet after payment.
      *
      * @covers ::get_payable()
+     * @return void
      */
-    public function test_get_payable_wallettopup() {
+    public function test_get_payable_wallettopup(): void {
         global $DB;
         $this->resetAfterTest();
         if (class_exists('\core_payment\helper')) {
@@ -94,7 +96,7 @@ class service_provider_test extends \advanced_testcase {
      *
      * @covers ::get_success_url()
      */
-    public function test_get_success_url_walletenrol() {
+    public function test_get_success_url_walletenrol(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
         if (class_exists('\core_payment\helper')) {
@@ -128,7 +130,7 @@ class service_provider_test extends \advanced_testcase {
      *
      * @covers ::get_success_url()
      */
-    public function test_get_success_url_wallettopup() {
+    public function test_get_success_url_wallettopup(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
         if (class_exists('\core_payment\helper')) {
@@ -153,8 +155,9 @@ class service_provider_test extends \advanced_testcase {
      * For payment area walletenrol, which enrol user into the course after payment.
      *
      * @covers ::deliver_order()
+     * @return void
      */
-    public function test_deliver_order_walletenrol() {
+    public function test_deliver_order_walletenrol(): void {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
@@ -183,7 +186,7 @@ class service_provider_test extends \advanced_testcase {
         $paymentid = $generator->get_plugin_generator('core_payment')->create_payment([
             'accountid' => $account->get('id'),
             'amount' => 10,
-            'userid' => $user->id
+            'userid' => $user->id,
         ]);
 
         service_provider::deliver_order('walletenrol', $id, $paymentid, $user->id);
@@ -196,8 +199,9 @@ class service_provider_test extends \advanced_testcase {
      * For payment area wallettopup, which topping up the wallet after payment.
      *
      * @covers ::deliver_order()
+     * @return void
      */
-    public function test_deliver_order_wallettopup() {
+    public function test_deliver_order_wallettopup(): void {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
@@ -217,7 +221,7 @@ class service_provider_test extends \advanced_testcase {
         $paymentid = $generator->get_plugin_generator('core_payment')->create_payment([
             'accountid' => $account->get('id'),
             'amount' => 250,
-            'userid' => $user->id
+            'userid' => $user->id,
         ]);
 
         service_provider::deliver_order('wallettopup', $id, $paymentid, $user->id);

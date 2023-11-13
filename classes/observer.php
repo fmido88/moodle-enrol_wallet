@@ -113,7 +113,7 @@ class observer {
             'maxgrade' => $maxgrade,
             'percent'  => $percentage,
             'amount'   => $award,
-            'timecreated' => time()
+            'timecreated' => time(),
         ];
         $id = $DB->insert_record('enrol_wallet_awards', $data);
 

@@ -33,7 +33,7 @@ $capabilities = [
         'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
             'manager'        => CAP_ALLOW,
-        ]
+        ],
     ],
 
     /* Manage user wallet-enrolments. */
@@ -43,7 +43,7 @@ $capabilities = [
         'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
             'manager'        => CAP_ALLOW,
-        ]
+        ],
     ],
 
     /* Voluntarily unenrol self from course - watch out for data loss. */
@@ -52,7 +52,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_COURSE,
         'archetypes'   => [
             'student' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     /* Unenrol anybody from course (including self) -  watch out for data loss. */
@@ -62,7 +62,7 @@ $capabilities = [
         'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
             'manager'        => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // View pages for bulk edit.
@@ -72,7 +72,7 @@ $capabilities = [
         'archetypes'   => [
             'editingteacher' => CAP_ALLOW,
             'manager'        => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // View pages for transaction.
@@ -81,7 +81,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // View other users balance.
@@ -90,7 +90,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // Creating coupons.
@@ -99,7 +99,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // Deleting coupons.
@@ -108,7 +108,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // Edit coupons.
@@ -117,7 +117,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // Download coupons.
@@ -126,7 +126,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // View coupons table.
@@ -135,7 +135,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // Performing Transactions.
@@ -144,7 +144,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'manager' => CAP_ALLOW,
-        ]
+        ],
     ],
 
     // Transfer balance to other users.
@@ -153,7 +153,7 @@ $capabilities = [
         'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => [
             'user' => CAP_ALLOW,
-        ]
+        ],
     ],
     /* Ability to enrol self in courses. */
     'enrol/wallet:enrolself' => [
@@ -161,6 +161,6 @@ $capabilities = [
         'contextlevel' => CONTEXT_COURSE,
         'archetypes' => [
             'user' => CAP_ALLOW,
-        ]
+        ],
     ],
 ];

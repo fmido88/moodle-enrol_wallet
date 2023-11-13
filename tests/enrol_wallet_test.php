@@ -42,7 +42,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * Basic test for enrol wallet plugin
      * @covers \enrol_wallet_plugin
      */
-    public function test_basics() {
+    public function test_basics(): void {
         $this->resetAfterTest();
 
         $this->assertTrue(enrol_is_enabled('wallet'));
@@ -56,7 +56,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * Test function sync() not throw any errors when there is nothing to do.
      * @covers ::sync()
      */
-    public function test_sync_nothing() {
+    public function test_sync_nothing(): void {
         global $SITE;
 
         $walletplugin = enrol_get_plugin('wallet');
@@ -85,12 +85,12 @@ class enrol_wallet_test extends \advanced_testcase {
         $trace = new \progress_trace_buffer(new \text_progress_trace(), false);
 
         // Prepare some data.
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
-        $teacherrole = $DB->get_record('role', array('shortname' => 'teacher'));
+        $teacherrole = $DB->get_record('role', ['shortname' => 'teacher']);
         $this->assertNotEmpty($teacherrole);
 
-        $record = array('firstaccess' => $now - DAYSECS * 800);
+        $record = ['firstaccess' => $now - DAYSECS * 800];
         $record['lastaccess'] = $now - DAYSECS * 100;
         $user1 = $this->getDataGenerator()->create_user($record);
         $record['lastaccess'] = $now - DAYSECS * 10;
@@ -104,12 +104,12 @@ class enrol_wallet_test extends \advanced_testcase {
         $course2 = $this->getDataGenerator()->create_course();
         $course3 = $this->getDataGenerator()->create_course();
 
-        $this->assertEquals(3, $DB->count_records('enrol', array('enrol' => 'wallet')));
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
-        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
-        $instance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
-        $id = $walletplugin->add_instance($course3, array('status' => ENROL_INSTANCE_ENABLED, 'roleid' => $teacherrole->id));
-        $instance3b = $DB->get_record('enrol', array('id' => $id), '*', MUST_EXIST);
+        $this->assertEquals(3, $DB->count_records('enrol', ['enrol' => 'wallet']));
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $id = $walletplugin->add_instance($course3, ['status' => ENROL_INSTANCE_ENABLED, 'roleid' => $teacherrole->id]);
+        $instance3b = $DB->get_record('enrol', ['id' => $id], '*', MUST_EXIST);
         unset($id);
 
         $this->assertEquals($studentrole->id, $instance1->roleid);
@@ -119,15 +119,18 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->enrol_user($instance1, $user2->id, $studentrole->id);
         $walletplugin->enrol_user($instance1, $user3->id, $studentrole->id);
         $this->assertEquals(3, $DB->count_records('user_enrolments'));
-        $DB->insert_record('user_lastaccess', array('userid' => $user2->id,
+        $DB->insert_record('user_lastaccess', ['userid' => $user2->id,
                                                     'courseid' => $course1->id,
-                                                    'timeaccess' => $now - DAYSECS * 20));
-        $DB->insert_record('user_lastaccess', array('userid' => $user3->id,
+                                                    'timeaccess' => $now - DAYSECS * 20,
+                                                ]);
+        $DB->insert_record('user_lastaccess', ['userid' => $user3->id,
                                                     'courseid' => $course1->id,
-                                                    'timeaccess' => $now - DAYSECS * 2));
-        $DB->insert_record('user_lastaccess', array('userid' => $user4->id,
+                                                    'timeaccess' => $now - DAYSECS * 2,
+                                                ]);
+        $DB->insert_record('user_lastaccess', ['userid' => $user4->id,
                                                     'courseid' => $course1->id,
-                                                    'timeaccess' => $now - 60));
+                                                    'timeaccess' => $now - 60,
+                                                ]);
 
         $this->assertEquals($studentrole->id, $instance3->roleid);
         $instance3->customint2 = 60 * 60 * 24 * 50;
@@ -138,26 +141,29 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->enrol_user($instance3b, $user1->id, $teacherrole->id);
         $walletplugin->enrol_user($instance3b, $user4->id, $teacherrole->id);
         $this->assertEquals(8, $DB->count_records('user_enrolments'));
-        $DB->insert_record('user_lastaccess', array('userid' => $user2->id,
+        $DB->insert_record('user_lastaccess', ['userid' => $user2->id,
                                                     'courseid' => $course3->id,
-                                                    'timeaccess' => $now - DAYSECS * 11));
-        $DB->insert_record('user_lastaccess', array('userid' => $user3->id,
+                                                    'timeaccess' => $now - DAYSECS * 11,
+                                                ]);
+        $DB->insert_record('user_lastaccess', ['userid' => $user3->id,
                                                     'courseid' => $course3->id,
-                                                    'timeaccess' => $now - DAYSECS * 200));
-        $DB->insert_record('user_lastaccess', array('userid' => $user4->id,
+                                                    'timeaccess' => $now - DAYSECS * 200,
+                                                ]);
+        $DB->insert_record('user_lastaccess', ['userid' => $user4->id,
                                                     'courseid' => $course3->id,
-                                                    'timeaccess' => $now - DAYSECS * 200));
+                                                    'timeaccess' => $now - DAYSECS * 200,
+                                                ]);
 
-        $maninstance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'manual'), '*', MUST_EXIST);
-        $maninstance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'manual'), '*', MUST_EXIST);
+        $maninstance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'manual'], '*', MUST_EXIST);
+        $maninstance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'manual'], '*', MUST_EXIST);
 
         $manualplugin->enrol_user($maninstance2, $user1->id, $studentrole->id);
         $manualplugin->enrol_user($maninstance3, $user1->id, $teacherrole->id);
 
         $this->assertEquals(10, $DB->count_records('user_enrolments'));
         $this->assertEquals(9, $DB->count_records('role_assignments'));
-        $this->assertEquals(7, $DB->count_records('role_assignments', array('roleid' => $studentrole->id)));
-        $this->assertEquals(2, $DB->count_records('role_assignments', array('roleid' => $teacherrole->id)));
+        $this->assertEquals(7, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
+        $this->assertEquals(2, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
 
         // Execute sync - this is the same thing used from cron.
         $walletplugin->sync($trace, $course2->id);
@@ -165,19 +171,19 @@ class enrol_wallet_test extends \advanced_testcase {
         $trace->reset_buffer();
         $this->assertEquals(10, $DB->count_records('user_enrolments'));
         $this->assertStringContainsString('No expired enrol_wallet enrolments detected', $output);
-        $this->assertTrue($DB->record_exists('user_enrolments', array('enrolid' => $instance1->id, 'userid' => $user1->id)));
-        $this->assertTrue($DB->record_exists('user_enrolments', array('enrolid' => $instance1->id, 'userid' => $user2->id)));
-        $this->assertTrue($DB->record_exists('user_enrolments', array('enrolid' => $instance3->id, 'userid' => $user1->id)));
-        $this->assertTrue($DB->record_exists('user_enrolments', array('enrolid' => $instance3->id, 'userid' => $user3->id)));
+        $this->assertTrue($DB->record_exists('user_enrolments', ['enrolid' => $instance1->id, 'userid' => $user1->id]));
+        $this->assertTrue($DB->record_exists('user_enrolments', ['enrolid' => $instance1->id, 'userid' => $user2->id]));
+        $this->assertTrue($DB->record_exists('user_enrolments', ['enrolid' => $instance3->id, 'userid' => $user1->id]));
+        $this->assertTrue($DB->record_exists('user_enrolments', ['enrolid' => $instance3->id, 'userid' => $user3->id]));
 
         $walletplugin->sync($trace, null);
         $output = $trace->get_buffer();
         $trace->reset_buffer();
         $this->assertEquals(6, $DB->count_records('user_enrolments'));
-        $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance1->id, 'userid' => $user1->id)));
-        $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance1->id, 'userid' => $user2->id)));
-        $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance3->id, 'userid' => $user1->id)));
-        $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance3->id, 'userid' => $user3->id)));
+        $this->assertFalse($DB->record_exists('user_enrolments', ['enrolid' => $instance1->id, 'userid' => $user1->id]));
+        $this->assertFalse($DB->record_exists('user_enrolments', ['enrolid' => $instance1->id, 'userid' => $user2->id]));
+        $this->assertFalse($DB->record_exists('user_enrolments', ['enrolid' => $instance3->id, 'userid' => $user1->id]));
+        $this->assertFalse($DB->record_exists('user_enrolments', ['enrolid' => $instance3->id, 'userid' => $user3->id]));
         $this->assertStringContainsString('unenrolling user ' . $user1->id . ' from course ' . $course1->id .
             ' as they have did not log in for at least 14 days', $output);
         $this->assertStringContainsString('unenrolling user ' . $user1->id . ' from course ' . $course3->id .
@@ -189,15 +195,15 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertStringNotContainsString('unenrolling user ' . $user4->id, $output);
 
         $this->assertEquals(6, $DB->count_records('role_assignments'));
-        $this->assertEquals(4, $DB->count_records('role_assignments', array('roleid' => $studentrole->id)));
-        $this->assertEquals(2, $DB->count_records('role_assignments', array('roleid' => $teacherrole->id)));
+        $this->assertEquals(4, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
+        $this->assertEquals(2, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
     }
 
     /**
      * Text expire enrolment.
      * @covers ::expired()
      */
-    public function test_expired() {
+    public function test_expired(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -211,11 +217,11 @@ class enrol_wallet_test extends \advanced_testcase {
         $trace = new \null_progress_trace();
 
         // Prepare some data.
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
-        $teacherrole = $DB->get_record('role', array('shortname' => 'teacher'));
+        $teacherrole = $DB->get_record('role', ['shortname' => 'teacher']);
         $this->assertNotEmpty($teacherrole);
-        $managerrole = $DB->get_record('role', array('shortname' => 'manager'));
+        $managerrole = $DB->get_record('role', ['shortname' => 'manager']);
         $this->assertNotEmpty($managerrole);
 
         $user1 = $this->getDataGenerator()->create_user();
@@ -230,28 +236,28 @@ class enrol_wallet_test extends \advanced_testcase {
         $context2 = \context_course::instance($course2->id);
         $context3 = \context_course::instance($course3->id);
 
-        $this->assertEquals(3, $DB->count_records('enrol', array('enrol' => 'wallet')));
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $this->assertEquals(3, $DB->count_records('enrol', ['enrol' => 'wallet']));
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $this->assertEquals($studentrole->id, $instance1->roleid);
-        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $this->assertEquals($studentrole->id, $instance2->roleid);
-        $instance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $this->assertEquals($studentrole->id, $instance3->roleid);
-        $id = $walletplugin->add_instance($course3, array('status' => ENROL_INSTANCE_ENABLED, 'roleid' => $teacherrole->id));
-        $instance3b = $DB->get_record('enrol', array('id' => $id), '*', MUST_EXIST);
+        $id = $walletplugin->add_instance($course3, ['status' => ENROL_INSTANCE_ENABLED, 'roleid' => $teacherrole->id]);
+        $instance3b = $DB->get_record('enrol', ['id' => $id], '*', MUST_EXIST);
         $this->assertEquals($teacherrole->id, $instance3b->roleid);
         unset($id);
 
-        $maninstance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'manual'), '*', MUST_EXIST);
-        $maninstance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'manual'), '*', MUST_EXIST);
+        $maninstance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'manual'], '*', MUST_EXIST);
+        $maninstance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'manual'], '*', MUST_EXIST);
 
         $manualplugin->enrol_user($maninstance2, $user1->id, $studentrole->id);
         $manualplugin->enrol_user($maninstance3, $user1->id, $teacherrole->id);
 
         $this->assertEquals(2, $DB->count_records('user_enrolments'));
         $this->assertEquals(2, $DB->count_records('role_assignments'));
-        $this->assertEquals(1, $DB->count_records('role_assignments', array('roleid' => $studentrole->id)));
-        $this->assertEquals(1, $DB->count_records('role_assignments', array('roleid' => $teacherrole->id)));
+        $this->assertEquals(1, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
+        $this->assertEquals(1, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
 
         $walletplugin->enrol_user($instance1, $user1->id, $studentrole->id);
         $walletplugin->enrol_user($instance1, $user2->id, $studentrole->id);
@@ -267,8 +273,8 @@ class enrol_wallet_test extends \advanced_testcase {
 
         $this->assertEquals(10, $DB->count_records('user_enrolments'));
         $this->assertEquals(10, $DB->count_records('role_assignments'));
-        $this->assertEquals(7, $DB->count_records('role_assignments', array('roleid' => $studentrole->id)));
-        $this->assertEquals(2, $DB->count_records('role_assignments', array('roleid' => $teacherrole->id)));
+        $this->assertEquals(7, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
+        $this->assertEquals(2, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
 
         // Execute tests.
         $this->assertEquals(ENROL_EXT_REMOVED_KEEP, $walletplugin->get_config('expiredaction'));
@@ -284,20 +290,24 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->sync($trace, null);
         $this->assertEquals(10, $DB->count_records('user_enrolments'));
         $this->assertEquals(7, $DB->count_records('role_assignments'));
-        $this->assertEquals(5, $DB->count_records('role_assignments', array('roleid' => $studentrole->id)));
-        $this->assertEquals(1, $DB->count_records('role_assignments', array('roleid' => $teacherrole->id)));
-        $this->assertFalse($DB->record_exists('role_assignments', array('contextid' => $context1->id,
+        $this->assertEquals(5, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
+        $this->assertEquals(1, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
+        $this->assertFalse($DB->record_exists('role_assignments', ['contextid' => $context1->id,
                                                                         'userid' => $user3->id,
-                                                                        'roleid' => $studentrole->id)));
-        $this->assertFalse($DB->record_exists('role_assignments', array('contextid' => $context3->id,
+                                                                        'roleid' => $studentrole->id,
+                                                                    ]));
+        $this->assertFalse($DB->record_exists('role_assignments', ['contextid' => $context3->id,
                                                                         'userid' => $user2->id,
-                                                                        'roleid' => $studentrole->id)));
-        $this->assertFalse($DB->record_exists('role_assignments', array('contextid' => $context3->id,
+                                                                        'roleid' => $studentrole->id,
+                                                                    ]));
+        $this->assertFalse($DB->record_exists('role_assignments', ['contextid' => $context3->id,
                                                                         'userid' => $user1->id,
-                                                                        'roleid' => $teacherrole->id)));
-        $this->assertTrue($DB->record_exists('role_assignments', array('contextid' => $context3->id,
+                                                                        'roleid' => $teacherrole->id,
+                                                                    ]));
+        $this->assertTrue($DB->record_exists('role_assignments', ['contextid' => $context3->id,
                                                                         'userid' => $user1->id,
-                                                                        'roleid' => $studentrole->id)));
+                                                                        'roleid' => $studentrole->id,
+                                                                    ]));
 
         $walletplugin->set_config('expiredaction', ENROL_EXT_REMOVED_UNENROL);
 
@@ -306,24 +316,24 @@ class enrol_wallet_test extends \advanced_testcase {
         role_assign($teacherrole->id, $user1->id, $context3->id);
         $this->assertEquals(10, $DB->count_records('user_enrolments'));
         $this->assertEquals(10, $DB->count_records('role_assignments'));
-        $this->assertEquals(7, $DB->count_records('role_assignments', array('roleid' => $studentrole->id)));
-        $this->assertEquals(2, $DB->count_records('role_assignments', array('roleid' => $teacherrole->id)));
+        $this->assertEquals(7, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
+        $this->assertEquals(2, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
 
         $walletplugin->sync($trace, null);
         $this->assertEquals(7, $DB->count_records('user_enrolments'));
-        $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance1->id, 'userid' => $user3->id)));
-        $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance3->id, 'userid' => $user2->id)));
-        $this->assertFalse($DB->record_exists('user_enrolments', array('enrolid' => $instance3b->id, 'userid' => $user1->id)));
+        $this->assertFalse($DB->record_exists('user_enrolments', ['enrolid' => $instance1->id, 'userid' => $user3->id]));
+        $this->assertFalse($DB->record_exists('user_enrolments', ['enrolid' => $instance3->id, 'userid' => $user2->id]));
+        $this->assertFalse($DB->record_exists('user_enrolments', ['enrolid' => $instance3b->id, 'userid' => $user1->id]));
         $this->assertEquals(6, $DB->count_records('role_assignments'));
-        $this->assertEquals(5, $DB->count_records('role_assignments', array('roleid' => $studentrole->id)));
-        $this->assertEquals(1, $DB->count_records('role_assignments', array('roleid' => $teacherrole->id)));
+        $this->assertEquals(5, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
+        $this->assertEquals(1, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
     }
 
     /**
      * Test send expiry notification.
      * @covers ::send_expiry_notification()
      */
-    public function test_send_expiry_notifications() {
+    public function test_send_expiry_notifications(): void {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
@@ -339,55 +349,55 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->set_config('expirynotifylast', $now - 60 * 60 * 24);
         $walletplugin->set_config('expirynotifyhour', 0);
 
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
-        $editingteacherrole = $DB->get_record('role', array('shortname' => 'editingteacher'));
+        $editingteacherrole = $DB->get_record('role', ['shortname' => 'editingteacher']);
         $this->assertNotEmpty($editingteacherrole);
-        $managerrole = $DB->get_record('role', array('shortname' => 'manager'));
+        $managerrole = $DB->get_record('role', ['shortname' => 'manager']);
         $this->assertNotEmpty($managerrole);
 
-        $user1 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser1'));
-        $user2 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser2'));
-        $user3 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser3'));
-        $user4 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser4'));
-        $user5 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser5'));
-        $user6 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser6'));
-        $user7 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser6'));
-        $user8 = $this->getDataGenerator()->create_user(array('lastname' => 'xuser6'));
+        $user1 = $this->getDataGenerator()->create_user(['lastname' => 'xuser1']);
+        $user2 = $this->getDataGenerator()->create_user(['lastname' => 'xuser2']);
+        $user3 = $this->getDataGenerator()->create_user(['lastname' => 'xuser3']);
+        $user4 = $this->getDataGenerator()->create_user(['lastname' => 'xuser4']);
+        $user5 = $this->getDataGenerator()->create_user(['lastname' => 'xuser5']);
+        $user6 = $this->getDataGenerator()->create_user(['lastname' => 'xuser6']);
+        $user7 = $this->getDataGenerator()->create_user(['lastname' => 'xuser6']);
+        $user8 = $this->getDataGenerator()->create_user(['lastname' => 'xuser6']);
 
-        $course1 = $this->getDataGenerator()->create_course(array('fullname' => 'xcourse1'));
-        $course2 = $this->getDataGenerator()->create_course(array('fullname' => 'xcourse2'));
-        $course3 = $this->getDataGenerator()->create_course(array('fullname' => 'xcourse3'));
-        $course4 = $this->getDataGenerator()->create_course(array('fullname' => 'xcourse4'));
+        $course1 = $this->getDataGenerator()->create_course(['fullname' => 'xcourse1']);
+        $course2 = $this->getDataGenerator()->create_course(['fullname' => 'xcourse2']);
+        $course3 = $this->getDataGenerator()->create_course(['fullname' => 'xcourse3']);
+        $course4 = $this->getDataGenerator()->create_course(['fullname' => 'xcourse4']);
 
-        $this->assertEquals(4, $DB->count_records('enrol', array('enrol' => 'manual')));
-        $this->assertEquals(4, $DB->count_records('enrol', array('enrol' => 'wallet')));
+        $this->assertEquals(4, $DB->count_records('enrol', ['enrol' => 'manual']));
+        $this->assertEquals(4, $DB->count_records('enrol', ['enrol' => 'wallet']));
 
-        $maninstance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'manual'), '*', MUST_EXIST);
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $maninstance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'manual'], '*', MUST_EXIST);
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->expirythreshold = 60 * 60 * 24 * 4;
         $instance1->expirynotify = 1;
         $instance1->notifyall = 1;
         $instance1->status = ENROL_INSTANCE_ENABLED;
         $DB->update_record('enrol', $instance1);
 
-        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance2->expirythreshold = 60 * 60 * 24 * 1;
         $instance2->expirynotify = 1;
         $instance2->notifyall = 1;
         $instance2->status = ENROL_INSTANCE_ENABLED;
         $DB->update_record('enrol', $instance2);
 
-        $maninstance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'manual'), '*', MUST_EXIST);
-        $instance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $maninstance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'manual'], '*', MUST_EXIST);
+        $instance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance3->expirythreshold = 60 * 60 * 24 * 1;
         $instance3->expirynotify = 1;
         $instance3->notifyall = 0;
         $instance3->status = ENROL_INSTANCE_ENABLED;
         $DB->update_record('enrol', $instance3);
 
-        $maninstance4 = $DB->get_record('enrol', array('courseid' => $course4->id, 'enrol' => 'manual'), '*', MUST_EXIST);
-        $instance4 = $DB->get_record('enrol', array('courseid' => $course4->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $maninstance4 = $DB->get_record('enrol', ['courseid' => $course4->id, 'enrol' => 'manual'], '*', MUST_EXIST);
+        $instance4 = $DB->get_record('enrol', ['courseid' => $course4->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance4->expirythreshold = 60 * 60 * 24 * 1;
         $instance4->expirynotify = 0;
         $instance4->notifyall = 0;
@@ -508,7 +518,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * Test show enrol me link
      * @covers ::show_enrolme_link()
      */
-    public function test_show_enrolme_link() {
+    public function test_show_enrolme_link(): void {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
@@ -522,7 +532,7 @@ class enrol_wallet_test extends \advanced_testcase {
         transactions::payment_topup(500, $user1->id);
         transactions::payment_topup(250, $user2->id);
 
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
 
         $course1 = $this->getDataGenerator()->create_course();
@@ -543,35 +553,35 @@ class enrol_wallet_test extends \advanced_testcase {
         $cohort2 = $this->getDataGenerator()->create_cohort();
 
         // New enrolments are allowed and enrolment instance is enabled.
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->customint6 = 1;
         $instance1->cost = 250;
         $DB->update_record('enrol', $instance1);
         $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
 
         // New enrolments are not allowed, but enrolment instance is enabled.
-        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance2->customint6 = 0;
         $instance2->cost = 250;
         $DB->update_record('enrol', $instance2);
         $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
 
         // New enrolments are allowed , but enrolment instance is disabled.
-        $instance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance3->customint6 = 1;
         $instance3->cost = 250;
         $DB->update_record('enrol', $instance3);
         $walletplugin->update_status($instance3, ENROL_INSTANCE_DISABLED);
 
         // New enrolments are not allowed and enrolment instance is disabled.
-        $instance4 = $DB->get_record('enrol', array('courseid' => $course4->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance4 = $DB->get_record('enrol', ['courseid' => $course4->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance4->customint6 = 0;
         $instance4->cost = 250;
         $DB->update_record('enrol', $instance4);
         $walletplugin->update_status($instance4, ENROL_INSTANCE_DISABLED);
 
         // Cohort member test.
-        $instance5 = $DB->get_record('enrol', array('courseid' => $course5->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance5 = $DB->get_record('enrol', ['courseid' => $course5->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance5->customint6 = 1;
         $instance5->customint5 = $cohort1->id;
         $instance5->cost = 250;
@@ -579,7 +589,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->update_status($instance5, ENROL_INSTANCE_ENABLED);
 
         $id = $walletplugin->add_instance($course5, $walletplugin->get_instance_defaults());
-        $instance6 = $DB->get_record('enrol', array('id' => $id), '*', MUST_EXIST);
+        $instance6 = $DB->get_record('enrol', ['id' => $id], '*', MUST_EXIST);
         $instance6->customint6 = 1;
         $instance6->customint5 = $cohort2->id;
         $instance6->cost = 250;
@@ -587,7 +597,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->update_status($instance6, ENROL_INSTANCE_ENABLED);
 
         // Enrol start date is in future.
-        $instance7 = $DB->get_record('enrol', array('courseid' => $course6->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance7 = $DB->get_record('enrol', ['courseid' => $course6->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance7->customint6 = 1;
         $instance7->enrolstartdate = time() + 60;
         $instance7->cost = 250;
@@ -595,7 +605,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->update_status($instance7, ENROL_INSTANCE_ENABLED);
 
         // Enrol start date is in past.
-        $instance8 = $DB->get_record('enrol', array('courseid' => $course7->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance8 = $DB->get_record('enrol', ['courseid' => $course7->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance8->customint6 = 1;
         $instance8->enrolstartdate = time() - 60;
         $instance8->cost = 250;
@@ -603,7 +613,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->update_status($instance8, ENROL_INSTANCE_ENABLED);
 
         // Enrol end date is in future.
-        $instance9 = $DB->get_record('enrol', array('courseid' => $course8->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance9 = $DB->get_record('enrol', ['courseid' => $course8->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance9->customint6 = 1;
         $instance9->enrolenddate = time() + 60;
         $instance9->cost = 250;
@@ -611,7 +621,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->update_status($instance9, ENROL_INSTANCE_ENABLED);
 
         // Enrol end date is in past.
-        $instance10 = $DB->get_record('enrol', array('courseid' => $course9->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance10 = $DB->get_record('enrol', ['courseid' => $course9->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance10->customint6 = 1;
         $instance10->enrolenddate = time() - 60;
         $instance10->cost = 250;
@@ -619,7 +629,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->update_status($instance10, ENROL_INSTANCE_ENABLED);
 
         // Maximum enrolments reached.
-        $instance11 = $DB->get_record('enrol', array('courseid' => $course10->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance11 = $DB->get_record('enrol', ['courseid' => $course10->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance11->customint6 = 1;
         $instance11->customint3 = 1;
         $instance11->cost = 250;
@@ -628,7 +638,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->enrol_user($instance11, $user2->id, $studentrole->id);
 
         // Maximum enrolments not reached.
-        $instance12 = $DB->get_record('enrol', array('courseid' => $course11->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance12 = $DB->get_record('enrol', ['courseid' => $course11->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance12->customint6 = 1;
         $instance12->customint3 = 1;
         $instance12->cost = 250;
@@ -636,7 +646,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->update_status($instance12, ENROL_INSTANCE_ENABLED);
 
         // Enrolment restricted by enrolment in another course.
-        $instance13 = $DB->get_record('enrol', array('courseid' => $course12->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance13 = $DB->get_record('enrol', ['courseid' => $course12->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance13->customint6 = 1;
         $instance13->customint7 = 1;
         $instance13->customchar3 = $course1->id;
@@ -644,7 +654,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $DB->update_record('enrol', $instance13);
         $walletplugin->update_status($instance13, ENROL_INSTANCE_ENABLED);
         // Empty cost.
-        $instance14 = $DB->get_record('enrol', array('courseid' => $course13->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance14 = $DB->get_record('enrol', ['courseid' => $course13->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance14->customint6 = 1;
         $DB->update_record('enrol', $instance14);
         $walletplugin->update_status($instance14, ENROL_INSTANCE_ENABLED);
@@ -682,7 +692,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * This will check user enrolment only, rest has been tested in test_show_enrolme_link.
      * @covers ::can_self_enrol()
      */
-    public function test_can_self_enrol() {
+    public function test_can_self_enrol(): void {
         global $DB, $CFG;
         $this->resetAfterTest();
         $this->preventResetByRollback();
@@ -695,14 +705,14 @@ class enrol_wallet_test extends \advanced_testcase {
         transactions::payment_topup(250, $user1->id);
         transactions::payment_topup(250, $user2->id);
 
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
-        $editingteacherrole = $DB->get_record('role', array('shortname' => 'editingteacher'));
+        $editingteacherrole = $DB->get_record('role', ['shortname' => 'editingteacher']);
         $this->assertNotEmpty($editingteacherrole);
 
         $course1 = $this->getDataGenerator()->create_course();
 
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->customint6 = 1;
         $instance1->cost = 200;
         $DB->update_record('enrol', $instance1);
@@ -710,7 +720,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->enrol_user($instance1, $user2->id, $editingteacherrole->id);
 
         // Guest user cannot enrol.
-        $guest = $DB->get_record('user', array('id' => $CFG->siteguest));
+        $guest = $DB->get_record('user', ['id' => $CFG->siteguest]);
         $this->setUser($guest);
         $this->assertStringContainsString(get_string('noguestaccess', 'enrol'),
                 $walletplugin->can_self_enrol($instance1, true));
@@ -726,7 +736,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Insufficient balance.
         $course2 = $this->getDataGenerator()->create_course();
-        $instance2 = $DB->get_record('enrol', array('courseid' => $course2->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance2->customint6 = 1;
         $instance2->cost = 500;
         $DB->update_record('enrol', $instance2);
@@ -735,7 +745,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Disabled instance.
         $course3 = $this->getDataGenerator()->create_course();
-        $instance3 = $DB->get_record('enrol', array('courseid' => $course3->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance3 = $DB->get_record('enrol', ['courseid' => $course3->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance3->customint6 = 1;
         $instance3->cost = 50;
         $DB->update_record('enrol', $instance3);
@@ -744,7 +754,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Cannot enrol early.
         $course4 = $this->getDataGenerator()->create_course();
-        $instance4 = $DB->get_record('enrol', array('courseid' => $course4->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance4 = $DB->get_record('enrol', ['courseid' => $course4->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance4->customint6 = 1;
         $instance4->cost = 50;
         $instance4->enrolstartdate = time() + 3 * DAYSECS;
@@ -755,7 +765,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Cannot enrol late.
         $course5 = $this->getDataGenerator()->create_course();
-        $instance5 = $DB->get_record('enrol', array('courseid' => $course5->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance5 = $DB->get_record('enrol', ['courseid' => $course5->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance5->customint6 = 1;
         $instance5->cost = 50;
         $instance5->enrolenddate = time() - 3 * DAYSECS;
@@ -766,7 +776,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // New enrols not allowed.
         $course6 = $this->getDataGenerator()->create_course();
-        $instance6 = $DB->get_record('enrol', array('courseid' => $course6->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance6 = $DB->get_record('enrol', ['courseid' => $course6->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance6->customint6 = 0;
         $instance6->cost = 50;
         $DB->update_record('enrol', $instance6);
@@ -775,7 +785,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Max enrolments reached.
         $course7 = $this->getDataGenerator()->create_course();
-        $instance7 = $DB->get_record('enrol', array('courseid' => $course7->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance7 = $DB->get_record('enrol', ['courseid' => $course7->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance7->customint6 = 1;
         $instance7->customint3 = 2;
         $instance7->cost = 50;
@@ -790,7 +800,7 @@ class enrol_wallet_test extends \advanced_testcase {
         // Check the restrictions upon other course enrollment.
         $course8 = $this->getDataGenerator()->create_course(['fullname' => 'xcourse8']);
         $course9 = $this->getDataGenerator()->create_course();
-        $instance9 = $DB->get_record('enrol', array('courseid' => $course9->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance9 = $DB->get_record('enrol', ['courseid' => $course9->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance9->customint6 = 1;
         $instance9->customchar3 = $course8->id;
         $instance9->customint7 = 1;
@@ -804,7 +814,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Non valid cost.
         $course10 = $this->getDataGenerator()->create_course();
-        $instance10 = $DB->get_record('enrol', array('courseid' => $course10->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance10 = $DB->get_record('enrol', ['courseid' => $course10->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance10->customint6 = 1;
         $DB->update_record('enrol', $instance10);
         $walletplugin->update_status($instance10, ENROL_INSTANCE_ENABLED);
@@ -815,7 +825,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * Test get_welcome_email_contact().
      * @covers ::get_welcome_email_contact()
      */
-    public function test_get_welcome_email_contact() {
+    public function test_get_welcome_email_contact(): void {
         global $DB;
         self::resetAfterTest(true);
 
@@ -870,7 +880,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * Test for getting user enrolment actions.
      * @covers ::get_user_enrolment_actions()
      */
-    public function test_get_user_enrolment_actions() {
+    public function test_get_user_enrolment_actions(): void {
         global $CFG, $PAGE;
         $this->resetAfterTest();
 
@@ -919,7 +929,7 @@ class enrol_wallet_test extends \advanced_testcase {
      *
      * @covers ::get_cost_after_discount()
      */
-    public function test_get_cost_after_discount() {
+    public function test_get_cost_after_discount(): void {
         global $DB;
         self::resetAfterTest(true);
 
@@ -928,7 +938,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $user1 = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
 
-        $instance1 = $DB->get_record('enrol', array('courseid' => $course1->id, 'enrol' => 'wallet'), '*', MUST_EXIST);
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->customint6 = 1;
         $instance1->cost = 200;
         $DB->update_record('enrol', $instance1);
@@ -949,7 +959,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $userfielddata = (object)[
             'userid' => $user1->id,
             'fieldid' => $fieldid,
-            'data' => 'free'
+            'data' => 'free',
         ];
         $userdataid = $DB->insert_record('user_info_data', $userfielddata);
         $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
@@ -957,7 +967,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         $dataupdate = (object)[
             'id' => $userdataid,
-            'data' => '20% discount'
+            'data' => '20% discount',
         ];
         $DB->update_record('user_info_data', $dataupdate);
         $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
@@ -999,7 +1009,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * Test that enrol_self deduct the users credit and that cashback program works.
      * @covers ::enrol_self()
      */
-    public function test_enrol_self() {
+    public function test_enrol_self(): void {
         global $DB;
         self::resetAfterTest(true);
 
@@ -1043,7 +1053,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::is_course_enrolment_restriction()
      * @return void
      */
-    public function test_is_course_enrolment_restriction() {
+    public function test_is_course_enrolment_restriction(): void {
         global $DB;
         $this->resetAfterTest();
         $wallet = enrol_get_plugin('wallet');
@@ -1143,7 +1153,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * test for hide_due_cheaper_instance function
      * @covers ::hide_due_cheaper_instance()
      */
-    public function test_hide_due_cheaper_instance() {
+    public function test_hide_due_cheaper_instance(): void {
         global $DB;
         self::resetAfterTest(true);
 
@@ -1213,7 +1223,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::unenrol_user()
      * @return void
      */
-    public function test_unenrol_user() {
+    public function test_unenrol_user(): void {
         global $DB;
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
@@ -1327,7 +1337,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::get_unenrolself_link()
      * @return void
      */
-    public function test_get_unenrolself_link() {
+    public function test_get_unenrolself_link(): void {
         global $DB;
         $this->resetAfterTest();
         $course = $this->getDataGenerator()->create_course();
@@ -1433,7 +1443,7 @@ class enrol_wallet_test extends \advanced_testcase {
      * @covers ::enrol_wallet_is_borrow_eligible()
      * @return void
      */
-    public function test_enrol_wallet_is_borrow_eligible() {
+    public function test_enrol_wallet_is_borrow_eligible(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");

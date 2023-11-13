@@ -59,8 +59,9 @@ class transactions_test extends \advanced_testcase {
      * @covers ::payment_topup()
      * @covers ::debit()
      * @covers ::get_user_balance()
+     * @return void
      */
-    public function test_credit_debit() {
+    public function test_credit_debit(): void {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
@@ -157,8 +158,9 @@ class transactions_test extends \advanced_testcase {
      *
      * @covers ::get_coupon_value()
      * @covers ::mark_coupon_used()
+     * @return void
      */
-    public function test_get_coupon_value() {
+    public function test_get_coupon_value(): void {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback(); // Messaging does not like transactions...
@@ -202,7 +204,7 @@ class transactions_test extends \advanced_testcase {
      * @covers ::validate_coupon
      * @return void
      */
-    public function test_validate_coupon() {
+    public function test_validate_coupon(): void {
         global $DB;
         $this->resetAfterTest();
 

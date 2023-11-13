@@ -105,8 +105,8 @@ class coupons_generator extends \moodleform {
         $mform->addHelpButton('maxperuser', 'coupons_maxperuser', 'enrol_wallet');
         $mform->setDefault('maxperuser', 0);
 
-        $mform->addElement('date_time_selector', 'validfrom', get_string('validfrom', 'enrol_wallet'), array('optional' => true));
-        $mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol_wallet'), array('optional' => true));
+        $mform->addElement('date_time_selector', 'validfrom', get_string('validfrom', 'enrol_wallet'), ['optional' => true]);
+        $mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol_wallet'), ['optional' => true]);
 
         $group = [];
         $group[] = $mform->createElement('checkbox', 'upper', get_string('upperletters', 'enrol_wallet'));

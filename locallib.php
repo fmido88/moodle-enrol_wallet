@@ -150,7 +150,7 @@ function enrol_wallet_generate_coupons($options) {
  * @return string
  */
 function enrol_wallet_display_charger_form() {
-    global $CFG, $DB, $PAGE, $OUTPUT;
+    global $CFG, $PAGE;
     require_once($CFG->dirroot.'/enrol/wallet/classes/form/charger_form.php');
     if (!has_capability('enrol/wallet:creditdebit', context_system::instance())) {
         return '';
@@ -170,7 +170,7 @@ function enrol_wallet_display_charger_form() {
 /**
  * Process the data submitted by the charger form.
  * @param object $data
- * @return void|string
+ * @return bool
  */
 function enrol_wallet_handle_charger_form($data) {
     global $USER, $DB;
@@ -210,7 +210,7 @@ function enrol_wallet_handle_charger_form($data) {
             'before' => $before,
             'after'  => ($op == 'balance') ? $before : $after,
             'userid' => $userid,
-            'op'     => 'result'
+            'op'     => 'result',
         ];
 
         return enrol_wallet_display_transaction_results($params);
@@ -401,14 +401,14 @@ function enrol_wallet_display_coupon_urls() {
 /**
  * Displaying the results after charging the wallet of other user.
  * @param array $params parameters from the charging form results.
- * @return bool|string
+ * @return bool
  */
 function enrol_wallet_display_transaction_results($params = []) {
     global $OUTPUT;
     if (!has_capability('enrol/wallet:viewotherbalance', context_system::instance())) {
-        return '';
+        return false;
     }
-    ob_start();
+
     $result = $params['result'] ?? optional_param('result', '', PARAM_ALPHANUM);
     $before = $params['before'] ?? optional_param('before', '', PARAM_FLOAT);
     $after  = $params['after'] ?? optional_param('after', '', PARAM_FLOAT);
@@ -422,30 +422,29 @@ function enrol_wallet_display_transaction_results($params = []) {
         $errormsg = '<p style = "text-align: center;"><b> ERROR <br>'
                     .$err.
                     '<br> Please go back and check it again</b></p>';
-        echo $OUTPUT->notification($errormsg);
+        core\notification::error($errormsg);
 
     } else {
 
         $user = \core_user::get_user($userid);
         $userfull = $user->firstname.' '.$user->lastname.' ('.$user->email.')';
         // Display the result to the user.
-        echo $OUTPUT->notification('<p>Balance Before: <b>' .$before.'</b></p>', 'notifysuccess').'<br>';
-
+        core\notification::success('<p>Balance Before: <b>' .$before.'</b></p>');
         if (!empty($result) && is_numeric($result)  && false != $result) {
             $result = 'success';
         }
 
         if ($after !== $before) {
 
-            echo $OUTPUT->notification('succession: ' .$result.' .', 'notifysuccess').'<br>';
+            core\notification::success('succession: ' .$result . '.');
             $info = '<span style="text-align: center; width: 100%;"><h5>
                 the user: '.$userfull.' is now having a balance of '.$after.' after charging him/her by '.( $after - $before).
                 '</h5></span>';
             if ($after !== '') {
-                echo $OUTPUT->notification('<p>Balance After: <b>' .$after.'</b></p>', 'notifysuccess');
+                core\notification::success('<p>Balance After: <b>' .$after.'</b></p>');
             }
             if ($after < 0) {
-                echo $OUTPUT->notification('<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>');
+                core\notification::warning('<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>');
             }
 
         } else {
@@ -457,9 +456,9 @@ function enrol_wallet_display_transaction_results($params = []) {
         }
     }
     // Display the results.
+    core\notification::info($info);
 
-    echo $info;
-    return ob_get_clean();
+    return true;
 }
 
 /**

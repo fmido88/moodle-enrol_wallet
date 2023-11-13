@@ -1,5 +1,14 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 4.0.0 ##
+- Many fixes.
+- Improve the validation of forms.
+- Add new types of coupons.
+- Add coupons usage page.
+- Add repurchase option.
+- Improve filtrations of transaction table and coupons tables.
+- After creating coupons, redirect to coupons table with only the newly created coupons displayed.
+
 ## V 3.1.0 ##
 - Add Referral program.
 - Fix some bugs.

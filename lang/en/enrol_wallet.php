@@ -291,8 +291,8 @@ $string['giftvalue_help'] = 'The value which will be added to new users wallet.'
 $string['greaterthan'] = 'Greater than';
 $string['greaterthanorequal'] = 'Greater than or equal';
 
-$string['insufficient_balance'] = 'You have insufficient wallet balance to enroll. {$a->cost_before} EGP are required, your balance is {$a->user_balance} EGP.';
-$string['insufficient_balance_discount'] = 'You have insufficient wallet balance to enroll. <del>{$a->cost_before}EGP</del> {$a->cost_after} EGP are required, your balance is {$a->user_balance} EGP.';
+$string['insufficient_balance'] = 'You have insufficient wallet balance to enroll. {$a->cost_before} {$a->currency} are required, your balance is {$a->user_balance} {$a->currency}.';
+$string['insufficient_balance_discount'] = 'You have insufficient wallet balance to enroll. <del>{$a->cost_before} {$a->currency}</del> {$a->cost_after} {$a->currency} are required, your balance is {$a->user_balance} {$a->currency}.';
 $string['insufficientbalance'] = 'Sorry, you have insufficient balance for this operation. You need {$a->amount} while you have only {$a->balance}';
 $string['inyourwallet'] = 'in your wallet.';
 $string['invalidpercentcoupon'] = 'Invalid value for percentage coupon, cannot exceed 100.';
@@ -549,3 +549,11 @@ $string['validfrom'] = 'Valid from';
 $string['validto'] = 'Valid to';
 
 $string['youhavebalance'] = 'You have balance:';
+
+$string['repurchase'] = 'Repurchase';
+$string['repurchase_desc'] = 'Settings for repurchase the courses. If enabled, the users can repurchase the lectures again after the enrol date end.';
+$string['repurchase_firstdis'] = 'First Repurchse Discount';
+$string['repurchase_firstdis_desc'] = 'If specified, the users will get discount by this percentage value (0 - 100) for the second time they purchase the course.';
+$string['repurchase_seconddis'] = 'Second Repurchase Discount';
+$string['repurchase_seconddis_desc'] = 'For the third time the users purchase (second repurchase) the course, they will get discounted by this value. (should be between 0 - 100)';
+$string['selectuser'] = 'Please select a user.';

@@ -32,7 +32,7 @@ $observers = [
     [
         'eventname'   => '\core\event\course_completed',
         'callback'    => '\enrol_wallet\observer::wallet_completion_awards',
-        'includefile' => '/enrol/wallet/classes/observer.php'
+        'includefile' => '/enrol/wallet/classes/observer.php',
     ],
     // Release the hold referral gift.
     [
@@ -44,19 +44,19 @@ $observers = [
     [
         'eventname'   => '\core\event\user_created',
         'callback'    => '\enrol_wallet\observer::wallet_gifting_new_user',
-        'includefile' => '/enrol/wallet/classes/observer.php'
+        'includefile' => '/enrol/wallet/classes/observer.php',
     ],
     // Logout user from wordpress.
     [
         'eventname'   => '\core\event\user_loggedout',
         'callback'    => '\enrol_wallet\observer::logout_from_wordpress',
-        'includefile' => '/enrol/wallet/classes/observer.php'
+        'includefile' => '/enrol/wallet/classes/observer.php',
     ],
     // Observer to apply extra credit to fullfil the discount rule.
     [
         'eventname'   => '\enrol_wallet\event\transactions_triggered',
         'callback'    => '\enrol_wallet\observer::conditional_discount_charging',
-        'includefile' => '/enrol/wallet/classes/observer.php'
+        'includefile' => '/enrol/wallet/classes/observer.php',
     ],
 ];
 

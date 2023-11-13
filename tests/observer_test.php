@@ -42,7 +42,7 @@ class observer_test extends \advanced_testcase {
      * Test event observer completion awards.
      * @covers ::wallet_completion_awards
      */
-    public function test_wallet_completion_awards() {
+    public function test_wallet_completion_awards(): void {
         global $DB, $CFG;
         $this->resetAfterTest();
         set_config('awardssite', 1, 'enrol_wallet');
@@ -149,7 +149,7 @@ class observer_test extends \advanced_testcase {
         $this->assertEquals(COMPLETION_COMPLETE, $completioninfo->internal_get_state($cm, $user->id, null));
 
         $this->setAdminUser();
-        $ccompletion = new \completion_completion(array('course' => $course->id, 'userid' => $user->id));
+        $ccompletion = new \completion_completion(['course' => $course->id, 'userid' => $user->id]);
 
         // Mark course as complete.
         $ccompletion->mark_complete();
@@ -158,7 +158,7 @@ class observer_test extends \advanced_testcase {
      * Testing event observer gifting new users.
      * @covers ::wallet_gifting_new_user()
      */
-    public function test_wallet_gifting_new_user() {
+    public function test_wallet_gifting_new_user(): void {
         $this->resetAfterTest();
 
         $walletplugin = enrol_get_plugin('wallet');
@@ -186,7 +186,7 @@ class observer_test extends \advanced_testcase {
      * @covers ::conditional_discount_charging()
      * @return void
      */
-    public function test_conditional_discount_charging() {
+    public function test_conditional_discount_charging(): void {
         global $DB;
         $this->resetAfterTest();
 
@@ -269,7 +269,7 @@ class observer_test extends \advanced_testcase {
      * @covers ::release_referral_gift()
      * @return void
      */
-    public function test_release_referral_gift() {
+    public function test_release_referral_gift(): void {
         global $DB, $CFG;
         $this->resetAfterTest();
         require_once("$CFG->libdir/authlib.php");

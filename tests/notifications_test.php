@@ -36,8 +36,9 @@ class notifications_test extends \advanced_testcase {
     /**
      * Test transaction_notifications
      * @covers ::transaction_notify()
+     * @return void
      */
-    public function test_transaction_notifications() {
+    public function test_transaction_notifications(): void {
         $this->resetAfterTest();
         $this->preventResetByRollback();
 

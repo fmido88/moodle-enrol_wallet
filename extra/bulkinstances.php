@@ -102,14 +102,15 @@ $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'),
 $options = [
             '-1'                    => $nochange,
             ENROL_INSTANCE_ENABLED  => get_string('yes'),
-            ENROL_INSTANCE_DISABLED => get_string('no')];
+            ENROL_INSTANCE_DISABLED => get_string('no'),
+        ];
 $mform->addElement('select', 'status', get_string('status', 'enrol_wallet'), $options, ['optional' => true]);
 $mform->addHelpButton('status', 'status', 'enrol_wallet');
 
 $options = [
             -1 => $nochange,
             1  => get_string('yes'),
-            0  => get_string('no')
+            0  => get_string('no'),
         ];
 $mform->addElement('select', 'customint6', get_string('newenrols', 'enrol_wallet'), $options, ['optional' => true]);
 $mform->addHelpButton('customint6', 'newenrols', 'enrol_wallet');
@@ -128,7 +129,7 @@ $options = [
             -1 => $nochange,
             0  => get_string('no'),
             1  => get_string('expirynotifyenroller', 'core_enrol'),
-            2  => get_string('expirynotifyall', 'core_enrol')
+            2  => get_string('expirynotifyall', 'core_enrol'),
         ];
 $mform->addElement('select', 'expirynotify', get_string('expirynotify', 'core_enrol'), $options);
 $mform->addHelpButton('expirynotify', 'expirynotify', 'core_enrol');
@@ -161,7 +162,7 @@ require_once($CFG->dirroot.'/cohort/lib.php');
 
 $cohorts = [
             -1 => $nochange,
-            0  => get_string('no')
+            0  => get_string('no'),
         ];
 $allcohorts = cohort_get_all_cohorts();
 
@@ -189,7 +190,7 @@ $options = [
         -1                                   => $nochange,
         ENROL_DO_NOT_SEND_EMAIL              => get_string('no'),
         ENROL_SEND_EMAIL_FROM_COURSE_CONTACT => get_string('sendfromcoursecontact', 'enrol'),
-        ENROL_SEND_EMAIL_FROM_NOREPLY        => get_string('sendfromnoreply', 'enrol')
+        ENROL_SEND_EMAIL_FROM_NOREPLY        => get_string('sendfromnoreply', 'enrol'),
     ];
 $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
 $mform->addHelpButton('customint4', 'sendcoursewelcomemessage', 'enrol_wallet');

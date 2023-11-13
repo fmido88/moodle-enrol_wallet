@@ -76,12 +76,12 @@ $selectenrol->setMultiple(true);
 $statusoptions = [
         -1                   => get_string('nochange', 'enrol'),
         ENROL_USER_ACTIVE    => get_string('participationactive', 'enrol'),
-        ENROL_USER_SUSPENDED => get_string('participationsuspended', 'enrol')
+        ENROL_USER_SUSPENDED => get_string('participationsuspended', 'enrol'),
     ];
-$form->addElement('select', 'status', get_string('alterstatus', 'enrol_manual'), $statusoptions, array('optional' => true));
+$form->addElement('select', 'status', get_string('alterstatus', 'enrol_manual'), $statusoptions, ['optional' => true]);
 
-$form->addElement('date_time_selector', 'timestart', get_string('altertimestart', 'enrol_manual'), array('optional' => true));
-$form->addElement('date_time_selector', 'timeend', get_string('altertimeend', 'enrol_manual'), array('optional' => true));
+$form->addElement('date_time_selector', 'timestart', get_string('altertimestart', 'enrol_manual'), ['optional' => true]);
+$form->addElement('date_time_selector', 'timeend', get_string('altertimeend', 'enrol_manual'), ['optional' => true]);
 
 $form->addElement('submit' , 'submit', get_string('submit'));
 $form->disabledIf('submit', 'courses[]', 'noitemselected');

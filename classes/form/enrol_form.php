@@ -78,7 +78,7 @@ class enrol_form extends \moodleform {
             'credit_cost'   => $costbefore,
             'user_balance'   => $balance,
             'after_discount' => $costafter,
-            'currency'       => $currency
+            'currency'       => $currency,
         ];
         // Display cost and balance.
         if ($balance >= $costafter) {

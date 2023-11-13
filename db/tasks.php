@@ -34,7 +34,7 @@ $tasks = [
         'day'       => '*',
         'month'     => '*',
         'dayofweek' => '*',
-        'disabled'  => 0
+        'disabled'  => 0,
     ],
     [
         'classname' => '\enrol_wallet\task\send_expiry_notifications',
@@ -44,7 +44,7 @@ $tasks = [
         'day'       => '*',
         'month'     => '*',
         'dayofweek' => '*',
-        'disabled'  => 0
-    ]
+        'disabled'  => 0,
+    ],
 ];
 

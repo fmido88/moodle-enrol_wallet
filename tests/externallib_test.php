@@ -38,7 +38,7 @@ class externallib_test extends externallib_advanced_testcase {
      * Test get_instance_info
      * @covers ::get_instance_info()
      */
-    public function test_get_instance_info() {
+    public function test_get_instance_info(): void {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
 
@@ -50,7 +50,7 @@ class externallib_test extends externallib_advanced_testcase {
         // In this test we will add instances manually.
         $walletplugin->set_config('defaultenrol', 0);
 
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
 
         $coursedata = new \stdClass();
@@ -58,18 +58,20 @@ class externallib_test extends externallib_advanced_testcase {
         $course = $this->getDataGenerator()->create_course($coursedata);
 
         // Add enrolment methods for course.
-        $instanceid1 = $walletplugin->add_instance($course, array('status' => ENROL_INSTANCE_ENABLED,
+        $instanceid1 = $walletplugin->add_instance($course, ['status' => ENROL_INSTANCE_ENABLED,
                                                                 'name' => 'Test instance 1',
                                                                 'customint6' => 1,
                                                                 'cost' => 50,
-                                                                'roleid' => $studentrole->id));
-        $instanceid2 = $walletplugin->add_instance($course, array('status' => ENROL_INSTANCE_DISABLED,
+                                                                'roleid' => $studentrole->id,
+                                                            ]);
+        $instanceid2 = $walletplugin->add_instance($course, ['status' => ENROL_INSTANCE_DISABLED,
                                                                 'customint6' => 1,
                                                                 'cost' => 100,
                                                                 'name' => 'Test instance 2',
-                                                                'roleid' => $studentrole->id));
+                                                                'roleid' => $studentrole->id,
+                                                            ]);
 
-        $enrolmentmethods = $DB->get_records('enrol', array('courseid' => $course->id, 'status' => ENROL_INSTANCE_ENABLED));
+        $enrolmentmethods = $DB->get_records('enrol', ['courseid' => $course->id, 'status' => ENROL_INSTANCE_ENABLED]);
         $this->assertCount(2, $enrolmentmethods);
 
         $this->setAdminUser();
@@ -110,7 +112,7 @@ class externallib_test extends externallib_advanced_testcase {
         $this->assertTrue($instanceinfo1['status']);
 
         // Enable the instance.
-        $instance2 = $DB->get_record('enrol', array('id' => $instanceid2), '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['id' => $instanceid2], '*', MUST_EXIST);
         $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
         $instanceinfo2 = enrol_wallet_external::get_instance_info($instanceid2);
         $instanceinfo2 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
@@ -121,7 +123,7 @@ class externallib_test extends externallib_advanced_testcase {
      * Test enrol_user
      * @covers ::enrol_user()
      */
-    public function test_enrol_user() {
+    public function test_enrol_user(): void {
         global $DB, $CFG;
         require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
 
@@ -143,19 +145,21 @@ class externallib_test extends externallib_advanced_testcase {
         $context1 = \context_course::instance($course1->id);
         $context2 = \context_course::instance($course2->id);
 
-        $studentrole = $DB->get_record('role', array('shortname' => 'student'));
-        $instance1id = $walletplugin->add_instance($course1, array('status' => ENROL_INSTANCE_ENABLED,
+        $studentrole = $DB->get_record('role', ['shortname' => 'student']);
+        $instance1id = $walletplugin->add_instance($course1, ['status' => ENROL_INSTANCE_ENABLED,
                                                                 'name' => 'Test instance 1',
                                                                 'customint6' => 1,
                                                                 'cost' => 50,
-                                                                'roleid' => $studentrole->id));
-        $instance2id = $walletplugin->add_instance($course2, array('status' => ENROL_INSTANCE_DISABLED,
+                                                                'roleid' => $studentrole->id,
+                                                            ]);
+        $instance2id = $walletplugin->add_instance($course2, ['status' => ENROL_INSTANCE_DISABLED,
                                                                 'customint6' => 1,
                                                                 'name' => 'Test instance 2',
                                                                 'cost' => 200,
-                                                                'roleid' => $studentrole->id));
-        $instance1 = $DB->get_record('enrol', array('id' => $instance1id), '*', MUST_EXIST);
-        $instance2 = $DB->get_record('enrol', array('id' => $instance2id), '*', MUST_EXIST);
+                                                                'roleid' => $studentrole->id,
+                                                            ]);
+        $instance1 = $DB->get_record('enrol', ['id' => $instance1id], '*', MUST_EXIST);
+        $instance2 = $DB->get_record('enrol', ['id' => $instance2id], '*', MUST_EXIST);
 
         $this->setUser($user1);
 
@@ -164,7 +168,7 @@ class externallib_test extends externallib_advanced_testcase {
         $result = \external_api::clean_returnvalue(enrol_wallet_external::enrol_user_returns(), $result);
 
         $this->assertTrue($result['status']);
-        $this->assertEquals(1, $DB->count_records('user_enrolments', array('enrolid' => $instance1->id)));
+        $this->assertEquals(1, $DB->count_records('user_enrolments', ['enrolid' => $instance1->id]));
         $this->assertTrue(is_enrolled($context1, $user1));
         $balance = transactions::get_user_balance($user1->id);
         $this->assertEquals(50, $balance);

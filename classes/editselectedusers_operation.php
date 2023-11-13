@@ -134,7 +134,7 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
                             'courseid' => $enrolment->courseid,
                             'context' => \context_course::instance($enrolment->courseid),
                             'relateduserid' => $user->id,
-                            'other' => ['enrol' => 'wallet']
+                            'other' => ['enrol' => 'wallet'],
                         ]
                     );
                     $event->trigger();

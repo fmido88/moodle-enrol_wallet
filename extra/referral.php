@@ -88,7 +88,7 @@ if (!empty($refusers)) {
         get_string('status'),
         get_string('referral_amount', 'enrol_wallet'),
         get_string('referral_timecreated', 'enrol_wallet'),
-        get_string('referral_timereleased' , 'enrol_wallet')
+        get_string('referral_timereleased' , 'enrol_wallet'),
     ];
     $table->data[] = $headers;
     foreach ($refusers as $data) {
@@ -100,7 +100,7 @@ if (!empty($refusers)) {
             $status,
             format_float($data->amount, 2),
             userdate($data->timecreated),
-            !empty($data->timemodified) ? userdate($data->timemodified) : ''
+            !empty($data->timemodified) ? userdate($data->timemodified) : '',
         ];
     }
     $output .= html_writer::table($table);

@@ -324,6 +324,21 @@ if ($ADMIN->fulltree) {
                                             0, PARAM_INT));
 
     // Enrol instance defaults.
+    $settings->add(new admin_setting_heading('enrol_wallet_repurchase',
+                                            get_string('repurchase', 'enrol_wallet'),
+                                            get_string('repurchase_desc', 'enrol_wallet')));
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/repurchase',
+                                            get_string('repurchase', 'enrol_wallet'), '', 0));
+    $settings->add(new admin_setting_configtext('enrol_wallet/repurchase_firstdis',
+                                            get_string('repurchase_firstdis', 'enrol_wallet'),
+                                            get_string('repurchase_firstdis_desc', 'enrol_wallet'),
+                                            0, PARAM_INT));
+    $settings->add(new admin_setting_configtext('enrol_wallet/repurchase_seconddis',
+                                            get_string('repurchase_seconddis', 'enrol_wallet'),
+                                            get_string('repurchase_seconddis_desc', 'enrol_wallet'),
+                                            0, PARAM_INT));
+
+    // Enrol instance defaults.
     $settings->add(new admin_setting_heading('enrol_wallet_defaults',
         get_string('enrolinstancedefaults', 'admin'), get_string('enrolinstancedefaults_desc', 'admin')));
     // Adding wallet instance automatically upon course creation.
@@ -331,16 +346,18 @@ if ($ADMIN->fulltree) {
         get_string('defaultenrol', 'enrol'), get_string('defaultenrol_desc', 'enrol'), 1));
 
     // Adding default payment account.
-    $accounts = \core_payment\helper::get_payment_accounts_menu($context);
-    if (empty($accounts)) {
-        $alert = html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning');
-        $settings->add(new admin_setting_configempty('enrol_wallet/emptypaymentaccount', '', $alert));
-        $accounts = [0 => get_string('noaccount', 'enrol_wallet')];
-    } else {
-        $accounts = [0 => get_string('noaccount', 'enrol_wallet')] + $accounts;
+    if (class_exists('\core_payment\helper')) {
+        $accounts = \core_payment\helper::get_payment_accounts_menu($context);
+        if (empty($accounts)) {
+            $alert = html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning');
+            $settings->add(new admin_setting_configempty('enrol_wallet/emptypaymentaccount', '', $alert));
+            $accounts = [0 => get_string('noaccount', 'enrol_wallet')];
+        } else {
+            $accounts = [0 => get_string('noaccount', 'enrol_wallet')] + $accounts;
+        }
+        $settings->add(new admin_setting_configselect('enrol_wallet/paymentaccount', get_string('paymentaccount', 'payment'),
+                                                            get_string('paymentaccount_help', 'enrol_wallet'), 0, $accounts));
     }
-    $settings->add(new admin_setting_configselect('enrol_wallet/paymentaccount', get_string('paymentaccount', 'payment'),
-                                                        get_string('paymentaccount_help', 'enrol_wallet'), 0, $accounts));
 
     // Add default currency.
     $supportedcurrencies = $walletplugin->get_possible_currencies(get_config('enrol_wallet', 'paymentaccount'));
@@ -358,13 +375,18 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('enrol_wallet/customcurrencycode', 'enrol_wallet/paymentaccount', 'neq', '0');
 
     // Is instance enabled.
-    $options = [ENROL_INSTANCE_ENABLED  => get_string('yes'),
-                ENROL_INSTANCE_DISABLED => get_string('no')];
+    $options = [
+                ENROL_INSTANCE_ENABLED  => get_string('yes'),
+                ENROL_INSTANCE_DISABLED => get_string('no'),
+            ];
     $settings->add(new admin_setting_configselect('enrol_wallet/status',
         get_string('status', 'enrol_wallet'), get_string('status_desc', 'enrol_wallet'), ENROL_INSTANCE_ENABLED,
         $options));
     // Allow users to enrol into new courses by default.
-    $options = [1 => get_string('yes'), 0 => get_string('no')];
+    $options = [
+                    1 => get_string('yes'),
+                    0 => get_string('no'),
+                ];
     $settings->add(new admin_setting_configselect('enrol_wallet/newenrols',
         get_string('newenrols', 'enrol_wallet'), get_string('newenrols_desc', 'enrol_wallet'), 1, $options));
 
@@ -381,8 +403,11 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configduration('enrol_wallet/enrolperiod',
         get_string('enrolperiod', 'enrol_wallet'), get_string('enrolperiod_desc', 'enrol_wallet'), 0));
     // Expiry notification.
-    $options = [0 => get_string('no'), 1 => get_string('expirynotifyenroller', 'core_enrol'), 2 =>
-        get_string('expirynotifyall', 'core_enrol')];
+    $options = [
+        0 => get_string('no'),
+        1 => get_string('expirynotifyenroller', 'core_enrol'),
+        2 => get_string('expirynotifyall', 'core_enrol'),
+    ];
     $settings->add(new admin_setting_configselect('enrol_wallet/expirynotify',
         get_string('expirynotify', 'core_enrol'), get_string('expirynotify_help', 'core_enrol'), 0, $options));
     // Expiry threshold.
@@ -399,7 +424,7 @@ if ($ADMIN->fulltree) {
     $weloptions = [
         ENROL_DO_NOT_SEND_EMAIL                 => get_string('no'),
         ENROL_SEND_EMAIL_FROM_COURSE_CONTACT    => get_string('sendfromcoursecontact', 'enrol'),
-        ENROL_SEND_EMAIL_FROM_NOREPLY           => get_string('sendfromnoreply', 'enrol')
+        ENROL_SEND_EMAIL_FROM_NOREPLY           => get_string('sendfromnoreply', 'enrol'),
     ];
     $settings->add(new admin_setting_configselect('enrol_wallet/sendcoursewelcomemessage',
             get_string('sendcoursewelcomemessage', 'enrol_wallet'),

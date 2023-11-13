@@ -63,12 +63,20 @@ class charger_form extends \moodleform {
             }
         }
 
+        if (file_exists($CFG->dirroot.'/blocks/vc/lib.php')
+            && !empty($this->_customdata['vc'])
+            && function_exists('block_vc_extend_credit_form')) {
+
+            require_once($CFG->dirroot.'/blocks/vc/lib.php');
+            block_vc_extend_credit_form($mform, $this->get_data());
+        }
+
         $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
 
         $operations = [
             'credit'  => 'credit',
             'debit'   => 'debit',
-            'balance' => 'balance'
+            'balance' => 'balance',
         ];
         $oplabel = get_string('chargingoperation', 'enrol_wallet');
         $attr = !empty($i) ? ['id' => 'charge-operation', 'onchange' => 'calculateCharge()'] : [];
@@ -104,10 +112,9 @@ class charger_form extends \moodleform {
             'courseid'   => $courseid,
             'enrolid'    => 0,
             'perpage'    => $CFG->maxusersperpage,
-            'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true))
+            'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true)),
         ];
         $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), [], $options);
-        $mform->addRule('userlist', 'select user', 'required', null, 'client');
 
         $mform->addElement('submit', 'submit', get_string('submit'));
 
@@ -168,30 +175,40 @@ class charger_form extends \moodleform {
 
         global $DB;
         $errors = parent::validation($data, $files);
-        $op = $data['op'];
-        if (!in_array($op, ['credit', 'debit', 'balance'])) {
-            $errors['op'] = get_string('charger_invalid_operation', 'enrol_wallet');
+        if (!empty($data['submit'])) {
+            if (empty($data['userlist'])) {
+                $errors['userlist'] = get_string('selectuser', 'enrol_wallet');
+            }
+
+            $op = $data['op'];
+            if (!in_array($op, ['credit', 'debit', 'balance'])) {
+                $errors['op'] = get_string('charger_invalid_operation', 'enrol_wallet');
+                return $errors;
+            }
+
+            $value  = $data['value'] ?? '';
+            $userid = $data['userlist'];
+            // No value.
+            if (empty($value) && ($op !== 'balance')) {
+                $errors['value'] = get_string('charger_novalue', 'enrol_wallet');
+            }
+
+            // No user.
+            if (empty($userid) || !$DB->record_exists('user', ['id' => $userid])) {
+                $errors['userlist'] = get_string('charger_nouser', 'enrol_wallet');
+            }
+
+            $transactions = new \enrol_wallet\transactions;
+            $before = $transactions->get_user_balance($userid);
+            if ($op == 'debit' && $value > $before) {
+                // Cannot deduct more than the user's balance.
+                $a = ['value' => $value, 'before' => $before];
+                $errors['value'] = get_string('charger_debit_err', 'enrol_wallet', $a);
+            }
+
+        } else if (!empty($data['submitvc'])) {
+            // TODO add validation function to vc block.
             return $errors;
-        }
-
-        $value  = $data['value'] ?? '';
-        $userid = $data['userlist'];
-        // No value.
-        if (empty($value) && ($op !== 'balance')) {
-            $errors['value'] = get_string('charger_novalue', 'enrol_wallet');
-        }
-
-        // No user.
-        if (empty($userid) || !$DB->record_exists('user', ['id' => $userid])) {
-            $errors['userlist'] = get_string('charger_nouser', 'enrol_wallet');
-        }
-
-        $transactions = new \enrol_wallet\transactions;
-        $before = $transactions->get_user_balance($userid);
-        if ($op == 'debit' && $value > $before) {
-            // Cannot deduct more than the user's balance.
-            $a = ['value' => $value, 'before' => $before];
-            $errors['value'] = get_string('charger_debit_err', 'enrol_wallet', $a);
         }
 
         return $errors;

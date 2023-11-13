@@ -298,22 +298,22 @@ if ($maxusage != '' && $maxusage != null) {
 
 $mform->addGroup($maxusagegroup, 'maxusagegroup', get_string('coupons_maxusage', 'enrol_wallet'), null, false);
 
-$mform->addElement('date_time_selector', 'validfrom', get_string('validfrom', 'enrol_wallet'), array('optional' => true));
+$mform->addElement('date_time_selector', 'validfrom', get_string('validfrom', 'enrol_wallet'), ['optional' => true]);
 if (!empty($validfrom)) {
     $mform->setDefault('validfrom', $validfrom);
 }
 
-$mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol_wallet'), array('optional' => true));
+$mform->addElement('date_time_selector', 'validto', get_string('validto', 'enrol_wallet'), ['optional' => true]);
 if (!empty($validto)) {
     $mform->setDefault('validto', $validto);
 }
 
-$mform->addElement('date_time_selector', 'createdfrom', get_string('createdfrom', 'enrol_wallet'), array('optional' => true));
+$mform->addElement('date_time_selector', 'createdfrom', get_string('createdfrom', 'enrol_wallet'), ['optional' => true]);
 if (!empty($createdfrom)) {
     $mform->setDefault('createdfrom', $createdfrom);
 }
 
-$mform->addElement('date_time_selector', 'createdto', get_string('createdto', 'enrol_wallet'), array('optional' => true));
+$mform->addElement('date_time_selector', 'createdto', get_string('createdto', 'enrol_wallet'), ['optional' => true]);
 if (!empty($createdto)) {
     $mform->setDefault('createdto', $createdto);
 }

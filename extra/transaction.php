@@ -100,19 +100,19 @@ if ($viewall) {
         'userfields'        => implode(',', \core_user\fields::get_identity_fields($systemcontext, true)),
         'noselectionstring' => get_string('allusers', 'enrol_wallet'),
     ];
-    $mform->addElement('autocomplete', 'user', get_string('selectusers', 'enrol_manual'), array(), $options);
+    $mform->addElement('autocomplete', 'user', get_string('selectusers', 'enrol_manual'), [], $options);
     if (!empty($userid)) {
         $mform->setDefault('user', $userid);
     }
 }
 
 // Adding starting and ending dates for transactions.
-$mform->addElement('date_time_selector', 'datefrom', get_string('datefrom', 'enrol_wallet'), array('optional' => true));
+$mform->addElement('date_time_selector', 'datefrom', get_string('datefrom', 'enrol_wallet'), ['optional' => true]);
 if (!empty($datefrom)) {
     $mform->setDefault('datefrom', $datefrom);
 }
 
-$mform->addElement('date_time_selector', 'dateto', get_string('dateto', 'enrol_wallet'), array('optional' => true));
+$mform->addElement('date_time_selector', 'dateto', get_string('dateto', 'enrol_wallet'), ['optional' => true]);
 if (!empty($dateto)) {
     $mform->setDefault('dateto', $dateto);
 }
