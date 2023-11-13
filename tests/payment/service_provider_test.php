@@ -40,7 +40,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_payable_walletenrol(): void {
         global $DB;
         $this->resetAfterTest();
-        if (class_exists('\core_payment\helper')) {
+        if (!class_exists('\core_payment\helper')) {
             return;
         }
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
@@ -74,7 +74,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_payable_wallettopup(): void {
         global $DB;
         $this->resetAfterTest();
-        if (class_exists('\core_payment\helper')) {
+        if (!class_exists('\core_payment\helper')) {
             return;
         }
         $generator = $this->getDataGenerator();
@@ -99,7 +99,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_success_url_walletenrol(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
-        if (class_exists('\core_payment\helper')) {
+        if (!class_exists('\core_payment\helper')) {
             return;
         }
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
@@ -133,7 +133,7 @@ class service_provider_test extends \advanced_testcase {
     public function test_get_success_url_wallettopup(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
-        if (class_exists('\core_payment\helper')) {
+        if (!class_exists('\core_payment\helper')) {
             return;
         }
         $generator = $this->getDataGenerator();
@@ -161,7 +161,7 @@ class service_provider_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        if (class_exists('\core_payment\helper')) {
+        if (!class_exists('\core_payment\helper')) {
             return;
         }
         $this->assertTrue(enrol_is_enabled('wallet'));
@@ -205,7 +205,7 @@ class service_provider_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
-        if (class_exists('\core_payment\helper')) {
+        if (!class_exists('\core_payment\helper')) {
             return;
         }
         $this->assertTrue(enrol_is_enabled('wallet'));

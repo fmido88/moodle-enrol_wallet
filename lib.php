@@ -1895,8 +1895,18 @@ class enrol_wallet_plugin extends enrol_plugin {
                 // We only use the first user.
                 $i = 0;
                 do {
-                    $userfieldsapi = \core_user\fields::for_name();
-                    $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
+                    if (class_exists('\core_user\fields')) {
+                        $userfieldsapi = \core_user\fields::for_name();
+                        $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
+                    } else {
+                        $allnames = 'u.firstname, '.
+                                    'u.lastname, '.
+                                    'u.middlename, '.
+                                    'u.firstnamephonetic, '.
+                                    'u.lastnamephonetic, '.
+                                    'u.alternatename';
+                    }
+
                     $rusers = get_role_users($croles[$i], $context, true, 'u.id,  u.confirmed, u.username, '. $allnames . ',
                     u.email, r.sortorder, ra.id', 'r.sortorder, ra.id ASC, ' . $sort, false, '', '', '', '', $sortparams);
                     $i++;
