@@ -71,8 +71,9 @@ class enrol_wallet_test extends \advanced_testcase {
     /**
      * Test longtimnosee
      * @covers ::sync
+     * @return void
      */
-    public function test_longtimnosee() {
+    public function test_longtimnosee(): void {
         global $DB;
         $this->resetAfterTest();
 

@@ -392,7 +392,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool|array true if enrolled else error code and message
      */
     public function enrol_self(stdClass $instance, \stdClass $user = null, $charge = true) {
-        global $CFG;
+        global $CFG, $DB;
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
         if (empty($user)) {
             global $USER;
@@ -425,7 +425,8 @@ class enrol_wallet_plugin extends enrol_plugin {
                 'enrolid'   => $instance->id,
                 'timestart' => $timestart,
                 'timeend'   => $timeend,
-                'status'    => ENROL_USER_ACTIVE];
+                'status'    => ENROL_USER_ACTIVE,
+            ];
             while (!$DB->record_exists('user_enrolments', $conditions)) {
                 $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend, null, true);
             }
