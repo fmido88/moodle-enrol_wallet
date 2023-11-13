@@ -281,8 +281,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $refundperiod = get_config('enrol_wallet', 'unenrolrefundperiod');
         $now = time();
         if (
-            $now > $enrolend
-            || ($now - $enrolstart) > $refundperiod
+            (!empty($enrolend) && $now > $enrolend) // The enrolmet already ended.
+            || ($now > $enrolstart && !empty($refundperiod) && ($now - $enrolstart) > $refundperiod) // Passed the period.
         ) {
             // Condition for refunding aren't met.
             return parent::unenrol_user($instance, $userid);
@@ -311,6 +311,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if ($credit <= 0) {
             return parent::unenrol_user($instance, $userid);
         } else if ($credit > $cost) {
+            // Shouldn't happen.
             $credit = $cost;
         }
 
@@ -1587,7 +1588,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param object $context context of existing course or parent category if course does not exist
      * @return array errors array
      */
-    public function course_edit_validation($instance, array $data, $context) {
+    public function course_edit_validation($instance, $data, $context) {
         if (empty($instance)) {
             if (isset($data['instanceid'])) {
                 $data['id'] = $data['instanceid'];
