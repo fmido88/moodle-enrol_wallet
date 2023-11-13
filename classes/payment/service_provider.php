@@ -47,7 +47,9 @@ class service_provider implements \core_payment\local\callback\service_provider 
         global $DB, $USER;
 
         // Get the fake item in case of topping up the wallet.
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        if (!$item = $DB->get_record('enrol_wallet_items', ['id' => $itemid]) && $paymentarea == 'walletenrol') {
+            $item = $DB->get_record('enrol', ['id'=> $itemid]); // Legacy.
+        }
 
         // In this case we get the default settings.
         $account = get_config('enrol_wallet', 'paymentaccount');
@@ -64,11 +66,14 @@ class service_provider implements \core_payment\local\callback\service_provider 
      */
     public static function get_success_url(string $paymentarea, int $itemid): \moodle_url {
         global $DB;
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
+        if (!$item = $DB->get_record('enrol_wallet_items', ['id' => $itemid]) && $paymentarea == 'walletenrol') {
+            $item = $DB->get_record('enrol', ['id'=> $itemid], '*', MUST_EXIST);  // Legacy.
+        }
         // Check if the payment is for enrolment or topping up the wallet.
         if ($paymentarea == 'walletenrol' && $item) {
-
-            $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->instanceid], MUST_EXIST);
+            if (!$courseid = $item->courseid ?? false) {  // Legacy.
+                $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->instanceid], MUST_EXIST);
+            }
 
             return new \moodle_url('/course/view.php', ['id' => $courseid]);
 
@@ -91,7 +96,9 @@ class service_provider implements \core_payment\local\callback\service_provider 
         global $DB, $CFG;
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
         // Get the fake item in case of topping up the wallet.
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        if (!$item = $DB->get_record('enrol_wallet_items', ['id' => $itemid]) && $paymentarea == 'walletenrol') {
+            $item = $DB->get_record('enrol', ['id' => $itemid], '*', MUST_EXIST);
+        }
 
         // Check if the payment is for enrolment or topping up the wallet.
         if ($paymentarea == 'walletenrol') {
