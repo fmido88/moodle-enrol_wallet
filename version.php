@@ -25,7 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2023102303;
-$plugin->requires  = 2020110911;
+$plugin->requires  = 2019052000;
 $plugin->component = 'enrol_wallet';
 $plugin->release   = '4.0.0';
 $plugin->maturity  = MATURITY_STABLE;
