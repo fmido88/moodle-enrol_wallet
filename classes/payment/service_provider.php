@@ -50,7 +50,11 @@ class service_provider implements \core_payment\local\callback\service_provider 
         $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
 
         // In this case we get the default settings.
-        $account = get_config('enrol_wallet', 'paymentaccount');
+        if ($paymentarea === 'walletenrol') {
+            $account = $DB->get_field('enrol', 'customint1', ['id' => $item->instanceid]);
+        } else {
+            $account = get_config('enrol_wallet', 'paymentaccount');
+        }
 
         return new \core_payment\local\entities\payable($item->cost, $item->currency, $account);
     }
