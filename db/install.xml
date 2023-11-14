@@ -10,6 +10,7 @@
         <FIELD NAME="cost" TYPE="number" LENGTH="10" DECIMALS="5" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="the price should be added"/>
         <FIELD NAME="currency" TYPE="char" LENGTH="3" NOTNULL="true" DEFAULT="EGP" SEQUENCE="false" COMMENT="the currency"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the id of the user doing the operation"/>
+        <FIELD NAME="instanceid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" DEFAULT="0" COMMENT="Enrol Instance id"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
