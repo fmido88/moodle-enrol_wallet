@@ -48,7 +48,7 @@ class service_provider_test extends \advanced_testcase {
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
         $course = $generator->create_course();
-
+        $user = $generator->create_user();
         $data = [
             'courseid' => $course->id,
             'customint1' => $account->get('id'),
@@ -57,8 +57,16 @@ class service_provider_test extends \advanced_testcase {
             'roleid' => $studentrole->id,
         ];
         $id = $walletplugin->add_instance($course, $data);
-
-        $payable = service_provider::get_payable('walletenrol', $id);
+        $payrecord = [
+            'cost'       => 250,
+            'currency'   => 'USD',
+            'userid'     => $user->id,
+            'instanceid' => $id,
+        ];
+        if (!$itemid = $DB->get_field('enrol_wallet_items', 'id', $payrecord, IGNORE_MULTIPLE)) {
+            $itemid = $DB->insert_record('enrol_wallet_items', $payrecord);
+        }
+        $payable = service_provider::get_payable('walletenrol', $itemid);
 
         $this->assertEquals($account->get('id'), $payable->get_account_id());
         $this->assertEquals(250, $payable->get_amount());
@@ -107,6 +115,7 @@ class service_provider_test extends \advanced_testcase {
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
         $course = $generator->create_course();
+        $user = $generator->create_user();
 
         $data = [
             'courseid' => $course->id,
@@ -116,8 +125,16 @@ class service_provider_test extends \advanced_testcase {
             'roleid' => $studentrole->id,
         ];
         $id = $walletplugin->add_instance($course, $data);
-
-        $successurl = service_provider::get_success_url('walletenrol', $id);
+        $payrecord = [
+            'cost'       => 250,
+            'currency'   => 'USD',
+            'userid'     => $user->id,
+            'instanceid' => $id,
+        ];
+        if (!$itemid = $DB->get_field('enrol_wallet_items', 'id', $payrecord, IGNORE_MULTIPLE)) {
+            $itemid = $DB->insert_record('enrol_wallet_items', $payrecord);
+        }
+        $successurl = service_provider::get_success_url('walletenrol', $itemid);
         $this->assertEquals(
             $CFG->wwwroot . '/course/view.php?id=' . $course->id,
             $successurl->out(false)
@@ -173,7 +190,8 @@ class service_provider_test extends \advanced_testcase {
         $course = $generator->create_course();
         $context = \context_course::instance($course->id);
         $user = $generator->create_user();
-
+        $this->setUser($user);
+        global $USER;
         $data = [
             'courseid' => $course->id,
             'customint1' => $account->get('id'),
@@ -182,14 +200,22 @@ class service_provider_test extends \advanced_testcase {
             'roleid' => $studentrole->id,
         ];
         $id = $walletplugin->add_instance($course, $data);
-
+        $payrecord = [
+            'cost'       => 250,
+            'currency'   => 'USD',
+            'userid'     => $USER->id,
+            'instanceid' => $id,
+        ];
+        if (!$itemid = $DB->get_field('enrol_wallet_items', 'id', $payrecord, IGNORE_MULTIPLE)) {
+            $itemid = $DB->insert_record('enrol_wallet_items', $payrecord);
+        }
         $paymentid = $generator->get_plugin_generator('core_payment')->create_payment([
             'accountid' => $account->get('id'),
             'amount' => 10,
             'userid' => $user->id,
         ]);
 
-        service_provider::deliver_order('walletenrol', $id, $paymentid, $user->id);
+        service_provider::deliver_order('walletenrol', $itemid, $paymentid, $user->id);
         $this->assertTrue(is_enrolled($context, $user));
         $this->assertTrue(user_has_role_assignment($user->id, $studentrole->id, $context->id));
     }

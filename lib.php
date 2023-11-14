@@ -2031,6 +2031,10 @@ class enrol_wallet_plugin extends enrol_plugin {
             return '';
         }
 
+        if (!class_exists('\core_payment\helper')) {
+            return '';
+        }
+
         $balance = (float)transactions::get_user_balance($USER->id);
         $cost    = (float)$fee - $balance;
 
@@ -2054,7 +2058,10 @@ class enrol_wallet_plugin extends enrol_plugin {
                 'userid'     => $USER->id,
                 'instanceid' => $instance->id,
             ];
-            $id = $DB->insert_record('enrol_wallet_items', $payrecord);
+            if (!$id = $DB->get_field('enrol_wallet_items', 'id', $payrecord, IGNORE_MULTIPLE)) {
+                $id = $DB->insert_record('enrol_wallet_items', $payrecord);
+            }
+
             $data = [
                 'isguestuser' => isguestuser() || !isloggedin(),
                 'cost'        => \core_payment\helper::get_cost_as_string($cost, $instance->currency),
