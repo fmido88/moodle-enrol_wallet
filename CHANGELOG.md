@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 4.0.5 ##
+- Add missing capability check for generating coupons page.
+- Use curl class instate of curl_init() when requesting data from wordpress.
+- Some lang string fixes.
+
 ## V 4.0.0 ##
 - Many fixes.
 - Improve the validation of forms.
