@@ -70,7 +70,9 @@ class wordpress {
 
         if (empty($info['http_code']) || $info['http_code'] != 200 || !empty($errorno)) {
             // Endpoint returned an error.
-            debugging(print_r($response, true));
+            if (is_string($response)) {
+                debugging($response);
+            }
             return get_string('endpoint_error', 'enrol_wallet');
         }
         return json_decode($response, true);
@@ -277,7 +279,7 @@ class wordpress {
      * @param string $redirect redirection url after login or logout from wordpress website
      */
     public function login_logout_user_to_wordpress($userid, $method, $redirect) {
-        $walletsource = get_config('enrol_wallet','walletsource');
+        $walletsource = get_config('enrol_wallet', 'walletsource');
         $allowed = get_config('enrol_wallet', 'wordpressloggins');
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
