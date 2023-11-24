@@ -281,6 +281,10 @@ class observer {
     public static function login_to_wordpress(\core\event\user_loggedin $event) {
         global $SESSION;
         $userid = $event->userid;
+        $walletsource = get_config('enrol_wallet', 'walletsource');
+        if ($walletsource != transactions::SOURCE_WORDPRESS) {
+            return;
+        }
 
         $user = \core_user::get_user($userid);
         if (!$user || isguestuser($user) || !empty($user->deleted) || !empty($user->suspended)) {
@@ -324,12 +328,8 @@ class observer {
      */
     public static function logout_from_wordpress(\core\event\user_loggedout $event) {
         global  $redirect;
-
-        $userid = $event->userid;
-
-        $user = \core_user::get_user($userid);
-
-        if (!$user || isguestuser($user)) {
+        $walletsource = get_config('enrol_wallet', 'walletsource');
+        if ($walletsource != transactions::SOURCE_WORDPRESS) {
             return;
         }
 
@@ -337,6 +337,14 @@ class observer {
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
         $allowed = get_config('enrol_wallet', 'wordpressloggins');
         if (empty($allowed) || empty($wordpressurl)) {
+            return;
+        }
+
+        $userid = $event->userid;
+
+        $user = \core_user::get_user($userid);
+
+        if (!$user || isguestuser($user)) {
             return;
         }
 

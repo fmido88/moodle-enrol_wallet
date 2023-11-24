@@ -32,6 +32,15 @@ $currency   = required_param('currency', PARAM_TEXT);
 $val        = optional_param('value', 0, PARAM_FLOAT);
 $return     = optional_param('return', '', PARAM_LOCALURL);
 
+$urlparams = [
+    'instanceid' => $instanceid,
+    'courseid'   => $courseid,
+    'account'    => $account,
+    'currency'   => $currency,
+    'value'      => $val,
+    'return'     => $return,
+];
+$baseurl = new moodle_url('/enrol/wallet/extra/topup.php', $urlparams);
 // Check the conditional discount.
 $enabled   = get_config('enrol_wallet', 'conditionaldiscount_apply');
 $discount  = 0;
@@ -80,7 +89,7 @@ if ($confirm) {
 
     $PAGE->set_context(context_system::instance());
     $PAGE->set_pagelayout('standard');
-    $PAGE->set_url(new moodle_url('/enrol/wallet/extra/topup.php'));
+    $PAGE->set_url($baseurl);
     $PAGE->set_title(new lang_string('confirm'));
 
     require_login();
@@ -107,8 +116,8 @@ if ($confirm) {
 
     // Again there is no need for this $yesurl as clicking the button trigger the payment.
     // Just in case.
-    $yesurl = new moodle_url('/enrol/wallet/extra/topup.php');
-    $buttoncontinue = new single_button($yesurl, get_string('yes'), 'get', true, $attributes);
+    $baseurl->param('confirm', true);
+    $buttoncontinue = new single_button($baseurl, get_string('yes'), 'get', true, $attributes);
 
     $buttoncancel = new single_button($url, get_string('no'), 'get');
 

@@ -51,29 +51,31 @@ class wordpress {
         $url = $wordpressurl . self::ENDPOINT . $method;
         $encrypted = $this->encrypt_data($data);
         $sendingdata = ['encdata' => $encrypted];
-        $curl = curl_init();
+
+        $curl = new \curl();
+
         $curlsetopt = [
-            CURLOPT_URL            => $url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FAILONERROR    => false,
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $sendingdata,
+            'url'            => $url,
+            'returntransfer' => true,
+            'failonerror'    => false,
+            'post'           => true,
+            'postfields'     => $sendingdata,
         ];
+        $curl->setopt($curlsetopt);
 
-        curl_setopt_array($curl, $curlsetopt);
-        $response = curl_exec($curl);
-        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $response = $curl->post($url, $sendingdata);
+        $info = $curl->get_info();
+        $errorno = $curl->get_errno();
+        $curl->cleanopt();
 
-        curl_close($curl);
-
-        if ($httpcode != 200) {
+        if (empty($info['http_code']) || $info['http_code'] != 200 || !empty($errorno)) {
             // Endpoint returned an error.
+            debugging(print_r($response, true));
             return get_string('endpoint_error', 'enrol_wallet');
         }
-
-        $return = json_decode($response, true);
-        return $return;
+        return json_decode($response, true);
     }
+
     /**
      * encrypt data before sent it.
      * @param array $data data to encrypt (in form of an array)
@@ -275,6 +277,7 @@ class wordpress {
      * @param string $redirect redirection url after login or logout from wordpress website
      */
     public function login_logout_user_to_wordpress($userid, $method, $redirect) {
+        $walletsource = get_config('enrol_wallet','walletsource');
         $allowed = get_config('enrol_wallet', 'wordpressloggins');
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
@@ -282,13 +285,13 @@ class wordpress {
         $user = \core_user::get_user($userid);
 
         if (
-            empty($allowed) // Check if this option allowed in the settings.
+            $walletsource != transactions::SOURCE_WORDPRESS
+            || empty($allowed) // Check if this option allowed in the settings.
             || empty($wordpressurl) // If the wp url is not set.
             || !$user // If this is a valid user.
             || isguestuser($user) // Not guest.
             || ($method == 'login' && !isloggedin())
             ) {
-            // Redirect.
             return;
         }
 

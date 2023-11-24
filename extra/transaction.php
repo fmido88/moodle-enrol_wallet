@@ -140,6 +140,7 @@ $limits = [];
 for ($i = 25; $i <= 1000; $i = $i + 25) {
     $limits[$i] = $i;
 }
+
 $mform->addElement('select', 'perpage', get_string('transaction_perpage', 'enrol_wallet'), $limits);
 if (!empty($limitnum)) {
     $mform->setDefault('perpage', $limitnum);
@@ -246,21 +247,11 @@ $count = $DB->count_records_select('enrol_wallet_transactions', $select, $params
 $pages = $count / $limitnum;
 $decimal = fmod($pages, 1);
 $pages = ($decimal > 0) ? intval($pages) + 1 : intval($pages);
-$content = '<p>Page: </p>';
-for ($i = 1; $i <= $pages; $i++) {
-    $urlparams['page'] = ($i - 1) * $limitnum;
-
-    if ($urlparams['page'] == $limitfrom) {
-        $content .= $i;
-    } else {
-        $url = new moodle_url('/enrol/wallet/extra/transaction.php', $urlparams);
-        $content .= html_writer::link($url, $i);
-    }
-
-    $content .= ' ';
+if ($limitfrom + 1 > $pages) {
+    $limitfrom = 0;
 }
-
-$pageslinks = html_writer::span($content);
+$url = new moodle_url('/enrol/wallet/extra/transaction.php', $urlparams);
+$paging = new paging_bar($count, $limitfrom, $limitnum, $url);
 
 foreach ($records as $record) {
 
@@ -301,12 +292,12 @@ echo $OUTPUT->single_button($baseurl, get_string('clear_filter', 'enrol_wallet')
 echo $OUTPUT->heading(get_string('transactions', 'enrol_wallet'), 3);
 
 // Display pages links.
-echo $pageslinks;
+echo $OUTPUT->render($paging);
 
 // Display the table.
 $table->finish_output();
 
 // Page links again.
-echo $pageslinks;
+echo $OUTPUT->render($paging);
 
 echo $OUTPUT->footer();

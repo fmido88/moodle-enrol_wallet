@@ -590,7 +590,7 @@ function enrol_wallet_display_topup_options() {
         $render .= ob_get_clean();
     }
 
-    // If plugin block_vc exist, add credit options byt it.
+    // If plugin block_vc exist, add credit options by it.
     if (file_exists("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php")
             && get_config('block_vc', 'enablecredit')) {
 

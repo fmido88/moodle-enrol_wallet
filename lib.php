@@ -143,7 +143,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $script = "
             var titleElement = document.createElement('div');
             titleElement.textContent = '$cost';
-            titleElement.className = 'walletcost';
+            titleElement.className = 'enrol_wallet walletcost';
             titleElement.id = '$idp';
 
             var imageElement = document.getElementById('$id');

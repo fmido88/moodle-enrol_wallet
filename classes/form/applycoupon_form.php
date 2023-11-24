@@ -87,7 +87,7 @@ class applycoupon_form extends \moodleform {
         }
 
         if ($validate === true) {
-            $html = '<span>coupon code ( '.$coupon.' ) applied.';
+            $html = html_writer::span(get_string('coupon_code_applied', 'enrol_wallet', $coupon));
             $coupongroup[] = $mform->createElement('html', $html);
             $coupongroup[] = $mform->createElement('cancel');
             $coupongroup[] = $mform->createElement('hidden', 'coupon');

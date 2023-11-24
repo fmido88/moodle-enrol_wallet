@@ -25,7 +25,7 @@
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 require_login();
-
+require_capability('enrol/wallet:createcoupon', context_system::instance());
 $method = required_param('method', PARAM_TEXT);
 
 if ($method == 'single') {
