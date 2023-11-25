@@ -117,7 +117,10 @@ if ($confirm) {
     // Again there is no need for this $yesurl as clicking the button trigger the payment.
     // Just in case.
     $baseurl->param('confirm', true);
-    $buttoncontinue = new single_button($baseurl, get_string('yes'), 'get', true, $attributes);
+    $buttoncontinue = new single_button($baseurl, get_string('yes'), 'get');
+    foreach ($attributes as $name => $v) {
+        $buttoncontinue->set_attribute($name, $v);
+    }
 
     $buttoncancel = new single_button($url, get_string('no'), 'get');
 

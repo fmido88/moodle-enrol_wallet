@@ -41,6 +41,8 @@ class wordpress {
      * @return mixed
      */
     public function request($method, $data) {
+        global $CFG;
+        require_once($CFG->libdir .'/filelib.php');
 
         $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
