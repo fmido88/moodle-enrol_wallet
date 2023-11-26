@@ -440,3 +440,26 @@ function enrol_wallet_after_require_login() {
     $wordpress = new \enrol_wallet\wordpress;
     $wordpress->login_logout_user_to_wordpress($USER->id, 'login', $return);
 }
+
+/**
+ * Delete the user's metadata upon the user deletation.
+ * @param stdClass $user
+ * @return void
+ */
+function enrol_wallet_pre_user_delete($user) {
+    global $DB;
+    $DB->delete_records('enrol_wallet_items', ['userid' => $user->id]);
+    $DB->delete_records('enrol_wallet_transactions', ['userid' => $user->id]);
+    $DB->delete_records('enrol_wallet_referral', ['userid' => $user->id]);
+    $DB->delete_records('enrol_wallet_hold_gift', ['referred' => $user->username]);
+    // Don't delete the coupon usage record.
+
+    // No need for the adhoc tasks to be run.
+    $tasks = core\task\manager::get_adhoc_tasks('turn_non_refundable');
+    foreach ($tasks as $task) {
+        if ($task->get_custom_data()['userid'] == $user->id) {
+            $DB->delete_records('task_adhoc', ['id' => $task->id]);
+        }
+    }
+
+}
