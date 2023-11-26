@@ -46,5 +46,16 @@ $tasks = [
         'dayofweek' => '*',
         'disabled'  => 0,
     ],
+    [
+        'classname' => '\enrol_wallet\task\cleanup_wallet_items',
+        'blocking'  => 0,
+        'minute'    => '*/20',
+        'hour'      => '*',
+        'day'       => '*',
+        'month'     => '*',
+        'dayofweek' => '*',
+        'disabled'  => 0,
+    ],
+    
 ];
 
