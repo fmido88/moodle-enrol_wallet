@@ -235,5 +235,15 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
         upgrade_plugin_savepoint(true, 2023102303, 'enrol', 'wallet');
     }
+
+    if ($oldversion < 2023112606) {
+        $table = new xmldb_table('enrol_wallet_items');
+        $field = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0, 'instanceid');
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        upgrade_plugin_savepoint(true, 2023112606, 'enrol', 'wallet');
+    }
     return true;
 }

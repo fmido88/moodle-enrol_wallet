@@ -203,6 +203,9 @@ class observer {
             $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
 
             foreach ($records as $record) {
+                if ($record->percent >= 100) {
+                    continue;
+                }
                 $beforediscount = $amount + ($amount * $record->percent / (100 - $record->percent));
                 if ($beforediscount >= $record->cond && $record->percent > $percentdiscount) {
 

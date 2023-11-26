@@ -461,5 +461,4 @@ function enrol_wallet_pre_user_delete($user) {
             $DB->delete_records('task_adhoc', ['id' => $task->id]);
         }
     }
-
 }

@@ -56,6 +56,5 @@ $tasks = [
         'dayofweek' => '*',
         'disabled'  => 0,
     ],
-    
 ];
 
