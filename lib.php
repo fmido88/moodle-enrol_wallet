@@ -2053,10 +2053,11 @@ class enrol_wallet_plugin extends enrol_plugin {
             require_once(__DIR__.'/classes/payment/service_provider.php');
 
             $payrecord = [
-                'cost'       => $cost,
-                'currency'   => $instance->currency,
-                'userid'     => $USER->id,
-                'instanceid' => $instance->id,
+                'cost'        => $cost,
+                'currency'    => $instance->currency,
+                'userid'      => $USER->id,
+                'instanceid'  => $instance->id,
+                'timecreated' => time(),
             ];
             if (!$id = $DB->get_field('enrol_wallet_items', 'id', $payrecord, IGNORE_MULTIPLE)) {
                 $id = $DB->insert_record('enrol_wallet_items', $payrecord);

@@ -99,7 +99,13 @@ if ($confirm) {
     $desc = get_string('paymenttopup_desc', 'enrol_wallet');
 
     // Set a fake item form payment.
-    $id = $DB->insert_record('enrol_wallet_items', ['cost' => $value, 'currency' => $currency, 'userid' => $USER->id]);
+    $itemdata = [
+        'cost'        => $value,
+        'currency'    => $currency,
+        'userid'      => $USER->id,
+        'timecreated' => time(),
+    ];
+    $id = $DB->insert_record('enrol_wallet_items', $itemdata);
     // Prepare the payment button.
     $attributes = [
         'class'            => "btn btn-primary",
