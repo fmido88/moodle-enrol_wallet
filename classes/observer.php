@@ -61,6 +61,11 @@ class observer {
         $grades = grade_get_course_grade($userid, $courseid);
         $maxgrade = (float)$grades->item->grademax;
         $usergrade = (float)$grades->grade;
+
+        if ($maxgrade <= 0 || $usergrade <= 0) {
+            return;
+        }
+
         $percentage = ($usergrade / $maxgrade) * 100;
 
         // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
