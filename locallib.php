@@ -800,3 +800,70 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
 
     return false;
 }
+
+/**
+ * For versions lower than 3.11 the class core_user/fields not exists
+ * so we use this.
+ * @copied from core_user/fields::get_identity
+ * @param context $context
+ * @param bool $allowcustom
+ * @return array
+ */
+function enrol_wallet_get_identity_fields($context, $allowcustom = true) {
+    global $CFG;
+
+    // Only users with permission get the extra fields.
+    if ($context && !has_capability('moodle/site:viewuseridentity', $context)) {
+        return [];
+    }
+
+    // Split showuseridentity on comma (filter needed in case the showuseridentity is empty).
+    $extra = array_filter(explode(',', $CFG->showuseridentity));
+
+    // If there are any custom fields, remove them if necessary (either if allowcustom is false,
+    // or if the user doesn't have access to see them).
+    foreach ($extra as $key => $field) {
+        if (preg_match('~^profile_field_(.*)$~', $field, $matches)) {
+            $allowed = false;
+            if ($allowcustom) {
+                require_once($CFG->dirroot . '/user/profile/lib.php');
+
+                // Ensure the field exists (it may have been deleted since user identity was configured).
+                $field = profile_get_custom_field_data_by_shortname($matches[1], false);
+                if ($field !== null) {
+                    $fieldinstance = profile_get_user_field($field->datatype, $field->id, 0, $field);
+                    $allowed = $fieldinstance->is_visible($context);
+                }
+            }
+            if (!$allowed) {
+                unset($extra[$key]);
+            }
+        }
+    }
+
+    // For standard user fields, access is controlled by the hiddenuserfields option and
+    // some different capabilities. Check and remove these if the user can't access them.
+    $hiddenfields = array_filter(explode(',', $CFG->hiddenuserfields));
+    $hiddenidentifiers = array_intersect($extra, $hiddenfields);
+
+    if ($hiddenidentifiers) {
+        if (!$context) {
+            $canviewhiddenuserfields = true;
+        } else if ($context->get_course_context(false)) {
+            // We are somewhere inside a course.
+            $canviewhiddenuserfields = has_capability('moodle/course:viewhiddenuserfields', $context);
+        } else {
+            // We are not inside a course.
+            $canviewhiddenuserfields = has_capability('moodle/user:viewhiddendetails', $context);
+        }
+
+        if (!$canviewhiddenuserfields) {
+            // Remove hidden identifiers from the list.
+            $extra = array_diff($extra, $hiddenidentifiers);
+        }
+    }
+
+    // Re-index the entries and return.
+    $extra = array_values($extra);
+    return array_map([core_text::class, 'strtolower'], $extra);
+}

@@ -24,6 +24,7 @@
 
 require_once('../../../config.php');
 require_once(__DIR__.'/../lib.php');
+require_once(__DIR__.'/../locallib.php');
 require_once($CFG->libdir.'/tablelib.php');
 require_once($CFG->libdir.'/formslib.php');
 
@@ -97,9 +98,15 @@ if ($viewall) {
         'courseid'          => SITEID,
         'enrolid'           => 0,
         'perpage'           => $CFG->maxusersperpage,
-        'userfields'        => implode(',', \core_user\fields::get_identity_fields($systemcontext, true)),
         'noselectionstring' => get_string('allusers', 'enrol_wallet'),
     ];
+
+    if (class_exists('core_user/fields')) {
+        $options['userfields'] = implode(',', \core_user\fields::get_identity_fields($systemcontext, true));
+    } else {
+        $options['userfields'] = implode(',', enrol_wallet_get_identity_fields($systemcontext, true));
+    }
+
     $mform->addElement('autocomplete', 'user', get_string('selectusers', 'enrol_manual'), [], $options);
     if (!empty($userid)) {
         $mform->setDefault('user', $userid);

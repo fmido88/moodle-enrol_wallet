@@ -2083,6 +2083,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
 }
+
 /*  A reference to remind me with the instance object.
     id:              the instance id (int)
     enrol:           wallet "fixed for each plugin" (string)

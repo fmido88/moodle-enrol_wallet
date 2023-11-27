@@ -112,8 +112,15 @@ class charger_form extends \moodleform {
             'courseid'   => $courseid,
             'enrolid'    => 0,
             'perpage'    => $CFG->maxusersperpage,
-            'userfields' => implode(',', \core_user\fields::get_identity_fields($context, true)),
         ];
+
+        if (class_exists('core_user\fields')) {
+            $options['userfields'] = implode(',', \core_user\fields::get_identity_fields($context, true));
+        } else {
+            require_once($CFG->dirroot."/enrol/wallet/locallib.php");
+            $options['userfields'] = implode(',', enrol_wallet_get_identity_fields($context, true));
+        }
+
         $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), [], $options);
 
         $mform->addElement('submit', 'submit', get_string('submit'));

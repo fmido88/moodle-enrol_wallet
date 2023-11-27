@@ -229,7 +229,10 @@ $mform->addElement('header', 'filter', get_string('filter_coupons', 'enrol_walle
 $attributes = [
     'multiple' => false,
     'ajax' => 'core_user/form_user_selector',
-    'valuehtmlcallback' => function($userid) {
+];
+
+if (class_exists('core_user\fields')) {
+    $attributes['valuehtmlcallback'] = function($userid) {
         global $OUTPUT;
 
         $context = \context_system::instance();
@@ -250,8 +253,24 @@ $attributes = [
         }
 
         return $OUTPUT->render_from_template('core_user/form_user_selector_suggestion', $user);
-    },
-];
+    };
+} else {
+    $attributes['valuehtmlcallback'] = function($userid) {
+        global $OUTPUT;
+
+        $context = \context_system::instance();
+        $record = core_user::get_user($userid, 'id, firstname, lastname, email', MUST_EXIST);
+
+        $user = (object)[
+            'id' => $record->id,
+            'fullname' => fullname($record, has_capability('moodle/site:viewfullnames', $context)),
+            'extrafields' => [],
+        ];
+
+        return $OUTPUT->render_from_template('core_user/form_user_selector_suggestion', $user);
+    };
+}
+
 $mform->addElement('autocomplete', 'userid', get_string('user'), [], $attributes);
 if ($userid != null && $userid != '') {
     $mform->setDefault('userid', $userid);
