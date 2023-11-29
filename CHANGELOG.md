@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 4.0.9 ##
+- Fix non existence class bug in moodle 3.9
+- Update Privacy provider class and add get_meta_data() function.
+- Fix minor bugs.
+
 ## V 4.0.5 ##
 - Add missing capability check for generating coupons page.
 - Use curl class instate of curl_init() when requesting data from wordpress.
