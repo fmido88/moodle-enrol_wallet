@@ -804,7 +804,7 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
 /**
  * For versions lower than 3.11 the class core_user/fields not exists
  * so we use this.
- * @copied from core_user/fields::get_identity
+ * Copied from core_user/fields::get_identity
  * @param context $context
  * @param bool $allowcustom
  * @return array

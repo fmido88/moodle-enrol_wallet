@@ -70,7 +70,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
         global $DB;
         $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
         // Check if the payment is for enrolment or topping up the wallet.
-        if ($paymentarea == 'walletenrol' && $item) {
+        if ($paymentarea == 'walletenrol' && !empty($item->instanceid)) {
 
             $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->instanceid], MUST_EXIST);
 

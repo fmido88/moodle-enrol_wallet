@@ -27,6 +27,7 @@ namespace enrol_wallet\privacy;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
+use core_privacy\local\metadata\collection;
 
 /**
  * Privacy Subsystem for enrol_wallet implementing null_provider.
@@ -35,16 +36,69 @@ use core_privacy\local\request\userlist;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
-    \core_privacy\local\metadata\null_provider,
+    \core_privacy\local\metadata\provider,
     \core_payment\privacy\consumer_provider {
+
     /**
-     * Get the language string identifier with the component's language
-     * file to explain why this plugin stores no data.
-     *
-     * @return  string
+     * Returns meta data about this system.
+     * @param collection $collection The initialized collection to add items to.
+     * @return collection A listing of user data stored through this system.
      */
-    public static function get_reason() : string {
-        return 'privacy:metadata';
+    public static function get_metadata(collection $collection) :collection {
+        $collection->add_database_table('enrol_wallet_items', [
+            'userid'     => "privacy:metadata:enrol_wallet_items:userid",
+            'cost'       => "privacy:metadata:enrol_wallet_items:cost",
+            'currency'   => "privacy:metadata:enrol_wallet_items:currency",
+            'instanceid' => "privacy:metadata:enrol_wallet_items:instanceid",
+            ], "privacy:metadata:enrol_wallet_items");
+
+        $collection->add_database_table('enrol_wallet_awards', [
+            'userid'   => "privacy:metadata:enrol_wallet_awards:userid",
+            'courseid' => "privacy:metadata:enrol_wallet_awards:courseid",
+            'grade'    => "privacy:metadata:enrol_wallet_awards:grade",
+            'amount'   => "privacy:metadata:enrol_wallet_awards:amount",
+            ], "privacy:metadata:enrol_wallet_awards");
+
+        $collection->add_database_table('enrol_wallet_transactions', [
+            'userid'    => "privacy:metadata:enrol_wallet_transactions:userid",
+            'type'      => "privacy:metadata:enrol_wallet_transactions:type",
+            'amount'    => "privacy:metadata:enrol_wallet_transactions:amount",
+            'balance'   => "privacy:metadata:enrol_wallet_transactions:balance",
+            'balbefore' => "privacy:metadata:enrol_wallet_transactions:balbefore",
+            'norefund'  => "privacy:metadata:enrol_wallet_transactions:norefund",
+            'descripe'  => "privacy:metadata:enrol_wallet_transactions:description",
+        ], "privacy:metadata:enrol_wallet_transactions");
+
+        $collection->add_database_table('enrol_wallet_coupons_usage', [
+            'userid'     => "privacy:metadata:enrol_wallet_coupons_usage:userid",
+            'instanceid' => "privacy:metadata:enrol_wallet_coupons_usage:instanceid",
+        ], "privacy:metadata:enrol_wallet_coupons_usage");
+
+        $collection->add_database_table('enrol_wallet_referral', [
+            'userid'   => "privacy:metadata:enrol_wallet_referral:userid",
+            'code'     => "privacy:metadata:enrol_wallet_referral:code",
+            'usetimes' => "privacy:metadata:enrol_wallet_referral:usetimes",
+            'users'    => "privacy:metadata:enrol_wallet_referral:users",
+        ], "privacy:metadata:enrol_wallet_referral");
+
+        $collection->add_database_table('enrol_wallet_hold_gift', [
+            'referred' => "privacy:metadata:enrol_wallet_hold_gift:referred",
+            'courseid' => "privacy:metadata:enrol_wallet_hold_gift:courseid",
+            'amount'   => "privacy:metadata:enrol_wallet_hold_gift:amount",
+            'referrer' => "privacy:metadata:enrol_wallet_hold_gift:referrer",
+        ], "privacy:metadata:enrol_wallet_hold_gift");
+
+        $source = get_config('enrol_wallet', 'wallet_source');
+        if ($source == \enrol_wallet\transactions::SOURCE_WORDPRESS) {
+            $collection->add_external_location_link('wordpress', [
+                'userid'   => "privacy:metadata:wordpress:userid",
+                'email'    => "privacy:metadata:wordpress:email",
+                'username' => "privacy:metadata:wordpress:username",
+                'password' => "privacy:metadata:wordpress:password",
+            ], "privacy:metadata:wordpress");
+        }
+
+        return $collection;
     }
 
     /**
@@ -59,10 +113,11 @@ class provider implements
             $sql = "SELECT ctx.id
                     FROM {enrol} e
                     JOIN {context} ctx ON (e.courseid = ctx.instanceid AND ctx.contextlevel = :contextcourse)
-                    WHERE e.id = :enrolid AND e.enrol = :enrolname";
+                    JOIN {enrol_wallet_items} it ON it.instanceid = e.id
+                    WHERE it.id = :itemid AND e.enrol = :enrolname";
             $params = [
                 'contextcourse' => CONTEXT_COURSE,
-                'enrolid'       => $itemid,
+                'itemid'       => $itemid,
                 'enrolname'     => 'wallet',
             ];
             $contextid = $DB->get_field_sql($sql, $params);
@@ -83,13 +138,15 @@ class provider implements
         if ($context instanceof \context_course) {
             $sql = "SELECT p.userid
                       FROM {payments} p
-                      JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
+                      JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                      JOIN {enrol} e ON (p.component = :component AND  it.instanceid = e.id)
                      WHERE e.courseid = :courseid";
             $params = [
                 'component' => 'enrol_wallet',
                 'courseid'  => $context->instanceid,
             ];
             $userlist->add_from_sql('userid', $sql, $params);
+
         } else if ($context instanceof \context_system) {
             // If context is system, then the enrolment belongs to a deleted enrolment.
             $sql = "SELECT p.userid
@@ -100,11 +157,15 @@ class provider implements
                 'component' => 'enrol_wallet',
             ];
             $userlist->add_from_sql('userid', $sql, $params);
+
             // Also there if fake items for topping up the wallet.
             $sql = "SELECT p.userid
                       FROM {payments} p
                  LEFT JOIN {enrol_wallet_items} it ON (p.itemid = it.id AND p.userid = it.userid)
-                     WHERE p.component = :component AND p.paymentarea = :paymentarea";
+                     WHERE p.component = :component
+                     AND p.paymentarea = :paymentarea
+                     AND (it.instanceid IS NULL OR it.instanceid = 0)
+                     GROUP BY p.userid";
             $params = [
                 'component'   => 'enrol_wallet',
                 'paymentarea' => 'wallettopup',
@@ -127,38 +188,67 @@ class provider implements
         foreach ($contextlist as $context) {
             if ($context instanceof \context_course) {
                 $paymentarea = 'walletenrol';
+                $sql = "SELECT it.*
+                        FROM {enrol} e
+                        JOIN {enrol_wallet_items} it ON it.instanceid = e.id
+                        WHERE e.courseid = :courseid
+                            AND enrol = :enrol";
+                $items = $DB->get_records_sql($sql, ['courseid' => $context->instanceid, 'enrol' => 'wallet']);
+
+                foreach ($items as $item) {
+                    if (!class_exists('\core_payment\privacy\provider')) {
+                        break;
+                    }
+                    \core_payment\privacy\provider::export_payment_data_for_user_in_context(
+                        $context,
+                        $subcontext,
+                        $contextlist->get_user()->id,
+                        'enrol_wallet',
+                        $paymentarea,
+                        $item->id
+                    );
+                }
             } else {
                 $paymentarea = 'wallettopup';
-            }
-            $walletplugins = $DB->get_records('enrol', ['courseid' => $context->instanceid, 'enrol' => 'wallet']);
+                $items = $DB->get_records('enrol', ['courseid' => $context->instanceid, 'enrol' => 'wallet']);
 
-            foreach ($walletplugins as $walletplugin) {
-                if (!class_exists('\core_payment\privacy\provider')) {
-                    break;
+                foreach ($items as $item) {
+                    if (!class_exists('\core_payment\privacy\provider')) {
+                        break;
+                    }
+                    \core_payment\privacy\provider::export_payment_data_for_user_in_context(
+                        $context,
+                        $subcontext,
+                        $contextlist->get_user()->id,
+                        'enrol_wallet',
+                        $paymentarea,
+                        $item->id
+                    );
                 }
-                \core_payment\privacy\provider::export_payment_data_for_user_in_context(
-                    $context,
-                    $subcontext,
-                    $contextlist->get_user()->id,
-                    'enrol_wallet',
-                    $paymentarea,
-                    $walletplugin->id
-                );
             }
+
         }
 
         if (in_array(SYSCONTEXTID, $contextlist->get_contextids())) {
-            if (!$DB->table_exists('payments')) {
+            $dbman = $DB->get_manager();
+            if (!$dbman->table_exists('payments')) {
                 return;
             }
             // Orphaned payments for deleted enrollments.
             $sql = "SELECT p.*
                       FROM {payments} p
-                 LEFT JOIN {enrol} e ON p.itemid = e.id
-                     WHERE p.userid = :userid AND p.component = :component AND e.id IS NULL";
+                 LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                 LEFT JOIN {enrol} e ON e.id = it.instanceid
+                     WHERE p.userid = :userid
+                     AND p.component = :component
+                     AND (
+                        (e.id IS NULL AND it.instanceid IS NOT NULL)
+                        OR it.instanceid IS NULL
+                        OR it.instanceid = 0
+                        )";
             $params = [
-                'component' => 'enrol_wallet',
-                'userid'    => $contextlist->get_user()->id,
+                'component'   => 'enrol_wallet',
+                'userid'      => $contextlist->get_user()->id,
             ];
 
             $orphanedpayments = $DB->get_recordset_sql($sql, $params);
@@ -186,7 +276,8 @@ class provider implements
      */
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
-        if (!$DB->table_exists('payments')) {
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists('payments')) {
             return;
         }
         if ($context instanceof \context_course) {
@@ -246,7 +337,8 @@ class provider implements
         if (empty($contextlist->count())) {
             return;
         }
-        if (!$DB->table_exists('payments')) {
+        $dbman = $DB->get_manager();
+        if (!$dbman->table_exists('payments')) {
             return;
         }
         $contexts = $contextlist->get_contexts();
@@ -262,11 +354,12 @@ class provider implements
 
         $sql = "SELECT p.id
                   FROM {payments} p
-                  JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
+                  JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                  JOIN {enrol} e ON (p.component = :component AND it.instanceid = e.id)
                  WHERE p.userid = :userid AND e.courseid $insql";
         $params = $inparams + [
             'component' => 'enrol_wallet',
-            'userid' => $contextlist->get_user()->id,
+            'userid'    => $contextlist->get_user()->id,
         ];
         if (class_exists('\core_payment\privacy\provider')) {
             \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
@@ -277,8 +370,11 @@ class provider implements
             // First deleted enrollments.
             $sql = "SELECT p.id
                       FROM {payments} p
-                 LEFT JOIN {enrol} e ON p.itemid = e.id
-                     WHERE p.component = :component AND p.userid = :userid AND e.id IS NULL";
+                      JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                 LEFT JOIN {enrol} e ON it.instanceid = e.id
+                     WHERE p.component = :component
+                        AND p.userid = :userid
+                        AND e.id IS NULL";
             $params = [
                 'component' => 'enrol_wallet',
                 'userid' => $contextlist->get_user()->id,
@@ -290,7 +386,9 @@ class provider implements
             $sql = "SELECT p.id
                       FROM {payments} p
                  LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
-                     WHERE p.component = :component AND p.paymentarea = :paymentarea AND p.userid = :userid";
+                     WHERE p.component = :component
+                        AND p.paymentarea = :paymentarea
+                        AND p.userid = :userid";
             $params = [
                 'component'   => 'enrol_wallet',
                 'userid'      => $contextlist->get_user()->id,
@@ -325,7 +423,8 @@ class provider implements
             [$usersql, $userparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
             $sql = "SELECT p.id
                       FROM {payments} p
-                      JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
+                      JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                      JOIN {enrol} e ON (p.component = :component AND it.instanceid = e.id)
                      WHERE e.courseid = :courseid AND p.userid $usersql";
             $params = $userparams + [
                 'component' => 'enrol_wallet',
@@ -339,8 +438,11 @@ class provider implements
             [$usersql, $userparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
             $sql = "SELECT p.id
                       FROM {payments} p
-                 LEFT JOIN {enrol} e ON p.itemid = e.id
-                     WHERE p.component = :component AND p.userid $usersql AND e.id IS NULL";
+                      JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                 LEFT JOIN {enrol} e ON it.instanceid = e.id
+                     WHERE p.component = :component
+                        AND p.userid $usersql
+                        AND (e.id IS NULL OR it.id IS NULL)";
             $params = $userparams + [
                 'component' => 'enrol_wallet',
             ];
