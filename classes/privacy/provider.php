@@ -88,7 +88,7 @@ class provider implements
             'referrer' => "privacy:metadata:enrol_wallet_hold_gift:referrer",
         ], "privacy:metadata:enrol_wallet_hold_gift");
 
-        $source = get_config('enrol_wallet', 'wallet_source');
+        $source = get_config('enrol_wallet', 'walletsource');
         if ($source == \enrol_wallet\transactions::SOURCE_WORDPRESS) {
             $collection->add_external_location_link('wordpress', [
                 'userid'   => "privacy:metadata:wordpress:userid",
