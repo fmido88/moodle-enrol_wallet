@@ -37,6 +37,7 @@ use core_privacy\local\metadata\collection;
  */
 class provider implements
     \core_privacy\local\metadata\provider,
+    \core_privacy\local\request\data_provider,
     \core_payment\privacy\consumer_provider {
 
     /**
