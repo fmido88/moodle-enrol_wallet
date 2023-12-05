@@ -210,7 +210,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Return unenrol link to unenrol user from the current course.
-     * Null if unenrol self is not allowed or the user doesn't has the capability to unernol.
+     * Null if unenrol self is not allowed or the user doesn't has the capability to unenrol.
      * @param stdClass $instance
      * @return moodle_url|null
      */
@@ -222,6 +222,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             return null;
         }
 
+        $parentreturn = $return;
         // Check if unenrol self is enabled in the settings.
         $enabled = get_config('enrol_wallet', 'unenrolselfenabled');
         if (!$enabled) {
@@ -240,7 +241,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (!empty($after) && time() > $after + $enrolstart) {
             // Make sure this is not interfere with the second condition.
             if (!empty($before) && !empty($enrolend) && time() > $enrolend - $before) {
-                $return = parent::get_unenrolself_link($instance);
+                $return = $parentreturn;
             } else {
                 $return = null;
             }
@@ -250,7 +251,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (!empty($before) && !empty($enrolend) && time() < $enrolend - $before) {
             // Make sure this is not interfere with the first condition.
             if (!empty($after) && time() < $after + $enrolstart) {
-                $return = parent::get_unenrolself_link($instance);
+                $return = $parentreturn;
             } else {
                 $return = null;
             }
@@ -614,7 +615,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             // Now prepare the coupon form.
             // Check the coupons settings first.
-            if ($couponsetting != self::WALLET_NOCOUPONS && (empty($coupon) && $costafter != 0)) {
+            if ($couponsetting != self::WALLET_NOCOUPONS && $costafter != 0) {
                 $data = new stdClass();
                 $data->header   = $this->get_instance_name($instance);
                 $data->instance = $instance;
@@ -1227,12 +1228,12 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
             $mform->setType('customchar3', PARAM_TEXT);
 
-            $params = [
+            $attributes = [
                 'id'       => 'wallet_courserestriction',
                 'onChange' => 'restrictByCourse()',
             ];
             $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
-            $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $params);
+            $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $attributes);
             $select->setMultiple(true);
             $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
             $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
@@ -1688,6 +1689,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         return $errors;
     }
 
+
     /**
      * Returns defaults for new instances.
      * @return array
@@ -2115,8 +2117,8 @@ class enrol_wallet_plugin extends enrol_plugin {
     customdec1:      condition for award (percentage) (int) 0 - 99
     customdec2:      Award value per each raw mark above the condition (float)
     customtext1:     Welcome email content (string)
-    customtext2:     "not used"
-    customtext3:     "not used"
+    customtext2:     "not used" TODO add restriction rules.
+    customtext3:     "not used" TODO add offers rules.
     customtext4:     "not used"
     timecreated:     the time at which the instance created (int)
     timemodified:    the time at which the instance modified (int)
