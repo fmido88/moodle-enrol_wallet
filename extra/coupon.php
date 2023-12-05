@@ -97,6 +97,9 @@ if ($options = $mform->get_data()) {
     unset($options->validfrom);
     $options->courses = !empty($options->courses) ? implode(',', $options->courses) : '';
 
+    if ($options->type == 'enrol') {
+        $options->value = 0;
+    }
     // Generate coupons with the options specified.
     $ids = enrol_wallet_generate_coupons($options);
 

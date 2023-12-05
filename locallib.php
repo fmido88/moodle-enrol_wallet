@@ -99,7 +99,7 @@ function enrol_wallet_generate_coupons($options) {
     $from       = $options->from;
     $to         = $options->to;
     $type       = $options->type;
-    $value      = $options->value;
+    $value      = $options->value ?? ($type == 'enrol') ? 0 : null;
     $code       = $options->code;
 
     $recorddata = (object)[
