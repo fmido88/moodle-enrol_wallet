@@ -1,5 +1,9 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 4.0.10 ##
+- Fix generation of enrol coupons null value bug.
+- Fix privacy provider class.
+
 ## V 4.0.9 ##
 - Fix non existence class bug in moodle 3.9
 - Update Privacy provider class and add get_meta_data() function.
