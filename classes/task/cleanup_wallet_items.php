@@ -48,23 +48,19 @@ class cleanup_wallet_items extends \core\task\scheduled_task {
         $paymentexist = $DB->get_manager()->table_exists('payments');
 
         $params = ['timetocheck' => time() - DAYSECS];
-        if ($paymentexist) {
-            $sql = "SELECT it.*
-            FROM {enrol_wallet_items} it
-            JOIN {payments} p
-            WHERE p.itemid != it.id
-            AND (it.timecreated IS NULL OR it.timecreated < :timetocheck)";
-        } else {
-            $sql = "SELECT it.*
-            FROM {enrol_wallet_items} it
-            WHERE (it.timecreated IS NULL OR it.timecreated < :timetocheck)";
-        }
+
+        $sql = "SELECT it.*
+        FROM {enrol_wallet_items} it
+        WHERE (it.timecreated IS NULL OR it.timecreated < :timetocheck)";
 
         $records = $DB->get_records_sql($sql, $params);
         mtrace(count($records)." records found to be deleted...");
 
         foreach ($records as $record) {
-            $DB->delete_records('enrol_wallet_items', ['id' => $record->id]);
+            if (!$paymentexist
+            || !$DB->record_exists('payments', ['itemid' => $record->id, 'component' => 'enrol_wallet'])) {
+                $DB->delete_records('enrol_wallet_items', ['id' => $record->id]);
+            }
         }
 
         mtrace("Task ended.");

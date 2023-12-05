@@ -93,6 +93,7 @@ $string['chargingoperation'] = 'Operation';
 $string['chargingvalue'] = 'Value';
 $string['charging_value'] = 'Charging value: ';
 $string['clear_filter'] = 'Clear filters';
+$string['cleanupwalletitemstask'] = 'Cleanup orphaned and expired wallet items';
 $string['cohortnonmemberinfo'] = 'Only members of cohort \'{$a}\' can enrol.';
 $string['cohortonly'] = 'Only cohort members';
 $string['cohortonly_help'] = 'Enrolment may be restricted to members of a specified cohort only. Note that changing this setting has no effect on existing enrollments.';
