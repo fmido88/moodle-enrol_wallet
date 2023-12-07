@@ -729,6 +729,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (!has_capability('enrol/wallet:enrolself', context_course::instance($instance->courseid))) {
             return get_string('canntenrol', 'enrol_wallet');
         }
+
         // Check if user is a parent only if auth wallet exists.
         if (file_exists($CFG->dirroot . '/auth/parent/lib.php')) {
             require_once($CFG->dirroot . '/auth/parent/lib.php');
@@ -736,6 +737,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 return get_string('canntenrol', 'enrol_wallet');
             }
         }
+
         if ($checkuserenrolment) {
             // Check if user is already enroled.
             if ($ue = $DB->get_record('user_enrolments', ['userid' => $USER->id, 'enrolid' => $instance->id])) {
@@ -795,6 +797,14 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
 
+        if (!empty($this->config->restrictionenabled) && !empty($instance->customtext2)) {
+            $info = new \enrol_wallet\restriction\info($instance);
+            if (!$info->is_available($reasons, true, $USER->id)) {
+
+                $return[] = $reasons;
+
+            }
+        }
         // All restrictions checked.
         if (!empty($return)) {
             // Display them all.
@@ -812,6 +822,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (!is_numeric($costafter) || $costafter < 0) {
             return get_string('nocost', 'enrol_wallet');
         }
+
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
         $this->costafter = $costafter;
         $costbefore      = $instance->cost;
@@ -1210,10 +1221,11 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Adding another course restriction options to enrolment edit form.
      * @param array<string> $coursesoptions
-     * @param MoodleQuickForm $mform
+     * @param \MoodleQuickForm $mform
+     * @param stdClass $instance
      * @return void
      */
-    public function course_restriction_edit($coursesoptions, \MoodleQuickForm $mform) {
+    public function course_restriction_edit($coursesoptions, \MoodleQuickForm $mform, $instance) {
         if (!empty($coursesoptions)) {
             $count = count($coursesoptions);
 
@@ -1237,6 +1249,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $select->setMultiple(true);
             $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
             $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
+            $mform->setDefault('courserestriction', explode(',', $instance->customchar3));
         } else {
             $mform->addElement('hidden', 'customint7');
             $mform->setType('customint7', PARAM_INT);
@@ -1327,6 +1340,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         unset($instance->notifyall);
 
+        if (!empty($instance->customtext2)) {
+            $instance->availabilityconditionsjson = $instance->customtext2;
+        }
         // Instance name.
         $nameattribs = ['size' => '20', 'maxlength' => '255'];
         $mform->addElement('text', 'name', get_string('custominstancename', 'enrol'), $nameattribs);
@@ -1420,21 +1436,6 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->setType('customint3', PARAM_INT);
         $mform->addRule('customint3', get_string('invalidvalue', 'enrol_wallet'), 'numeric', null, 'client');
 
-        // Cohort restriction.
-        $cohorts = $this->get_cohorts_options($instance, $context);
-        if (count($cohorts) > 1) {
-            $mform->addElement('select', 'customint5', get_string('cohortonly', 'enrol_wallet'), $cohorts);
-            $mform->addHelpButton('customint5', 'cohortonly', 'enrol_wallet');
-        } else {
-            $mform->addElement('hidden', 'customint5');
-            $mform->setType('customint5', PARAM_INT);
-            $mform->setConstant('customint5', 0);
-        }
-
-        // Course restriction.
-        $coursesoptions = $this->get_courses_options($instance->courseid);
-        $this->course_restriction_edit($coursesoptions, $mform);
-
         // Send welcone email option.
         $options = $this->get_send_welcome_email_option();
         $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
@@ -1466,6 +1467,23 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->addElement('static', 'selfwarn', get_string('instanceeditselfwarning', 'core_enrol'), $warntext);
         }
 
+        $this->include_availability($instance, $mform, $context);
+
+        // Cohort restriction.
+        $cohorts = $this->get_cohorts_options($instance, $context);
+        if (count($cohorts) > 1) {
+            $mform->addElement('select', 'customint5', get_string('cohortonly', 'enrol_wallet'), $cohorts);
+            $mform->addHelpButton('customint5', 'cohortonly', 'enrol_wallet');
+        } else {
+            $mform->addElement('hidden', 'customint5');
+            $mform->setType('customint5', PARAM_INT);
+            $mform->setConstant('customint5', 0);
+        }
+
+        // Course restriction.
+        $coursesoptions = $this->get_courses_options($instance->courseid);
+        $this->course_restriction_edit($coursesoptions, $mform, $instance);
+
         if (!empty($coursesoptions)) {
             // Add some js code to set the value of customchar3 element for the restriction course enrolment.
             $js = <<<JS
@@ -1482,6 +1500,43 @@ class enrol_wallet_plugin extends enrol_plugin {
                 JS;
             $mform->addElement('html', '<script>'.$js.'</script>');
         }
+    }
+
+    /**
+     * Include availability restrictions options to the instance edit form.
+     *
+     * @param stdClass $instance
+     * @param \MoodleQuickForm $mform
+     * @param context $context
+     */
+    protected function include_availability($instance, $mform, $context) {
+        global $CFG;
+        if (empty($this->config->restrictionenabled) || empty($this->config->availability_plugins)) {
+            return;
+        }
+        $course = self::get_course_by_instance_id($instance->id);
+        $courses = [$course->id => $course];
+        if (!empty($instance->customchar3)) {
+            $coursesids = explode(',', $instance->customchar3);
+            foreach ($coursesids as $cid) {
+                $courses[$cid] = get_course($cid);
+            }
+        }
+
+        $mform->addElement('header', 'availabilityconditions',
+                    get_string('restrictaccess', 'availability'));
+        $mform->setExpanded('availabilityconditions', true);
+
+        $mform->addElement('static', 'availabilitynotice',
+                    get_string('notice'),
+                    get_string('availability_form_desc', 'enrol_wallet'));
+        // Availability field. This is just a textarea; the user interface
+        // interaction is all implemented in JavaScript. The field is named
+        // availabilityconditionsjson for consistency with moodleform_mod.
+        $mform->addElement('textarea', 'availabilityconditionsjson',
+                    get_string('accessrestrictions', 'availability'));
+        \enrol_wallet\restriction\frontend::include_availability_javascript($course, $courses);
+
     }
 
     /**
@@ -1609,6 +1664,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         return [];
     }
+
     /**
      * Perform custom validation of the data used to edit the instance.
      *
@@ -1686,6 +1742,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $typeerrors = $this->validate_param_types($data, $tovalidate);
         $errors = array_merge($errors, $typeerrors);
 
+        \core_availability\frontend::report_validation_errors($data, $errors);
+
         return $errors;
     }
 
@@ -1718,6 +1776,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             'customint5'      => 0,
             'customint6'      => $this->get_config('newenrols'),
             'customint7'      => 0,
+            'customtext2'     => '',
         ];
         if (get_config('enrol_wallet', 'awardssite')) {
             $awards = $this->get_config('awards');
@@ -1800,6 +1859,10 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
 
+        if (!empty($fields['availabilityconditionsjson'])) {
+            $fields['customtext2'] = $fields['availabilityconditionsjson'];
+        }
+
         return parent::add_instance($course, $fields);
     }
 
@@ -1823,6 +1886,10 @@ class enrol_wallet_plugin extends enrol_plugin {
             if (!$data->expirynotify) {
                 $data->expirythreshold = $instance->expirythreshold;
             }
+        }
+
+        if (!empty($data->availabilityconditionsjson)) {
+            $data->customtext2 = $data->availabilityconditionsjson;
         }
 
         // Add previous value of newenrols if disabled.

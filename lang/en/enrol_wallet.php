@@ -596,3 +596,11 @@ $string['privacy:metadata:wordpress:userid'] = 'The id of the user.';
 $string['privacy:metadata:wordpress:email'] = 'The email address.';
 $string['privacy:metadata:wordpress:username'] = 'The username.';
 $string['privacy:metadata:wordpress:password'] = 'The raw password after the user get created or some random string if the user already exists.';
+
+$string['restrictions'] = 'Enrolment Restrictions';
+$string['restrictions_desc'] = 'Like sections and course modules, now Wallet Enrollments offers an option to add restriction to the enrolment, not all availability plugins tested well, so you can choose from here what works fine and please report ant error so we can improve this functionality.';
+$string['restrictionenabled'] = 'Enable restriction.';
+$string['restrictionenabled_desc'] = 'If disabled, not restrictions will be checked.';
+$string['availability_plugins'] = 'Availability plugins';
+$string['availability_plugins_desc'] = 'Choose from here the only suitable availability condition plugin that suits your logical need to prevent course creator to ad non-suitable restrictions.';
+$string['availability_form_desc'] = 'Note that some of the availability restrictions depends on the modules on this course like activity completion or grade, but now we can just include other courses by increase the number of required courses and select all the courses we need and save the form, return again and all the parameters needed from this courses will be included.';

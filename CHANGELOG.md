@@ -1,5 +1,9 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 4.1.0 ##
+- Add a new future (Availability Restrictions). Now you can use availability condition plugin to restrict enrollments in courses as you wish.
+- Some fixes.
+
 ## V 4.0.10 ##
 - Fix generation of enrol coupons null value bug.
 - Fix privacy provider class.

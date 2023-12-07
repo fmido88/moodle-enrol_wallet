@@ -156,6 +156,9 @@ These events helps administrators or managers to track the wallet workflow.
     * Update the password automatically when updated in moodle.
     * Updating another user data not available yet in current version.
 
+28. (NEW) Adding availability restrictions to enrollment instances.
+    * Use availability restriction plugins to restrict enrolment.
+
 # Wallet block #
 
 Also you can install block_wallet to display the balance for the user.

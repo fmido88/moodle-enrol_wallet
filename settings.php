@@ -338,6 +338,29 @@ if ($ADMIN->fulltree) {
                                             get_string('repurchase_seconddis_desc', 'enrol_wallet'),
                                             0, PARAM_INT));
 
+    // Availability Conditions.
+    $settings->add(new admin_setting_heading('enrol_wallet_conditions',
+                                            get_string('restrictions', 'enrol_wallet'),
+                                            get_string('restrictions_desc', 'enrol_wallet')));
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/restrictionenabled',
+                                            get_string('restrictionenabled', 'enrol_wallet'),
+                                            get_string('restrictionenabled_desc', 'enrol_wallet'),
+                                            0));
+    $pluginmanager = \core_plugin_manager::instance();
+    $availabilities = $pluginmanager->get_enabled_plugins('availability');
+    $options = [];
+    foreach ($availabilities as $avplugin => $p) {
+        if (in_array($avplugin, ['wallet', 'group', 'grouping', 'maxviews'])) {
+            continue;
+        }
+        $options[$avplugin] = get_string('title', "availability_$avplugin");
+    }
+    $settings->add(new admin_setting_configmultiselect('enrol_wallet/availability_plugins',
+                                            get_string('availability_plugins', 'enrol_wallet'),
+                                            get_string('availability_plugins_desc', 'enrol_wallet'),
+                                            [],
+                                            $options));
+
     // Enrol instance defaults.
     $settings->add(new admin_setting_heading('enrol_wallet_defaults',
         get_string('enrolinstancedefaults', 'admin'), get_string('enrolinstancedefaults_desc', 'admin')));

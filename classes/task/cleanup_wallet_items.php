@@ -65,5 +65,4 @@ class cleanup_wallet_items extends \core\task\scheduled_task {
 
         mtrace("Task ended.");
     }
-
 }
