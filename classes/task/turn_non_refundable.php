@@ -74,7 +74,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
      * Check if transformation is valid or not.
      * @param object $data custom data of the task
      * @param \progress_trace $trace
-     * @return false|float
+     * @return false|float|string false if not valid, float for the amount to be transform and string in test.
      */
     public function check_transform_validation($data, $trace) {
         global $DB;
@@ -87,8 +87,13 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         $norefund = transactions::get_nonrefund_balance($userid);
         if ($norefund >= $balance) {
-            $trace->output('Non refundable amount grater than or equal user\'s balance'."\n");
-            return false;
+            $output = 'Non refundable amount grater than or equal user\'s balance'."\n";
+            $trace->output($output);
+            if (!PHPUNIT_TEST) {
+                return false;
+            } else {
+                return $output;
+            }
         }
 
         // Get all transactions in this time.
@@ -113,8 +118,13 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         // Check if the user spent more than the amount of the transform transaction.
         if ($amount <= $debit) {
-            $trace->output('user spent this amount in the grace period already...'."\n");
-            return false;
+            $output = 'user spent this amount in the grace period already...'."\n";
+            $trace->output($output);
+            if (!PHPUNIT_TEST) {
+                return false;
+            } else {
+                return $output;
+            }
         } else {
 
             $transform = $amount - $debit;
