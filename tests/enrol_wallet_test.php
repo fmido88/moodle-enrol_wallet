@@ -808,7 +808,11 @@ class enrol_wallet_test extends \advanced_testcase {
         $instance9->cost = 50;
         $DB->update_record('enrol', $instance9);
         $walletplugin->update_status($instance9, ENROL_INSTANCE_ENABLED);
-        $msg = get_string('othercourserestriction', 'enrol_wallet', '(xcourse8)');
+        $a = [
+            'number' => 1,
+            'courses' => '(xcourse8)',
+        ];
+        $msg = get_string('othercourserestriction', 'enrol_wallet', $a);
         $this->assertSame($msg, $walletplugin->can_self_enrol($instance9, true));
 
         // TODO Check the cohorts restrictions.

@@ -389,7 +389,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Self enrol user to course
      *
      * @param stdClass $instance enrolment instance
-     * @param stdClass $user User to enrol and deduct fees from
+     * @param stdClass|null $user User to enrol and deduct fees from
      * @param bool $charge Charge the user to enrol (only false in case of enrol coupons)
      * @return bool|array true if enrolled else error code and message
      */
