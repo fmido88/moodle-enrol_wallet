@@ -123,21 +123,22 @@ class turn_non_refundable_test extends \advanced_testcase {
             'amount' => 200,
         ];
         $task = new turn_non_refundable;
-        $output1 = $task->check_transform_validation($data);
+        $trace = new \null_progress_trace;
+        $output1 = $task->check_transform_validation($data, $trace);
         $this->assertStringContainsString('Non refundable amount grater than or equal user\'s balance', $output1);
 
         // Charge more with refundable balance.
         transactions::payment_topup(100, $user->id);
-        $output2 = $task->check_transform_validation($data);
+        $output2 = $task->check_transform_validation($data, $trace);
         $this->assertEquals($output2, 200);
 
         // Not transform what already used.
         transactions::debit($user->id, 50);
-        $output3 = $task->check_transform_validation($data);
+        $output3 = $task->check_transform_validation($data, $trace);
         $this->assertEquals($output3, 150);
 
         $data->amount = 40;
-        $output4 = $task->check_transform_validation($data);
+        $output4 = $task->check_transform_validation($data, $trace);
         $this->assertStringContainsString('user spent this amount in the grace period already', $output4);
     }
 }

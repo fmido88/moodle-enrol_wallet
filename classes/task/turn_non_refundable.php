@@ -42,7 +42,12 @@ class turn_non_refundable extends \core\task\adhoc_task {
      * Run task turn the transaction to not refundable.
      */
     public function execute() {
-        $trace = new \text_progress_trace;
+        if (!PHPUNIT_TEST) {
+            $trace = new \text_progress_trace;
+        } else {
+            $trace = new \null_progress_trace;
+        }
+
         $trace->output('Starting the task...');
 
         $data = $this->get_custom_data();
@@ -68,7 +73,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
     /**
      * Check if transformation is valid or not.
      * @param object $data custom data of the task
-     * @param \text_progress_trace $trace
+     * @param \progress_trace $trace
      * @return false|float
      */
     public function check_transform_validation($data, $trace) {
@@ -121,7 +126,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
      * Apply transformation
      * @param int $userid user's id
      * @param float $transform the amount that should be transformed to nonrefundable
-     * @param \text_progress_trace $trace
+     * @param \progress_trace $trace
      * @return void
      */
     public function apply_transformation($userid, $transform, $trace) {
