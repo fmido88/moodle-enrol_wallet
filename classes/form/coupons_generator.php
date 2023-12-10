@@ -165,7 +165,7 @@ class coupons_generator extends \moodleform {
             if (empty($data['code'])) {
                 $errors['code'] = get_string('coupon_code_error', 'enrol_wallet');
             } else if ($DB->record_exists('enrol_wallet_coupons', ['code' => $data['code']])) {
-                $errors['code'] = get_string('couponexist', 'enrol_wallet');
+                $errors['code'] = get_string('coupon_exist', 'enrol_wallet');
             }
         }
 

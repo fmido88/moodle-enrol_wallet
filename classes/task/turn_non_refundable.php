@@ -42,36 +42,36 @@ class turn_non_refundable extends \core\task\adhoc_task {
      * Run task turn the transaction to not refundable.
      */
     public function execute() {
-
-        mtrace('Starting the task...');
+        $trace = new \text_progress_trace;
+        $trace->output('Starting the task...');
 
         $data = $this->get_custom_data();
 
-        $transform = $this->check_transform_validation($data);
+        $transform = $this->check_transform_validation($data, $trace);
 
-        if (is_numeric($transform)) {
-            mtrace('Transform validation success...');
+        if ($transform) {
+            $trace->output('Transform validation success...');
 
             $userid = $data->userid;
-            $trace = $this->apply_transformation($userid, $transform);
+            $this->apply_transformation($userid, $transform, $trace);
 
-            mtrace($trace);
-            mtrace('Transformation done ...');
+            $trace->output('Transformation done ...');
 
         } else {
 
-            mtrace($transform);
-            mtrace('Transformation validation failed ....');
+            $trace->output('Transformation validation failed ....');
         }
-        mtrace('Task Completed');
+        $trace->output('Task Completed');
+        $trace->finished();
     }
 
     /**
      * Check if transformation is valid or not.
      * @param object $data custom data of the task
-     * @return string|float
+     * @param \text_progress_trace $trace
+     * @return false|float
      */
-    public function check_transform_validation($data) {
+    public function check_transform_validation($data, $trace) {
         global $DB;
         $userid = $data->userid;
         $amount = $data->amount;
@@ -82,7 +82,8 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         $norefund = transactions::get_nonrefund_balance($userid);
         if ($norefund >= $balance) {
-            return 'Non refundable amount grater than or equal user\'s balance'."\n";
+            $trace->output('Non refundable amount grater than or equal user\'s balance'."\n");
+            return false;
         }
 
         // Get all transactions in this time.
@@ -107,8 +108,8 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         // Check if the user spent more than the amount of the transform transaction.
         if ($amount <= $debit) {
-
-            return 'user spent this amount in the grace period already...'."\n";
+            $trace->output('user spent this amount in the grace period already...'."\n");
+            return false;
         } else {
 
             $transform = $amount - $debit;
@@ -120,12 +121,12 @@ class turn_non_refundable extends \core\task\adhoc_task {
      * Apply transformation
      * @param int $userid user's id
      * @param float $transform the amount that should be transformed to nonrefundable
-     * @return string
+     * @param \text_progress_trace $trace
+     * @return void
      */
-    public function apply_transformation($userid, $transform) {
+    public function apply_transformation($userid, $transform, $trace) {
         global $DB;
 
-        $trace = '';
         $balance = transactions::get_user_balance($userid);
         $norefund = transactions::get_nonrefund_balance($userid);
 
@@ -133,7 +134,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $refundenabled = get_config('enrol_wallet', 'enablerefund');
         if (empty($refundenabled)) {
             $transform = $balance;
-            $trace .= 'Refunding is disabled in this website, all of user\'s balance will transform...'."\n";
+            $trace->output('Refunding is disabled in this website, all of user\'s balance will transform...'."\n");
         }
 
         $recorddata = [
@@ -148,8 +149,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         ];
         $DB->insert_record('enrol_wallet_transactions', $recorddata);
 
-        $trace .= "User with id $userid now has a ".
-                    $recorddata['norefund']." nonrefundabel balance in his\her wallet out of $balance total balance...\n";
-        return $trace;
+        $trace->output("User with id $userid now has a ".
+                    $recorddata['norefund']." nonrefundabel balance in his\her wallet out of $balance total balance...\n");
     }
 }

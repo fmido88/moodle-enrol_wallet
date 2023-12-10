@@ -781,7 +781,11 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         // Check the restrictions upon other courses enrollment.
         if ($coursesnames = $this->is_course_enrolment_restriction($instance)) {
-            $return[] = get_string('othercourserestriction', 'enrol_wallet', $coursesnames);
+            $a = [
+                'courses' => $coursesnames,
+                'number'  => $instance->customint7,
+            ];
+            $return[] = get_string('othercourserestriction', 'enrol_wallet', $a);
         }
 
         // Check the cohorts restrictions.
@@ -808,7 +812,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         // All restrictions checked.
         if (!empty($return)) {
             // Display them all.
-            return implode('<br> ' . get_string('and') . ' ', $return);
+            return implode('<br> &' . ' ', $return);
         }
 
         // Non valid cost.

@@ -61,7 +61,7 @@ class applycoupon_form extends \moodleform {
     public function definition() {
         global $USER;
         $mform = $this->_form;
-        $instance = $this->_customdata->instance;
+        $instance = ((object)$this->_customdata)->instance;
         $url = new \moodle_url('/course/view.php', ['id' => $instance->courseid]);
 
         $wallet = enrol_get_plugin('wallet');

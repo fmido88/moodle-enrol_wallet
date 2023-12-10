@@ -1,5 +1,8 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 4.2.0 ##
+- Add an option to migrate credits, users enrollments and enrol instances from enrol_credit.
+
 ## V 4.1.0 ##
 - Add a new future (Availability Restrictions). Now you can use availability condition plugin to restrict enrollments in courses as you wish.
 - Some fixes.

@@ -152,7 +152,7 @@ class coupons_edit extends \moodleform {
         if (empty($data['code'])) {
             $errors['code'] = get_string('coupon_code_error', 'enrol_wallet');
         } else if ($DB->record_exists_select('enrol_wallet_coupons', $select, $params)) {
-            $errors['code'] = get_string('couponexist', 'enrol_wallet');
+            $errors['code'] = get_string('coupon_exist', 'enrol_wallet');
         }
 
         return $errors;

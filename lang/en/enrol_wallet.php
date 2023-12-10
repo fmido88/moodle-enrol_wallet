@@ -74,6 +74,7 @@ $string['canntenrolearly'] = 'You cannot enrol yet; enrolment starts on {$a}.';
 $string['canntenrollate'] = 'You cannot enrol any more, since enrolment ended on {$a}.';
 $string['cannotdeductbalance'] = 'Cannot deduct balance due to an error. Please try again and if the problem still exist contact site support.';
 $string['categorycoupon'] = 'Category coupon';
+$string['categorycoupondisabled'] = 'Category coupons disabled.';
 $string['category_options'] = 'Category';
 $string['category_options_help'] = 'Same as fixed coupons except it is restricted to be used unless in the chosen category';
 $string['checkout'] = '{$a->credit_cost} {$a->currency} will be deducted from your balance of {$a->user_balance} {$a->currency}.';
@@ -144,6 +145,7 @@ $string['coupon_enrolapplied'] = 'The coupon has been applied';
 $string['coupon_enrolerror'] = 'Sorry, this coupon can be only applied in these courses:<br>{$a}';
 $string['coupon_exceedusage'] = 'This coupon exceeds the maximum usage';
 $string['coupon_expired'] = 'This coupon is expired';
+$string['coupon_exist'] = 'This coupon code already existed.';
 $string['coupon_generation'] = 'Create coupons';
 $string['coupon_generation_title'] = 'Generate coupons';
 $string['coupon_generation_heading'] = 'Add new coupons';
@@ -155,6 +157,7 @@ $string['coupon_generator_error'] = 'Error while try to generate coupons.';
 $string['coupon_generator_peruser_gt_max'] = 'Max allowed usage per user should not exceeds the maximum usage of a coupon.';
 $string['coupon_invalidtype'] = 'Invalid coupon type, only fixed, percent, enrol and category allowed.';
 $string['coupon_invalidid'] = 'A coupon record with this id not exist or doesn\'t match the code.';
+$string['coupon_invalidreturntype'] = 'Invalid coupon type returned, there is an endpoint error or this in not a valid coupon code.';
 $string['coupons_length'] = 'Length';
 $string['coupons_length_help'] = 'How many characters in a single coupon';
 $string['coupon_novalue'] = 'the coupon return with no value, likely the coupon code not exist';
@@ -249,6 +252,7 @@ $string['enrolenddate'] = 'End date';
 $string['enrolenddate_help'] = 'If enabled, users can enrol themselves until this date only.';
 $string['enrolenddaterror'] = 'Enrolment end date cannot be earlier than start date';
 $string['enrolcoupon'] = 'Enrol coupon';
+$string['enrolcoupondisabled'] = 'Enrolment coupons are disabled from this website.';
 $string['enrollmentupdated'] = 'enrollment(s) has been updated';
 $string['enrolme'] = 'Enrol me';
 $string['enrolperiod'] = 'Enrolment duration';
@@ -337,6 +341,7 @@ $string['mintransfer_config_desc'] = 'Minimum allowed transfer amount, users can
 $string['MWC'] = 'Wallet Coins';
 $string['mywallet'] = 'My Wallet';
 
+$string['negativebalance'] = 'Balance cannot be negative. Trying to deduct {$a->amount} from a balance of {$a->before}';
 $string['newenrols'] = 'Allow new enrollments';
 $string['newenrols_desc'] = 'Allow users to enrol into new courses by default.';
 $string['newenrols_help'] = 'This setting determines whether a user can enrol into this course.';
@@ -358,7 +363,7 @@ $string['notequal'] = 'Not Equal to';
 $string['noticecondition'] = 'Min balance for notify';
 $string['noticecondition_desc'] = 'If the balance is smaller than or equal to this condition, a notification appears to the user.';
 
-$string['othercourserestriction'] = 'Unable to enrol yourself in this course unless you are enrolled in these courses {$a}';
+$string['othercourserestriction'] = 'Unable to enrol yourself in this course unless you are enrolled in at least {$a->number} of these courses {$a->courses}';
 
 $string['paymentaccount'] = 'Payment account';
 $string['paymentaccount_help'] = 'choose the payment account in which you will accept payments';
@@ -507,6 +512,7 @@ and optional columns:<br>
 \'maxperuser\': Maximum time for a single user to use a coupon.<br>
 \'id\': The id of the coupon in case of updating it.';
 $string['upload_result'] = 'Result';
+$string['uploadcsvfilerequired'] = 'Please upload the csv file.';
 $string['usernotfound'] = 'No user found with this email {$a}';
 $string['usedfrom'] = 'Used From';
 $string['usedto'] = 'Used To';
@@ -604,3 +610,9 @@ $string['restrictionenabled_desc'] = 'If disabled, not restrictions will be chec
 $string['availability_plugins'] = 'Availability plugins';
 $string['availability_plugins_desc'] = 'Choose from here the only suitable availability condition plugin that suits your logical need to prevent course creator to ad non-suitable restrictions.';
 $string['availability_form_desc'] = 'Note that some of the availability restrictions depends on the modules on this course like activity completion or grade, but now we can just include other courses by increase the number of required courses and select all the courses we need and save the form, return again and all the parameters needed from this courses will be included.';
+
+$string['migrate_enrollments_task'] = 'Migrate enrollments and users credits from enrol_credit to enrol_wallet';
+$string['credit_wallet_transformation_desc'] = 'Your credit has been transformed to your wallet.';
+$string['transformation_credit_title'] = 'Transformation of credit to wallet';
+$string['transformation_credit_desc'] = 'Using enrol_credit? If you want, you can transform all users credits to their wallet also migrate all enrollments and instances to enrol_wallet instead. There is {$a->credit} credit enrol instances and {$a->enrol} enrollments to be migrated.';
+$string['transformation_credit_done'] = 'Transformation and migration has been queued successfully and will run shortly, please check after a while for credits and enrollments.';

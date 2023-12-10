@@ -83,8 +83,8 @@ if (empty($coupondata) || is_string($coupondata)) {
         $msgtype = 'success';
 
     } else if ($type == 'percent' &&
-            ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
-            || $couponsetting == enrol_wallet_plugin::WALLET_COUPONSALL)
+            ($couponsetting == $wallet::WALLET_COUPONSDISCOUNT
+            || $couponsetting == $wallet::WALLET_COUPONSALL)
             && !empty($instanceid)) {
         // Percentage discount coupons applied in enrolment.
         $id = $DB->get_field('enrol', 'courseid', ['id' => $instanceid, 'enrol' => 'wallet'], IGNORE_MISSING);
@@ -103,8 +103,8 @@ if (empty($coupondata) || is_string($coupondata)) {
         }
 
     } else if ($type == 'percent' &&
-            ($couponsetting == enrol_wallet_plugin::WALLET_COUPONSDISCOUNT
-            || $couponsetting == enrol_wallet_plugin::WALLET_COUPONSALL)
+            ($couponsetting == $wallet::WALLET_COUPONSDISCOUNT
+            || $couponsetting == $wallet::WALLET_COUPONSALL)
             && (!empty($cmid) || !empty($sectionid))) {
 
         // This is the case when the coupon applied by availability wallet.

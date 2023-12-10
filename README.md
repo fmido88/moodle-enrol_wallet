@@ -159,6 +159,13 @@ These events helps administrators or managers to track the wallet workflow.
 28. (NEW) Adding availability restrictions to enrollment instances.
     * Use availability restriction plugins to restrict enrolment.
 
+29. Enable repurchasing.
+    * Choose if users could repurchase the course after enrolment duration ended.
+    * Add discounts on second and third purchasing.
+
+30. (New) Admins can switch from (enrollments using course credit) plugin.
+    * With one click migrate credits, user enrollments and enrol instances from credit enrolment plugin to this one.
+
 # Wallet block #
 
 Also you can install block_wallet to display the balance for the user.

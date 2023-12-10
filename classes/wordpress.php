@@ -205,7 +205,7 @@ class wordpress {
         } else if (strpos($coupontype, 'percent') !== false) {
             $coupontype = 'percent';
         } else {
-            throw new \moodle_exception('invalidcoupontype');
+            throw new \moodle_exception('coupon_invalidreturntype', 'enrol_wallet');
         }
 
         $coupondata = [

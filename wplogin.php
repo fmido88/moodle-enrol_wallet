@@ -35,7 +35,7 @@ if ($action == 'login') {
     global $USER;
 
     if ($USER->id != $userid || isguestuser()) {
-        throw new moodle_exception('invalidoperation');
+        throw new moodle_exception('invalidaccess');
     }
 
     $redirect = $wantsurl ?? core_login_get_return_url();
@@ -56,5 +56,5 @@ if ($action == 'login') {
     $wordpress->login_logout_user_to_wordpress($userid, 'logout', $redirect);
 
 } else {
-    throw new moodle_exception('invalidoperation');
+    throw new moodle_exception('invalidaccess');
 }

@@ -31,6 +31,36 @@ if ($ADMIN->fulltree) {
 
     require_once($CFG->dirroot.'/enrol/wallet/lib.php');
     $walletplugin = new enrol_wallet_plugin;
+
+    // Adding an option to migrate credits, enrol instances and users enrollments from enrol_credit to enrol_wallet.
+    $creditplugin = enrol_get_plugin('credit');
+    if (!empty($creditplugin)) {
+        $countcredit = 0;
+        $countenrol = 0;
+        $credits = $DB->get_records('enrol', ['enrol' => 'credit']);
+        if (!empty($credits)) {
+            $countcredit = count($credits);
+        }
+        foreach ($credits as $credit) {
+            $countenrol += $DB->count_records('user_enrolments', ['enrolid' => $credit->id]);
+        }
+        if (!empty($countenrol + $countcredit)) {
+            $turl = new moodle_url('/enrol/wallet/extra/credit_transformation.php');
+
+            $a = [
+                'enrol' => $countenrol,
+                'credit' => $countcredit,
+            ];
+            $transformbutton = html_writer::link($turl,
+                    get_string('transformation_credit_title', 'enrol_wallet'),
+                    ['target' => '_blank', 'class' => 'btn btn-secondary']);
+            $migration = $OUTPUT->box(get_string('transformation_credit_desc', 'enrol_wallet', $a) . '<br>' . $transformbutton);
+            $settings->add(new admin_setting_heading('enrol_wallet_migration',
+                                                    '',
+                                                $migration));
+        }
+    }
+
     // General settings.
     $settings->add(new admin_setting_heading('enrol_wallet_settings', '',
                         get_string('pluginname_desc', 'enrol_wallet')));

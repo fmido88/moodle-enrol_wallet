@@ -131,7 +131,7 @@ if ($data = $mform->get_data()) {
     $notvalid = $DB->record_exists_select('enrol_wallet_coupons', $select, $params);
 
     if ($notvalid) {
-        $msg = get_string('couponexist', 'enrol_wallet');
+        $msg = get_string('coupon_exist', 'enrol_wallet');
         $notify = 'warning';
     } else {
         $done = $DB->update_record('enrol_wallet_coupons', (object)$coupondata);
