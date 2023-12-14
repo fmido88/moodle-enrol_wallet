@@ -88,6 +88,9 @@ class charger_form extends \moodleform {
         $mform->setType('value', PARAM_FLOAT);
         $mform->hideIf('value', 'op', 'eq', 'balance');
 
+        $mform->addElement('checkbox', 'neg', get_string('debitnegative', 'enrol_wallet'));
+        $mform->hideIf('neg', 'op', 'neq', 'debit');
+
         if (!empty($enabled)) {
             // Empty div used by js to display the calculated final value.
             $enter = get_string('entervalue', 'enrol_wallet');
@@ -182,6 +185,7 @@ class charger_form extends \moodleform {
 
         global $DB;
         $errors = parent::validation($data, $files);
+
         if (!empty($data['submit'])) {
             if (empty($data['userlist'])) {
                 $errors['userlist'] = get_string('selectuser', 'enrol_wallet');
@@ -205,12 +209,14 @@ class charger_form extends \moodleform {
                 $errors['userlist'] = get_string('charger_nouser', 'enrol_wallet');
             }
 
-            $transactions = new \enrol_wallet\transactions;
-            $before = $transactions->get_user_balance($userid);
-            if ($op == 'debit' && $value > $before) {
-                // Cannot deduct more than the user's balance.
-                $a = ['value' => $value, 'before' => $before];
-                $errors['value'] = get_string('charger_debit_err', 'enrol_wallet', $a);
+            if (empty($data['neg'])) {
+                $transactions = new \enrol_wallet\transactions;
+                $before = $transactions->get_user_balance($userid);
+                if ($op === 'debit' && $value > $before) {
+                    // Cannot deduct more than the user's balance.
+                    $a = ['value' => $value, 'before' => $before];
+                    $errors['value'] = get_string('charger_debit_err', 'enrol_wallet', $a);
+                }
             }
 
         } else if (!empty($data['submitvc'])) {

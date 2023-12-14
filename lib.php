@@ -1746,7 +1746,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         $typeerrors = $this->validate_param_types($data, $tovalidate);
         $errors = array_merge($errors, $typeerrors);
 
-        \core_availability\frontend::report_validation_errors($data, $errors);
+        if (!empty($data['availabilityconditionsjson'])) {
+            \core_availability\frontend::report_validation_errors($data, $errors);
+        }
 
         return $errors;
     }

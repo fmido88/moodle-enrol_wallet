@@ -195,9 +195,9 @@ function enrol_wallet_handle_charger_form($data) {
             $after = $transactions->get_user_balance($userid);
 
         } else if ($op === 'debit') {
-
+            $neg = $data['neg'] ?? optional_param('neg', false, PARAM_BOOL);
             // Process the payment.
-            $result = $transactions->debit($userid, $value, '', $charger);
+            $result = $transactions->debit($userid, $value, '', $charger, '', 0, $neg);
             $after = $transactions->get_user_balance($userid);
 
         } else if ($op === 'balance') {
@@ -409,54 +409,60 @@ function enrol_wallet_display_transaction_results($params = []) {
         return false;
     }
 
-    $result = $params['result'] ?? optional_param('result', '', PARAM_ALPHANUM);
+    $result = $params['result'] ?? optional_param('result', false, PARAM_ALPHANUM);
     $before = $params['before'] ?? optional_param('before', '', PARAM_FLOAT);
     $after  = $params['after'] ?? optional_param('after', '', PARAM_FLOAT);
     $userid = $params['userid'] ?? optional_param('userid', '', PARAM_INT);
     $err    = $params['err'] ?? optional_param('error', '', PARAM_TEXT);
 
-    if ($err !== '') {
-        $info = '<span style="text-align: center; width: 100%;"><h5>'
-        .$err.
-        '</h5></span>';
-        $errormsg = '<p style = "text-align: center;"><b> ERROR <br>'
-                    .$err.
-                    '<br> Please go back and check it again</b></p>';
-        core\notification::error($errormsg);
+    $info = '';
+    if (!empty($err)) {
+
+        $info = get_string('ch_result_error', 'enrol_wallet', $err);
+        $type = 'error';
 
     } else {
 
         $user = \core_user::get_user($userid);
         $userfull = $user->firstname.' '.$user->lastname.' ('.$user->email.')';
         // Display the result to the user.
-        core\notification::success('<p>Balance Before: <b>' .$before.'</b></p>');
-        if (!empty($result) && is_numeric($result)  && false != $result) {
-            $result = 'success';
+        $info = get_string('ch_result_before', 'enrol_wallet', $before);
+        $type = 'success';
+        if (!empty($result) && is_numeric($result)) {
+            $success = true;
+        } else {
+            $success = false;
+            if (is_string($result)) {
+                $info .= $result;
+            }
         }
-
+        $a = [
+            'userfull'     => $userfull,
+            'after'        => $after,
+            'after_before' => ($after - $before),
+            'before'       => $before,
+        ];
         if ($after !== $before) {
 
-            core\notification::success('succession: ' .$result . '.');
-            $info = '<span style="text-align: center; width: 100%;"><h5>
-                the user: '.$userfull.' is now having a balance of '.$after.' after charging him/her by '.( $after - $before).
-                '</h5></span>';
             if ($after !== '') {
-                core\notification::success('<p>Balance After: <b>' .$after.'</b></p>');
+                $info .= get_string('ch_result_after', 'enrol_wallet', $after);
             }
             if ($after < 0) {
-                core\notification::warning('<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>');
+                $info .= get_string('ch_result_negative', 'enrol_wallet');
+                $type = 'warning';
             }
+
+            $info .= get_string('ch_result_info_charge', 'enrol_wallet', $a);
 
         } else {
 
-            $info = '<span style="text-align: center; width: 100%;"><h5>
-            the user: '.$userfull.' is having a balance of '.$before.
-            '</h5></span>';
+            $info .= get_string('ch_result_info_balance', 'enrol_wallet', $a);
+            $type = $success ? 'info' : 'error';
 
         }
     }
     // Display the results.
-    core\notification::info($info);
+    core\notification::add($info, $type);
 
     return true;
 }

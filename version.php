@@ -24,10 +24,10 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2023121004;
+$plugin->version   = 2023121423;
 $plugin->requires  = 2019052000;
 $plugin->component = 'enrol_wallet';
-$plugin->release   = '4.2.0';
+$plugin->release   = '4.3.0';
 $plugin->maturity  = MATURITY_STABLE;
 $plugin->dependencies = [
     'enrol_manual' => ANY_VERSION,

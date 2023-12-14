@@ -1,5 +1,12 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 4.3.0 ##
+- Fix exception thrown when no availability specified or disabled.
+- Add lang strings instade of hard coded strings in the charging process.
+- Add confirmation step for charging process.
+- Add an option to allow negative deduction in charging form.
+- Fix and enhace the validation process of charger form.
+
 ## V 4.2.0 ##
 - Add an option to migrate credits, users enrollments and enrol instances from enrol_credit.
 

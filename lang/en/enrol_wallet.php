@@ -616,3 +616,18 @@ $string['credit_wallet_transformation_desc'] = 'Your credit has been transformed
 $string['transformation_credit_title'] = 'Transformation of credit to wallet';
 $string['transformation_credit_desc'] = 'Using enrol_credit? If you want, you can transform all users credits to their wallet also migrate all enrollments and instances to enrol_wallet instead. There is {$a->credit} credit enrol instances and {$a->enrol} enrollments to be migrated.';
 $string['transformation_credit_done'] = 'Transformation and migration has been queued successfully and will run shortly, please check after a while for credits and enrollments.';
+
+$string['ch_result_error'] = '<p style = "text-align: center;"><b> ERROR <br>{$a}<br> Please go back and check it again</b></p>';
+$string['ch_result_before'] = '<p>Balance Before: <b>{$a}</b></p>';
+$string['ch_result_after'] = '<p>Balance After: <b>{$a}</b></p>';
+$string['ch_result_negative'] = '<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>';
+$string['ch_result_info_charge'] = '<span style="text-align: center; width: 100%;">
+<h5>the user: {$a->userfull} is now having a balance of {$a->after} after charging him/her by {$a->after_before}...</h5>
+</span>';
+$string['ch_result_info_balance'] = '<span style="text-align: center; width: 100%;"><h5>
+the user: {$a->userfull} is having a balance of {$a->before}
+</h5></span>';
+$string['debitnegative'] = 'Allow negative in debit';
+$string['confirm_debit'] = 'You are about to deduct an amount of {$a->amount} from the user {$a->name} whose current balance is {$a->balance}. The balance after transaction should be {$a->after}';
+$string['confirm_credit'] = 'You are about to add an amount of {$a->amount} to the user {$a->name} wallet who already got a balance of {$a->balance} in their wallet.';
+$string['confirm_negative'] = '<b>Negative balance warning:</b> the user balance will be with negative value after this transaction.';

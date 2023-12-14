@@ -173,7 +173,7 @@ class transactions {
 
             if ($newbalance < 0 && !$neg) {
                 // This is mean that value to debit is greater than the balance and the new balance is negative.
-                $a = ['value' => $amount, 'before' => $before];
+                $a = ['amount' => $amount, 'before' => $before];
                 throw new \moodle_exception('negativebalance', 'enrol_wallet', '', $a);
             }
         }
