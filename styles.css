@@ -20,7 +20,7 @@
             width: 33.33%;
             float: left;
         }
-    
+
         .generalbox:not(:first-of-type) {
             float: right;
             width: calc(66.66% - 1rem);
