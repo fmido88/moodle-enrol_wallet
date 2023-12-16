@@ -116,48 +116,55 @@ class enrol_wallet_plugin extends enrol_plugin {
         $att = [];
         if (!empty($this->config->showprice)) {
             global $USER;
-            $cost = PHP_INT_MAX;
+            $costs = [];
             foreach ($instances as $instance) {
-                $newcost = $this->get_cost_after_discount($USER->id, $instance);
+                $cost = $this->get_cost_after_discount($USER->id, $instance);
                 $enrolstat = $this->can_self_enrol($instance);
                 $canenrol  = (true === $enrolstat);
                 $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
 
                 // Get the cheapest cost.
-                if (($canenrol || $insuf) && $newcost < $cost) {
-                    $cost = $newcost;
+                if ($canenrol || $insuf) {
+                    $costs[] = $cost;
                 }
             }
 
-            $id = "wallet-icon-".random_int(100000, 999999999);
-            $idp = "wallet-price-".random_int(100000, 999999999);
-            $att = ['class' => 'wallet-icon', 'id' => $id];
-            if ($cost == 0) {
-                $cost = 'FREE';
-            } else if ($cost == PHP_INT_MAX) {
-                $cost = null;
-            }
-
-            $att += ['title' => $cost];
-
-            $script = "
-            var titleElement = document.createElement('div');
-            titleElement.textContent = '$cost';
-            titleElement.className = 'enrol_wallet_walletcost';
-            titleElement.id = '$idp';
-
-            var imageElement = document.getElementById('$id');
-            var x = setInterval(function() {
-                var exist = document.getElementById('$idp');
-                if (exist === null) {
-                    // Insert the new title element before the image element
-                    imageElement.parentNode.insertBefore(titleElement, imageElement);
-                } else {
-                    clearInterval(x);
+            $icons = [];
+            foreach ($costs as $cost) {
+                $id = "wallet-icon-".random_int(100000, 999999999);
+                $idp = "wallet-price-".random_int(100000, 999999999);
+                $att = ['class' => 'wallet-icon', 'id' => $id];
+                if ($cost == 0) {
+                    $cost = 'FREE';
+                } else if ($cost == PHP_INT_MAX) {
+                    $cost = null;
                 }
-            }, 50);
-            ";
-            $PAGE->requires->js_init_code($script, true);
+
+                $att += ['title' => $cost];
+
+                $script = "
+                var titleElement = document.createElement('div');
+                titleElement.textContent = '$cost';
+                titleElement.className = 'enrol_wallet_walletcost';
+                titleElement.id = '$idp';
+
+                var imageElement = document.getElementById('$id');
+                var x = setInterval(function() {
+                    var exist = document.getElementById('$idp');
+                    if (exist === null) {
+                        // Insert the new title element before the image element
+                        imageElement.parentNode.insertBefore(titleElement, imageElement);
+                    } else {
+                        clearInterval(x);
+                    }
+                }, 50);
+                ";
+                $PAGE->requires->js_init_code($script, true);
+                $icons[] = new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet', $att);
+            }
+            if (!empty($icons)) {
+                return $icons;
+            }
         }
 
         return [new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet', $att)];
@@ -578,34 +585,33 @@ class enrol_wallet_plugin extends enrol_plugin {
     public function enrol_page_hook(stdClass $instance) {
         global $OUTPUT, $USER, $CFG;
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+        // Hide this instance in case of existance of another avaliable one with lower cost.
+        if ($this->hide_due_cheaper_instance($instance)) {
+            return '';
+        }
 
         $coupon = $this->check_discount_coupon();
         $couponsetting = get_config('enrol_wallet', 'coupons');
-
-        $enrolstatus = $this->can_self_enrol($instance);
 
         $this->costafter = self::get_cost_after_discount($USER->id, $instance, $coupon);
         $costafter       = $this->costafter;
         $costbefore      = $instance->cost;
 
-        $balance = transactions::get_user_balance($USER->id);
-
-        // Hide this instance in case of existance of another avaliable one with lower cost.
-        $hide = $this->hide_due_cheaper_instance($instance);
-        if ($hide) {
-            return '';
-        }
+        $enrolstatus = $this->can_self_enrol($instance);
 
         $output = '';
         if (true === $enrolstatus) {
 
+            $confirmpage = new moodle_url('/enrol/wallet/confirm.php');
             // This user can self enrol using this instance.
-            $form = new enrol_form(null, $instance);
+            $form = new enrol_form($confirmpage, $instance);
             $instanceid = optional_param('instance', 0, PARAM_INT);
-            if ($instance->id == $instanceid) {
+            if ((int)$instance->id === $instanceid) {
                 // If form validates user can purchase enrolment with wallet balance.
-                if ($data = $form->get_data()) {
+                $data = $form->get_data();
+                if (!empty($data) && $data->instance == $instance->id) {
                     $this->enrol_self($instance, $USER);
+                    return '';
                 }
             }
 
@@ -635,6 +641,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus
             ) {
 
+            $balance = transactions::get_user_balance($USER->id);
             // This user has insufficient wallet balance to be directly enrolled.
             // So we will show him several ways for payments or recharge his wallet.
             $data = new stdClass();
@@ -1253,7 +1260,9 @@ class enrol_wallet_plugin extends enrol_plugin {
             $select->setMultiple(true);
             $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
             $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
-            $mform->setDefault('courserestriction', explode(',', $instance->customchar3));
+            if (!empty($instance->customchar3)) {
+                $mform->setDefault('courserestriction', explode(',', $instance->customchar3));
+            }
         } else {
             $mform->addElement('hidden', 'customint7');
             $mform->setType('customint7', PARAM_INT);
@@ -1518,7 +1527,15 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (empty($this->config->restrictionenabled) || empty($this->config->availability_plugins)) {
             return;
         }
-        $course = self::get_course_by_instance_id($instance->id);
+        if (!$course = self::get_course_by_instance_id($instance->id)) {
+            $courseid = optional_param('courseid', null, PARAM_INT);
+            if (!empty($courseid) && $courseid != SITEID) {
+                $course = get_course($courseid);
+            }
+        }
+        if (empty($course)) {
+            return;
+        }
         $courses = [$course->id => $course];
         if (!empty($instance->customchar3)) {
             $coursesids = explode(',', $instance->customchar3);
@@ -1925,7 +1942,10 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function get_course_by_instance_id($instanceid) {
         global $DB;
-        $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $instanceid], MUST_EXIST);
+        $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $instanceid], IGNORE_MISSING);
+        if (!$courseid) {
+            return false;
+        }
         $course = get_course($courseid);
         return $course;
     }

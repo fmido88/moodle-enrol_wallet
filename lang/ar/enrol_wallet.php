@@ -558,3 +558,79 @@ $string['repurchase_firstdis_desc'] = 'إن تم تحديدها سيتم تطب�
 $string['repurchase_seconddis'] = 'تخفيض إعادة الشراء لثاني مرة';
 $string['repurchase_seconddis_desc'] = 'تطبيق تخفيض للمستخدم لإعادة الشراء لثاني مرة مما يعني انها ثالث مرة للمستخدم شراء المقرر ويجب أن تكون من 0 إلى 100 وأن تكون أزيد من تخفيض أول مرة';
 $string['selectuser'] = 'برجاء إختيار مستخدم.';
+
+
+$string['privacy:metadata:enrol_wallet_items'] = 'Store some non-critical information before each payment contains the amount and the currency and what the user paying for.';
+$string['privacy:metadata:enrol_wallet_items:userid'] = 'The id of the user.';
+$string['privacy:metadata:enrol_wallet_items:cost'] = 'The cost of the item either a topping up fake item or enrol instance.';
+$string['privacy:metadata:enrol_wallet_items:currency'] = 'The currency of the item.';
+$string['privacy:metadata:enrol_wallet_items:instanceid'] = 'The enrol instance id if exists.';
+$string['privacy:metadata:enrol_wallet_awards'] = 'Hold information about the awards that the user gets.';
+$string['privacy:metadata:enrol_wallet_awards:userid'] = 'The id of the user.';
+$string['privacy:metadata:enrol_wallet_awards:courseid'] = 'The id of the completed course.';
+$string['privacy:metadata:enrol_wallet_awards:grade'] = 'The total grade that the user get in the course.';
+$string['privacy:metadata:enrol_wallet_awards:amount'] = 'The amount of the award.';
+$string['privacy:metadata:enrol_wallet_transactions'] = 'Hold information about each wallet transaction.';
+$string['privacy:metadata:enrol_wallet_transactions:userid'] = 'The id of the user.';
+$string['privacy:metadata:enrol_wallet_transactions:type'] = 'The type of the transaction (debit or credit).';
+$string['privacy:metadata:enrol_wallet_transactions:amount'] = 'The amount of transaction.';
+$string['privacy:metadata:enrol_wallet_transactions:balance'] = 'The balance after transaction.';
+$string['privacy:metadata:enrol_wallet_transactions:balbefore'] = 'The balance before transaction.';
+$string['privacy:metadata:enrol_wallet_transactions:norefund'] = 'If this transaction amount is refundable of not.';
+$string['privacy:metadata:enrol_wallet_transactions:description'] = 'The description of the transaction which contain a details about the course or the method by which the user topped up their wallet.';
+$string['privacy:metadata:enrol_wallet_coupons_usage'] = 'Hold information about the coupons used by each user.';
+$string['privacy:metadata:enrol_wallet_coupons_usage:userid'] = 'The id of the user.';
+$string['privacy:metadata:enrol_wallet_coupons_usage:instanceid'] = 'The id of the instance at which the coupon used.';
+$string['privacy:metadata:enrol_wallet_referral'] = 'Hold information about the referral program.';
+$string['privacy:metadata:enrol_wallet_referral:userid'] = 'The id of the user.';
+$string['privacy:metadata:enrol_wallet_referral:code'] = 'A unique referral code.';
+$string['privacy:metadata:enrol_wallet_referral:usetimes'] = 'The number of times the user used the code.';
+$string['privacy:metadata:enrol_wallet_referral:users'] = 'Usernames of the users get referred by this user.';
+$string['privacy:metadata:enrol_wallet_hold_gift'] = 'Store information about referral gifts in hold.';
+$string['privacy:metadata:enrol_wallet_hold_gift:referred'] = 'The username of the referred user.';
+$string['privacy:metadata:enrol_wallet_hold_gift:courseid'] = 'The id of the course that the referred user enrold in and get the gift.';
+$string['privacy:metadata:enrol_wallet_hold_gift:amount'] = 'The amount of the referral gift.';
+$string['privacy:metadata:enrol_wallet_hold_gift:referrer'] = 'The id of the referrer user.';
+$string['privacy:metadata:wordpress'] = 'Hold critical information about the user which is sent to the linked wordpress website to auto create a user account their.';
+$string['privacy:metadata:wordpress:userid'] = 'The id of the user.';
+$string['privacy:metadata:wordpress:email'] = 'The email address.';
+$string['privacy:metadata:wordpress:username'] = 'The username.';
+$string['privacy:metadata:wordpress:password'] = 'The raw password after the user get created or some random string if the user already exists.';
+
+$string['restrictions'] = 'Enrolment Restrictions';
+$string['restrictions_desc'] = 'Like sections and course modules, now Wallet Enrollments offers an option to add restriction to the enrolment, not all availability plugins tested well, so you can choose from here what works fine and please report ant error so we can improve this functionality.';
+$string['restrictionenabled'] = 'Enable restriction.';
+$string['restrictionenabled_desc'] = 'If disabled, not restrictions will be checked.';
+$string['availability_plugins'] = 'Availability plugins';
+$string['availability_plugins_desc'] = 'Choose from here the only suitable availability condition plugin that suits your logical need to prevent course creator to ad non-suitable restrictions.';
+$string['availability_form_desc'] = 'Note that some of the availability restrictions depends on the modules on this course like activity completion or grade, but now we can just include other courses by increase the number of required courses and select all the courses we need and save the form, return again and all the parameters needed from this courses will be included.';
+
+$string['migrate_enrollments_task'] = 'Migrate enrollments and users credits from enrol_credit to enrol_wallet';
+$string['credit_wallet_transformation_desc'] = 'Your credit has been transformed to your wallet.';
+$string['transformation_credit_title'] = 'Transformation of credit to wallet';
+$string['transformation_credit_desc'] = 'Using enrol_credit? If you want, you can transform all users credits to their wallet also migrate all enrollments and instances to enrol_wallet instead. There is {$a->credit} credit enrol instances and {$a->enrol} enrollments to be migrated.';
+$string['transformation_credit_done'] = 'Transformation and migration has been queued successfully and will run shortly, please check after a while for credits and enrollments.';
+
+$string['ch_result_error'] = '<p style = "text-align: center;"><b> ERROR <br>{$a}<br> Please go back and check it again</b></p>';
+$string['ch_result_before'] = '<p>Balance Before: <b>{$a}</b></p>';
+$string['ch_result_after'] = '<p>Balance After: <b>{$a}</b></p>';
+$string['ch_result_negative'] = '<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>';
+$string['ch_result_info_charge'] = '<span style="text-align: center; width: 100%;">
+<h5>the user: {$a->userfull} is now having a balance of {$a->after} after charging him/her by {$a->after_before}...</h5>
+</span>';
+$string['ch_result_info_balance'] = '<span style="text-align: center; width: 100%;"><h5>
+the user: {$a->userfull} is having a balance of {$a->before}
+</h5></span>';
+$string['debitnegative'] = 'Allow negative in debit';
+$string['confirm_debit'] = 'You are about to deduct an amount of {$a->amount} from the user {$a->name} whose current balance is {$a->balance}. The balance after transaction should be {$a->after}';
+$string['confirm_credit'] = 'You are about to add an amount of {$a->amount} to the user {$a->name} wallet who already got a balance of {$a->balance} in their wallet.';
+$string['confirm_negative'] = '<b>Negative balance warning:</b> the user balance will be with negative value after this transaction.';
+
+$string['confirm_enrol_error'] = 'دخول خاطئ لصفحة الإنضمام للكورس.';
+$string['confirm_enrol_confirm'] = 'انت على وشك الإشتراك في الكورس {$a->course}. <br>
+هذا يتطلب مبلغ {$a->cost} ليتم خصمه من محفظتك. <br>
+رصيدك الحالي هو {$a->balance}<br>
+<p>{$a->policy}</p>
+<strong>
+هذه العملية غير قابلة للرجوع بها. <br>
+هل انت واثق؟</strong>';

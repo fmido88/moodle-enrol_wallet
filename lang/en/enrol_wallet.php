@@ -631,3 +631,11 @@ $string['debitnegative'] = 'Allow negative in debit';
 $string['confirm_debit'] = 'You are about to deduct an amount of {$a->amount} from the user {$a->name} whose current balance is {$a->balance}. The balance after transaction should be {$a->after}';
 $string['confirm_credit'] = 'You are about to add an amount of {$a->amount} to the user {$a->name} wallet who already got a balance of {$a->balance} in their wallet.';
 $string['confirm_negative'] = '<b>Negative balance warning:</b> the user balance will be with negative value after this transaction.';
+
+$string['confirm_enrol_error'] = 'Invalid access to enrol page.';
+$string['confirm_enrol_confirm'] = 'You are about to get enrolled is the course <strong>{$a->course}</strong>. <br>
+This require a <strong>{$a->cost} {$a->currency}</strong> to be deducted from you balance. <br>
+Your current balance is {$a->balance}<br>
+<p>{$a->policy}</p>
+<strong> This operation is unreversable.<br>
+Are you sure?</strong>';
