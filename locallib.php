@@ -615,9 +615,26 @@ function enrol_wallet_display_topup_options() {
         $PAGE->requires->js_init_code($jscode, true);
     }
 
+    $tellermen = get_config('enrol_wallet', 'tellermen');
+    if (!empty($tellermen)) {
+        $chargerids = explode(',', $tellermen);
+        $render .= $OUTPUT->box_start();
+        $render .= $OUTPUT->heading(get_string('tellermen_display_guide', 'enrol_wallet'), 6);
+        $render .= html_writer::start_tag('ul');
+        foreach ($chargerids as $tellerid) {
+            $teller = core_user::get_user($tellerid);
+            $tellername = fullname($teller);
+            if (user_can_view_profile($teller)) {
+                $tellername = html_writer::link(new moodle_url('/user/view.php', ['id' => $tellerid]), $tellername);
+            }
+            $render .= html_writer::tag('li', $tellername);
+        }
+        $render .= html_writer::end_tag('ul');
+        $render .= $OUTPUT->box_end();
+    }
     // Display the manual refund policy.
     $policy = get_config('enrol_wallet', 'refundpolicy');
-    if (!empty($policy)) {
+    if (!empty($policy) && !empty($render)) {
         $id = random_int(1000, 9999); // So the JS codes not interfere.
         // Policy Wrapper.
         $warn = html_writer::start_div('alert alert-warning');
@@ -657,6 +674,7 @@ function enrol_wallet_display_topup_options() {
         $PAGE->requires->js_init_code($jscode);
     }
 
+    // Display user with manual charge capabilities.
     if (!empty($render)) {
         return $OUTPUT->box($render);
     } else {

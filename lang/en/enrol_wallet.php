@@ -639,3 +639,9 @@ Your current balance is {$a->balance}<br>
 <p>{$a->policy}</p>
 <strong> This operation is unreversable.<br>
 Are you sure?</strong>';
+
+$string['tellermen_heading'] = 'Teller Men';
+$string['tellermen_heading_desc'] = 'All users with capabilities to credit or debit users wallets, this determine whome will be displayed on the topup form to let users know who to as for charging their wallets';
+$string['tellermen'] = 'Teller men to be displayed';
+$string['tellermen_desc'] = 'Users selected here will be public displayed on the topping up options to let users know who to ask to charging their wallets. (Select none will display nothing)';
+$string['tellermen_display_guide'] = 'Need help charging your wallet? Ask one of our wallet adminstrator to charge your wallet manually or to assist you with the proccedure.';

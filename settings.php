@@ -194,6 +194,21 @@ if ($ADMIN->fulltree) {
                         14 * DAYSECS,
                         DAYSECS));
 
+    // Add option to display users with capabiliy to credit others on the site.
+    $settings->add(new admin_setting_heading('enrol_wallet_tellermen',
+                                get_string('tellermen_heading', 'enrol_wallet'),
+                                get_string('tellermen_heading_desc', 'enrol_wallet')));
+    $tellermen = get_users_by_capability($context, 'enrol/wallet:creditdebit', 'u.id, u.firstname, u.lastname');
+    $tellermen += get_admins();
+    foreach ($tellermen as $user) {
+        $tellermen[$user->id] = $user->firstname . ' '. $user->lastname;
+    }
+
+    $settings->add(new admin_setting_configmultiselect('enrol_wallet/tellermen',
+                                get_string('tellermen', 'enrol_wallet'),
+                                get_string('tellermen_desc', 'enrol_wallet'),
+                                [], $tellermen));
+
     // Adding settings for transfer credit for user to another.
     $settings->add(new admin_setting_heading('enrol_wallet_transfer',
                         get_string('transfer', 'enrol_wallet'),

@@ -634,3 +634,9 @@ $string['confirm_enrol_confirm'] = 'انت على وشك الإشتراك في �
 <strong>
 هذه العملية غير قابلة للرجوع بها. <br>
 هل انت واثق؟</strong>';
+
+$string['tellermen_heading'] = 'Teller Men';
+$string['tellermen_heading_desc'] = 'All users with capabilities to credit or debit users wallets, this determine whome will be displayed on the topup form to let users know who to as for charging their wallets';
+$string['tellermen'] = 'Teller men to be displayed';
+$string['tellermen_desc'] = 'Users selected here will be public displayed on the topping up options to let users know who to ask to charging their wallets. (Select none will display nothing)';
+$string['tellermen_display_guide'] = 'تحتاج المساعدة في شحن محفظتك؟ يمكنك التواصل مع أحد الأشخاص المسؤولين عن شحن المحافظ لشحنها يدويا من جهنه أو لمساعدتك لإكمال الخطوات.';
