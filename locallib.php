@@ -617,6 +617,7 @@ function enrol_wallet_display_topup_options() {
 
     $tellermen = get_config('enrol_wallet', 'tellermen');
     if (!empty($tellermen)) {
+        require_once($CFG->dirroot.'/user/lib.php');
         $chargerids = explode(',', $tellermen);
         $render .= $OUTPUT->box_start();
         $render .= $OUTPUT->heading(get_string('tellermen_display_guide', 'enrol_wallet'), 6);
