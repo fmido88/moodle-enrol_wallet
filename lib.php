@@ -1236,7 +1236,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param stdClass $instance
      * @return void
      */
-    public function course_restriction_edit($coursesoptions, \MoodleQuickForm $mform, $instance) {
+    public function course_restriction_edit($coursesoptions, \MoodleQuickForm $mform, $instance = null) {
         if (!empty($coursesoptions)) {
             $count = count($coursesoptions);
 
