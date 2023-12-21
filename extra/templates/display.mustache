@@ -1,0 +1,76 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template enrol_wallet/display
+
+    This template will render informations about current user wallet balance.
+
+    Context variables required for this template:
+    * balance - the user's balance
+    * currency - the currency we use
+    * transaction - the displayed url for transactions page.
+
+    Example context (json):
+    {
+        "balance": 50,
+        "currency": "EGP",
+        "main" : "20",
+        "transaction": "<a href='https://your-moodle.com/enrol/wallet/extra/transactions.php'>Wallet transactions</a>",
+        "norefund": 30,
+        "policy": "something",
+        "transfer": "<a href='https://your-moodle.com/enrol/wallet/extra/transfer.php'>transfer</a>",
+        "referral": "<a href='https://your-moodle.com/enrol/wallet/extra/referral.php'>referral</a>"
+    }
+
+}}
+
+<div style="text-align: left; padding-bottom: 0px;">
+    <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
+    <p style="text-align: center; direction: ltr;">
+        <span class="balance-card" style="text-align: center; direction: ltr;">{{# str }} youhavebalance, enrol_wallet {{/ str }}<br>
+            <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
+            {{# str }} inyourwallet, enrol_wallet {{/ str }} <br>
+            <span class="wallet-ballance">{{# str }} mainbalance, enrol_wallet {{/ str }} {{main}} {{currency}}</span><br>
+            <span class="wallet-ballance">{{# str }} notrefund, enrol_wallet {{/ str }} {{norefund}} {{currency}}</span><br>
+            {{# policy}}
+            <a href="#" id="enrol_wallet_transactions-policy-url" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
+            {{/ policy}}
+        </span>
+        <span class="transactions-url" style="text-align: center; direction: ltr;">{{{transactions}}}</span><br>
+        {{# transfer}}
+        <span class="transfer-url" style="text-align: center; direction: ltr;">{{{transfer}}}</span><br>
+        {{/ transfer}}
+        {{# referral}}
+        <span class="referral-url" style="text-align: center; direction: ltr;">{{{referral}}}</span>
+        {{/ referral}}
+    </p>
+</div>
+<div id="enrol_wallet_transactions-policy" class="transactions-policy" style="display:none;">{{{policy}}}</div>
+
+{{#js}}
+    var enrolWalletPolicyUrl = document.getElementById('enrol_wallet_transactions-policy-url');
+    if (enrolWalletPolicyUrl !== null) {
+        enrolWalletPolicyUrl.addEventListener("click", function() {
+            var policy = document.getElementById('enrol_wallet_transactions-policy');
+            if (policy.style.display === "none") {
+                policy.style.display = "block";
+            } else {
+                policy.style.display = "none";
+            }
+        });
+    }
+{{/js}}
