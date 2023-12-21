@@ -51,15 +51,16 @@ $PAGE->set_url($pageurl);
 $mform = new enrol_wallet\form\charger_form();
 $confirm = optional_param('confirm', false, PARAM_BOOL);
 $submit = optional_param('submit', false, PARAM_BOOL);
-$data = [
-    'op'       => required_param('op', PARAM_TEXT),
-    'value'    => optional_param('value', '', PARAM_FLOAT),
-    'userlist' => required_param('userlist', PARAM_INT),
-    'neg'      => optional_param('neg', false, PARAM_BOOL),
-    'submit'   => $submit,
-];
+
 // Don't use get_data() because the submission may be from another page.
 if ($submit) {
+    $data = [
+        'op'       => required_param('op', PARAM_TEXT),
+        'value'    => optional_param('value', '', PARAM_FLOAT),
+        'userlist' => required_param('userlist', PARAM_INT),
+        'neg'      => optional_param('neg', false, PARAM_BOOL),
+        'submit'   => $submit,
+    ];
     $errors = $mform->validation($data, []);
 
     if (!empty($errors)) {
