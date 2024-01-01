@@ -1570,7 +1570,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return void
      */
     public function course_edit_form($instance, \MoodleQuickForm $mform, $data, $context) {
-        global $DB, $OUTPUT;
+        global $DB;
 
         $courseid = $data->id ?? optional_param('id', null, PARAM_INT);
         // If the course not created yet, we cannot display the form as it needs the course id.
@@ -1643,6 +1643,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function course_updated($inserted, $course, $data) {
         global $DB;
+
         if (isset($data->instanceid)) {
             $instance = $this->get_instance_by_id($data->instanceid);
         } else {
@@ -1666,23 +1667,26 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return array errors array
      */
     public function course_edit_validation($instance, $data, $context) {
+        global $DB;
+        $instances = $DB->get_records('enrol', ['courseid' => $data['id'], 'enrol' => 'wallet']);
+        if (empty($instances) || count($instances) > 1) {
+            return [];
+        }
+
+        $submitted = fullclone($data);
         if (empty($instance)) {
             if (isset($data['instanceid'])) {
-                $data['id'] = $data['instanceid'];
                 $instance = $this->get_instance_by_id($data['instanceid']);
             } else if (!empty($data['id'])) {
-                global $DB;
-                $instances = $DB->get_records('enrol', ['courseid' => $data['id'], 'enrol' => 'wallet']);
-                if (empty($instances) || count($instances) > 1) {
-                    return [];
-                }
                 $instance = array_pop($instances);
             }
         }
+
         if (!empty($instance)) {
-            $data['id'] = $instance->id;
-            return $this->edit_instance_validation($data, [], $instance, $context);
+            $submitted['id'] = $instance->id;
+            return $this->edit_instance_validation($submitted, [], $instance, $context);
         }
+
         return [];
     }
 
