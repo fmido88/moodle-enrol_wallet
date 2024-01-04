@@ -54,7 +54,7 @@ $usetimes         = optional_param('usetimes', '', PARAM_INT);
 $userelation      = optional_param('userelation', '', PARAM_TEXT);
 $sort             = optional_param('tsort', 'userid', PARAM_ALPHA);
 $download         = optional_param('download', '', PARAM_ALPHA);
-$limitfrom        = optional_param('page', 0, PARAM_INT);
+$page             = optional_param('page', 0, PARAM_INT);
 $limitnum         = optional_param('perpage', 50, PARAM_INT);
 
 // Sterilize the url parameters and conditions for sql.
@@ -62,7 +62,7 @@ $conditions = '1=1';
 $urlparams = [];
 
 $urlparams['tsort']   = (!empty($sort)) ? $sort : null;
-$urlparams['page']    = (!empty($limitfrom)) ? $limitfrom : null;
+$urlparams['page']    = (!empty($page)) ? $page : null;
 $urlparams['perpage'] = (!empty($limitnum)) ? $limitnum : null;
 
 $conditions .= (!empty($code)) ? ' AND c.code = \''.$code.'\'' : '';
@@ -481,28 +481,16 @@ $sqlr = 'SELECT u.id as uid, c.id as id, u.userid, u.instanceid, u.timeused,
 // Count all data to get the number of pages later.
 $count = count($DB->get_records_sql($sqlr, null));
 
-$records = $DB->get_records_sql($sqlr, null, $limitfrom, $limitnum);
+$records = $DB->get_records_sql($sqlr, null, $page * $limitnum, $limitnum);
 
 // Pages links.
 $pages = $count / $limitnum;
 $decimal = fmod($pages, 1);
 $pages = ($decimal > 0) ? intval($pages) + 1 : intval($pages);
+$url = new moodle_url('/enrol/wallet/extra/couponusage.php', $urlparams);
+$paging = new paging_bar($count, $page, $limitnum, $url);
+$pageslinks = $OUTPUT->render($paging);
 
-$content = '<p>Page: </p>';
-for ($i = 1; $i <= $pages; $i++) {
-    $urlparams['page'] = ($i - 1) * $limitnum;
-
-    if ($urlparams['page'] == $limitfrom) {
-        $content .= $i;
-    } else {
-        $url = new moodle_url('/enrol/wallet/extra/couponusage.php', $urlparams);
-        $content .= html_writer::link($url, $i);
-    }
-
-    $content .= ' ';
-}
-
-$pageslinks = html_writer::span($content);
 $wallet = enrol_get_plugin('wallet');
 foreach ($records as $record) {
 

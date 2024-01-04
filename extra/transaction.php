@@ -42,13 +42,13 @@ $dateto    = optional_param_array('dateto', [], PARAM_INT);
 $ttype     = optional_param('ttype', '', PARAM_TEXT);
 $value     = optional_param('value', '', PARAM_FLOAT);
 $limitnum  = optional_param('perpage', 50, PARAM_INT);
-$page = optional_param('page', 0, PARAM_INT);
+$limitfrom = optional_param('page', 0, PARAM_INT);
 
 // Page parameters.
 $urlparams = [
     'tsort'   => $sort,
     'perpage' => $limitnum,
-    'page'    => $page,
+    'page'    => $limitfrom,
     'user'    => $userid,
     'ttype'   => $ttype,
     'value'   => $value,
@@ -247,7 +247,6 @@ if (!empty($dateto)) {
     $select .= "AND timecreated <= :timeto ";
 }
 
-$limitfrom = $page * $limitnum;
 $records = $DB->get_records_select('enrol_wallet_transactions', $select, $params, $orderby, '*', $limitfrom, $limitnum);
 $count = $DB->count_records_select('enrol_wallet_transactions', $select, $params);
 
@@ -255,9 +254,11 @@ $count = $DB->count_records_select('enrol_wallet_transactions', $select, $params
 $pages = $count / $limitnum;
 $decimal = fmod($pages, 1);
 $pages = ($decimal > 0) ? intval($pages) + 1 : intval($pages);
-
+if ($limitfrom + 1 > $pages) {
+    $limitfrom = 0;
+}
 $url = new moodle_url('/enrol/wallet/extra/transaction.php', $urlparams);
-$paging = new paging_bar($count, $page, $limitnum, $url);
+$paging = new paging_bar($count, $limitfrom, $limitnum, $url);
 
 foreach ($records as $record) {
 
