@@ -36,6 +36,10 @@ $confirm = optional_param('confirm', false, PARAM_BOOL);
 $context = context_course::instance($courseid);
 $PAGE->set_context($context);
 
+if (is_enrolled($context, null, '', true)) {
+    redirect(new moodle_url('/course/view.php', ['id' => $courseid]));
+}
+
 $wallet = new enrol_wallet_plugin;
 $instance = $wallet->get_instance_by_id($instanceid);
 $course = get_course($courseid);
