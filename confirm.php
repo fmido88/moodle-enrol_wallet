@@ -25,6 +25,10 @@
 require_once(__DIR__.'/../../config.php');
 require_once(__DIR__.'/lib.php');
 
+use enrol_wallet\util\instance;
+use enrol_wallet\util\balance;
+use enrol_wallet\util\balance_op;
+
 global $USER;
 
 require_login(null, false);
@@ -40,8 +44,9 @@ if (is_enrolled($context, null, '', true)) {
     redirect(new moodle_url('/course/view.php', ['id' => $courseid]));
 }
 
+$helper = new instance($instanceid);
 $wallet = new enrol_wallet_plugin;
-$instance = $wallet->get_instance_by_id($instanceid);
+$instance = $helper->get_instance();
 $course = get_course($courseid);
 
 $params = [
@@ -109,13 +114,13 @@ $cancelbutton = new single_button($cancelurl, get_string('cancel'));
 $params['confirm'] = true;
 $confirmurl = new moodle_url('/enrol/wallet/confirm.php', $params);
 $confirmbutton = new single_button($confirmurl, get_string('confirm'));
-
+$balance = balance::create_from_instance($instance);
 $a = [
-    'balance' => enrol_wallet\transactions::get_user_balance($USER->id),
-    'cost' => $wallet::get_cost_after_discount($USER->id, $instance),
+    'balance'  => $balance->get_valid_balance(),
+    'cost'     => $helper->get_cost_after_discount(),
     'currency' => $instance->currency,
-    'course' => $course->fullname,
-    'policy' => '',
+    'course'   => $course->fullname,
+    'policy'   => '',
 ];
 
 // Display refund policy if enabled.

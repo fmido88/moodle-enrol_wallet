@@ -21,7 +21,7 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+use enrol_wallet\util\balance;
 /**
  * To add the category and node information into the my profile page.
  * If is a regular user, it show the balance, refund policy and topping up options.
@@ -135,7 +135,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
     $hassiteconfig   = has_capability('moodle/site:config', $context);
 
     $any = ($captransactions || $capcredit || $capbulkedit || $capcouponview || $capcouponcreate);
-    $ismoodle = (get_config('enrol_wallet', 'walletsource') == enrol_wallet\transactions::SOURCE_MOODLE);
+    $ismoodle = (get_config('enrol_wallet', 'walletsource') == balance::MOODLE);
 
     if ($hassiteconfig && $any) {
 
@@ -311,7 +311,7 @@ function enrol_wallet_validate_extend_signup_form($data) {
 function enrol_wallet_update_wordpress_user($user) {
     // Check the wallet source first.
     $source = get_config('enrol_wallet', 'walletsource');
-    if ($source == enrol_wallet\transactions::SOURCE_WORDPRESS) {
+    if ($source == balance::WP) {
         // Create or update corresponding user in wordpress.
         $wordpress = new \enrol_wallet\wordpress;
         $wordpress->create_wordpress_user($user, $user->password);
@@ -407,7 +407,8 @@ function enrol_wallet_before_standard_top_of_body_html() {
 
     // Check the conditions.
     $condition = get_config('enrol_wallet', 'noticecondition');
-    $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
+    $op = new balance();
+    $balance = $op->get_total_balance();
     if ($balance !== false && is_numeric($balance) && $balance <= (int)$condition) {
         // Display the warning.
         \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
@@ -424,7 +425,10 @@ function enrol_wallet_after_require_login() {
     if (isguestuser() || empty($USER->id)) {
         return;
     }
-
+    $source = get_config('enrol_wallet', 'walletsource');
+    if ($source != balance::WP) {
+        return;
+    }
     // Prevent multiple calls.
     $done = get_user_preferences('enrol_wallet_wploggedin', false, $USER);
     if ($done) {
@@ -432,7 +436,8 @@ function enrol_wallet_after_require_login() {
     }
 
     if (isset($SESSION->wantsurl)) {
-        $return = (new moodle_url($SESSION->wantsurl))->out(false);
+        $return = $SESSION->wantsurl;
+        unset($SESSION->wantsurl);
     } else {
         $return = (new moodle_url('/'))->out(false);
     }

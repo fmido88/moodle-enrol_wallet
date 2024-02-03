@@ -23,6 +23,8 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
+use enrol_wallet\util\balance;
+use enrol_wallet\coupons;
 
 $context = context_system::instance();
 
@@ -66,27 +68,27 @@ if ($ADMIN->fulltree) {
                         get_string('pluginname_desc', 'enrol_wallet')));
     // Adding choice between using wordpress (woowallet) of internal moodle wallet.
     $sources = [
-        enrol_wallet\transactions::SOURCE_WORDPRESS => get_string('sourcewordpress', 'enrol_wallet'),
-        enrol_wallet\transactions::SOURCE_MOODLE    => get_string('sourcemoodle', 'enrol_wallet'),
+        balance::WP     => get_string('sourcewordpress', 'enrol_wallet'),
+        balance::MOODLE => get_string('sourcemoodle', 'enrol_wallet'),
     ];
     $settings->add(new admin_setting_configselect('enrol_wallet/walletsource',
                                                 get_string('walletsource', 'enrol_wallet'),
                                                 get_string('walletsource_help', 'enrol_wallet'),
-                                                enrol_wallet\transactions::SOURCE_MOODLE,
+                                                balance::MOODLE,
                                                 $sources));
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/wordpressloggins',
                                                 get_string('wordpressloggins', 'enrol_wallet'),
                                                 get_string('wordpressloggins_desc', 'enrol_wallet'),
                                                 0));
     $settings->hide_if('enrol_wallet/wordpressloggins', 'enrol_wallet/walletsource',
-                                                'eq', enrol_wallet\transactions::SOURCE_MOODLE);
+                                                'eq', balance::MOODLE);
     // Define the WordPress site URL configuration setting.
     $settings->add(new admin_setting_configtext('enrol_wallet/wordpress_url',
                                                 get_string('wordpressurl', 'enrol_wallet'),
                                                 get_string('wordpressurl_desc', 'enrol_wallet'),
                                                 'https://example.com' // Default value for the WordPress site URL.
                                                 ));
-    $settings->hide_if('enrol_wallet/wordpress_url', 'enrol_wallet/walletsource', 'eq', enrol_wallet\transactions::SOURCE_MOODLE);
+    $settings->hide_if('enrol_wallet/wordpress_url', 'enrol_wallet/walletsource', 'eq', balance::MOODLE);
     // Secret shared key.
     $settings->add(new admin_setting_configtext('enrol_wallet/wordpress_secretkey',
                                                 get_string('wordpress_secretkey', 'enrol_wallet'),
@@ -94,7 +96,7 @@ if ($ADMIN->fulltree) {
                                                 'S0mTh1ng/123'
                                                 ));
     $settings->hide_if('enrol_wallet/wordpress_secretkey', 'enrol_wallet/walletsource',
-                                                'eq', enrol_wallet\transactions::SOURCE_MOODLE);
+                                                'eq', balance::MOODLE);
 
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
     // it describes what should happened when users are not supposed to be enrolled any more.
@@ -258,16 +260,11 @@ if ($ADMIN->fulltree) {
                         $menu));
 
     // Adding options to enable and disable coupons.
-    $choices = [
-        enrol_wallet_plugin::WALLET_NOCOUPONS       => get_string('nocoupons', 'enrol_wallet'),
-        enrol_wallet_plugin::WALLET_COUPONSFIXED    => get_string('couponsfixed', 'enrol_wallet'),
-        enrol_wallet_plugin::WALLET_COUPONSDISCOUNT => get_string('couponsdiscount', 'enrol_wallet'),
-        enrol_wallet_plugin::WALLET_COUPONSALL      => get_string('couponsall', 'enrol_wallet'),
-    ];
-    $settings->add(new admin_setting_configselect('enrol_wallet/coupons',
+    $choices = coupons::get_coupons_options();
+    $settings->add(new admin_setting_configmulticheckbox('enrol_wallet/coupons',
                                                 get_string('couponstype', 'enrol_wallet'),
                                                 get_string('couponstype_help', 'enrol_wallet'),
-                                                enrol_wallet_plugin::WALLET_NOCOUPONS,
+                                                [],
                                                 $choices));
 
     // Add settings for conditional discount.

@@ -1,5 +1,14 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 5.0.0 ##
+- Overall code improvement.
+- Add a category based wallet.
+- Enhance all operations and coupon validation.
+- using caches to store balance data to avoid multiple requests.
+- Add enrol page view event.
+- using ajax to view any user wallet balance from charger form.
+- Fix negative balance bug.
+
 ## V 4.5.0 ##
 - Add option to display users with capabilities to credit other users wallets in topping up option, this is helpful in case no payment account exists.
 - Fix: In case of no topping up options available, nothing will be displayed even the policy.
@@ -7,7 +16,7 @@
 ## V 4.4.0 ##
 - Fix exception thrown when add another instance.
 - Confirmation page before purchase the course.
-- Fix wrong enrolments due to multiple instances.
+- Fix wrong enrollments due to multiple instances.
 
 ## V 4.3.0 ##
 - Fix exception thrown when no availability specified or disabled.

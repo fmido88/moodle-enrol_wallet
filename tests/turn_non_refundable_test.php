@@ -25,6 +25,8 @@ namespace enrol_wallet;
 
 use enrol_wallet\transactions;
 use enrol_wallet\task\turn_non_refundable;
+use enrol_wallet\util\balance;
+use enrol_wallet\util\balance_op;
 
 /**
  * Testing the adhoc task to transform certain amount to nonrefundable.
@@ -47,9 +49,10 @@ class turn_non_refundable_test extends \advanced_testcase {
         $period = get_config('enrol_wallet', 'refundperiod');
         $this->assertEquals(14 * DAYSECS, $period);
 
-        transactions::payment_topup(200, $user->id);
-        $balance = transactions::get_user_balance($user->id);
-        $norefund = transactions::get_nonrefund_balance($user->id);
+        $op = new balance_op($user->id);
+        $op->credit(200);
+        $balance = $op->get_main_balance();
+        $norefund = $op->get_main_nonrefundable();
 
         $this->assertEquals(200, $balance);
         $this->assertEquals(0, $norefund);
@@ -65,15 +68,16 @@ class turn_non_refundable_test extends \advanced_testcase {
         ob_start();
         $task->execute();
         ob_end_clean();
-
-        $balance = transactions::get_user_balance($user->id);
-        $norefund = transactions::get_nonrefund_balance($user->id);
+        $op = new balance_op($user->id);
+        $balance = $op->get_main_balance();
+        $norefund = $op->get_main_nonrefundable();
 
         $this->assertEquals(200, $balance);
         $this->assertEquals(50, $norefund);
+        $this->assertEquals(0, $op->get_total_free());
 
         // Test that the debited amount not transformed as it already used.
-        transactions::debit($user->id, 40);
+        $op->debit(40, $op::OTHER);
 
         $taskdata['amount'] = 50;
 
@@ -84,11 +88,11 @@ class turn_non_refundable_test extends \advanced_testcase {
         $task->execute();
         ob_end_clean();
 
-        $balance = transactions::get_user_balance($user->id);
-        $norefund = transactions::get_nonrefund_balance($user->id);
+        $op = new balance_op($user->id);
 
-        $this->assertEquals(160, $balance);
-        $this->assertEquals(60, $norefund);
+        $this->assertEquals(160, $op->get_main_balance());
+        $this->assertEquals(60, $op->get_main_nonrefundable());
+        $this->assertEquals(0, $op->get_total_free());
 
         // Test that if the amount is greater than the balance, nonrefundable not exceed balance.
         $taskdata['amount'] = 250;
@@ -100,11 +104,13 @@ class turn_non_refundable_test extends \advanced_testcase {
         $task->execute();
         ob_end_clean();
 
-        $balance = transactions::get_user_balance($user->id);
-        $norefund = transactions::get_nonrefund_balance($user->id);
+        $bal = new balance($user->id);
+        $balance = $bal->get_main_balance();
+        $norefund = $bal->get_main_nonrefundable();
 
         $this->assertEquals(160, $balance);
         $this->assertEquals(160, $norefund);
+        $this->assertEquals(0, $bal->get_total_free());
     }
 
     /**
@@ -117,7 +123,9 @@ class turn_non_refundable_test extends \advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user();
         // Charge the wallet with already nonrefundable balance.
-        transactions::payment_topup(200, $user->id, '', '', false);
+        $op = new balance_op($user->id);
+        $op->credit(200, $op::OTHER, 0, '', false);
+
         $data = (object)[
             'userid' => $user->id,
             'amount' => 200,
@@ -128,12 +136,12 @@ class turn_non_refundable_test extends \advanced_testcase {
         $this->assertStringContainsString('Non refundable amount grater than or equal user\'s balance', $output1);
 
         // Charge more with refundable balance.
-        transactions::payment_topup(100, $user->id);
+        $op->credit(100);
         $output2 = $task->check_transform_validation($data, $trace);
         $this->assertEquals($output2, 200);
 
         // Not transform what already used.
-        transactions::debit($user->id, 50);
+        $op->debit(50);
         $output3 = $task->check_transform_validation($data, $trace);
         $this->assertEquals($output3, 150);
 

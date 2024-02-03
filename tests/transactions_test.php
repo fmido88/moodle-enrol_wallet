@@ -37,6 +37,7 @@ require_once($CFG->dirroot.'/enrol/wallet/lib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class transactions_test extends \advanced_testcase {
+
     /**
      * The transactions class.
      * @var
@@ -174,14 +175,13 @@ class transactions_test extends \advanced_testcase {
             'maxusage' => 1,
         ];
         $DB->insert_record('enrol_wallet_coupons', $coupon);
+        $couponhelper = new coupons('test1', $user->id);
 
-        $coupondata = transactions::get_coupon_value('test1', $user->id);
-
-        $this->assertEquals(50, $coupondata['value']);
-        $this->assertEquals('fixed', $coupondata['type']);
-
+        $this->assertEquals(50, $couponhelper->get_value());
+        $this->assertEquals('fixed', $couponhelper->get_type());
+        $this->assertTrue($couponhelper->validate_coupon(coupons::AREA_TOPUP));
         $sink = $this->redirectEvents();
-        transactions::mark_coupon_used('test1', $user->id, 0);
+        $couponhelper->mark_coupon_used();
         // Check the event triggered.
         $events = $sink->get_events();
         $sink->close();
@@ -189,7 +189,7 @@ class transactions_test extends \advanced_testcase {
         $this->assertInstanceOf('\enrol_wallet\event\coupon_used', $events[0]);
         $this->assertEquals('test1', $events[0]->other['code']);
 
-        $coupondata = transactions::get_coupon_value('test1', $user->id);
+        $coupondata = coupons::get_coupon_value('test1', $user->id);
 
         $this->assertTrue(is_string($coupondata));
 
@@ -197,17 +197,4 @@ class transactions_test extends \advanced_testcase {
 
         $this->assertEquals($user->id, $usage->userid);
     }
-
-    /**
-     * Summary of test_validate_coupon
-     *
-     * @covers ::validate_coupon
-     * @return void
-     */
-    public function test_validate_coupon(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-    }
-
 }

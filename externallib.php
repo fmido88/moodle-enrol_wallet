@@ -27,6 +27,8 @@ defined('MOODLE_INTERNAL') || die();
 require_once("$CFG->libdir/externallib.php");
 require_once("$CFG->dirroot/enrol/wallet/lib.php");
 
+use enrol_wallet\util\balance;
+
 /**
  * wallet enrolment external functions.
  *
@@ -185,11 +187,12 @@ class enrol_wallet_external extends external_api {
             } else {
                 $costafter = $enrol->get_cost_after_discount($USER->id, $instance);
                 $cost = $instance->cost;
-                $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
+                $balance = balance::create_from_instance($instance);
+
                 $a = [
                     'cost_before'  => $cost,
                     'cost_after'   => $costafter,
-                    'user_balance' => $balance,
+                    'user_balance' => $balance->get_valid_balance(),
                 ];
                 if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE) {
                     $enrolstatus = get_string('insufficient_balance', 'enrol_wallet', $a);
@@ -225,5 +228,4 @@ class enrol_wallet_external extends external_api {
             ]
         );
     }
-
 }

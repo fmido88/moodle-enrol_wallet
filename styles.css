@@ -4,14 +4,25 @@
     background-color: rgb(255 255 255 / 47%);
     border-radius: 5px;
     opacity: .9;
-    font-size: 15px;
+    font-size: 85%;
     font-weight: 600;
     color: darkred;
-    padding-top: 1px;
+    padding-top: 2%;
     margin-left: -5px;
     width: 27px;
     font-variant-caps: all-small-caps;
     text-align: center;
+}
+.enrol-wallet-balance-details {
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+    align-content: stretch;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+.enrol_wallet_offer {
+    clip-path: polygon(50% 0%, 61% 18%, 80% 10%, 79% 31%, 100% 35%, 87% 54%, 100% 70%, 82% 74%, 80% 90%, 62% 88%, 50% 100%, 38% 86%, 20% 90%, 19% 73%, 0% 70%, 14% 53%, 0% 35%, 21% 30%, 20% 10%, 39% 16%);
 }
 
 @media (min-width: 768px) {
