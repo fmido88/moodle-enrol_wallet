@@ -22,8 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace enrol_wallet;
-use enrol_wallet_plugin;
-
+use enrol_wallet\util\balance;
+use curl;
 /**
  * The class containing  the function which handles wordpress requests.
  *
@@ -54,7 +54,7 @@ class wordpress {
         $encrypted = $this->encrypt_data($data);
         $sendingdata = ['encdata' => $encrypted];
 
-        $curl = new \curl();
+        $curl = new curl();
 
         $curlsetopt = [
             'url'            => $url,
@@ -200,12 +200,12 @@ class wordpress {
             return get_string('coupon_novalue', 'enrol_wallet');
         }
 
-        if (strpos($coupontype, 'fixed') !== false) {
+        if (stripos($coupontype, 'fixed') !== false) {
             $coupontype = 'fixed';
-        } else if (strpos($coupontype, 'percent') !== false) {
+        } else if (stripos($coupontype, 'percent') !== false) {
             $coupontype = 'percent';
         } else {
-            throw new \moodle_exception('coupon_invalidreturntype', 'enrol_wallet');
+            return get_string('coupon_invalidreturntype', 'enrol_wallet');
         }
 
         $coupondata = [
@@ -289,7 +289,7 @@ class wordpress {
         $user = \core_user::get_user($userid);
 
         if (
-            $walletsource != transactions::SOURCE_WORDPRESS
+            $walletsource != balance::WP
             || empty($allowed) // Check if this option allowed in the settings.
             || empty($wordpressurl) // If the wp url is not set.
             || !$user // If this is a valid user.

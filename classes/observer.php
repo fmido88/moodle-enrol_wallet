@@ -22,8 +22,10 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace enrol_wallet;
-use enrol_wallet\transactions;
-use enrol_wallet_plugin;
+
+use enrol_wallet\util\balance_op;
+use enrol_wallet\util\balance;
+
 /**
  * Observer class for enrol_wallet.
  *
@@ -97,7 +99,8 @@ class observer {
 
         // Calculating the total award.
         $award = ($percentage - $condition) * $maxgrade * $awardper / 100;
-        $coursename = get_course($courseid)->shortname;
+        $course = get_course($courseid);
+        $coursename = $course->shortname;
 
         $a = new \stdClass;
         $a->courseshortname = $coursename;
@@ -108,7 +111,8 @@ class observer {
         $desc = get_string('awardingdesc', 'enrol_wallet', $a);
 
         // Award the student.
-        transactions::payment_topup($award , $userid , $desc , $userid, false);
+        $op = new balance_op($userid, $course->category);
+        $op->credit($award, $op::C_AWARD, $courseid, $desc, false);
 
         // Insert the record.
         $data = [
@@ -151,8 +155,8 @@ class observer {
         if (!empty($giftenabled)) {
             $time   = $event->timecreated;
             $giftvalue = get_config('enrol_wallet', 'newusergiftvalue');
-
-            $balance = transactions::get_user_balance($userid);
+            $balanceop = new balance_op($userid);
+            $balance = $balanceop->get_main_balance();
             if (!is_numeric($balance) || $balance == 0) {
                 $a = new \stdClass;
                 $a->userid = $userid;
@@ -160,8 +164,8 @@ class observer {
                 $a->amount = $giftvalue;
                 $desc = get_string('giftdesc', 'enrol_wallet', $a);
 
-                $id = transactions::payment_topup($giftvalue, $userid, $desc, $userid, false, false);
-
+                $balanceop->credit($giftvalue, balance_op::C_ACCOUNT_GIFT, 0, $desc, false, false);
+                $id = $balanceop->get_transaction_id();
                 // Trigger gifts event.
                 $eventdata = [
                     'context'       => \context_system::instance(),
@@ -187,51 +191,7 @@ class observer {
      * @return void
      */
     public static function conditional_discount_charging(\enrol_wallet\event\transactions_triggered $event) {
-        global $DB;
-        $charger = $event->userid;
-        $userid  = $event->relateduserid;
-        $amount  = $event->other['amount'];
 
-        $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
-        $percentdiscount = 0;
-        if (!empty($enabled)) {
-            $params = [
-                'time1' => time(),
-                'time2' => time(),
-            ];
-            $select = '(timefrom <= :time1 OR timefrom = 0 ) AND (timeto >= :time2 OR timeto = 0)';
-            $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
-
-            foreach ($records as $record) {
-                if ($record->percent >= 100) {
-                    continue;
-                }
-                $beforediscount = $amount + ($amount * $record->percent / (100 - $record->percent));
-                if ($beforediscount >= $record->cond && $record->percent > $percentdiscount) {
-
-                    $percentdiscount = $record->percent;
-                    $condition = $record->cond;
-                }
-            }
-        }
-        if (
-            empty($enabled) // If the discount enabled.
-            || empty($percentdiscount) // If there is a value for discount.
-            || $event->other['type'] != 'credit' // Only apply to credit transaction.
-            ) {
-            return;
-        }
-
-        // Discount more than 100 is not acceptable.
-        $percentdiscount = min(100, $percentdiscount);
-        $discount = $percentdiscount / 100;
-
-        // The rest of the amount after subtract the part the user paid.
-        $rest = $amount * $discount / (1 - $discount);
-
-        $desc = get_string('conditionaldiscount_desc', 'enrol_wallet', ['rest' => $rest, 'condition' => $condition]);
-        // Credit the user with the rest amount.
-        transactions::payment_topup($rest, $userid, $desc, $charger, false, false);
     }
 
     /**
@@ -266,11 +226,13 @@ class observer {
         $referrer = \core_user::get_user($hold->referrer, 'id,firstname');
         // TopUp the referred user.
         $desc = get_string('referral_gift', 'enrol_wallet', $referrer->firstname);
-        transactions::payment_topup($hold->amount, $userid, $desc, $referrer->id, false, false);
+        $op = new balance_op($userid);
+        $op->credit($hold->amount, $op::C_REFERRAL, $referrer->id, $desc, false);
 
         // TopUp the referrer user.
         $refdesc = get_string('referral_topup', 'enrol_wallet', $referred->firstname);
-        transactions::payment_topup($hold->amount, $referrer->id, $refdesc, $userid, false, false);
+        $op = new balance_op($referrer->id);
+        $op->credit($hold->amount, $op::C_REFERRAL, $userid, $refdesc, false);
 
         // Updating the hold_gift record.
         $hold->timemodified = time();
@@ -290,7 +252,7 @@ class observer {
         global $SESSION;
         $userid = $event->userid;
         $walletsource = get_config('enrol_wallet', 'walletsource');
-        if ($walletsource != transactions::SOURCE_WORDPRESS) {
+        if ($walletsource != balance::WP) {
             return;
         }
 
@@ -337,7 +299,7 @@ class observer {
     public static function logout_from_wordpress(\core\event\user_loggedout $event) {
         global  $redirect;
         $walletsource = get_config('enrol_wallet', 'walletsource');
-        if ($walletsource != transactions::SOURCE_WORDPRESS) {
+        if ($walletsource != balance::WP) {
             return;
         }
 

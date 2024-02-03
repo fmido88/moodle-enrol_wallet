@@ -37,40 +37,48 @@
     }
 
 }}
-
-<div style="text-align: left; padding-bottom: 0px;">
+<span class="hidden" data-uniqid="{{uniqid}}" data-identifier="uniqid"></span>
+<div style="text-align: center; padding-bottom: 0px;">
+    {{# currentuser}}
     <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
+    {{/ currentuser}}
     <p style="text-align: center; direction: ltr;">
-        <span class="balance-card" style="text-align: center; direction: ltr;">{{# str }} youhavebalance, enrol_wallet {{/ str }}<br>
+        <div class="balance-card" style="text-align: center; direction: ltr;">{{#currentuser}}{{# str }} youhavebalance, enrol_wallet {{/ str }}{{/currentuser}}<br>
             <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
-            {{# str }} inyourwallet, enrol_wallet {{/ str }} <br>
+            {{#currentuser}}{{# str }} inyourwallet, enrol_wallet {{/ str }} <br>{{/currentuser}}
             <span class="wallet-ballance">{{# str }} mainbalance, enrol_wallet {{/ str }} {{main}} {{currency}}</span><br>
             <span class="wallet-ballance">{{# str }} notrefund, enrol_wallet {{/ str }} {{norefund}} {{currency}}</span><br>
+            {{# hasdetails}}
+            <a href="#" id="more-details-{{uniqid}}"> More Details </a><br>
+            {{/ hasdetails}}
+            <div id="balance-details-{{uniqid}}" style="display:none;" class="enrol-wallet-balance-details">
+            {{# catdetails }}
+                <ul style="text-align: left;">
+                    <h6>{{ name }}</h6>
+                    <li>Refundable: {{refundable}}</li>
+                    <li>Non-refundable: {{nonrefundable}}</li>
+                    <li>Total: {{total}}</li>
+                </ul>
+            {{/ catdetails }}
+            </div>
             {{# policy}}
-            <a href="#" id="enrol_wallet_transactions-policy-url" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
+            <a href="#" id="enrol_wallet_transactions-policy-url-{{uniqid}}" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
+            <div id="enrol_wallet_transactions-policy-{{uniqid}}" class="transactions-policy" style="text-align: left; display:none;">{{{policy}}}</div>
             {{/ policy}}
-        </span>
-        <span class="transactions-url" style="text-align: center; direction: ltr;">{{{transactions}}}</span><br>
+        </div>
+        <span class="transactions-url" style="text-align: center;">{{{transactions}}}</span><br>
         {{# transfer}}
-        <span class="transfer-url" style="text-align: center; direction: ltr;">{{{transfer}}}</span><br>
+        <span class="transfer-url" style="text-align: center;">{{{transfer}}}</span><br>
         {{/ transfer}}
         {{# referral}}
-        <span class="referral-url" style="text-align: center; direction: ltr;">{{{referral}}}</span>
+        <span class="referral-url" style="text-align: center;">{{{referral}}}</span>
         {{/ referral}}
     </p>
 </div>
-<div id="enrol_wallet_transactions-policy" class="transactions-policy" style="display:none;">{{{policy}}}</div>
+
 
 {{#js}}
-    var enrolWalletPolicyUrl = document.getElementById('enrol_wallet_transactions-policy-url');
-    if (enrolWalletPolicyUrl !== null) {
-        enrolWalletPolicyUrl.addEventListener("click", function() {
-            var policy = document.getElementById('enrol_wallet_transactions-policy');
-            if (policy.style.display === "none") {
-                policy.style.display = "block";
-            } else {
-                policy.style.display = "none";
-            }
-        });
-    }
+    require(['enrol_wallet/expenders'], function(ex) {
+        ex.init('{{uniqid}}');
+    });
 {{/js}}

@@ -52,11 +52,5 @@ $observers = [
         'callback'    => '\enrol_wallet\observer::logout_from_wordpress',
         'includefile' => '/enrol/wallet/classes/observer.php',
     ],
-    // Observer to apply extra credit to fullfil the discount rule.
-    [
-        'eventname'   => '\enrol_wallet\event\transactions_triggered',
-        'callback'    => '\enrol_wallet\observer::conditional_discount_charging',
-        'includefile' => '/enrol/wallet/classes/observer.php',
-    ],
 ];
 

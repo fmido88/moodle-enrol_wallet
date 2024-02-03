@@ -23,7 +23,8 @@
  */
 
 namespace enrol_wallet\task;
-use enrol_wallet\transactions;
+
+use enrol_wallet\util\balance_op;
 /**
  * Send expiry notifications task.
  */
@@ -68,7 +69,6 @@ class migrate_enrollments extends \core\task\adhoc_task {
      */
     private function transform_credit($trace) {
         global $DB, $CFG;
-        $transactions = new transactions;
         $creditplugin = enrol_get_plugin('credit');
 
         $allusers = $DB->get_records('user', [], '', 'id');
@@ -81,7 +81,8 @@ class migrate_enrollments extends \core\task\adhoc_task {
             }
 
             $creditplugin->deduct_credits($user->id, $credit);
-            $transactions::payment_topup($credit, $user->id, $desc, '', false, false);
+            $op = new balance_op($user->id);
+            $op->credit($credit, $op::OTHER, 0, $desc, false, false);
         }
         $trace->output("Finished transforming credit...\n");
     }

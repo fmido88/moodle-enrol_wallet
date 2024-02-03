@@ -23,12 +23,20 @@
  */
 
 namespace enrol_wallet\task;
-use enrol_wallet\transactions;
+
+use enrol_wallet\util\balance;
+use enrol_wallet\util\balance_op as op;
+
 /**
  * Send expiry notifications task.
  */
 class turn_non_refundable extends \core\task\adhoc_task {
 
+    /**
+     * Category id corresponding to transformation.
+     * @var int
+     */
+    private $catid;
     /**
      * Name for this task.
      *
@@ -54,19 +62,20 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         $transform = $this->check_transform_validation($data, $trace);
 
-        if ($transform) {
+        if ($transform && is_numeric($transform)) {
             $trace->output('Transform validation success...');
 
             $userid = $data->userid;
             $this->apply_transformation($userid, $transform, $trace);
 
-            $trace->output('Transformation done ...');
+            $trace->output('Transformation done...');
 
         } else {
 
-            $trace->output('Transformation validation failed ....');
+            $trace->output('Transformation validation failed...');
         }
-        $trace->output('Task Completed');
+
+        $trace->output('Task Completed.');
         $trace->finished();
     }
 
@@ -80,12 +89,20 @@ class turn_non_refundable extends \core\task\adhoc_task {
         global $DB;
         $userid = $data->userid;
         $amount = $data->amount;
+        $this->catid = $data->catid ?? 0;
 
-        $balance = transactions::get_user_balance($userid);
+        $balancehelper = new balance($userid, $this->catid);
+
+        if (empty($this->catid)) {
+            $balance = $balancehelper->get_main_balance();
+            $norefund = $balancehelper->get_main_nonrefundable();
+        } else {
+            $balance = $balancehelper->catop->get_balance();
+            $norefund = $balancehelper->catop->get_non_refundable_balance();
+        }
 
         $period = get_config('enrol_wallet', 'refundperiod');
 
-        $norefund = transactions::get_nonrefund_balance($userid);
         if ($norefund >= $balance) {
             $output = 'Non refundable amount grater than or equal user\'s balance'."\n";
             $trace->output($output);
@@ -98,12 +115,18 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         // Get all transactions in this time.
         $where = "userid = :userid AND type = :type AND timecreated >= :checktime";
-
         $params = [
             'userid'    => $userid,
             'type'      => 'debit',
             'checktime' => time() - $period,
         ];
+        if (!empty($this->catid)) {
+            $where .= " AND category = :catid";
+            $params['catid'] = $this->catid;
+        } else {
+            $where .= " AND (category IS NULL OR category = 0)";
+        }
+
         $records = $DB->get_records_select('enrol_wallet_transactions', $where, $params, 'id DESC', 'id, amount');
 
         if (empty($records)) {
@@ -141,9 +164,10 @@ class turn_non_refundable extends \core\task\adhoc_task {
      */
     public function apply_transformation($userid, $transform, $trace) {
         global $DB;
+        $op = new op($userid, $this->catid);
 
-        $balance = transactions::get_user_balance($userid);
-        $norefund = transactions::get_nonrefund_balance($userid);
+        $balance = $op->get_valid_balance();
+        $norefund = $op->get_valid_nonrefundable();
 
         // If refunding is disable, transform all balance to non-refundable.
         $refundenabled = get_config('enrol_wallet', 'enablerefund');
@@ -152,6 +176,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
             $trace->output('Refunding is disabled in this website, all of user\'s balance will transform...'."\n");
         }
 
+        $op->turn_to_nonrefundable($transform);
         $recorddata = [
             'userid'      => $userid,
             'amount'      => 0,
@@ -159,6 +184,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
             'balbefore'   => $balance,
             'balance'     => $balance,
             'norefund'    => min($norefund + $transform, $balance),
+            'category'    => $this->catid,
             'descripe'    => get_string('nonrefundable_transform_desc', 'enrol_wallet'),
             'timecreated' => time(),
         ];

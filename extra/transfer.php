@@ -35,99 +35,33 @@ $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
 if (empty($transferenabled)) {
     redirect(new moodle_url('/'), get_string('transfer_notenabled', 'enrol_wallet'), null, 'error');
 }
-
 $url = new moodle_url('/enrol/wallet/extra/transfer.php');
-$confirm = optional_param('confirm', '', PARAM_BOOL);
+$title = get_string('transferpage', 'enrol_wallet');
+$PAGE->set_context($context);
+$PAGE->set_title($title);
+$PAGE->set_heading($title);
+$PAGE->set_url($url);
 
-if ($confirm) {
-    // Don't do any action until confirming sesskey.
-    if (!confirm_sesskey()) {
-        throw new moodle_exception('invalidsesskey');
-    }
+$mform = new \enrol_wallet\form\transfer_form();
 
+if ($data = $mform->get_data()) {
     global $USER;
-    $email  = required_param('email', PARAM_EMAIL);
-    $amount = required_param('amount', PARAM_FLOAT);
-    $parent = optional_param('parent', false, PARAM_BOOL);
-    $condition = get_config('enrol_wallet', 'mintransfer');
-    // No email or invalid email format.
-    if (empty($email)) {
-        $msg = get_string('wrongemailformat', 'enrol_wallet');
-        redirect($url, $msg, null, 'error');
-    }
-
-    // No amount or invalid amount.
-    if (empty($amount) || $amount < 0) {
-        $msg = get_string('charger_novalue', 'enrol_wallet');
-        redirect($url, $msg, null, 'error');
-    }
-
-    if ($amount < $condition) {
-        $msg = get_string('mintransfer', 'enrol_wallet', $condition);
-        redirect($url, $msg, null, 'error');
-    }
-
-    if ($parent) {
-        $fee = 0;
+    $catid  = $data->category;
+    $op = new enrol_wallet\util\balance_op(0, $catid);
+    $msg = $op->transfer_to_other();
+    if (stristr($msg, 'error')) {
+        $type = 'error';
     } else {
-        // Check the transfer fees.
-        $percentfee = get_config('enrol_wallet', 'transferpercent');
-        $percentfee = (!empty($percentfee)) ? $percentfee : 0;
-        $fee = $amount * $percentfee / 100;
+        $type = 'success';
     }
-
-
-    $feefrom = get_config('enrol_wallet', 'transferfee_from');
-    if ($feefrom == 'sender') {
-        $debit = $amount + $fee;
-        $credit = $amount;
-    } else if ($feefrom == 'receiver') {
-        $credit = $amount - $fee;
-        $debit = $amount;
-    }
-
-    $balance = enrol_wallet\transactions::get_user_balance($USER->id);
-    // No sufficient balance.
-    if ($debit > $balance) {
-        $msg = get_string('insufficientbalance', 'enrol_wallet', ['amount' => $debit, 'balance' => $balance]);
-        redirect($url, $msg, null, 'error');
-    }
-
-    $receiver = core_user::get_user_by_email($email);
-    // No active user found with this email.
-    if (empty($receiver) || !empty($receiver->deleted) || !empty($receiver->suspended)) {
-        $msg = get_string('usernotfound', 'enrol_wallet', $email);
-        redirect($url, $msg, null, 'error');
-    }
-
-    // Debit the sender.
-    enrol_wallet\transactions::debit($USER->id, $debit, '', $receiver->id);
-
-    // Credit the receiver.
-    $a = [
-        'fee' => $fee,
-        'amount' => $credit,
-        'receiver' => fullname($receiver),
-    ];
-    $desc = get_string('transferop_desc', 'enrol_wallet', $a);
-    enrol_wallet\transactions::payment_topup($credit, $receiver->id, $desc, $USER->id, false);
-
     // All done.
-    redirect($url, $desc, null, 'success');
+    redirect($url, $msg, null, $type);
 
 } else {
 
-    $PAGE->set_context($context);
-    $PAGE->set_title(get_string('transferpage', 'enrol_wallet'));
-    $PAGE->set_heading(get_string('transferpage', 'enrol_wallet'));
-    $PAGE->set_url($url);
-
-    // Transfer form.
-    $mformoutput = enrol_wallet_get_transfer_form();
-
     echo $OUTPUT->header();
 
-    echo $mformoutput;
+    $mform->display();
 
     echo $OUTPUT->footer();
 }

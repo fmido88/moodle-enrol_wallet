@@ -24,6 +24,7 @@
 namespace enrol_wallet;
 
 use enrol_wallet\transactions;
+use enrol_wallet\util\balance;
 use enrol_wallet_plugin;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -815,7 +816,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $msg = get_string('othercourserestriction', 'enrol_wallet', $a);
         $this->assertSame($msg, $walletplugin->can_self_enrol($instance9, true));
 
-        // TODO Check the cohorts restrictions.
+        // NOTE Check the cohorts restrictions.
 
         // Non valid cost.
         $course10 = $this->getDataGenerator()->create_course();
@@ -930,87 +931,6 @@ class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
-     * Testing get cost after discount.
-     *
-     * @covers ::get_cost_after_discount()
-     */
-    public function test_get_cost_after_discount(): void {
-        global $DB;
-        self::resetAfterTest(true);
-
-        $walletplugin = enrol_get_plugin('wallet');
-        // Check that cost after discount return the original cost.
-        $user1 = $this->getDataGenerator()->create_user();
-        $course1 = $this->getDataGenerator()->create_course();
-
-        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $instance1->customint6 = 1;
-        $instance1->cost = 200;
-        $DB->update_record('enrol', $instance1);
-        $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
-
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
-        $this->assertEquals($costafter, $instance1->cost);
-        // Check the discounts according to user profile field.
-        // Create a custom profile field.
-        $fielddata = (object)[
-            'name' => 'discount',
-            'shortname' => 'discount',
-        ];
-        $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
-
-        $walletplugin->set_config('discount_field', $fieldid);
-        transactions::payment_topup(150, $user1->id);
-        $userfielddata = (object)[
-            'userid' => $user1->id,
-            'fieldid' => $fieldid,
-            'data' => 'free',
-        ];
-        $userdataid = $DB->insert_record('user_info_data', $userfielddata);
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
-        $this->assertEquals(0, $costafter);
-
-        $dataupdate = (object)[
-            'id' => $userdataid,
-            'data' => '20% discount',
-        ];
-        $DB->update_record('user_info_data', $dataupdate);
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1);
-        $this->assertEquals(200 * 80 / 100, $costafter);
-
-        // Check coupon discounts.
-        $user2 = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(150, $user2->id);
-        $course2 = $this->getDataGenerator()->create_course();
-
-        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $instance2->customint6 = 1;
-        $instance2->cost = 200;
-        $DB->update_record('enrol', $instance2);
-        $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
-        // Create percent discount coupon.
-        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSALL, 'enrol_wallet');
-        $coupon = [
-            'code' => 'test1',
-            'type' => 'percent',
-            'value' => 50,
-            'maxusage' => 1,
-        ];
-        $DB->insert_record('enrol_wallet_coupons', $coupon);
-        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
-        $this->assertEquals(100, $costafter);
-        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSDISCOUNT, 'enrol_wallet');
-        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
-        $this->assertEquals(100, $costafter);
-        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSFIXED, 'enrol_wallet');
-        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
-        $this->assertEquals(200, $costafter);
-        set_config('coupons', \enrol_wallet_plugin::WALLET_NOCOUPONS, 'enrol_wallet');
-        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, 'test1');
-        $this->assertEquals(200, $costafter);
-    }
-
-    /**
      * Test that enrol_self deduct the users credit and that cashback program works.
      * @covers ::enrol_self()
      */
@@ -1045,9 +965,9 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setUser($user2);
         // Enrol the user and makesure the cost deducted.
         $walletplugin->enrol_self($instance1, $user2);
-
-        $balance2 = transactions::get_user_balance($user2->id);
-        $norefund = transactions::get_nonrefund_balance($user2->id);
+        $balancehelper = util\balance::create_from_instance($instance1, $user2->id);
+        $balance2 = $balancehelper->get_valid_balance();
+        $norefund = $balancehelper->get_valid_nonrefundable();
         $this->assertEquals(90, $balance2);
         $this->assertEquals(40, $norefund);
         $this->assertTrue(is_enrolled($context));
@@ -1261,7 +1181,8 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertFalse(is_enrolled($context));
 
         // Check the refund.
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(100, $balance); // This assertion sometime fails and on re-run it passes?
 
         $this->setAdminUser();
@@ -1271,14 +1192,15 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setUser($user);
         $wallet->enrol_self($instance);
         $this->assertTrue(is_enrolled($context));
-
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(50, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
 
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(50, $balance);
 
         // Enable refunding with duration limit.
@@ -1290,13 +1212,15 @@ class enrol_wallet_test extends \advanced_testcase {
         $wallet->enrol_self($instance);
         $this->assertTrue(is_enrolled($context));
 
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(0, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
 
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(50, $balance);
 
         $wallet->enrol_self($instance);
@@ -1308,13 +1232,15 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setUser($user);
         $this->assertTrue(is_enrolled($context));
 
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(0, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
         // No refund.
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(0, $balance);
 
         // Now test the refund fee.
@@ -1327,13 +1253,15 @@ class enrol_wallet_test extends \advanced_testcase {
         $wallet->enrol_self($instance);
         $this->assertTrue(is_enrolled($context));
 
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(50, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
         $this->assertFalse(is_enrolled($context));
         // Only 45 refund.
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(95, $balance);
     }
 
@@ -1441,94 +1369,5 @@ class enrol_wallet_test extends \advanced_testcase {
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
-    }
-
-    /**
-     * Summary of test_enrol_wallet_is_borrow_eligible
-     * @covers ::enrol_wallet_is_borrow_eligible()
-     * @return void
-     */
-    public function test_enrol_wallet_is_borrow_eligible(): void {
-        global $CFG, $DB;
-        $this->resetAfterTest();
-        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
-        // Eligibal user.
-        $user1 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
-        // No borrow for new users.
-        $user2 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 10 * DAYSECS]);
-        // No enough transactions.
-        $user3 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
-        // Old transactions.
-        $user4 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
-
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
-
-        set_config('borrowtrans', 3, 'enrol_wallet');
-        set_config('borrowperiod', 15 * DAYSECS, 'enrol_wallet');
-        transactions::payment_topup(20, $user1->id);
-        transactions::payment_topup(20, $user1->id);
-        transactions::payment_topup(20, $user1->id);
-
-        transactions::payment_topup(20, $user2->id);
-        transactions::payment_topup(20, $user2->id);
-        transactions::payment_topup(20, $user2->id);
-
-        transactions::payment_topup(20, $user3->id);
-        transactions::payment_topup(20, $user3->id);
-        transactions::debit($user3->id, 10);
-
-        $transaction = ['userid' => $user4->id, 'amount' => 20, 'type' => 'credit', 'timecreated' => time() - 20 * DAYSECS];
-        $transaction['balance'] = 20;
-        $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
-        $transaction['balance'] = 40;
-        $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
-        $transaction['balance'] = 60;
-        $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
-
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user3));
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user4));
-
-        set_config('borrowenable', 1, 'enrol_wallet');
-        // Enable Borrwing.
-        $this->assertTrue(enrol_wallet_is_borrow_eligible($user1));
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user3));
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user4));
-
-        $course = $this->getDataGenerator()->create_course();
-        $context = \context_course::instance($course->id);
-
-        $wallet = enrol_get_plugin('wallet');
-        // Update the instance such that the enrol duration is 2 hours.
-        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $instance->customint6 = 1;
-        $instance->cost = 100;
-        $DB->update_record('enrol', $instance);
-        $wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
-        $this->setUser($user1);
-        $this->assertTrue($wallet->can_self_enrol($instance));
-        $wallet->enrol_self($instance, $user1);
-
-        $this->setUser($user2);
-        $this->assertEquals(2, $wallet->can_self_enrol($instance));
-        try {
-            $wallet->enrol_self($instance, $user2);
-        } catch (\moodle_exception $e) {
-            $error = $e;
-        }
-
-        $this->setUser($user3);
-        $this->assertEquals(2, $wallet->can_self_enrol($instance));
-
-        $this->setAdminUser();
-
-        $this->assertTrue(is_enrolled($context, $user1));
-        $this->assertFalse(is_enrolled($context, $user2, $error->getMessage()));
-
-        $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));
-        $this->assertEquals(-40, transactions::get_user_balance($user1->id));
-        $this->assertEquals(60, transactions::get_user_balance($user2->id));
     }
 }

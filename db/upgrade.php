@@ -245,5 +245,81 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
         upgrade_plugin_savepoint(true, 2023112606, 'enrol', 'wallet');
     }
+
+    if ($oldversion < 2024012900) {
+
+        // Define table enrol_wallet_balance to be created.
+        $table = new xmldb_table('enrol_wallet_balance');
+
+        // Adding fields to table enrol_wallet_balance.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('refundable', XMLDB_TYPE_NUMBER, '10, 2', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('nonrefundable', XMLDB_TYPE_NUMBER, '10, 2', null, null, null, '0');
+        $table->add_field('freegift', XMLDB_TYPE_NUMBER, '10, 2', null, null, null, '0');
+        $table->add_field('cat_balance', XMLDB_TYPE_TEXT, null, null, null, null, null);
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table enrol_wallet_balance.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('kuserid', XMLDB_KEY_FOREIGN_UNIQUE, ['userid'], 'user', ['id']);
+
+        // Conditionally launch create table for enrol_wallet_balance.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Define field category to be added to enrol_wallet_cond_discount.
+        $table = new xmldb_table('enrol_wallet_cond_discount');
+        $field = new xmldb_field('category', XMLDB_TYPE_INTEGER, '10', null, null, null, '0', 'percent');
+
+        // Conditionally launch add field category.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field usermodified to be added to enrol_wallet_cond_discount.
+        $field = new xmldb_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timeto');
+
+        // Conditionally launch add field usermodified.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field timecreated to be added to enrol_wallet_cond_discount.
+        $field = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'usermodified');
+
+        // Conditionally launch add field timecreated.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field timemodified to be added to enrol_wallet_cond_discount.
+        $field = new xmldb_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'timecreated');
+
+        // Conditionally launch add field timemodified.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field category to be added to enrol_wallet_transactions.
+        $table = new xmldb_table('enrol_wallet_transactions');
+        $field = new xmldb_field('category', XMLDB_TYPE_INTEGER, '10', null, null, null, '0', 'norefund');
+
+        // Conditionally launch add field category.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field category to be added to enrol_wallet_items.
+        $table = new xmldb_table('enrol_wallet_items');
+        $field = new xmldb_field('category', XMLDB_TYPE_INTEGER, '10', null, null, null, '0', 'instanceid');
+
+        // Conditionally launch add field category.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2024012900, 'enrol', 'wallet');
+    }
+
     return true;
 }

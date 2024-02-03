@@ -30,6 +30,7 @@ $confirm    = optional_param('confirm', 0, PARAM_BOOL);
 $account    = required_param('account', PARAM_INT);
 $currency   = required_param('currency', PARAM_TEXT);
 $val        = optional_param('value', 0, PARAM_FLOAT);
+$category   = optional_param('category', 0, PARAM_INT);
 $return     = optional_param('return', '', PARAM_LOCALURL);
 
 $urlparams = [
@@ -38,6 +39,7 @@ $urlparams = [
     'account'    => $account,
     'currency'   => $currency,
     'value'      => $val,
+    'category'   => $category,
     'return'     => $return,
 ];
 $baseurl = new moodle_url('/enrol/wallet/extra/topup.php', $urlparams);
@@ -103,6 +105,7 @@ if ($confirm) {
         'cost'        => $value,
         'currency'    => $currency,
         'userid'      => $USER->id,
+        'category'    => $category,
         'timecreated' => time(),
     ];
     $id = $DB->insert_record('enrol_wallet_items', $itemdata);
@@ -147,10 +150,7 @@ if ($confirm) {
     }
 
     // This code is required for payment button.
-    $code = 'require([\'core_payment/gateways_modal\'], function(modal) {
-        modal.init();
-    });';
-    $PAGE->requires->js_init_code($code);
+    $PAGE->requires->js_call_amd('core_payment/gateways_modal', 'init');
 
     echo $OUTPUT->confirm($message, $buttoncontinue, $buttoncancel);
     echo $OUTPUT->footer();

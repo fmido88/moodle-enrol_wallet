@@ -26,11 +26,74 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
+use enrol_wallet\category\options;
 /**
  * The form that able the user to topup their wallet using payment gateways.
+ * @package enrol_wallet
  */
 class topup_form extends \moodleform {
+    /**
+     * The unique id of the form.
+     * @var string
+     */
+    protected $formid;
 
+    /**
+     * Override the original constructor to set the from id.
+     *
+     * The constructor function calls the abstract function definition() and it will then
+     * process and clean and attempt to validate incoming data.
+     *
+     * It will call your custom validate method to validate data and will also check any rules
+     * you have specified in definition using addRule
+     *
+     * The name of the form (id attribute of the form) is automatically generated depending on
+     * the name you gave the class extending moodleform. You should call your class something
+     * like
+     *
+     * @param mixed $action the action attribute for the form. If empty defaults to auto detect the
+     *              current url. If a moodle_url object then outputs params as hidden variables.
+     * @param mixed $customdata if your form defintion method needs access to data such as $course
+     *              $cm, etc. to construct the form definition then pass it in this array. You can
+     *              use globals for somethings.
+     * @param string $method if you set this to anything other than 'post' then _GET and _POST will
+     *               be merged and used as incoming data to the form.
+     * @param string $target target frame for form submission. You will rarely use this. Don't use
+     *               it if you don't need to as the target attribute is deprecated in xhtml strict.
+     * @param mixed $attributes you can pass a string of html attributes here or an array.
+     *               Special attribute 'data-random-ids' will randomise generated elements ids. This
+     *               is necessary when there are several forms on the same page.
+     *               Special attribute 'data-double-submit-protection' set to 'off' will turn off
+     *               double-submit protection JavaScript - this may be necessary if your form sends
+     *               downloadable files in response to a submit button, and can't call
+     *               \core_form\util::form_download_complete();
+     * @param bool $editable
+     * @param array $ajaxformdata Forms submitted via ajax, must pass their data here, instead of relying on _GET and _POST.
+     */
+    public function __construct($action = null, $customdata = null, $method = 'post', $target = '',
+                                $attributes = null, $editable = true, $ajaxformdata = null) {
+        if (empty($attributes)) {
+            $attributes = ['id' => $this->get_form_id()];
+        } else if (is_array($attributes)) {
+            $attributes['id'] = $this->get_form_id();
+        } else {
+            $attributes .= ' id="'.$this->get_form_id().'"';
+        }
+        return parent::__construct($action, $customdata, $method, $target, $attributes, $editable, $ajaxformdata);
+    }
+
+    /**
+     * Create and return the id of the form to be used in js module.
+     * @return string
+     */
+    protected function get_form_id() {
+        if (isset($this->formid)) {
+            return $this->formid;
+        } else {
+            $this->formid = $this->get_form_identifier() . '_' . random_string();
+            return $this->formid;
+        }
+    }
     /**
      * Form definition. Abstract method - always override!
      * @return void
@@ -54,19 +117,28 @@ class topup_form extends \moodleform {
             $i = 0;
             foreach ($records as $record) {
                 $i++;
-                // The next two elements only used to pass the values to js code.
-                $mform->addElement('hidden', 'discount'.$i, '', ['id' => "discounted-value[$i]"]);
-                $mform->setType('discount'.$i, PARAM_FLOAT);
-                $mform->setConstant('discount'.$i, $record->percent / 100);
-
-                $mform->addElement('hidden', 'condition'.$i, '', ['id' => "discount-condition[$i]"]);
-                $mform->setType('condition'.$i, PARAM_FLOAT);
-                $mform->setConstant('condition'.$i, $record->cond);
+                // This element only used to pass the values to js code.
+                $discountrule = (object)[
+                    'discount' => $record->percent / 100,
+                    'condition' => $record->cond,
+                    'category' => $record->category ?? 0,
+                ];
+                $mform->addElement('hidden', 'discount_rule_'.$i);
+                $mform->setType('discount_rule_'.$i, PARAM_TEXT);
+                $mform->setConstant('discount_rule_'.$i, json_encode($discountrule));
             }
         }
 
-        $attr = !empty($i) ? ['id' => 'topup-value', 'onkeyup' => 'calculateCharge()', 'onchange' => 'calculateCharge()'] : [];
-        $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'), $attr);
+        $categorytitle = get_string('category');
+        if (empty($instance->id)) {
+            $catoptions = options::get_all_options_with_discount();
+        } else {
+            $helper = options::create_from_instance_id($instance->id);
+            $catoptions = $helper->get_local_options_with_discounts();
+        }
+        $mform->addElement('select', 'category', $categorytitle, $catoptions);
+
+        $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'));
         $mform->setType('value', PARAM_FLOAT);
         $mform->addHelpButton('value', 'topupvalue', 'enrol_wallet');
         $mform->addRule('value', get_string('invalidvalue', 'enrol_wallet'), 'numeric', null, 'client');
@@ -74,8 +146,7 @@ class topup_form extends \moodleform {
         $mform->addRule('value', get_string('charger_novalue', 'enrol_wallet'), 'nonzero', null, 'client');
 
         if (!empty($i)) {
-            $attr = ['id' => 'topup-value-discount', 'onkeyup' => 'calculateBefore()', 'onchange' => 'calculateBefore()'];
-            $mform->addElement('text', 'value-after', get_string('topupafterdiscount', 'enrol_wallet'), $attr);
+            $mform->addElement('text', 'value-after', get_string('topupafterdiscount', 'enrol_wallet'));
             $mform->setType('value-after', PARAM_FLOAT);
             $mform->addHelpButton('value-after', 'topupafterdiscount', 'enrol_wallet');
         }
@@ -96,10 +167,6 @@ class topup_form extends \moodleform {
         $mform->setType('account', PARAM_INT);
         $mform->setDefault('account', $instance->customint1);
 
-        $mform->addElement('hidden', 'sesskey');
-        $mform->setType('sesskey', PARAM_TEXT);
-        $mform->setDefault('sesskey', sesskey());
-
         if (empty($instance->courseid) || $instance->courseid == SITEID) {
             $mform->addElement('hidden', 'return');
             $mform->setType('return', PARAM_LOCALURL);
@@ -108,43 +175,8 @@ class topup_form extends \moodleform {
 
         if (!empty($i)) {
             // Add some js code to display the actual value to charge the wallet with.
-            $js = <<<JS
-                function calculateCharge() {
-                    var value = parseFloat(document.getElementById("topup-value").value);
-
-                    var maxDiscount = 0;
-                    for (var i = 1; i <= '$i'; i++) {
-                        var discount = parseFloat(document.getElementById("discounted-value["+ i +"]").value);
-                        var condition = parseFloat(document.getElementById("discount-condition["+ i +"]").value);
-
-                        if (value >= condition && discount > maxDiscount) {
-                            maxDiscount = discount;
-                        }
-                    }
-
-                    var calculatedValue = value - (value * maxDiscount);
-                    document.getElementById("topup-value-discount").value = calculatedValue;
-                }
-
-                function calculateBefore() {
-                    var value = parseFloat(document.getElementById("topup-value-discount").value);
-
-                    var maxDiscount = 0;
-                    for (var i = 1; i <= '$i'; i++) {
-                        var discount = parseFloat(document.getElementById("discounted-value["+ i +"]").value);
-                        var condition = parseFloat(document.getElementById("discount-condition["+ i +"]").value);
-
-                        var valueBefore = value / (1 - discount);
-                        if (valueBefore >= condition && discount > maxDiscount) {
-                            maxDiscount = discount;
-                        }
-                    }
-
-                    var realValueBefore = value / (1 - maxDiscount);
-                    document.getElementById("topup-value").value = realValueBefore;
-                }
-            JS;
-            $mform->addElement('html', '<script>'.$js.'</script>');
+            $args = ['formid' => $this->get_form_id(), 'formType' => 'topup'];
+            $PAGE->requires->js_call_amd('enrol_wallet/cdiscount', 'init', $args);
         }
 
         $this->add_action_buttons(false, get_string('topup', 'enrol_wallet'));

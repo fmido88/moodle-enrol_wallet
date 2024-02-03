@@ -26,8 +26,11 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
-/** Form to apply coupons.
+use enrol_wallet\coupons;
+/**
+ * Form to apply coupons.
  *
+ * @package enrol_wallet
  */
 class applycoupon_form extends \moodleform {
     /**
@@ -59,26 +62,33 @@ class applycoupon_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $USER;
+        global $USER, $PAGE;
         $mform = $this->_form;
         $instance = ((object)$this->_customdata)->instance;
-        $url = new \moodle_url('/course/view.php', ['id' => $instance->courseid]);
-
-        $wallet = enrol_get_plugin('wallet');
-        $coupon = $wallet->check_discount_coupon();
+        $url = ((object)$this->_customdata)->url ?? $instance->url ?? '';
+        if (empty($url) && $PAGE->has_set_url()) {
+            $url = $PAGE->url;
+        }
+        $coupon = coupons::check_discount_coupon();
         $coupongroup = [];
         $cancel = optional_param('cancel', false, PARAM_BOOL);
-        $coupondata = \enrol_wallet\transactions::get_coupon_value($coupon, $USER->id, $instance->id);
 
-        $type = $coupondata['type'] ?? null;
         $validate = false; // Validation for percentage discount coupons only.
-        if (!$cancel && !empty($coupon) && $type == 'percent') {
-            $area = [
-                'instanceid' => $instance->id ?? null,
-                'cmid'       => $instance->cmid ?? null,
-                'sectionid'  => $instance->sectionid ?? null,
-            ];
-            $validate = \enrol_wallet\transactions::validate_coupon($coupondata, $area);
+        if (!$cancel && !empty($coupon)) {
+            $couponobj = new coupons($coupon);
+            if ($couponobj->type == coupons::DISCOUNT) {
+                $areaid = $instance->id ?? $instance->cmid ?? $instance->sectionid ?? 0;
+                if (!empty($instance->id)) {
+                    $area = coupons::AREA_ENROL;
+                } else if (!empty($instance->cmid)) {
+                    $area = coupons::AREA_CM;
+                } else if (!empty($instance->sectionid)) {
+                    $area = coupons::AREA_SECTION;
+                } else {
+                    $area = coupons::AREA_TOPUP;
+                }
+                $validate = $couponobj->validate_coupon($area, $areaid);
+            }
         } else if ($cancel) {
             if (!empty($_SESSION['coupon'])) {
                 $_SESSION['coupon'] = '';
@@ -86,7 +96,7 @@ class applycoupon_form extends \moodleform {
             }
         }
 
-        if ($validate === true) {
+        if (true === $validate) {
             $html = \html_writer::span(get_string('coupon_code_applied', 'enrol_wallet', $coupon));
             $coupongroup[] = $mform->createElement('html', $html);
             $coupongroup[] = $mform->createElement('cancel');
@@ -97,7 +107,7 @@ class applycoupon_form extends \moodleform {
             $coupongroup[] = $mform->createElement('submit', 'submitcoupon', get_string('applycoupon', 'enrol_wallet'));
         }
 
-        $mform->setType('coupon', PARAM_TEXT);
+        $mform->setType('coupon', PARAM_ALPHANUMEXT);
 
         if (empty($instance->cmid) && empty($instance->sectionid)) {
             $mform->addGroup($coupongroup, 'applycoupon', get_string('applycoupon', 'enrol_wallet'), null, false);
@@ -124,14 +134,25 @@ class applycoupon_form extends \moodleform {
             $mform->setDefault('sectionid', $instance->sectionid);
         }
 
-        $mform->addElement('hidden', 'id');
-        $mform->setType('id', PARAM_INT);
-        $mform->setDefault('id', $instance->courseid);
+        if (!empty($instance->courseid) && $instance->courseid !== SITEID) {
+            $mform->addElement('hidden', 'courseid');
+            $mform->setType('courseid', PARAM_INT);
+            $mform->setDefault('courseid', $instance->courseid);
+        }
 
-        $mform->addElement('hidden', 'url');
-        $mform->setType('url', PARAM_LOCALURL);
-        $mform->setDefault('url', $url->out(false));
+        if (!empty($url)) {
+            if (!($url instanceof \moodle_url)) {
+                $url = new \moodle_url($url);
+            }
+            $mform->addElement('hidden', 'url');
+            $mform->setType('url', PARAM_LOCALURL);
+            $mform->setDefault('url', $url->out(false));
+        }
 
+        $error = optional_param('error', null, PARAM_TEXT);
+        if (!empty($error)) {
+            $mform->setElementError('coupon', $error);
+        }
         $this->set_display_vertical();
     }
 
@@ -144,30 +165,26 @@ class applycoupon_form extends \moodleform {
      * @param array $files array of uploaded files "element_name"=>tmp_file_path
      */
     public function validation($data, $files) {
-
-        global $DB, $USER;
         $errors = parent::validation($data, $files);
 
-        $area = [];
         if (!empty($data['instanceid'])) {
-            $area['instanceid'] = $data['instanceid'];
-            $instanceid = $data['instanceid'];
+            $area = coupons::AREA_ENROL;
+            $areaid = $data['instanceid'];
+        } else if (!empty($data['cmid'])) {
+            $area = coupons::AREA_CM;
+            $areaid = $data['cmid'];
+        } else if (!empty($data['sectionid'])) {
+            $area = coupons::AREA_SECTION;
+            $areaid = $data['sectionid'];
         } else {
-            $instanceid = 0;
+            $area = coupons::AREA_TOPUP;
+            $areaid = 0;
         }
 
-        if (!empty($data['cmid'])) {
-            $area['cmid'] = $data['cmid'];
-        }
+        $code = $data['coupon'];
+        $coupon = new coupons($code);
 
-        if (!empty($data['sectionid'])) {
-            $area['sectionid'] = $data['sectionid'];
-        }
-
-        $coupon = $data['coupon'];
-        $coupondata = \enrol_wallet\transactions::get_coupon_value($coupon, $USER->id, $instanceid);
-
-        $validate = \enrol_wallet\transactions::validate_coupon($coupondata, $area);
+        $validate = $coupon->validate_coupon($area, $areaid);
         if ($validate !== true) {
             $errors['applycoupon'] = $validate;
             $errors['coupons'] = $validate;

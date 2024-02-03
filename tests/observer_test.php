@@ -24,12 +24,13 @@
 namespace enrol_wallet;
 
 use enrol_wallet\observer;
+use enrol_wallet\util\balance;
+use enrol_wallet\util\balance_op;
 use enrol_wallet\transactions;
-use enrol_wallet_plugin;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-
+use enrol_wallet_plugin;
 /**
  * Wallet enrolment tests.
  *
@@ -52,9 +53,6 @@ class observer_test extends \advanced_testcase {
         // Create user and check that there is no balance.
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
-        $user3 = $this->getDataGenerator()->create_user();
-        $user4 = $this->getDataGenerator()->create_user();
-        $user5 = $this->getDataGenerator()->create_user();
 
         $balance1 = transactions::get_user_balance($user1->id);
 
@@ -89,13 +87,18 @@ class observer_test extends \advanced_testcase {
         $this->course_completion_trigger($cm, $user2, $course1, 40);
 
         // The event should be triggered and caught by our observer.
-        $this->assertEquals(70, transactions::get_user_balance($user1->id));
-        $this->assertEquals(20, transactions::get_nonrefund_balance($user1->id));
-        $this->assertEquals(0, transactions::get_user_balance($user2->id));
+        $balance = new balance($user1->id, $course1->category);
+        $this->assertEquals(70, $balance->get_valid_balance());
+        $this->assertEquals(20, $balance->get_valid_nonrefundable());
+        $this->assertEquals(20, $balance->get_valid_free());
+
+        $balance = new balance($user2->id, $course1->category);
+        $this->assertEquals(0, $balance->get_total_balance());
 
         // Trigger the completion again to make sure no more awards.
         $this->course_completion_trigger($cm, $user1, $course1, 90);
-        $this->assertEquals(70, transactions::get_user_balance($user1->id));
+        $balance = new balance($user1->id, $course1->category);
+        $this->assertEquals(70, $balance->get_valid_balance());
         $this->assertEquals(1, $DB->count_records('enrol_wallet_awards'));
     }
 
@@ -154,6 +157,7 @@ class observer_test extends \advanced_testcase {
         // Mark course as complete.
         $ccompletion->mark_complete();
     }
+
     /**
      * Testing event observer gifting new users.
      * @covers ::wallet_gifting_new_user()
@@ -175,93 +179,13 @@ class observer_test extends \advanced_testcase {
 
         // Create another user.
         $user2 = $this->getDataGenerator()->create_user();
-        $balance2 = transactions::get_user_balance($user2->id);
-        $norefund = transactions::get_nonrefund_balance($user2->id);
+        $balance = new balance($user2->id);
+        $balance2 = $balance->get_total_balance();
+        $norefund = $balance->get_total_nonrefundable();
+        $free = $balance->get_total_free();
         $this->assertEquals(20, $balance2);
         $this->assertEquals(20, $norefund);
-    }
-
-    /**
-     * Test conditional discounts.
-     * @covers ::conditional_discount_charging()
-     * @return void
-     */
-    public function test_conditional_discount_charging(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $user1 = $this->getDataGenerator()->create_user();
-        $user2 = $this->getDataGenerator()->create_user();
-        $user3 = $this->getDataGenerator()->create_user();
-        $user4 = $this->getDataGenerator()->create_user();
-
-        set_config('conditionaldiscount_apply', 1, 'enrol_wallet');
-        $params = [
-            'cond' => 400,
-            'percent' => 15,
-        ];
-        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
-
-        $params = [
-            'cond' => 600,
-            'percent' => 20,
-        ];
-        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
-
-        $params = [
-            'cond' => 800,
-            'percent' => 25,
-        ];
-        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
-
-        $params = [
-            'cond' => 200,
-            'percent' => 50,
-            'timeto' => time() - DAYSECS, // Expired.
-        ];
-        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
-
-        $params = [
-            'cond' => 400,
-            'percent' => 50,
-            'timefrom' => time() + DAYSECS, // Not available yet.
-        ];
-        $DB->insert_record_raw('enrol_wallet_cond_discount', $params);
-
-        transactions::payment_topup(200, $user1->id);
-        // The user tries to pay 500, this is the number passes to the function.
-        $extra2 = 500 * 0.15;
-        transactions::payment_topup(500 * 0.85, $user2->id);
-
-        $extra3 = 700 * 0.2;
-        transactions::payment_topup(700 * 0.8, $user3->id);
-
-        $extra4 = 1000 * 0.25;
-        transactions::payment_topup(1000 * 0.75, $user4->id);
-
-        $balance1 = transactions::get_user_balance($user1->id);
-        $norefund1 = transactions::get_nonrefund_balance($user1->id);
-
-        $balance2 = transactions::get_user_balance($user2->id);
-        $norefund2 = transactions::get_nonrefund_balance($user2->id);
-
-        $balance3 = transactions::get_user_balance($user3->id);
-        $norefund3 = transactions::get_nonrefund_balance($user3->id);
-
-        $balance4 = transactions::get_user_balance($user4->id);
-        $norefund4 = transactions::get_nonrefund_balance($user4->id);
-
-        $this->assertEquals(200, $balance1);
-        $this->assertEquals(0, $norefund1);
-
-        $this->assertEquals(500, $balance2);
-        $this->assertEquals($extra2, $norefund2);
-
-        $this->assertEquals(700, $balance3);
-        $this->assertEquals($extra3, $norefund3);
-
-        $this->assertEquals(1000, $balance4);
-        $this->assertEquals($extra4, $norefund4);
+        $this->assertEquals(20, $free);
     }
 
     /**
@@ -284,7 +208,8 @@ class observer_test extends \advanced_testcase {
 
         // Create the first user.
         $user1 = $this->getDataGenerator()->create_user();
-        $balance1 = transactions::get_user_balance($user1->id);
+        $balance = new balance($user1->id);
+        $balance1 = $balance->get_total_balance();
 
         $this->assertEquals(0, $balance1);
         // Generate a referral code.
@@ -333,7 +258,8 @@ class observer_test extends \advanced_testcase {
         $this->assertEmpty($hold->released);
         $this->assertEmpty($hold->courseid);
 
-        $balance2 = transactions::get_user_balance($user2->id);
+        $balance = new balance($user2->id);
+        $balance2 = $balance->get_total_balance();
         $this->assertEquals(0, $balance2);
 
         $this->setAdminUser();
@@ -342,8 +268,10 @@ class observer_test extends \advanced_testcase {
         $course1 = $this->getDataGenerator()->create_course();
         $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
 
-        $balance1 = transactions::get_user_balance($user1->id);
-        $balance2 = transactions::get_user_balance($user2->id);
+        $balance = new balance($user1->id);
+        $balance1 = $balance->get_total_balance();
+        $balance = new balance($user2->id);
+        $balance2 = $balance->get_total_balance();
         $this->assertEquals(0, $balance1);
         $this->assertEquals(0, $balance2);
 
@@ -353,10 +281,23 @@ class observer_test extends \advanced_testcase {
         $course2 = $this->getDataGenerator()->create_course();
         $this->getDataGenerator()->enrol_user($user2->id, $course2->id);
 
-        $balance1 = transactions::get_user_balance($user1->id);
-        $balance2 = transactions::get_user_balance($user2->id);
+        $balance = new balance($user1->id);
+        $balance1 = $balance->get_total_balance();
+        $nonrefund1 = $balance->get_total_nonrefundable();
+        $free1 = $balance->get_total_free();
+
+        $balance = new balance($user2->id);
+        $balance2 = $balance->get_total_balance();
+        $nonrefund2 = $balance->get_total_nonrefundable();
+        $free2 = $balance->get_total_free();
+
         $this->assertEquals(50, $balance1);
+        $this->assertEquals(50, $nonrefund1);
+        $this->assertEquals(50, $free1);
         $this->assertEquals(50, $balance2);
+        $this->assertEquals(50, $nonrefund2);
+        $this->assertEquals(50, $free2);
+
         $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $user2->username]);
         $this->assertEquals(1, $hold->released);
         $this->assertEquals($course2->id, $hold->courseid);
@@ -364,10 +305,22 @@ class observer_test extends \advanced_testcase {
         // Check that is no repetition to the gift.
         $course3 = $this->getDataGenerator()->create_course();
         $this->getDataGenerator()->enrol_user($user2->id, $course3->id);
-        $balance1 = transactions::get_user_balance($user1->id);
-        $balance2 = transactions::get_user_balance($user2->id);
+        $balance = new balance($user1->id);
+        $balance1 = $balance->get_total_balance();
+        $nonrefund1 = $balance->get_total_nonrefundable();
+        $free1 = $balance->get_total_free();
+
+        $balance = new balance($user2->id);
+        $balance2 = $balance->get_total_balance();
+        $nonrefund2 = $balance->get_total_nonrefundable();
+        $free2 = $balance->get_total_free();
+
         $this->assertEquals(50, $balance1);
+        $this->assertEquals(50, $nonrefund1);
+        $this->assertEquals(50, $free1);
         $this->assertEquals(50, $balance2);
+        $this->assertEquals(50, $nonrefund2);
+        $this->assertEquals(50, $free2);
         $sink->close();
 
         // Set max referrals to 1 and check validation.

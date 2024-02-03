@@ -41,9 +41,18 @@ $url = new moodle_url('/enrol/wallet/extra/conditionaldiscount.php');
 // Parameters.
 $id               = optional_param('id', 0, PARAM_INT);
 $condition        = optional_param('cond', '', PARAM_FLOAT);
+$catid            = optional_param('category', 0, PARAM_INT);
 $percentage       = optional_param('percent', '', PARAM_FLOAT);
-$timetoarray      = optional_param_array('timeto', [], PARAM_INT);
-$timefromarray    = optional_param_array('timefrom', [], PARAM_INT);
+if (isset($_GET['timeto']) && is_array($_GET['timeto'])) {
+    $timetoarray  = optional_param_array('timeto', [], PARAM_INT);
+} else {
+    $timeto  = optional_param('timeto', null, PARAM_INT);
+}
+if (isset($_GET['timefrom']) && is_array($_GET['timefrom'])) {
+    $timefromarray = optional_param_array('timefrom', [], PARAM_INT);
+} else {
+    $timefrom = optional_param('timefrom', null, PARAM_INT);
+}
 $delete           = optional_param('delete', false, PARAM_BOOL);
 $add              = optional_param('add', false, PARAM_BOOL);
 $edit             = optional_param('edit', false, PARAM_BOOL);
@@ -52,10 +61,13 @@ $sesskey          = optional_param('sesskey', '', PARAM_RAW);
 
 if (!empty($sesskey) && confirm_sesskey()) {
     $done = false;
-    $arraydates = [
-        'timeto'   => $timetoarray,
-        'timefrom' => $timefromarray,
-    ];
+    $arraydates = [];
+    if (!empty($timetoarray)) {
+        $arraydates['timeto'] = $timetoarray;
+    }
+    if (!empty($timefromarray)) {
+        $arraydates['timefrom'] = $timefromarray;
+    }
     // ...mktime all dates.
     foreach ($arraydates as $key => $date) {
         if (!empty($date)) {
@@ -74,6 +86,9 @@ if (!empty($sesskey) && confirm_sesskey()) {
     $dataobject = new stdClass;
     $dataobject->cond = $condition;
     $dataobject->percent = $percentage;
+    $dataobject->category = $catid;
+    $dataobject->timemodified = time();
+    $dataobject->usermodified = $USER->id;
     if (!empty($timeto)) {
         $dataobject->timeto = $timeto;
     }
@@ -82,10 +97,11 @@ if (!empty($sesskey) && confirm_sesskey()) {
     }
 
     if ($add) {
-        $done = $DB->insert_record_raw('enrol_wallet_cond_discount', $dataobject);
+        $dataobject->timecreated = time();
+        $done = $DB->insert_record('enrol_wallet_cond_discount', $dataobject);
     } else if ($confirmedit && !empty($id)) {
         $dataobject->id = $id;
-        $done = $DB->update_record_raw('enrol_wallet_cond_discount', $dataobject);
+        $done = $DB->update_record('enrol_wallet_cond_discount', $dataobject);
     } else if ($delete && !empty($id)) {
         $done = $DB->delete_records('enrol_wallet_cond_discount', ['id' => $id]);
     }
@@ -107,6 +123,9 @@ $PAGE->set_heading(get_string('conditionaldiscount', 'enrol_wallet'));
 $mform = new \MoodleQuickForm('conditionaldiscount', 'get', 'conditionaldiscount.php');
 
 $mform->addElement('header', 'conditionaldiscount', get_string('conditionaldiscount', 'enrol_wallet'));
+
+$options = enrol_wallet\category\options::get_all_categories_options();
+$mform->addElement('select', 'category', get_string('category'), $options);
 
 $mform->addElement('text', 'cond', get_string('conditionaldiscount_condition', 'enrol_wallet'));
 $mform->setType('cond', PARAM_FLOAT);
@@ -168,6 +187,7 @@ $columns = [
             'id'          => 'id',
             'cond'        => get_string('condition', 'enrol_wallet'),
             'percent'     => get_string('conditionaldiscount_percentage', 'enrol_wallet'),
+            'category'    => get_string('category'),
             'timeto'      => get_string('conditionaldiscount_timeto', 'enrol_wallet'),
             'timefrom'    => get_string('conditionaldiscount_timefrom', 'enrol_wallet'),
             'edit'        => null,
@@ -189,17 +209,33 @@ $records = $DB->get_records('enrol_wallet_cond_discount');
 
 if (!empty($records)) {
     foreach ($records as $record) {
+        if (empty($record->timeto)) {
+            unset($record->timeto);
+        }
+        if (empty($record->timefrom)) {
+            unset($record->timefrom);
+        }
         $editparams = array_merge(['edit' => true, 'sesskey' => sesskey()], (array)$record);
         $deleteparams = ['delete' => true, 'sesskey' => sesskey(), 'id' => $record->id];
         $editurl = new moodle_url('conditionaldiscount.php', $editparams);
         $deleteurl = new moodle_url('conditionaldiscount.php', $deleteparams);
         $editbutton = $OUTPUT->single_button($editurl, get_string('edit'), 'get');
         $deletebutton = $OUTPUT->single_button($deleteurl, get_string('delete'), 'get');
+        if (!empty($record->category)) {
+            if ($category = core_course_category::get($record->category, IGNORE_MISSING)) {
+                $catname = $category->get_nested_name(false);
+            } else {
+                $catname = get_string('deleted');
+            }
+        } else {
+            $catname = $SITE->fullname;
+        }
 
         $row = [
             'id'         => $record->id,
-            'cond'  => $record->cond,
-            'percent' => $record->percent.'%',
+            'cond'       => $record->cond,
+            'percent'    => $record->percent.'%',
+            'category'   => $catname,
             'timefrom'   => !empty($record->timefrom) ? userdate($record->timefrom) : '',
             'timeto'     => !empty($record->timeto) ? userdate($record->timeto) : '',
             'edit'       => $editbutton,

@@ -25,7 +25,8 @@
 
 namespace enrol_wallet\payment;
 
-use enrol_wallet\transactions;
+use enrol_wallet\util\balance_op as op;
+
 /**
  * Payment subsystem callback implementation for enrol_wallet.
  *
@@ -96,6 +97,10 @@ class service_provider implements \core_payment\local\callback\service_provider 
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
         // Get the fake item in case of topping up the wallet.
         $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        $op = new op($userid, $item->category ?? 0);
+
+        $coststring = \core_payment\helper::get_cost_as_string($item->cost, $item->currency);
+        $desc = get_string('topuppayment_desc', 'enrol_wallet', $coststring);
 
         // Check if the payment is for enrolment or topping up the wallet.
         if ($paymentarea == 'walletenrol') {
@@ -104,11 +109,9 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
             $user = \core_user::get_user($userid);
 
-            $coststring = \core_payment\helper::get_cost_as_string($item->cost, $item->currency);
-            $desc = get_string('topuppayment_desc', 'enrol_wallet', $coststring);
-            $id = transactions::payment_topup($item->cost, $userid, $desc, $userid, false, true);
+            $done = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc, false);
 
-            if (is_number($id)) {
+            if ($done) {
                 // Now enrol the user after successful payment.
                 $enroled = $plugin->enrol_self($instance, $user);
 
@@ -121,12 +124,9 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
         } else {
 
-            $coststring = \core_payment\helper::get_cost_as_string($item->cost, $item->currency);
-            $desc = get_string('topuppayment_desc', 'enrol_wallet', $coststring);
+            $response = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc);
 
-            $response = transactions::payment_topup($item->cost, $userid, $desc);
-
-            if (is_number($response)) {
+            if ($response) {
                 return true;
             } else {
                 return false;

@@ -42,4 +42,13 @@ $functions = [
         'type'        => 'write',
         'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
+    'enrol_wallet_get_balance_details' => [
+        'classname'   => 'enrol_wallet\api\balance_op',
+        'methodname'  => 'get_balance_details',
+        'classpath'   => 'enrol/wallet/classes/api/balance_op.php',
+        'description' => 'Get the balance details for a certain user',
+        'type'        => 'read',
+        'services'    => [],
+        'ajax'        => true,
+    ],
 ];

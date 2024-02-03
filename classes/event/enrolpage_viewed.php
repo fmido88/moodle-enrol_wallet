@@ -60,23 +60,25 @@ class enrolpage_viewed extends \core\event\base {
     public function get_description() {
 
         $a = new \stdClass;
-        $a->relateduserid = $this->relateduserid;
         $a->userid = $this->userid;
-        $a->amount = $this->other['amount'];
-        $a->reason = $this->other['desc'];
+        $a->courseid = $this->courseid;
 
-        $type = $this->other['type'];
-        if ($type == 'debit') {
-            return get_string('event_transaction_debit_description', 'enrol_wallet', $a);
+        return get_string('enrolpage_viewed_desc', 'enrol_wallet', $a);
+    }
 
-        } else if ($type == 'credit') {
-            $refundable = clean_param($this->other['refundable'], PARAM_BOOL);
-            $a->refundable = $refundable ? 'refundable' : 'not refundable';
-
-            return get_string('event_transaction_credit_description', 'enrol_wallet', $a);
-        } else {
-            return null;
+    /**
+     * Create and trigger from enrol instance.
+     * @param \stdClass $instance
+     */
+    public static function create_and_trigger($instance) {
+        global $USER;
+        static $viewed = false;
+        if (!$viewed) {
+            $data['contextid'] = \context_course::instance($instance->courseid);
+            $data['courseid'] = $instance->courseid;
+            $data['userid'] = $USER->id;
+            $event = self::create($data);
+            $event->trigger();
         }
-
     }
 }

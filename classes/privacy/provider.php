@@ -28,6 +28,7 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\metadata\collection;
+use enrol_wallet\util\balance;
 
 /**
  * Privacy Subsystem for enrol_wallet implementing null_provider.
@@ -90,7 +91,7 @@ class provider implements
         ], "privacy:metadata:enrol_wallet_hold_gift");
 
         $source = get_config('enrol_wallet', 'walletsource');
-        if ($source == \enrol_wallet\transactions::SOURCE_WORDPRESS) {
+        if ($source == balance::WP) {
             $collection->add_external_location_link('wordpress', [
                 'userid'   => "privacy:metadata:wordpress:userid",
                 'email'    => "privacy:metadata:wordpress:email",

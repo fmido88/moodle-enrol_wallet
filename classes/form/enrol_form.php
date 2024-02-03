@@ -23,6 +23,8 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\util\balance;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
@@ -66,10 +68,10 @@ class enrol_form extends \moodleform {
         $currency = $instance->currency;
         $plugin = enrol_get_plugin('wallet');
 
-        $coupon = $plugin->check_discount_coupon();
-        $costafter = $plugin->get_cost_after_discount($USER->id, $instance, $coupon);
+        $costafter = $plugin->get_cost_after_discount($USER->id, $instance);
 
-        $balance = \enrol_wallet\transactions::get_user_balance($USER->id);
+        $op = balance::create_from_instance($instance);
+        $balance = $op->get_valid_balance();
 
         $heading = $plugin->get_instance_name($instance);
         $mform->addElement('header', 'walletheader', $heading);

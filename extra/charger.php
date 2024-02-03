@@ -57,6 +57,7 @@ if ($submit) {
     $data = [
         'op'       => required_param('op', PARAM_TEXT),
         'value'    => optional_param('value', '', PARAM_FLOAT),
+        'category' => optional_param('category', 0, PARAM_INT),
         'userlist' => required_param('userlist', PARAM_INT),
         'neg'      => optional_param('neg', false, PARAM_BOOL),
         'submit'   => $submit,
@@ -69,25 +70,39 @@ if ($submit) {
         $returnurl->remove_all_params();
         $return = $returnurl->out() .'?'. http_build_query($params);
         redirect(new moodle_url($return));
+        exit;
     }
 
     if ($data['op'] === 'balance' || ($confirm && confirm_sesskey())) {
-        $result = enrol_wallet_handle_charger_form((object)$data);
+        enrol_wallet_handle_charger_form((object)$data);
         redirect($returnurl);
+        exit;
     } else {
         $confirmurl = new moodle_url($pageurl, $data);
         $confirmurl->param('confirm', true);
         $confirmurl->param('return', $returnurl->out_as_local_url());
         $confirmbutton = new single_button($confirmurl, get_string('confirm'), 'post');
         $cancelbutton = new single_button($returnurl, get_string('cancel'), 'post');
-        $userbalance = enrol_wallet\transactions::get_user_balance($data['userlist']);
+
+        if (!empty($data['category'])) {
+            $category = core_course_category::get($data['category'], IGNORE_MISSING);
+        } else {
+            $category = 0;
+        }
+
+        $balance = new enrol_wallet\util\balance($data['userlist'], $category);
+        $userbalance = $balance->get_valid_balance();
+
         $user = core_user::get_user($data['userlist']);
         $name = html_writer::link(new moodle_url('/user/view.php', ['id' => $user->id]), fullname($user), ['target' => '_blank']);
+
         $a = [
             'name' => $name,
             'amount' => $data['value'],
             'balance' => $userbalance,
         ];
+        $a['category'] = !(empty($category)) ? $category->get_nested_name(false) : get_string('site');
+
         $negativewarn = false;
         switch ($data['op']) {
             case 'debit':
@@ -99,11 +114,15 @@ if ($submit) {
                 break;
             case 'credit':
                 $msg = get_string('confirm_credit', 'enrol_wallet', $a);
+                list($extra, $condition) = enrol_wallet\util\discount_rules::get_the_rest($data['value'], $data['category']);
+                if (!empty($extra)) {
+                    $a = ['extra' => $extra, 'condition' => $condition];
+                    $msg .= '<br>'.get_string('confirm_additional_credit', 'enrol_wallet', $a);
+                }
                 break;
             default:
                 $msg = '';
         }
-
 
         echo $OUTPUT->header();
         if ($negativewarn) {
@@ -112,9 +131,8 @@ if ($submit) {
         }
         echo $OUTPUT->confirm($msg, $confirmbutton, $cancelbutton);
         echo $OUTPUT->footer();
+        exit;
     }
-
-    exit;
 }
 
 echo $OUTPUT->header();
