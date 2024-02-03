@@ -20,6 +20,7 @@
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+/* eslint-disable camelcase */
 import {get_string} from 'core/str';
 
 let form;

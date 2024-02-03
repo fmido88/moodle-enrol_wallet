@@ -48,17 +48,17 @@ class balance {
      * The current source of wallet.
      * @var int
      */
-    protected int $source;
+    protected $source;
     /**
      * The current userid.
      * @var int
      */
-    protected int $userid;
+    protected $userid;
     /**
      * The current category id.
      * @var int
      */
-    protected int $catid;
+    protected $catid;
     /**
      * category operation helper class
      * @var operations
@@ -68,22 +68,22 @@ class balance {
      * The main balance for the user
      * @var float
      */
-    public float $balance;
+    public $balance;
     /**
      * The whole balance details
      * @var array
      */
-    public array $details;
+    public $details;
     /**
      * The id of the record in the database.
      * @var int
      */
-    protected int $recordid;
+    protected $recordid;
     /**
      * The valid balance for the user.
      * @var float
      */
-    public float $valid;
+    public $valid;
     /**
      * Balance helper object to get all balance data of a given user.
      * use enrol_wallet\util\balance_op for operations like credit or debit.

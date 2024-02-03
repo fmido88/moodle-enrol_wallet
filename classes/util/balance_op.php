@@ -135,12 +135,12 @@ class balance_op extends balance {
      * The amount per transaction.
      * @var float
      */
-    private float $amount;
+    private $amount;
     /**
      * The course id at which the operation done.
      * @var int
      */
-    private int $courseid;
+    private $courseid;
 
     /**
      * Helper calss
