@@ -31,7 +31,7 @@ let userInput;
 /**
  * Get the balance data through ajax call.
  */
-function get_data() {
+function getData() {
     let userid = parseInt(userInput.value);
 
     if (userid && !isNaN(userid)) {
@@ -63,7 +63,7 @@ export const init = (formid) => {
     userInput = form.querySelector("[name=userlist]");
 
     button.onclick = () => {
-        get_data();
+        getData();
     };
     userInput.onchange = () => {
         holder.innerHTML = '';

@@ -141,7 +141,7 @@ class turn_non_refundable_test extends \advanced_testcase {
         $this->assertEquals($output2, 200);
 
         // Not transform what already used.
-        $op->debit(50);
+        $op->debit(50, $op::OTHER);
         $output3 = $task->check_transform_validation($data, $trace);
         $this->assertEquals($output3, 150);
 

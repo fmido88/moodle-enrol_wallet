@@ -693,7 +693,7 @@ class coupons_test extends \advanced_testcase {
             $this->wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
             $inst = 'inst' . $i;
             $this->$inst = $instance;
-            if ($i <= 4) {
+            if ($i <= 3) {
                 $record = new \stdClass;
                 $record->section = 1;
                 $record->course = $this->$var->id;

@@ -29,9 +29,6 @@ let categoryInput;
 let valueAfterInput;
 let chargingLabel = '';
 let calculateValueHolder;
-// let conditions = [];
-// let discounts = [];
-// let categories = [];
 let rules = [];
 
 /**
@@ -88,7 +85,7 @@ function addListenersChargerForm() {
 }
 
 /**
- * continue the procedure of the charger form.
+ * Continue the procedure of the charger form.
  */
 function proceedChargerForm() {
     calculateValueHolder = form.querySelector("[data-holder=calculated-value]");
@@ -172,7 +169,7 @@ export const init = (formid, formType) => {
     categoryInput = form.querySelector("[name=category]");
 
     for (let i = 1; ; i++) {
-        let element = form.querySelector("[name=discount_rule_"+ i +"]");
+        let element = form.querySelector("[name=discount_rule_" + i + "]");
         if (!element) {
             break;
         }
@@ -182,22 +179,6 @@ export const init = (formid, formType) => {
         object.category = parseInt(object.category);
         rules.push(object);
     }
-
-    // for (let i = 1; ; i++) {
-    //     let element = form.querySelector("[name=condition"+ i +"]");
-    //     if (!element) {
-    //         break;
-    //     }
-    //     conditions.push(parseFloat(element.value));
-    // }
-
-    // for (let i = 1; ; i++) {
-    //     let element = form.querySelector("[name=category"+ i +"]");
-    //     if (!element) {
-    //         break;
-    //     }
-    //     categories.push(parseInt(element.value));
-    // }
 
     if (formType == 'charge') {
         proceedChargerForm();
