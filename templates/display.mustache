@@ -58,7 +58,8 @@
     <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
     {{/ currentuser}}
     <p style="text-align: center; direction: ltr;">
-        <div class="balance-card" style="text-align: center; direction: ltr;">{{# currentuser}}{{# str }} youhavebalance, enrol_wallet {{/ str }}{{/ currentuser}}<br>
+        <div class="balance-card" style="text-align: center; direction: ltr;">
+            {{# currentuser}}{{# str }} youhavebalance, enrol_wallet {{/ str }}{{/ currentuser}}<br>
             <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
             {{#currentuser}}{{# str }} inyourwallet, enrol_wallet {{/ str }} <br>{{/currentuser}}
             <span class="wallet-ballance">{{# str }} mainbalance, enrol_wallet {{/ str }} {{main}} {{currency}}</span><br>
@@ -69,7 +70,7 @@
             <div id="balance-details-{{uniqid}}" style="display:none;" class="enrol-wallet-balance-details">
             {{# catdetails }}
                 <ul style="text-align: left;">
-                    <h6>{{ name }}</h6>
+                    <li><strong>{{ name }}</strong></li>
                     <li>Refundable: {{refundable}}</li>
                     <li>Non-refundable: {{nonrefundable}}</li>
                     <li>Total: {{total}}</li>

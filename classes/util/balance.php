@@ -63,7 +63,7 @@ class balance {
      * category operation helper class
      * @var operations
      */
-    protected operations $catop;
+    protected $catop;
     /**
      * The main balance for the user
      * @var float
