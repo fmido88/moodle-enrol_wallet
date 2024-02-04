@@ -197,7 +197,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             } else {
                 $role = '';
             }
-            $cost = $this->get_cost_after_discount($USER->id, $instance);
+            $cost = $instance->cost;
             $currency = $instance->currency;
             $enrol = $this->get_name();
             return get_string('pluginname', 'enrol_' . $enrol) . $role . '-' . $cost . ' ' . $currency;
@@ -494,13 +494,13 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         // Check the status of this instance.
         $thisid        = $thisinstance->id;
-        $thiscost      = $this->get_cost_after_discount($USER->id, $thisinstance);
+        $thiscost      = $this->get_cost_after_discount($USER->id, $thisinstance, true);
         $thisenrolstat = $this->can_self_enrol($thisinstance);
         $thiscanenrol  = (true === $thisenrolstat);
         $thisinsuf = (self::INSUFFICIENT_BALANCE == $thisenrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $thisenrolstat);
 
         // Get the other instances.
-        $instances = $DB->get_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet']);
+        $instances = $DB->get_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet'], 'cost ASC');
         // No need to check if there is only one instance.
         if (count($instances) < 2) {
             return false;
@@ -514,8 +514,9 @@ class enrol_wallet_plugin extends enrol_plugin {
                 continue;
             }
 
-            $othercost = $this->get_cost_after_discount($USER->id, $instance, true);
-            $enrolstat = $this->can_self_enrol($instance);
+            $wallet = new self;
+            $othercost = $wallet->get_cost_after_discount($USER->id, $instance);
+            $enrolstat = $wallet->can_self_enrol($instance);
             $canenrol  = (true === $enrolstat);
             $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
 
@@ -2067,9 +2068,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         $helper = $this->get_helper($instance, $userid);
         $costafter = $helper->get_cost_after_discount($recalculate);
-        if (!$recalculate) {
-            $this->costafter = $costafter;
-        }
+
+        $this->costafter = $costafter;
+
         return $costafter;
     }
 
