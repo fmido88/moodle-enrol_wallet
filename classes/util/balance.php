@@ -146,7 +146,10 @@ class balance {
             // Get the balance from the last transaction.
             $sort = 'timecreated DESC,id DESC';
             $params = ['userid' => $this->userid];
-            $select = "userid = :userid AND (category IS NULL OR category = 0)";
+            $select = "userid = :userid";
+            if ($DB->get_manager()->field_exists(self::TRANSACTION_T, 'category')) {
+                $select .= " AND (category IS NULL OR category = 0)";
+            }
             $records = $DB->get_records_select(self::TRANSACTION_T, $select, $params, $sort, 'balance, norefund', 0, 1);
             $record = reset($records);
             // Getting the balance from last transaction.
