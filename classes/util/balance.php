@@ -15,6 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace enrol_wallet\util;
+use core_plugin_manager;
 use enrol_wallet\category\operations;
 use enrol_wallet\wordpress;
 use cache;
@@ -167,7 +168,12 @@ class balance {
     private function get_record() {
         global $DB;
         $userid = $this->userid;
-        $record = $DB->get_record(self::BALANCE_T, ['userid' => $userid]);
+        // To avoid errors during update.
+        $dbman = $DB->get_manager();
+        $exist = $dbman->table_exists(self::BALANCE_T);
+        if ($exist) {
+            $record = $DB->get_record(self::BALANCE_T, ['userid' => $userid]);
+        }
         if (empty($record)) {
             $this->set_main_balance();
             $balance = $this->details['mainbalance'];
@@ -179,7 +185,7 @@ class balance {
             $record->freegift = $this->details['mainfree'];
             $record->timecreated = time();
             $record->timemodified = time();
-            $record->id = $DB->insert_record(self::BALANCE_T, $record);
+            $record->id = $exist ? $DB->insert_record(self::BALANCE_T, $record) : 0;
         }
         $this->recordid = $record->id;
 
