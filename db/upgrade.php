@@ -246,7 +246,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2023112606, 'enrol', 'wallet');
     }
 
-    if ($oldversion < 2024012900) {
+    if ($oldversion < 2024020300) {
 
         // Define table enrol_wallet_balance to be created.
         $table = new xmldb_table('enrol_wallet_balance');
@@ -318,7 +318,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         }
 
         // Wallet savepoint reached.
-        upgrade_plugin_savepoint(true, 2024012900, 'enrol', 'wallet');
+        upgrade_plugin_savepoint(true, 2024020300, 'enrol', 'wallet');
     }
 
     return true;
