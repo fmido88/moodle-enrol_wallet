@@ -23,8 +23,13 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once("$CFG->dirroot/enrol/wallet/extendlib.php");
+
+// Disable all callbacks during upgrade.
+$version = get_config('enrol_wallet', 'version');
+if ($version >= 2024020923) {
+    global $CFG;
+    require_once("$CFG->dirroot/enrol/wallet/extendlib.php");
+}
 
 use enrol_wallet\form\enrol_form;
 use enrol_wallet\form\empty_form;
