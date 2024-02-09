@@ -340,6 +340,135 @@ class balance_op_test extends \advanced_testcase {
     }
 
     /**
+     * Test credit function with disabling category balance option.
+     * @covers ::credit
+     * @return void
+     */
+    public function test_credit_nocat():void {
+        global $DB;
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $user1 = $gen->create_user();
+        $user2 = $gen->create_user();
+        $cat1 = $gen->create_category();
+        $cat2 = $gen->create_category();
+
+        set_config('catbalance', 0, 'enrol_wallet');
+        $op = new balance_op($user1->id);
+        $op->credit(100);
+        $this->assertEquals(100, $op->get_main_balance());
+        $this->assertEquals(100, $op->get_main_refundable());
+        $this->assertEquals(0, $op->get_main_nonrefundable());
+        $this->assertEquals(100, $op->get_total_balance());
+        $this->assertEquals(100, $op->get_total_refundable());
+        $this->assertEquals(0, $op->get_total_nonrefundable());
+        $this->assertEquals(100, $op->get_valid_balance());
+        $this->assertEquals(0, $op->get_valid_nonrefundable());
+
+        $op = new balance_op($user1->id, $cat1);
+        $this->assertEquals(100, $op->get_main_balance());
+        $this->assertEquals(100, $op->get_main_refundable());
+        $this->assertEquals(0, $op->get_main_nonrefundable());
+        $this->assertEquals(100, $op->get_total_balance());
+        $this->assertEquals(100, $op->get_total_refundable());
+        $this->assertEquals(0, $op->get_total_nonrefundable());
+        $this->assertEquals(100, $op->get_valid_balance());
+        $this->assertEquals(0, $op->get_valid_nonrefundable());
+
+        $op->credit(100);
+        $this->assertEquals(200, $op->get_main_balance());
+        $this->assertEquals(200, $op->get_main_refundable());
+        $this->assertEquals(0, $op->get_main_nonrefundable());
+        $this->assertEquals(200, $op->get_total_balance());
+        $this->assertEquals(200, $op->get_total_refundable());
+        $this->assertEquals(0, $op->get_total_nonrefundable());
+        $this->assertEquals(200, $op->get_valid_balance());
+        $this->assertEquals(0, $op->get_valid_nonrefundable());
+
+        $op = new balance_op($user1->id, $cat2);
+        $this->assertEquals(200, $op->get_main_balance());
+        $this->assertEquals(200, $op->get_main_refundable());
+        $this->assertEquals(0, $op->get_main_nonrefundable());
+        $this->assertEquals(200, $op->get_total_balance());
+        $this->assertEquals(200, $op->get_total_refundable());
+        $this->assertEquals(0, $op->get_total_nonrefundable());
+        $this->assertEquals(200, $op->get_valid_balance());
+        $this->assertEquals(0, $op->get_valid_nonrefundable());
+
+        $op->credit(30);
+        $this->assertEquals(230, $op->get_main_balance());
+        $this->assertEquals(230, $op->get_main_refundable());
+        $this->assertEquals(0, $op->get_main_nonrefundable());
+        $this->assertEquals(230, $op->get_total_balance());
+        $this->assertEquals(230, $op->get_total_refundable());
+        $this->assertEquals(0, $op->get_total_nonrefundable());
+        $this->assertEquals(230, $op->get_valid_balance());
+        $this->assertEquals(0, $op->get_valid_nonrefundable());
+
+        $op = new balance_op($user1->id);
+        $this->assertEquals(230, $op->get_main_balance());
+        $this->assertEquals(230, $op->get_main_refundable());
+        $this->assertEquals(0, $op->get_main_nonrefundable());
+        $this->assertEquals(230, $op->get_total_balance());
+        $this->assertEquals(230, $op->get_total_refundable());
+        $this->assertEquals(0, $op->get_total_nonrefundable());
+        $this->assertEquals(230, $op->get_valid_balance());
+        $this->assertEquals(0, $op->get_valid_nonrefundable());
+
+        $op->credit(40, $op::OTHER, 0, '', false);
+        $this->assertEquals(270, $op->get_main_balance());
+        $this->assertEquals(230, $op->get_main_refundable());
+        $this->assertEquals(40, $op->get_main_nonrefundable());
+        $this->assertEquals(270, $op->get_total_balance());
+        $this->assertEquals(230, $op->get_total_refundable());
+        $this->assertEquals(40, $op->get_total_nonrefundable());
+        $this->assertEquals(270, $op->get_valid_balance());
+        $this->assertEquals(40, $op->get_valid_nonrefundable());
+
+        $op = new balance_op($user1->id, $cat1);
+        $this->assertEquals(270, $op->get_main_balance());
+        $this->assertEquals(230, $op->get_main_refundable());
+        $this->assertEquals(40, $op->get_main_nonrefundable());
+        $this->assertEquals(270, $op->get_total_balance());
+        $this->assertEquals(230, $op->get_total_refundable());
+        $this->assertEquals(40, $op->get_total_nonrefundable());
+        $this->assertEquals(270, $op->get_valid_balance());
+        $this->assertEquals(40, $op->get_valid_nonrefundable());
+
+        $op->credit(70, $op::OTHER, 0, '', false);
+        $this->assertEquals(340, $op->get_main_balance());
+        $this->assertEquals(230, $op->get_main_refundable());
+        $this->assertEquals(110, $op->get_main_nonrefundable());
+        $this->assertEquals(340, $op->get_total_balance());
+        $this->assertEquals(230, $op->get_total_refundable());
+        $this->assertEquals(110, $op->get_total_nonrefundable());
+        $this->assertEquals(340, $op->get_valid_balance());
+        $this->assertEquals(110, $op->get_valid_nonrefundable());
+
+        $op = new balance_op($user1->id, $cat2);
+        $this->assertEquals(340, $op->get_main_balance());
+        $this->assertEquals(230, $op->get_main_refundable());
+        $this->assertEquals(110, $op->get_main_nonrefundable());
+        $this->assertEquals(340, $op->get_total_balance());
+        $this->assertEquals(230, $op->get_total_refundable());
+        $this->assertEquals(110, $op->get_total_nonrefundable());
+        $this->assertEquals(340, $op->get_valid_balance());
+        $this->assertEquals(110, $op->get_valid_nonrefundable());
+
+        $op->credit(20, $op::OTHER, 0, '', false);
+        $this->assertEquals(360, $op->get_main_balance());
+        $this->assertEquals(230, $op->get_main_refundable());
+        $this->assertEquals(130, $op->get_main_nonrefundable());
+        $this->assertEquals(360, $op->get_total_balance());
+        $this->assertEquals(230, $op->get_total_refundable());
+        $this->assertEquals(130, $op->get_total_nonrefundable());
+        $this->assertEquals(360, $op->get_valid_balance());
+        $this->assertEquals(130, $op->get_valid_nonrefundable());
+
+        $count = $DB->count_records('enrol_wallet_transactions', ['userid' => $user1->id]);
+        $this->assertEquals(6, $count);
+    }
+    /**
      * Test debit method
      * @covers ::debit
      * @return void
@@ -473,7 +602,168 @@ class balance_op_test extends \advanced_testcase {
         $this->assertEquals(200, $op->get_valid_balance());
         $this->assertEquals(120, $op->get_valid_nonrefundable());
     }
+    /**
+     * Test debit method with disabling category balance.
+     * @covers ::debit
+     * @return void
+     */
+    public function test_debit_nocat():void {
+        global $DB;
+        $this->resetAfterTest();
+        set_config('catbalance', 0, 'enrol_wallet');
+        $gen = $this->getDataGenerator();
+        $user1 = $gen->create_user();
+        $user2 = $gen->create_user();
+        $cat1 = $gen->create_category();
+        $cat2 = $gen->create_category();
+        $cat3 = $gen->create_category(['parent' => $cat2->id]);
+        $catbalance = [
+            $cat1->id => (object)[
+                'refundable' => 50,
+                'nonrefundable' => 30,
+            ],
+            $cat2->id => (object)[
+                'refundable' => 70,
+                'nonrefundable' => 100,
+            ],
+        ];
+        $record = [
+            'userid' => $user1->id,
+            'refundable' => 200,
+            'nonrefundable' => 120,
+            'cat_balance' => json_encode($catbalance),
+        ];
+        $DB->insert_record('enrol_wallet_balance', $record, false);
 
+        $op = new balance_op($user1->id);
+        $this->assertEquals(570, $op->get_total_balance());
+        $this->assertEquals(570, $op->get_main_balance());
+        $this->assertEquals(570, $op->get_valid_balance());
+
+        $this->assertEquals(320, $op->get_total_refundable());
+        $this->assertEquals(320, $op->get_main_refundable());
+
+        $this->assertEquals(250, $op->get_total_nonrefundable());
+        $this->assertEquals(250, $op->get_main_nonrefundable());
+        $this->assertEquals(250, $op->get_valid_nonrefundable());
+
+        $this->setUser($user1);
+        $op->debit(40);
+        $this->assertEquals(530, $op->get_total_balance());
+        $this->assertEquals(530, $op->get_main_balance());
+        $this->assertEquals(530, $op->get_valid_balance());
+
+        $this->assertEquals(280, $op->get_total_refundable());
+        $this->assertEquals(280, $op->get_main_refundable());
+
+        $this->assertEquals(250, $op->get_total_nonrefundable());
+        $this->assertEquals(250, $op->get_main_nonrefundable());
+        $this->assertEquals(250, $op->get_valid_nonrefundable());
+
+        $op = new balance_op($user1->id, $cat1);
+        $this->assertEquals(530, $op->get_total_balance());
+        $this->assertEquals(530, $op->get_main_balance());
+        $this->assertEquals(530, $op->get_valid_balance());
+
+        $this->assertEquals(280, $op->get_total_refundable());
+        $this->assertEquals(280, $op->get_main_refundable());
+
+        $this->assertEquals(250, $op->get_total_nonrefundable());
+        $this->assertEquals(250, $op->get_main_nonrefundable());
+        $this->assertEquals(250, $op->get_valid_nonrefundable());
+
+        $op->debit(10);
+        $this->assertEquals(520, $op->get_total_balance());
+        $this->assertEquals(520, $op->get_main_balance());
+        $this->assertEquals(520, $op->get_valid_balance());
+
+        $this->assertEquals(270, $op->get_total_refundable());
+        $this->assertEquals(270, $op->get_main_refundable());
+
+        $this->assertEquals(250, $op->get_total_nonrefundable());
+        $this->assertEquals(250, $op->get_main_nonrefundable());
+        $this->assertEquals(250, $op->get_valid_nonrefundable());
+
+        $op->debit(50);
+        $this->assertEquals(470, $op->get_total_balance());
+        $this->assertEquals(470, $op->get_main_balance());
+        $this->assertEquals(470, $op->get_valid_balance());
+
+        $this->assertEquals($op->get_main_refundable(), $op->get_total_refundable());
+
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_total_nonrefundable());
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_valid_nonrefundable());
+
+        $total = $op->get_total_refundable() + $op->get_total_nonrefundable();
+        $this->assertEquals($total, $op->get_total_balance());
+
+        $op->debit(40);
+        $this->assertEquals(430, $op->get_total_balance());
+        $this->assertEquals(430, $op->get_main_balance());
+        $this->assertEquals(430, $op->get_valid_balance());
+
+        $this->assertEquals($op->get_main_refundable(), $op->get_total_refundable());
+
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_total_nonrefundable());
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_valid_nonrefundable());
+
+        $total = $op->get_total_refundable() + $op->get_total_nonrefundable();
+        $this->assertEquals($total, $op->get_total_balance());
+
+        $op = new balance_op($user1->id, $cat3);
+        $this->assertEquals(430, $op->get_total_balance());
+        $this->assertEquals(430, $op->get_main_balance());
+        $this->assertEquals(430, $op->get_valid_balance());
+
+        $this->assertEquals($op->get_main_refundable(), $op->get_total_refundable());
+
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_total_nonrefundable());
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_valid_nonrefundable());
+
+        $total = $op->get_total_refundable() + $op->get_total_nonrefundable();
+        $this->assertEquals($total, $op->get_total_balance());
+
+        $op->credit(30);
+        $op->credit(40, $op::OTHER, 0, '', false);
+        $this->assertEquals(500, $op->get_total_balance());
+        $this->assertEquals(500, $op->get_main_balance());
+        $this->assertEquals(500, $op->get_valid_balance());
+
+        $this->assertEquals($op->get_main_refundable(), $op->get_total_refundable());
+
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_total_nonrefundable());
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_valid_nonrefundable());
+
+        $total = $op->get_total_refundable() + $op->get_total_nonrefundable();
+        $this->assertEquals($total, $op->get_total_balance());
+
+        $op = new balance_op($user1->id, $cat2);
+        $this->assertEquals(500, $op->get_total_balance());
+        $this->assertEquals(500, $op->get_main_balance());
+        $this->assertEquals(500, $op->get_valid_balance());
+
+        $this->assertEquals($op->get_main_refundable(), $op->get_total_refundable());
+
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_total_nonrefundable());
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_valid_nonrefundable());
+
+        $total = $op->get_total_refundable() + $op->get_total_nonrefundable();
+        $this->assertEquals($total, $op->get_total_balance());
+
+        $op = new balance_op($user1->id, $cat3);
+        $op->debit(300);
+        $this->assertEquals(200, $op->get_total_balance());
+        $this->assertEquals(200, $op->get_main_balance());
+        $this->assertEquals(200, $op->get_valid_balance());
+
+        $this->assertEquals($op->get_main_refundable(), $op->get_total_refundable());
+
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_total_nonrefundable());
+        $this->assertEquals($op->get_main_nonrefundable(), $op->get_valid_nonrefundable());
+
+        $total = $op->get_total_refundable() + $op->get_total_nonrefundable();
+        $this->assertEquals($total, $op->get_total_balance());
+    }
     /**
      * Test free balance add and deduct
      * @covers ::get_total_free
@@ -613,4 +903,111 @@ class balance_op_test extends \advanced_testcase {
         $this->assertEquals(50, $op->get_valid_free());
     }
 
+    /**
+     * Test transferring balance to another user.
+     * @covers ::transfer_to_other()
+     */
+    public function test_transfer_to_other():void {
+        $this->resetAfterTest();
+        $gen = $this->getDataGenerator();
+        $user1 = $gen->create_user();
+        $user2 = $gen->create_user();
+
+        $enabled = get_config('enrol_wallet', 'transfer_enabled');
+        $this->assertEmpty($enabled);
+
+        $this->setUser($user1);
+
+        $data = (object)[
+            'email' => $user2->email,
+            'amount' => 50,
+        ];
+        $op = new balance_op($user1->id);
+        try {
+            $op->transfer_to_other($data);
+        } catch (\moodle_exception $e) {
+            $error = $e;
+        }
+        $this->assertNotEmpty($error);
+        unset($error);
+        set_config('transfer_enabled', 1, 'enrol_wallet');
+
+        $error = $op->transfer_to_other($data);
+
+        $this->assertStringContainsString('Sorry, you have insufficient balance for this operation.', $error);
+
+        $op->credit(100);
+
+        $op->transfer_to_other($data);
+
+        $balance = new balance($user1->id);
+        $this->assertEquals(50, $balance->get_main_balance());
+
+        $balance = new balance($user2->id);
+        $this->assertEquals(50, $balance->get_main_balance());
+        $this->assertEquals(50, $balance->get_main_nonrefundable());
+
+        set_config('mintransfer', 20, 'enrol_wallet');
+
+        $data->amount = 15;
+        $op = new balance_op;
+        $msg = $op->transfer_to_other($data);
+        $this->assertStringContainsString('The minimum transfer amount is', $msg);
+
+        set_config('transferpercent', 20, 'enrol_wallet');
+        set_config('transferfee_from', 'sender', 'enrol_wallet');
+
+        $data->amount = 50;
+        $op = new balance_op;
+        $msg = $op->transfer_to_other($data);
+        $this->assertStringContainsString('Sorry, you have insufficient balance for this operation.', $msg);
+
+        $op->credit(100);
+
+        $op->transfer_to_other($data);
+
+        $balance = new balance();
+        $this->assertEquals(90, $balance->get_total_balance());
+
+        $balance = new balance($user2->id);
+        $this->assertEquals(100, $balance->get_total_balance());
+        $this->assertEquals(100, $balance->get_total_nonrefundable());
+        $this->assertEquals(0, $balance->get_total_refundable());
+
+        set_config('transferfee_from', 'receiver', 'enrol_wallet');
+
+        $op = new balance_op;
+        $op->transfer_to_other($data);
+
+        $balance = new balance();
+        $this->assertEquals(40, $balance->get_total_balance());
+
+        $balance = new balance($user2->id);
+        $this->assertEquals(140, $balance->get_total_balance());
+        $this->assertEquals(140, $balance->get_total_nonrefundable());
+        $this->assertEquals(0, $balance->get_total_refundable());
+
+        // Let's start fresh.
+        $this->reset_balance($user1->id);
+        $this->reset_balance($user2->id);
+    }
+
+    /**
+     * Used to reset the balance of a user to zero.
+     * @param int $userid
+     */
+    private function reset_balance($userid):void {
+        $op = new balance_op($userid);
+        $op->debit($op->get_valid_balance(), $op::OTHER);
+        $details = $op->get_balance_details();
+        if (!empty($details['catbalance'])) {
+            $ids = array_keys($details['catbalance']);
+            foreach ($ids as $catid) {
+                $op = new balance_op($userid, $catid);
+                $op->debit($op->get_valid_balance(), $op::OTHER);
+            }
+        }
+        $balance = new balance($userid);
+        $this->assertEquals(0, $balance->get_total_balance());
+    }
 }

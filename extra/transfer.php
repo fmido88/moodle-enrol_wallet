@@ -45,10 +45,11 @@ $PAGE->set_url($url);
 $mform = new \enrol_wallet\form\transfer_form();
 
 if ($data = $mform->get_data()) {
-    global $USER;
+
     $catid  = $data->category;
     $op = new enrol_wallet\util\balance_op(0, $catid);
-    $msg = $op->transfer_to_other();
+
+    $msg = $op->transfer_to_other($data, $mform);
     if (stristr($msg, 'error')) {
         $type = 'error';
     } else {

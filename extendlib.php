@@ -393,7 +393,12 @@ function enrol_wallet_post_change_password_requests($data) {
  * @return void
  */
 function enrol_wallet_before_standard_top_of_body_html() {
-    global $USER;
+    global $USER, $PAGE;
+    $showprice = (bool)get_config('enrol_wallet', 'showprice');
+    if ($showprice) {
+        $PAGE->requires->js_call_amd('enrol_wallet/overlyprice', 'init');
+    }
+
     // Don't display notice for guests or logged out.
     if (!isloggedin() || isguestuser()) {
         return;
@@ -407,6 +412,7 @@ function enrol_wallet_before_standard_top_of_body_html() {
 
     // Check the conditions.
     $condition = get_config('enrol_wallet', 'noticecondition');
+
     $op = new balance();
     $balance = $op->get_total_balance();
     if ($balance !== false && is_numeric($balance) && $balance <= (int)$condition) {

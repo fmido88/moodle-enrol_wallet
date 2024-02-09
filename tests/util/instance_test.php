@@ -184,6 +184,7 @@ class instance_test extends \advanced_testcase {
 
         // Enable the repurchase.
         set_config('repurchase', 1, 'enrol_wallet');
+        $wallet = new enrol_wallet_plugin;
         $this->assertTrue($wallet->can_self_enrol($instance));
         $this->assertEquals(100, $inst->get_cost_after_discount(true));
 
@@ -194,8 +195,9 @@ class instance_test extends \advanced_testcase {
 
         // Make sure it is not affected by second discount option.
         set_config('repurchase_seconddis', 60, 'enrol_wallet');
-        $this->assertEquals(60, $inst->get_cost_after_discount(true));
         $wallet = new enrol_wallet_plugin;
+
+        $this->assertEquals(60, $inst->get_cost_after_discount(true));
         // Enrol the user.
         $wallet->enrol_self($instance, $user);
         $this->assertTrue(is_enrolled($context, $user, '', true));

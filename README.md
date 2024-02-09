@@ -166,6 +166,9 @@ These events helps administrators or managers to track the wallet workflow.
 30. (New) Admins can switch from (enrollments using course credit) plugin.
     * With one click migrate credits, user enrollments and enrol instances from credit enrolment plugin to this one.
 
+31. (New) Offers.
+    * Make course purchase offers and discount based on time, other course enrolments and more.
+
 # Wallet block #
 
 Also you can install block_wallet to display the balance for the user.

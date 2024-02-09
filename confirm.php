@@ -22,12 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+define('NO_DEBUG_DISPLAY', true);
+
 require_once(__DIR__.'/../../config.php');
 require_once(__DIR__.'/lib.php');
 
 use enrol_wallet\util\instance;
 use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op;
 
 global $USER;
 
@@ -86,8 +87,8 @@ if (!core_course_category::can_view_course_info($course) && !is_enrolled($contex
 }
 
 if ($confirm && confirm_sesskey()) {
-    // Notice and warnings may cause double deduct to the ballance.
-    set_debugging(DEBUG_NONE);
+    // Notice and warnings may cause double deduct to the balance.
+    set_debugging(DEBUG_NONE, false);
 
     $wallet->enrol_self($instance);
 

@@ -41,6 +41,7 @@ use enrol_wallet\restriction\info;
 use enrol_wallet\editselectedusers_operation;
 use enrol_wallet\deleteselectedusers_operation;
 use enrol_wallet\restriction\frontend;
+use enrol_wallet\util\offers;
 
 /**
  * wallet enrolment plugin implementation.
@@ -103,11 +104,16 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     protected $helper;
     /**
-     * Summary of __construct
+     * Creating new enrol_wallet_plugin, passing the instance object or id
+     * will calculate the cost after discount and caches it.
+     *
      * @param \stdClass $instance
      */
     public function __construct($instance = null) {
-
+        if (!empty($instance)) {
+            $this->helper = new helper($instance);
+            $this->costafter = $this->helper->get_cost_after_discount();
+        }
         $this->load_config();
     }
     /**
@@ -124,61 +130,43 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function get_info_icons(array $instances) {
         global $PAGE;
-        $att = [];
-        if (!empty($this->config->showprice)) {
-            global $USER;
-            $costs = [];
-            foreach ($instances as $instance) {
-                $cost = $this->get_cost_after_discount($USER->id, $instance, true);
-                $enrolstat = $this->can_self_enrol($instance);
-                $canenrol  = (true === $enrolstat);
-                $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
 
-                // Get the cheapest cost.
-                if ($canenrol || $insuf) {
-                    $costs[] = $cost;
-                }
+        $icons = [];
+        foreach ($instances as $instance) {
+            $helper = new helper($instance);
+            $cost = $helper->get_cost_after_discount();
+            $enrolstat = $this->can_self_enrol($instance);
+            $canenrol  = (true === $enrolstat);
+            $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
+            $discount = 0;
+            if (is_numeric($instance->cost) && !empty($instance->cost)) {
+                $discount = (int)(($instance->cost - $cost) / $instance->cost * 100);
             }
 
-            $icons = [];
-            foreach ($costs as $cost) {
-                $id = "wallet-icon-".random_int(100000, 999999999);
-                $idp = "wallet-price-".random_int(100000, 999999999);
-                $att = ['class' => 'wallet-icon', 'id' => $id];
-                if ($cost == 0) {
-                    $cost = 'FREE';
-                } else if ($cost == PHP_INT_MAX) {
-                    $cost = null;
-                }
-
-                $att += ['title' => $cost];
-
-                $script = "
-                var titleElement = document.createElement('div');
-                titleElement.textContent = '$cost';
-                titleElement.className = 'enrol_wallet_walletcost';
-                titleElement.id = '$idp';
-
-                var imageElement = document.getElementById('$id');
-                var x = setInterval(function() {
-                    var exist = document.getElementById('$idp');
-                    if (exist === null) {
-                        // Insert the new title element before the image element
-                        imageElement.parentNode.insertBefore(titleElement, imageElement);
-                    } else {
-                        clearInterval(x);
-                    }
-                }, 50);
-                ";
-                $PAGE->requires->js_init_code($script, true);
-                $icons[] = new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet', $att);
+            if (!$canenrol && !$insuf) {
+                $cost = null;
+            } else if ($canenrol && $cost === 0.0) {
+                $discount = 100;
+                $cost = 'FREE';
             }
-            if (!empty($icons)) {
-                return $icons;
-            }
+
+            $attributes = [
+                'class'            => 'wallet-icon',
+                'data-instance-id' => $instance->id,
+                'data-cost'        => $cost,
+                'data-selector'    => 'enrol_wallet_icon',
+                'data-discount'    => $discount,
+                'title' => get_string('pluginname', 'enrol_wallet') . " ($cost)",
+            ];
+
+            $icons[] = new pix_icon('wallet', $attributes['title'], 'enrol_wallet', $attributes);
         }
 
-        return [new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet', $att)];
+        if (!empty($icons)) {
+            return $icons;
+        }
+
+        return [new pix_icon('wallet', get_string('pluginname', 'enrol_wallet'), 'enrol_wallet')];
     }
 
     /**
@@ -234,6 +222,12 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function get_unenrolself_link($instance) {
         global $USER, $DB;
+        // Check if unenrol self is enabled in the settings.
+        $enabled = $this->get_config('unenrolselfenabled');
+        if (!$enabled) {
+            return null;
+        }
+
         // Check main security in the main function.
         $return = parent::get_unenrolself_link($instance);
         if (empty($return)) {
@@ -241,15 +235,10 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         $parentreturn = $return;
-        // Check if unenrol self is enabled in the settings.
-        $enabled = get_config('enrol_wallet', 'unenrolselfenabled');
-        if (!$enabled) {
-            return null;
-        }
 
         // Check the periods conditions.
-        $before = get_config('enrol_wallet', 'unenrollimitbefor');
-        $after  = get_config('enrol_wallet', 'unenrollimitafter');
+        $before = $this->get_config('unenrollimitbefor');
+        $after  = $this->get_config('unenrollimitafter');
 
         $enrolrecord = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $USER->id]);
 
@@ -287,7 +276,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function unenrol_user(stdClass $instance, $userid) {
         // Check if refund upon unenrolment is enabled.
-        $enabled = get_config('enrol_wallet', 'unenrolrefund');
+        $enabled = $this->get_config('unenrolrefund');
         if (empty($enabled)) {
             return parent::unenrol_user($instance, $userid);
         }
@@ -297,7 +286,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $enrolrecord  = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $userid]);
         $enrolstart   = $enrolrecord->timestart;
         $enrolend     = $enrolrecord->timeend;
-        $refundperiod = get_config('enrol_wallet', 'unenrolrefundperiod');
+        $refundperiod = $this->get_config('unenrolrefundperiod');
         $now = time();
         if (
             (!empty($enrolend) && $now > $enrolend) // The enrolmet already ended.
@@ -309,7 +298,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $rawcost = $this->get_cost_after_discount($userid, $instance);
         // Check for refunding fee.
-        $fee  = intval(get_config('enrol_wallet', 'unenrolrefundfee'));
+        $fee  = intval($this->get_config('unenrolrefundfee'));
         $cost = $rawcost - ($rawcost * $fee / 100);
 
         // Check for previously used coupon.
@@ -393,7 +382,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         // Check the number of allowed instances.
         $count = $DB->count_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet']);
-        if ($multiple = get_config('enrol_wallet', 'allowmultipleinstances')) {
+        if ($multiple = $this->get_config('allowmultipleinstances')) {
             if (empty($multiple)) {
                 return true;
             } else if ($count >= $multiple) {
@@ -436,7 +425,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $timestart = time();
         $timeend = ($instance->enrolperiod) ? $timestart + $instance->enrolperiod : 0;
 
-        // The times the user get deducted but not enrolled, so we try the while loop to make sure that the user enrolled.
+        // Some times the user get deducted but not enrolled, so we try the while loop to make sure that the user enrolled.
         try {
             $conditions = [
                 'userid'    => $user->id,
@@ -445,9 +434,9 @@ class enrol_wallet_plugin extends enrol_plugin {
                 'timeend'   => $timeend,
                 'status'    => ENROL_USER_ACTIVE,
             ];
-            while (!$DB->record_exists('user_enrolments', $conditions)) {
+            do {
                 $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend, null, true);
-            }
+            } while (!$DB->record_exists('user_enrolments', $conditions));
         } catch (\moodle_exception $e) {
             // Rollback the transaction in case of error.
             if ($charge) {
@@ -469,7 +458,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         coupons::unset_session_coupon();
 
         // Now apply the cashback if enabled.
-        $cashbackenabled = get_config('enrol_wallet', 'cashback');
+        $cashbackenabled = $this->get_config('cashback');
 
         if ($cashbackenabled) {
             $op->apply_cashback();
@@ -597,7 +586,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         enrolpage_viewed::create_and_trigger($instance);
 
-        $couponsetting = get_config('enrol_wallet', 'coupons');
+        $couponsetting = $this->get_config('coupons');
         $helper = $this->get_helper($instance);
         $costafter   = $helper->get_cost_after_discount();
         $costbefore = $instance->cost;
@@ -688,7 +677,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
 
             // If payment is enabled in general, adding topup option.
-            $account = get_config('enrol_wallet', 'paymentaccount');
+            $account = $this->get_config('paymentaccount');
             if (enrol_wallet_is_valid_account($account)) {
                 $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
                 $topupform = new topup_form($topupurl, $data);
@@ -714,9 +703,9 @@ class enrol_wallet_plugin extends enrol_plugin {
             ob_start();
             $form->display();
             $output .= ob_get_clean();
-
         }
-
+        $offers = new offers($instance);
+        $output .= $offers->format_offers_descriptions();
         return $OUTPUT->box($output);
     }
 
@@ -730,7 +719,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function can_self_enrol(stdClass $instance, $checkuserenrolment = true) {
         global $CFG, $DB, $OUTPUT, $USER;
-        $repurchase = get_config('enrol_wallet', 'repurchase');
+        $repurchase = $this->get_config('repurchase');
 
         if (isguestuser()) {
             // Can not enrol guest.
@@ -813,7 +802,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
         }
 
-        if (!empty($this->config->restrictionenabled) && !empty($instance->customtext2)) {
+        if (!empty($this->get_config('restrictionenabled')) && !empty($instance->customtext2)) {
             $info = new info($instance);
             if (!$info->is_available($reasons, true, $USER->id)) {
 
@@ -862,14 +851,16 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Get the helper class
      * @param \stdClass|int $instance
      * @param int $userid
-     * @return helper
+     * @return helper|null
      */
     protected function get_helper($instance, $userid = 0) {
         global $USER;
         if (is_number($instance)) {
             $instanceid = $instance;
-        } else {
+        } else if (!empty($instance->id)) {
             $instanceid = $instance->id;
+        } else {
+            return null;
         }
 
         if (empty($this->helper)
@@ -1487,7 +1478,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addHelpButton('customtext1', 'customwelcomemessage', 'enrol_wallet');
 
         // Adding the awarding program options for this course.
-        if (get_config('enrol_wallet', 'awardssite')) {
+        if ($this->get_config('awardssite')) {
             // Enable or disable awards.
             $mform->addElement('advcheckbox', 'customint8', get_string('awards', 'enrol_wallet'), '', [], [false, true]);
             $mform->setDefault('customint8', false);
@@ -1524,6 +1515,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $coursesoptions = $this->get_courses_options($instance->courseid);
         $this->course_restriction_edit($coursesoptions, $mform, $instance);
 
+        $offers = new enrol_wallet\util\offers($instance);
+        $offers->get_form_offers_elements($mform);
         if (!empty($coursesoptions)) {
             // Add some js code to set the value of customchar3 element for the restriction course enrolment.
             $js = <<<JS
@@ -1551,7 +1544,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     protected function include_availability($instance, $mform, $context) {
         global $CFG;
-        if (empty($this->config->restrictionenabled) || empty($this->config->availability_plugins)) {
+        if (empty($this->get_config('restrictionenabled')) || empty($this->get_config('availability_plugins'))) {
             return;
         }
         if (!$course = self::get_course_by_instance_id($instance->id)) {
@@ -1783,7 +1776,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $tovalidate['expirythreshold'] = PARAM_INT;
         }
 
-        if (get_config('enrol_wallet', 'awardssite')) {
+        if ($this->get_config('awardssite')) {
             $tovalidate['customint8'] = PARAM_BOOL;
             if (!empty($data['customint8'])) {
                 $tovalidate['customdec1'] = PARAM_FLOAT;
@@ -1792,7 +1785,10 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         $typeerrors = $this->validate_param_types($data, $tovalidate);
-        $errors = array_merge($errors, $typeerrors);
+
+        $offerserrors = offers::validate($data);
+
+        $errors = array_merge($errors, $typeerrors, $offerserrors);
 
         if (!empty($data['availabilityconditionsjson'])) {
             \core_availability\frontend::report_validation_errors($data, $errors);
@@ -1832,7 +1828,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             'customint7'      => 0,
             'customtext2'     => '',
         ];
-        if (get_config('enrol_wallet', 'awardssite')) {
+        if ($this->get_config('awardssite')) {
             $awards = $this->get_config('awards');
             $fields['customint8'] = !empty($awards) ? $awards : 0;
             if (!empty($awards)) {
@@ -1903,6 +1899,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return int id of new instance, null if can not be created
      */
     public function add_instance($course, array $fields = null) {
+
+        offers::parse_data($fields);
+
         // In the form we are representing 2 db columns with one field.
         if (!empty($fields) && !empty($fields['expirynotify'])) {
             if ($fields['expirynotify'] == 2) {
@@ -1926,6 +1925,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param stdClass $data modified instance fields
      */
     public function update_instance($instance, $data) {
+
+        offers::parse_data($data);
+
         // Check first if expiry notify is sent by the edit form (not sent in case of bulk edit only).
         if (isset($data->expirynotify)) {
             // In the form we are representing 2 db columns with one field.
@@ -1971,6 +1973,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function get_course_by_instance_id($instanceid) {
         $helper = $this->get_helper($instanceid);
+        if (empty($helper)) {
+            return false;
+        }
         return $helper->get_course();
     }
 

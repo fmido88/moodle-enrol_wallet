@@ -25,6 +25,7 @@
 defined('MOODLE_INTERNAL') || die();
 use enrol_wallet\util\balance;
 use enrol_wallet\coupons;
+use enrol_wallet\util\instance;
 
 $context = context_system::instance();
 
@@ -146,7 +147,14 @@ if ($ADMIN->fulltree) {
                         get_string('showprice', 'enrol_wallet'),
                         get_string('showprice_desc', 'enrol_wallet'),
                         0));
-    // Auto Refunding to wallet after unenrol.
+    // Enable category balance.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/catbalance',
+                        'Category balance',
+                        'Enable category balance',
+                        1));
+    $settings->hide_if('enrol_wallet/catbalance', 'enrol_wallet/walletsource', 'eq', balance::WP);
+
+    // Auto Refunding to wallet after un-enrol.
     $settings->add(new admin_setting_heading('enrol_wallet_unenrolrefund',
                         get_string('unenrolrefund_head', 'enrol_wallet'),
                         get_string('unenrolrefund_head_desc', 'enrol_wallet')));
@@ -247,6 +255,15 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('enrol_wallet_discounts',
                                             get_string('discountscopouns', 'enrol_wallet'),
                                             get_string('discountscopouns_desc', 'enrol_wallet')));
+    $behaviors = [
+        instance::B_SEQ => get_string('discount_behavior_sequential', 'enrol_wallet'),
+        instance::B_SUM => get_string('discount_behavior_sum', 'enrol_wallet'),
+        instance::B_MAX => get_string('discount_behavior_max', 'enrol_wallet'),
+    ];
+    $settings->add(new admin_setting_configselect('enrol_wallet/discount_behavior',
+                        get_string('discount_behavior', 'enrol_wallet'),
+                        get_string('discount_behavior_desc', 'enrol_wallet'),
+                        instance::B_SEQ, $behaviors));
     // Get the custom profile fields, to select the discount field.
     $menu = $DB->get_records_menu('user_info_field', null, 'id ASC', 'id, name');
     $menu[0] = get_string('not_set', 'enrol_wallet');

@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 5.1.0 ##
+- Add offers system.
+- Add discount badge.
+- Bug fixes.
+
 ## V 5.0.0 ##
 - Overall code improvement.
 - Add a category based wallet.

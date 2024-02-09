@@ -491,6 +491,15 @@ class coupons_test extends \advanced_testcase {
         $coupons = new coupons('category3');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
         $this->assertNotTrue($validation);
+
+        set_config('catbalance', 0, 'enrol_wallet');
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
+        $this->assertNotTrue($validation);
+
+        $coupons = new coupons('category2');
+        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
+        $this->assertTrue($validation);
     }
 
     /**
@@ -537,7 +546,7 @@ class coupons_test extends \advanced_testcase {
         $balance = balance::create_from_instance($this->inst1);
         $this->assertEquals(40, $balance->get_valid_balance());
         $this->assertEquals(40, $balance->get_valid_nonrefundable());
-        $this->assertEquals(0, $balance->get_main_balance());
+        $this->assertEquals(40, $balance->get_main_balance());
         $this->assertTrue(is_enrolled(\context_course::instance($this->c1->id), $this->u4));
 
         // Enrol area, Insufficient value, credit only.
@@ -547,7 +556,7 @@ class coupons_test extends \advanced_testcase {
         $balance = balance::create_from_instance($this->inst7->id);
         $this->assertEquals(50, $balance->get_valid_balance());
         $this->assertEquals(50, $balance->get_valid_nonrefundable());
-        $this->assertEquals(0, $balance->get_main_balance());
+        $this->assertEquals(50, $balance->get_main_balance());
         $this->assertFalse(is_enrolled(\context_course::instance($this->c7->id), $this->u5));
 
         // User with partial credit.
@@ -558,7 +567,7 @@ class coupons_test extends \advanced_testcase {
         $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst6->id);
         $balance = balance::create_from_instance($this->inst6->id);
         $this->assertEquals(30, $balance->get_valid_balance());
-        $this->assertEquals(0, $balance->get_valid_nonrefundable());
+        $this->assertEquals(30, $balance->get_valid_nonrefundable());
         $this->assertEquals(30, $balance->get_main_balance());
         $this->assertTrue(is_enrolled(\context_course::instance($this->c6->id), $this->u6));
     }

@@ -25,11 +25,12 @@ namespace enrol_wallet;
 
 use enrol_wallet\transactions;
 use enrol_wallet\util\balance;
-use enrol_wallet_plugin;
+use enrol_wallet\util\balance_op;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+use enrol_wallet_plugin;
 
 /**
  * Wallet enrolment tests.
@@ -60,7 +61,7 @@ class enrol_wallet_test extends \advanced_testcase {
     public function test_sync_nothing(): void {
         global $SITE;
 
-        $walletplugin = enrol_get_plugin('wallet');
+        $walletplugin = new enrol_wallet_plugin;
 
         $trace = new \null_progress_trace();
 
@@ -78,7 +79,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $walletplugin = enrol_get_plugin('wallet');
+        $walletplugin = new enrol_wallet_plugin;
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
 
@@ -531,8 +532,10 @@ class enrol_wallet_test extends \advanced_testcase {
         $user2 = $this->getDataGenerator()->create_user();
 
         // Adding credits to these users.
-        transactions::payment_topup(500, $user1->id);
-        transactions::payment_topup(250, $user2->id);
+        $op = new balance_op($user1->id);
+        $op->credit(500);
+        $op = new balance_op($user2->id);
+        $op->credit(250);
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
@@ -686,7 +689,8 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertFalse($walletplugin->show_enrolme_link($instance6));
 
         // Lowering the user's balance.
-        transactions::debit($user1->id, 300);
+        $op = new balance_op($user1->id);
+        $op->debit(300, $op::OTHER);
         $this->assertFalse($walletplugin->show_enrolme_link($instance1));
     }
 
@@ -938,9 +942,11 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         self::resetAfterTest(true);
 
-        $walletplugin = enrol_get_plugin('wallet');
+        $wallet = new enrol_wallet_plugin;
         $user1 = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(250, $user1->id);
+        $op = new balance_op($user1->id);
+        $op->credit(250);
+
         $course1 = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course1->id);
 
@@ -948,28 +954,47 @@ class enrol_wallet_test extends \advanced_testcase {
         $instance1->customint6 = 1;
         $instance1->cost = 200;
         $DB->update_record('enrol', $instance1);
-        $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
+        $wallet->update_status($instance1, ENROL_INSTANCE_ENABLED);
 
         $this->setUser($user1);
         // Enrol the user and makesure the cost deducted.
-        $walletplugin->enrol_self($instance1, $user1);
-
-        $balance1 = transactions::get_user_balance($user1->id);
+        $wallet->enrol_self($instance1, $user1);
+        $bal = new balance();
+        $balance1 = $bal->get_valid_balance();
         $this->assertEquals(50, $balance1);
         $this->assertTrue(is_enrolled($context));
-        // Now testing the functionality of cashbackprogram.
-        $walletplugin->set_config('cashback', 1);
-        $walletplugin->set_config('cashbackpercent', 20);
+
         $user2 = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(250, $user2->id);
         $this->setUser($user2);
+        // Add to main balance.
+        $op = new balance_op($user2->id);
+        $op->credit(300);
+        // Add to category balance.
+        $op = new balance_op($user2->id, $course1->category);
+        $op->credit(50);
+        $wallet->enrol_self($instance1);
+
+        $balance = balance::create_from_instance($instance1);
+        $this->assertEquals(150, $balance->get_total_balance());
+        $this->assertEquals(150, $balance->get_valid_balance());
+        $this->assertEquals(150, $balance->get_main_balance());
+        $this->assertEquals(0, $balance->get_cat_balance($course1->category));
+
+        // Now testing the functionality of cashbackprogram.
+        $wallet->set_config('cashback', 1);
+        $wallet->set_config('cashbackpercent', 20);
+        $user3 = $this->getDataGenerator()->create_user();
+        $op = new balance_op($user3->id);
+        $op->credit(250);
+
+        $this->setUser($user3);
         // Enrol the user and makesure the cost deducted.
-        $walletplugin->enrol_self($instance1, $user2);
-        $balancehelper = util\balance::create_from_instance($instance1, $user2->id);
-        $balance2 = $balancehelper->get_valid_balance();
-        $norefund = $balancehelper->get_valid_nonrefundable();
-        $this->assertEquals(90, $balance2);
-        $this->assertEquals(40, $norefund);
+        $wallet->enrol_self($instance1, $user3);
+        $balance = balance::create_from_instance($instance1, $user3->id);
+        $this->assertEquals(90, $balance->get_valid_balance());
+        $this->assertEquals(40, $balance->get_valid_nonrefundable());
+        $this->assertEquals(0, $balance->get_main_nonrefundable());
+        $this->assertEquals(40, $balance->get_cat_balance($course1->category));
         $this->assertTrue(is_enrolled($context));
     }
 
@@ -1082,7 +1107,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         self::resetAfterTest(true);
 
-        $walletplugin = enrol_get_plugin('wallet');
+        $walletplugin = new enrol_wallet_plugin;
         $user1 = $this->getDataGenerator()->create_user();
         transactions::payment_topup(250, $user1->id);
 
@@ -1105,6 +1130,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $data2['cost'] = 100;
         $walletplugin->update_instance($instance2, (object) $data2);
 
+        $walletplugin = new enrol_wallet_plugin;
         // Sufficient balance for both.
         $this->setUser($user1);
         $this->assertTrue($walletplugin->hide_due_cheaper_instance($instance1));
@@ -1157,7 +1183,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         transactions::payment_topup(100, $user->id);
 
-        $wallet = enrol_get_plugin('wallet');
+        $wallet = new enrol_wallet_plugin;
         // Update the instance such that the enrol duration is 2 hours.
         $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance->customint6 = 1;
@@ -1168,13 +1194,14 @@ class enrol_wallet_test extends \advanced_testcase {
 
         // Enable refunding.
         set_config('unenrolrefund', 1, 'enrol_wallet');
-
+        $wallet = new enrol_wallet_plugin;
         // Enrol the user and check the balance.
         $this->setUser($user);
         $wallet->enrol_self($instance);
         $this->assertTrue(is_enrolled($context));
 
-        $balance = transactions::get_user_balance($user->id);
+        $helper = balance::create_from_instance($instance, $user->id);
+        $balance = $helper->get_valid_balance();
         $this->assertEquals(50, $balance);
 
         $wallet->unenrol_user($instance, $user->id);
@@ -1187,7 +1214,7 @@ class enrol_wallet_test extends \advanced_testcase {
 
         $this->setAdminUser();
         set_config('unenrolrefund', 0, 'enrol_wallet');
-
+        $wallet = new enrol_wallet_plugin;
         // Repeat but disable refunding.
         $this->setUser($user);
         $wallet->enrol_self($instance);
@@ -1207,6 +1234,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setAdminUser();
         set_config('unenrolrefund', 1, 'enrol_wallet');
         set_config('unenrolrefundperiod', HOURSECS, 'enrol_wallet');
+        $wallet = new enrol_wallet_plugin;
 
         $this->setUser($user);
         $wallet->enrol_self($instance);
@@ -1248,6 +1276,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setAdminUser();
         // Set to 10%.
         set_config('unenrolrefundfee', 10, 'enrol_wallet');
+        $wallet = new enrol_wallet_plugin;
 
         $this->setUser($user);
         $wallet->enrol_self($instance);
@@ -1279,7 +1308,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         transactions::payment_topup(100, $user->id);
 
-        $wallet = enrol_get_plugin('wallet');
+        $wallet = new enrol_wallet_plugin;
         // Update the instance such that the enrol duration is 2 hours.
         $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $data = new \stdClass;
@@ -1299,6 +1328,7 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->setAdminUser();
         set_config('unenrolselfenabled', 1, 'enrol_wallet');
 
+        $wallet = new enrol_wallet_plugin;
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
@@ -1307,6 +1337,7 @@ class enrol_wallet_test extends \advanced_testcase {
         set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
 
+        $wallet = new enrol_wallet_plugin;
         // First condition limit after enrol start time by 2 hours.
         // Second condition limit is before the enrol end time by 2 hours.
         // Can unenrol before the first condition.
@@ -1331,6 +1362,7 @@ class enrol_wallet_test extends \advanced_testcase {
         set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitbefor', 0, 'enrol_wallet');
 
+        $wallet = new enrol_wallet_plugin;
         // Can unenrol before the first condition.
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
         $this->setUser($user);
@@ -1353,6 +1385,7 @@ class enrol_wallet_test extends \advanced_testcase {
         set_config('unenrollimitafter', 0, 'enrol_wallet');
         set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
 
+        $wallet = new enrol_wallet_plugin;
         // Cannot unenrol before.
         $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
         $this->setUser($user);

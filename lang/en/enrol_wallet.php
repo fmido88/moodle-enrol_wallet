@@ -71,6 +71,7 @@ $string['bulk_instancesyes'] = '{$a->updated} enrol instances has been updated A
 
 $string['cachedef_balance'] = 'This is store the user\'s balance details';
 $string['cachedef_coupon'] = 'Storing the coupon data';
+$string['cachedef_offers'] = 'Offers cache data';
 $string['cannotdeductbalance'] = 'Cannot deduct balance due to an error. Please try again and if the problem still exist contact site support.';
 $string['canntenrol'] = 'Enrolment is disabled or inactive';
 $string['canntenrolearly'] = 'You cannot enrol yet; enrolment starts on {$a}.';
@@ -80,6 +81,8 @@ $string['cashbackenable'] = 'Enable cashback';
 $string['cashbackenable_desc'] = 'When this is enabled the student will receive a percentage cashback amount each time he uses the wallet to buy a course.';
 $string['cashbackpercent'] = 'Percentage amount for cashback';
 $string['cashbackpercent_help'] = 'The percentage amount as a cashback to the wallet from the paid amount by the wallet balance.';
+$string['catbalance'] = 'Category balance';
+$string['catbalance_desc'] = 'If enabled, then balance could be specified for each category separately and only be used in this category also there is still there a site balance which could be used anywhere';
 $string['categorycoupon'] = 'Category coupon';
 $string['categorycoupondisabled'] = 'Category coupons disabled.';
 $string['category_options'] = 'Category';
@@ -102,11 +105,11 @@ $string['checkout_borrow_discounted'] = '<del>{$a->credit_cost} {$a->currency}</
 $string['checkout_discounted'] = '<del>{$a->credit_cost} {$a->currency}</del> {$a->after_discount} {$a->currency} will be deducted from your balance of {$a->user_balance} {$a->currency}.';
 $string['ch_result_after'] = '<p>Balance After: <b>{$a}</b></p>';
 $string['ch_result_before'] = '<p>Balance Before: <b>{$a}</b></p>';
-$string['ch_result_error'] = '<p style = \\\"text-align: center;\\\"><b> ERROR <br>{$a}<br> Please go back and check it again</b></p>';
-$string['ch_result_info_balance'] = '<span style=\\\"text-align: center; width: 100%;\\\"><h5>
+$string['ch_result_error'] = '<p style = \\\\\\\\\\\\\\\\\"text-align: center;\\\\\\\\\\\\\\\\\"><b> ERROR <br>{$a}<br> Please go back and check it again</b></p>';
+$string['ch_result_info_balance'] = '<span style=\\\\\\\\\\\\\\\\\"text-align: center; width: 100%;\\\\\\\\\\\\\\\\\"><h5>
 the user: {$a->userfull} is having a balance of {$a->before}
 </h5></span>';
-$string['ch_result_info_charge'] = '<span style=\\\"text-align: center; width: 100%;\\\">
+$string['ch_result_info_charge'] = '<span style=\\\\\\\\\\\\\\\\\"text-align: center; width: 100%;\\\\\\\\\\\\\\\\\">
 <h5>the user: {$a->userfull} is now having a balance of {$a->after} after charging him/her by {$a->after_before}...</h5>
 </span>';
 $string['ch_result_negative'] = '<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>';
@@ -143,7 +146,7 @@ $string['confirm_enrol_confirm'] = 'You are about to get enrolled is the course 
 This require a <strong>{$a->cost} {$a->currency}</strong> to be deducted from you balance. <br>
 Your current balance is {$a->balance}<br>
 <p>{$a->policy}</p>
-<strong> This operation is unreversable.<br>
+<strong> This operation is nonreversible.<br>
 Are you sure?</strong>';
 $string['confirm_enrol_error'] = 'Invalid access to enrol page.';
 $string['confirm_negative'] = '<b>Negative balance warning:</b> the user balance will be with negative value after this transaction.';
@@ -156,9 +159,10 @@ $string['couponstype'] = 'Allow coupons';
 $string['couponstype_help'] = 'Choose either to disable coupons, allow certain type or allow all.';
 $string['coupons_category_error'] = 'Must select category';
 $string['coupons_courseserror'] = 'Must select at least one course.';
+$string['coupons_delete_selected'] = 'Delete selected coupons';
 $string['coupons_discount_error'] = 'Discount value cannot exceed 100%';
 $string['coupons_generation_success'] = '{$a} coupon codes successfully generated.';
-$string['coupons_ids'] = 'Coupon id(s) seperated by (,)';
+$string['coupons_ids'] = 'Coupon id(s) separated by (,)';
 $string['coupons_length'] = 'Length';
 $string['coupons_length_help'] = 'How many characters in a single coupon';
 $string['coupons_maxperuser'] = 'Maximum usage / user';
@@ -275,10 +279,20 @@ $string['defaultrole'] = 'Default role assignment';
 $string['defaultrole_desc'] = 'Select role which should be assigned to users during enrolment';
 $string['deleteselectedusers'] = 'Delete selected user enrollments';
 $string['digits'] = 'Digits (numbers)';
+$string['discount'] = 'discount';
 $string['discountcoupondisabled'] = 'Discount coupons disabled in this website.';
+$string['discounts'] = 'Discounts';
 $string['discountscopouns'] = 'Discounts & Coupons';
 $string['discountscopouns_desc'] = 'Choose if you want to apply percentage discounts to users using a custom profile field. <br>
 Also, applying coupons for this plugin.';
+$string['discount_behavior'] = 'Discount behavior';
+$string['discount_behavior_desc'] = 'Users could be eligible for more than one discount or offer rule, choose how these discounts will be calculated (sequential, sum, max).<br>
+* recursive: discount will calculate the cost of the course after discounts and then calculated again for the resulted value with the other discount rule.<br>
+* sum: Will add all discounts together with a max (100%) and apply it.<br>
+* max: Only apply the max eligible discount.';
+$string['discount_behavior_max'] = 'Apply max discount';
+$string['discount_behavior_sequential'] = 'Apply discounts sequentially';
+$string['discount_behavior_sum'] = 'Apply the sum of discounts';
 
 
 $string['editselectedusers'] = 'Edit selected user enrollments';
@@ -388,8 +402,6 @@ $string['mintransfer_config'] = 'Minimum allowed transfer';
 $string['mintransfer_config_desc'] = 'Minimum allowed transfer amount, users cannot transfer balance to each others less than this amount.';
 $string['mustselectchar'] = 'Must select at least one character type.';
 $string['MWC'] = 'Wallet Coins';
-
-
 $string['mywallet'] = 'My Wallet';
 
 
@@ -407,8 +419,7 @@ $string['nocost'] = 'this course has invalid cost';
 $string['nocoupons'] = 'Disable coupons';
 $string['nodiscountstoshow'] = 'No discounts to show.';
 $string['nonrefundable'] = 'Nonrefundable';
-$string['nonrefundable_transform_desc'] = 'Transform the transaction to non refundable due to expiring of refund period.
-';
+$string['nonrefundable_transform_desc'] = 'Transform the transaction to non refundable due to expiring of refund period.';
 $string['noreferraldata'] = 'No Past Referrals.';
 $string['notequal'] = 'Not Equal to';
 $string['noticecondition'] = 'Min balance for notify';
@@ -417,6 +428,36 @@ $string['notrefund'] = ' Nonrefundable (extra): ';
 $string['not_set'] = 'Not set';
 
 
+$string['offers'] = 'Offers';
+$string['offers_ce_desc'] = '{$a->discount}% DISCOUNT if you are enrolled in {$a->condition} of these courses:<br> {$a->courses}';
+$string['offers_course_enrol_based'] = 'Another course enrolment based offer';
+$string['offers_error_ce'] = 'Please select at least one course';
+$string['offers_error_discountvalue'] = 'Invalid discount value.';
+$string['offers_error_ncnumber'] = 'Please choose number of courses.';
+$string['offers_error_otherccoursesexceed'] = 'This number exceeds the actual number of courses in this category';
+$string['offers_error_othercnocourses'] = 'Please select number of courses.';
+$string['offers_error_othercnotexist'] = 'Category not exist.';
+$string['offers_error_pfnovalue'] = 'Please enter a value.';
+$string['offers_error_pfselect'] = 'Please select a profile field';
+$string['offers_error_timefrom'] = 'The time cannot exceed the \\\\\\\\\\\\\"time to\\\\\\\\\\\\\".';
+$string['offers_error_timeto'] = 'Cannot select time in the past.';
+$string['offers_location_based'] = 'Geo Location based offer';
+$string['offers_nc_desc'] = '{$a->discount}% DISCOUNT if you are already enrolled in at least {$a->number} courses inside the category {$a->catname}';
+$string['offers_number_courses_base'] = 'Number of courses based offer';
+$string['offers_other_category_courses_based'] = 'number of courses in other category';
+$string['offers_pfop_contains'] = 'Contains';
+$string['offers_pfop_doesnotcontain'] = 'Does not contain';
+$string['offers_pfop_endswith'] = 'Ends with';
+$string['offers_pfop_isempty'] = 'Is empty';
+$string['offers_pfop_isequalto'] = 'Is equal to';
+$string['offers_pfop_isnotempty'] = 'Is not empty';
+$string['offers_pfop_startswith'] = 'Starts with';
+$string['offers_pf_desc'] = '{$a->discount}% DISCOUNT if your profile field {$a->field} {$a->op} \\\\\\\\\"{$a->value}\\\\\\\\\"';
+$string['offers_please_select'] = 'Please select a type of offers to add';
+$string['offers_profile_field'] = 'Profile Field';
+$string['offers_profile_field_based'] = 'Profile field based offer';
+$string['offers_time_based'] = 'Discount in a certain period of time';
+$string['offers_time_desc'] = '{$a->discount}% DISCOUNT if you purchase this course in the period from {$a->from} to {$a->to}';
 $string['othercourserestriction'] = 'Unable to enrol yourself in this course unless you are enrolled in at least {$a->number} of these courses {$a->courses}';
 
 
@@ -439,7 +480,7 @@ $string['privacy:metadata:enrol_wallet_coupons_usage:instanceid'] = 'The id of t
 $string['privacy:metadata:enrol_wallet_coupons_usage:userid'] = 'The id of the user.';
 $string['privacy:metadata:enrol_wallet_hold_gift'] = 'Store information about referral gifts in hold.';
 $string['privacy:metadata:enrol_wallet_hold_gift:amount'] = 'The amount of the referral gift.';
-$string['privacy:metadata:enrol_wallet_hold_gift:courseid'] = 'The id of the course that the referred user enrold in and get the gift.';
+$string['privacy:metadata:enrol_wallet_hold_gift:courseid'] = 'The id of the course that the referred user enrolled in and get the gift.';
 $string['privacy:metadata:enrol_wallet_hold_gift:referred'] = 'The username of the referred user.';
 $string['privacy:metadata:enrol_wallet_hold_gift:referrer'] = 'The id of the referrer user.';
 $string['privacy:metadata:enrol_wallet_items'] = 'Store some non-critical information before each payment contains the amount and the currency and what the user paying for.';
@@ -514,10 +555,10 @@ Payment to top-up your wallet cannot be refunded in the following cases:<br>
 3- Any amount already used in enrolment aren\'t refundable.<br>
 When charging your wallet by any method means you agreed to this policy.';
 $string['refundpolicy_help'] = 'Define custom refund policy for users to be aware of the condition of how they get back their money or not before topping up their wallet. This policy will be displayed to users in any form to recharge their wallet, or displaying their balance.';
-$string['refunduponunenrol_desc'] = 'Refunded by amount of {$a->credit} after deduction unenrol fee of {$a->fee} in the course: {$a->coursename}.';
+$string['refunduponunenrol_desc'] = 'Refunded by amount of {$a->credit} after deduction un-enrol fee of {$a->fee} in the course: {$a->coursename}.';
 $string['repurchase'] = 'Repurchase';
 $string['repurchase_desc'] = 'Settings for repurchase the courses. If enabled, the users can repurchase the lectures again after the enrol date end.';
-$string['repurchase_firstdis'] = 'First Repurchse Discount';
+$string['repurchase_firstdis'] = 'First Repurchase Discount';
 $string['repurchase_firstdis_desc'] = 'If specified, the users will get discount by this percentage value (0 - 100) for the second time they purchase the course.';
 $string['repurchase_seconddis'] = 'Second Repurchase Discount';
 $string['repurchase_seconddis_desc'] = 'For the third time the users purchase (second repurchase) the course, they will get discounted by this value. (should be between 0 - 100)';
@@ -551,9 +592,9 @@ $string['syncenrolmentstask'] = 'Wallet enrolment synchronize enrollments task';
 
 $string['tellermen'] = 'Teller men to be displayed';
 $string['tellermen_desc'] = 'Users selected here will be public displayed on the topping up options to let users know who to ask to charging their wallets. (Select none will display nothing)';
-$string['tellermen_display_guide'] = 'Need help charging your wallet? Ask one of our wallet adminstrator to charge your wallet manually or to assist you with the proccedure.';
+$string['tellermen_display_guide'] = 'Need help charging your wallet? Ask one of our wallet administrator to charge your wallet manually or to assist you with the procedure.';
 $string['tellermen_heading'] = 'Teller Men';
-$string['tellermen_heading_desc'] = 'All users with capabilities to credit or debit users wallets, this determine whome will be displayed on the topup form to let users know who to as for charging their wallets';
+$string['tellermen_heading_desc'] = 'All users with capabilities to credit or debit users wallets, this determine whom will be displayed on the topup form to let users know who to as for charging their wallets';
 $string['topup'] = 'topup';
 $string['topupafterdiscount'] = 'Actual payment';
 $string['topupafterdiscount_help'] = 'The amount after discount.';
@@ -595,8 +636,8 @@ $string['unenrolrefundfee_desc'] = 'Choose a percentage amount that will not be 
 $string['unenrolrefundperiod'] = 'Refund upon unenrol grace period';
 $string['unenrolrefundperiod_desc'] = 'If the user unenrolled within this period from the enrol start date he will be refunded.';
 $string['unenrolrefundpolicy'] = 'Unenrol Refunding Policy';
-$string['unenrolrefundpolicy_default'] = '<p dir=\\\"ltr\\\" style=\\\"text-align: left;\\\"><strong>Conditions for refunding upon unenrol:</strong></p>
-<p dir=\\\"ltr\\\" style=\\\"text-align: left;\\\">
+$string['unenrolrefundpolicy_default'] = '<p dir=\\\\\\\\\\\\\\\\\"ltr\\\\\\\\\\\\\\\\\" style=\\\\\\\\\\\\\\\\\"text-align: left;\\\\\\\\\\\\\\\\\"><strong>Conditions for refunding upon unenrol:</strong></p>
+<p dir=\\\\\\\\\\\\\\\\\"ltr\\\\\\\\\\\\\\\\\" style=\\\\\\\\\\\\\\\\\"text-align: left;\\\\\\\\\\\\\\\\\">
 If you are unenrolled from the course within {period} days from the start date you will be refunded with the amount you pay after deducting a {fee}% from the paid amount.
 This amount will return to your wallet and can use it to enrol in other courses but not be able to be manually refunded.<br>
 By pressing purchase means you have agreed to these conditions.
@@ -607,11 +648,11 @@ placing {period} will be replaced by the grace period in days.';
 $string['unenrolrefund_desc'] = 'If enabled, users will be refunded if they unenrolled from the course.';
 $string['unenrolrefund_head'] = 'Refund users upon unenrol.';
 $string['unenrolrefund_head_desc'] = 'Return the paid fee of a course after unenrol from the course.';
-$string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course \\\"{$a}\\\"?';
+$string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course \\\\\\\\\\\\\\\\\"{$a}\\\\\\\\\\\\\\\\\"?';
 $string['unenrolselfenabled'] = 'Enable self unenrol';
 $string['unenrolselfenabled_desc'] = 'If enable, then users are allowed to unenrol themselves from the course.';
 $string['unenrolself_notallowed'] = 'You are not unenrol yourself from this course.';
-$string['unenroluser'] = 'Do you really want to unenrol \\\"{$a->user}\\\" from course \\\"{$a->course}\\\"?';
+$string['unenroluser'] = 'Do you really want to unenrol \\\\\\\\\\\\\\\\\"{$a->user}\\\\\\\\\\\\\\\\\" from course \\\\\\\\\\\\\\\\\"{$a->course}\\\\\\\\\\\\\\\\\"?';
 $string['unenrolusers'] = 'Unenrol users';
 $string['uploadcsvfilerequired'] = 'Please upload the csv file.';
 $string['upload_coupons'] = 'Upload Coupons';

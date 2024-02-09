@@ -32,9 +32,6 @@ $string['alreadyenroled'] = 'لقد قمت بالتسجيل بالفعل في ه
 $string['amount'] = 'المبلغ';
 $string['applycoupon'] = 'تطبيق الكوبون';
 $string['applycoupon_help'] = 'قم بتطبيق رمز الكوبون للحصول على خصم أو الحصول على قيمة ثابتة لشحن محفظتك.<br>إذا كانت قيمة الكوبون ثابتة وأكبر من رسوم المقرر، فسيتم تسجيلك.';
-$string['availability_form_desc'] = 'Note that some of the availability restrictions depends on the modules on this course like activity completion or grade, but now we can just include other courses by increase the number of required courses and select all the courses we need and save the form, return again and all the parameters needed from this courses will be included.';
-$string['availability_plugins'] = 'Availability plugins';
-$string['availability_plugins_desc'] = 'Choose from here the only suitable availability condition plugin that suits your logical need to prevent course creator to ad non-suitable restrictions.';
 $string['availablebalance'] = 'الرصيد المتاح:';
 $string['awardcreteria'] = 'شرط الحصول على الجائزة';
 $string['awardcreteria_help'] = 'تعمل الجوائز  عندما يكمل الطالب المقرر. ما هي نسبة العلامة الكاملة التي يحصل عليها الطالب إذا تجاوزها؟';
@@ -99,16 +96,16 @@ $string['checkout'] = 'سيتم خصم {$a->credit_cost} {$a->currency} من ر�
 $string['checkout_borrow'] = '{$a->credit_cost} {$a->currency} مطلوب للتسجيل، سيتم خصم رصيدك {$a->user_balance} {$a->currency} واقتراض {$ أ->استعارة}.';
 $string['checkout_borrow_discounted'] = '<del>{$a->credit_cost} {$a->currency</del> {$a->after_discount} {$a->currency} المطلوبة للتسجيل، رصيدك سيتم خصم {$a->user_balance} {$a->currency} واقتراض {$a->borrow}.';
 $string['checkout_discounted'] = '<del>{$a->credit_cost} {$a->currency</del> {$a->after_discount} {$a->currency} سيتم خصمها من رصيدك من {$a->user_balance} {$a->currency}.';
-$string['ch_result_after'] = '<p>Balance After: <b>{$a}</b></p>';
-$string['ch_result_before'] = '<p>Balance Before: <b>{$a}</b></p>';
-$string['ch_result_error'] = '<p style = \"text-align: center;\"><b> ERROR <br>{$a}<br> Please go back and check it again</b></p>';
-$string['ch_result_info_balance'] = '<span style=\"text-align: center; width: 100%;\"><h5>
-the user: {$a->userfull} is having a balance of {$a->before}
+$string['ch_result_after'] = '<p>الرصيد بعد العملية: <b>{$a}</b></p>';
+$string['ch_result_before'] = '<p>الرصيد قبل العملية: <b>{$a}</b></p>';
+$string['ch_result_error'] = '<p style = \\\\\\\\\"text-align: center;\\\\\\\\\"><b> ERROR <br>{$a}<br> برجاء العودة وإعادة المحاولة</b></p>';
+$string['ch_result_info_balance'] = '<span style=\\\\\\\\\"text-align: center; width: 100%;\\\\\\\\\"><h5>
+المستخدم: {$a->userfull} لديه رصيد {$a->before}
 </h5></span>';
-$string['ch_result_info_charge'] = '<span style=\"text-align: center; width: 100%;\">
-<h5>the user: {$a->userfull} is now having a balance of {$a->after} after charging him/her by {$a->after_before}...</h5>
+$string['ch_result_info_charge'] = '<span style=\\\\\\\\\"text-align: center; width: 100%;\\\\\\\\\">
+<h5>المستخدم: {$a->userfull} الأن لديه رصيد {$a->after} بعد محاسبته بـ {$a->after_before}...</h5>
 </span>';
-$string['ch_result_negative'] = '<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>';
+$string['ch_result_negative'] = '<p><b>هذاالمستخدم لديه رصيد بالسالب</b></p>';
 $string['cleanupwalletitemstask'] = 'إزالة السجلات المتبقية من بنود المحفظة';
 $string['clear_filter'] = 'مسح عوامل التصفية';
 $string['cohortnonmemberinfo'] = 'فقط أعضاء المجموعة \' {$a} \' يمكنهم التسجيل.';
@@ -136,8 +133,8 @@ $string['confirmedit'] = 'تأكيد التحرير';
 $string['confirmpayment'] = 'تأكيد الدفع بقيمة {$a->value} {$a->currency}. لاحظ أن: الضغط على نعم يعني موافقتك على سياسة استرداد الأموال.<br> {$a->policy}';
 $string['confirmpayment_discounted'] = 'تأكيد دفع <del>{$a->قبل} {$a->currency</del> {$a->value} {$a->currency}. لاحظ أن: الضغط على نعم يعني موافقتك على سياسة استرداد الأموال.<br> {$a->policy}';
 $string['confirm_additional_credit'] = '<strong> بالإضافة إلى {$a} نتيجة للخصم المتاح.</strong>';
-$string['confirm_credit'] = 'You are about to add an amount of {$a->amount} to the user {$a->name} wallet who already got a balance of {$a->balance} in their wallet.';
-$string['confirm_debit'] = 'You are about to deduct an amount of {$a->amount} from the user {$a->name} whose current balance is {$a->balance}. The balance after transaction should be {$a->after}';
+$string['confirm_credit'] = 'أنت على وشك إضافة رصيد {$a->amount} للمستخدم {$a->name} اللذي بالفعل محفظته تحتوي على {$a->balance} .';
+$string['confirm_debit'] = 'أنت على وشك خصم رصيد {$a->amount} من محفظة المستخدم {$a->name} اللذي عنده رصيد {$a->balance}. الرصيد بعد العملية ينبغي أن يكون {$a->after}';
 $string['confirm_enrol_confirm'] = 'انت على وشك الإشتراك في الكورس {$a->course}. <br>
 هذا يتطلب مبلغ {$a->cost} ليتم خصمه من محفظتك. <br>
 رصيدك الحالي هو {$a->balance}<br>
@@ -146,7 +143,7 @@ $string['confirm_enrol_confirm'] = 'انت على وشك الإشتراك في �
 هذه العملية غير قابلة للرجوع بها. <br>
 هل انت واثق؟</strong>';
 $string['confirm_enrol_error'] = 'دخول خاطئ لصفحة الإنضمام للكورس.';
-$string['confirm_negative'] = '<b>Negative balance warning:</b> the user balance will be with negative value after this transaction.';
+$string['confirm_negative'] = '<b>تحذير رصيد بالسالب:</b> رصيد المستخدم سيصبح بالسالب بعد هذه العملية.';
 $string['coupons'] = 'الكوبونات';
 $string['couponsall'] = 'السماح لجميع الأنواع';
 $string['couponsdeleted'] = 'تم حذف الكوبونات {$a} بنجاح';
@@ -244,7 +241,7 @@ $string['createdto'] = 'تم الإنشاء من قبل';
 $string['credit'] = 'شحن';
 $string['credit_cost'] = 'التكلفة';
 $string['credit_cost_help'] = 'الرسوم التي سيتم خصمها عند التسجيل.';
-$string['credit_wallet_transformation_desc'] = 'Your credit has been transformed to your wallet.';
+$string['credit_wallet_transformation_desc'] = 'تم تحويل رصيد لمحفظتك.';
 $string['csvfile'] = 'ملف CSV';
 $string['csvfile_help'] = 'يتم قبول الملفات ذات الامتداد *.csv فقط';
 $string['currency'] = 'العملة';
@@ -270,7 +267,7 @@ $string['debit'] = 'خصم';
 $string['debitdesc_course'] = 'يتم تحصيل مبلغ {$a->amount} من المستخدم مقابل التسجيل في المقرر {$a->coursename}';
 $string['debitdesc_instance'] = 'المستخدم تمت محاسبته على {$a->amount} لدخوله المحاضرة (المقرر) {$a->coursename} بإستخدام وسيلة التسجيل {$a->instance}';
 $string['debitdesc_user'] = 'يتم تحصيل رسوم من المستخدم بمبلغ {$a->amount} بواسطة مستخدم بالمعرف {$a->charger}';
-$string['debitnegative'] = 'Allow negative in debit';
+$string['debitnegative'] = 'السماح برصيد بالسالب';
 $string['defaultrole'] = 'تعيين الدور الافتراضي';
 $string['defaultrole_desc'] = 'اختر الدور الذي يجب تعيينه للمستخدمين أثناء التسجيل';
 $string['deleteselectedusers'] = 'حذف تسجيلات المستخدم المحدد';
@@ -382,14 +379,11 @@ $string['messagebody_debit'] = 'يُخصم مبلغ {$a->amount} من محفظت
 $string['messageprovider:expiry_notification'] = 'إشعارات انتهاء صلاحية التسجيل في المحفظة';
 $string['messageprovider:wallet_transaction'] = 'إشعارات معاملات المحفظة';
 $string['messagesubject'] = 'معاملات المحفظة ({$a})';
-$string['migrate_enrollments_task'] = 'Migrate enrollments and users credits from enrol_credit to enrol_wallet';
 $string['mintransfer'] = 'الحد الأدنى لمبلغ التحويل هو {$a}';
 $string['mintransfer_config'] = 'الحد الأدنى المسموح به للنقل';
 $string['mintransfer_config_desc'] = 'الحد الأدنى المسموح به لمبلغ التحويل، لا يمكن للمستخدمين تحويل رصيد لبعضهم البعض أقل من هذا المبلغ.';
 $string['mustselectchar'] = 'يجب تحديد نوع حرف واحد على الأقل.';
 $string['MWC'] = 'عملات المحفظة';
-
-
 $string['mywallet'] = 'محفظتي';
 
 
@@ -425,45 +419,8 @@ $string['paymentrequired'] = 'يمكنك الدفع لهذه المقرر مبا
 $string['paymenttopup_desc'] = 'الدفع لتعبئة المحفظة';
 $string['percentcoupondisabled'] = 'كوبونات الخصم غير مفعلة في هذا الموقع.';
 $string['percentdiscountcoupon'] = 'كوبون الخصم المئوية';
-$string['pluginname'] = 'التسجيل في المحفظة';
-$string['pluginname_desc'] = '';
+$string['pluginname'] = 'التسجيل عن طريق المحفظة';
 $string['privacy:metadata'] = 'لا يقوم البرنامج الإضافي للتسجيل في المحفظة بتخزين أي بيانات شخصية.';
-$string['privacy:metadata:enrol_wallet_awards'] = 'Hold information about the awards that the user gets.';
-$string['privacy:metadata:enrol_wallet_awards:amount'] = 'The amount of the award.';
-$string['privacy:metadata:enrol_wallet_awards:courseid'] = 'The id of the completed course.';
-$string['privacy:metadata:enrol_wallet_awards:grade'] = 'The total grade that the user get in the course.';
-$string['privacy:metadata:enrol_wallet_awards:userid'] = 'The id of the user.';
-$string['privacy:metadata:enrol_wallet_coupons_usage'] = 'Hold information about the coupons used by each user.';
-$string['privacy:metadata:enrol_wallet_coupons_usage:instanceid'] = 'The id of the instance at which the coupon used.';
-$string['privacy:metadata:enrol_wallet_coupons_usage:userid'] = 'The id of the user.';
-$string['privacy:metadata:enrol_wallet_hold_gift'] = 'Store information about referral gifts in hold.';
-$string['privacy:metadata:enrol_wallet_hold_gift:amount'] = 'The amount of the referral gift.';
-$string['privacy:metadata:enrol_wallet_hold_gift:courseid'] = 'The id of the course that the referred user enrold in and get the gift.';
-$string['privacy:metadata:enrol_wallet_hold_gift:referred'] = 'The username of the referred user.';
-$string['privacy:metadata:enrol_wallet_hold_gift:referrer'] = 'The id of the referrer user.';
-$string['privacy:metadata:enrol_wallet_items'] = 'Store some non-critical information before each payment contains the amount and the currency and what the user paying for.';
-$string['privacy:metadata:enrol_wallet_items:cost'] = 'The cost of the item either a topping up fake item or enrol instance.';
-$string['privacy:metadata:enrol_wallet_items:currency'] = 'The currency of the item.';
-$string['privacy:metadata:enrol_wallet_items:instanceid'] = 'The enrol instance id if exists.';
-$string['privacy:metadata:enrol_wallet_items:userid'] = 'The id of the user.';
-$string['privacy:metadata:enrol_wallet_referral'] = 'Hold information about the referral program.';
-$string['privacy:metadata:enrol_wallet_referral:code'] = 'A unique referral code.';
-$string['privacy:metadata:enrol_wallet_referral:userid'] = 'The id of the user.';
-$string['privacy:metadata:enrol_wallet_referral:users'] = 'Usernames of the users get referred by this user.';
-$string['privacy:metadata:enrol_wallet_referral:usetimes'] = 'The number of times the user used the code.';
-$string['privacy:metadata:enrol_wallet_transactions'] = 'Hold information about each wallet transaction.';
-$string['privacy:metadata:enrol_wallet_transactions:amount'] = 'The amount of transaction.';
-$string['privacy:metadata:enrol_wallet_transactions:balance'] = 'The balance after transaction.';
-$string['privacy:metadata:enrol_wallet_transactions:balbefore'] = 'The balance before transaction.';
-$string['privacy:metadata:enrol_wallet_transactions:description'] = 'The description of the transaction which contain a details about the course or the method by which the user topped up their wallet.';
-$string['privacy:metadata:enrol_wallet_transactions:norefund'] = 'If this transaction amount is refundable of not.';
-$string['privacy:metadata:enrol_wallet_transactions:type'] = 'The type of the transaction (debit or credit).';
-$string['privacy:metadata:enrol_wallet_transactions:userid'] = 'The id of the user.';
-$string['privacy:metadata:wordpress'] = 'Hold critical information about the user which is sent to the linked wordpress website to auto create a user account their.';
-$string['privacy:metadata:wordpress:email'] = 'The email address.';
-$string['privacy:metadata:wordpress:password'] = 'The raw password after the user get created or some random string if the user already exists.';
-$string['privacy:metadata:wordpress:userid'] = 'The id of the user.';
-$string['privacy:metadata:wordpress:username'] = 'The username.';
 $string['profile_field_map'] = 'تعيين حقل الملف الشخصي';
 $string['profile_field_map_help'] = 'اختر حقل الملف الشخصي الذي يقوم بتخزين المعلومات حول الخصومات في ملفات تعريف المستخدمين.';
 $string['purchase'] = 'شراء';
@@ -471,13 +428,12 @@ $string['purchasedescription'] = 'التسجيل في المقرر {$a}';
 
 
 $string['randomcoupons'] = 'كوبونات عشوائية';
-$string['receiver'] = 'Receiver';
+$string['receiver'] = 'المستقبل';
 $string['referral_amount'] = 'مبلغ الإحالة.';
 $string['referral_amount_desc'] = 'مبلغ الهدية الذي سيحصل عليه كل من المستخدمين المُحالين والمحالين في محفظتهم.';
 $string['referral_amount_help'] = 'مبلغ الهدية الذي ستحصل عليه أنت والمستخدم الجديد في المحفظة.';
 $string['referral_code'] = 'رمز الإحالة';
 $string['referral_code_help'] = 'باستخدام عنوان URL للإحالة، يمكنك إرسال رمز الإحالة هذا بدلاً من ذلك ويقوم المستخدم الجديد بإدخاله في صفحة التسجيل.';
-$string['referral_code_signup'] = '';
 $string['referral_code_signup_help'] = 'إذا كان هذا فارغاً، أدخل رمز الإحالة لتلقي هدية الإحالة.';
 $string['referral_data'] = 'بيانات الإحالة';
 $string['referral_done'] = 'تم منح الهدية';
@@ -520,17 +476,13 @@ $string['repurchase_firstdis'] = 'تخفيض إعادة الشراء لأول م
 $string['repurchase_firstdis_desc'] = 'إن تم تحديدها سيتم تطبيق تخفيض لإعادة شراء المحاضرة لأول مرةز يجم أن تكون القيمة من 0 إلى 100.';
 $string['repurchase_seconddis'] = 'تخفيض إعادة الشراء لثاني مرة';
 $string['repurchase_seconddis_desc'] = 'تطبيق تخفيض للمستخدم لإعادة الشراء لثاني مرة مما يعني انها ثالث مرة للمستخدم شراء المقرر ويجب أن تكون من 0 إلى 100 وأن تكون أزيد من تخفيض أول مرة';
-$string['restrictionenabled'] = 'Enable restriction.';
-$string['restrictionenabled_desc'] = 'If disabled, not restrictions will be checked.';
-$string['restrictions'] = 'Enrolment Restrictions';
-$string['restrictions_desc'] = 'Like sections and course modules, now Wallet Enrollments offers an option to add restriction to the enrolment, not all availability plugins tested well, so you can choose from here what works fine and please report ant error so we can improve this functionality.';
 $string['role'] = 'الدور المعين الافتراضي';
 
 
 $string['selectuser'] = 'برجاء إختيار مستخدم.';
 $string['sendcoursewelcomemessage'] = 'أرسل رسالة ترحيب للمقرر';
 $string['sendcoursewelcomemessage_help'] = 'عندما يقوم المستخدم بالتسجيل في المقرر، قد يتم إرسال رسالة ترحيب عبر البريد الإلكتروني إليه. إذا تم إرساله من جهة اتصال المقرر الدراسي (المدرس بشكل افتراضي)، وكان لدى أكثر من مستخدم هذا الدور، فسيتم إرسال البريد الإلكتروني من المستخدم الأول الذي تم تعيينه للدور.';
-$string['sender'] = 'Sender';
+$string['sender'] = 'المرسل';
 $string['sendexpirynotificationstask'] = 'مهمة التسجيل في المحفظة ترسل إشعارات انتهاء الصلاحية';
 $string['sendpaymentbutton'] = 'الدفع المباشر';
 $string['showbalance'] = 'مشاهدة الرصيد';
@@ -549,10 +501,8 @@ $string['syncenrolmentstask'] = 'مهمة مزامنة التسجيل في ال�
 
 
 $string['tellermen'] = 'من سيتم عرضهم كأمناء خزنة';
-$string['tellermen_desc'] = 'Users selected here will be public displayed on the topping up options to let users know who to ask to charging their wallets. (Select none will display nothing)';
 $string['tellermen_display_guide'] = 'تحتاج المساعدة في شحن محفظتك؟ يمكنك التواصل مع أحد الأشخاص المسؤولين عن شحن المحافظ لشحنها يدويا من جهنه أو لمساعدتك لإكمال الخطوات.';
 $string['tellermen_heading'] = 'أمناء الخزنة';
-$string['tellermen_heading_desc'] = 'All users with capabilities to credit or debit users wallets, this determine whome will be displayed on the topup form to let users know who to as for charging their wallets';
 $string['topup'] = 'اشحن رصيدك';
 $string['topupafterdiscount'] = 'الدفع الفعلي';
 $string['topupafterdiscount_help'] = 'المبلغ بعد الخصم.';
@@ -577,9 +527,6 @@ $string['transfer_desc'] = 'تمكين أو تعطيل قدرة المستخدم
 $string['transfer_enabled'] = 'النقل إلى مستخدم آخر';
 $string['transfer_enabled_desc'] = 'تمكين أو تعطيل قدرة المستخدمين على تحويل الرصيد إلى مستخدمين آخرين عبر البريد الإلكتروني.';
 $string['transfer_notenabled'] = 'النقل من مستخدم إلى مستخدم \' غير ممكن في هذا الموقع.';
-$string['transformation_credit_desc'] = 'Using enrol_credit? If you want, you can transform all users credits to their wallet also migrate all enrollments and instances to enrol_wallet instead. There is {$a->credit} credit enrol instances and {$a->enrol} enrollments to be migrated.';
-$string['transformation_credit_done'] = 'Transformation and migration has been queued successfully and will run shortly, please check after a while for credits and enrollments.';
-$string['transformation_credit_title'] = 'Transformation of credit to wallet';
 $string['turn_not_refundable_task'] = 'تحويل الرصيد إلى غير قابل للاسترداد.';
 
 
@@ -594,8 +541,8 @@ $string['unenrolrefundfee_desc'] = 'اختر النسبة المئوية للم�
 $string['unenrolrefundperiod'] = 'استرداد الأموال عند فترة سماح إلغاء التسجيل';
 $string['unenrolrefundperiod_desc'] = 'إذا قام المستخدم بإلغاء تسجيله خلال هذه الفترة من تاريخ بدء التسجيل، فسيتم استرداد أمواله.';
 $string['unenrolrefundpolicy'] = 'سياسة استرداد الإلغاء';
-$string['unenrolrefundpolicy_default'] = '<p dir=\"ltr\" style=\"text-align: left;\"><strong>شروط استرداد الأموال عند إلغاء التسجيل:</strong></p>
-<p dir=\"ltr\" style=\"text-align: left;\">
+$string['unenrolrefundpolicy_default'] = '<p dir=\\\\\\\\\"ltr\\\\\\\\\" style=\\\\\\\\\"text-align: left;\\\\\\\\\"><strong>شروط استرداد الأموال عند إلغاء التسجيل:</strong></p>
+<p dir=\\\\\\\\\"ltr\\\\\\\\\" style=\\\\\\\\\"text-align: left;\\\\\\\\\">
 إذا قمت بإلغاء تسجيلك في المقرر خلال {period} يوم من تاريخ البدء، فسيتم رد المبلغ الذي دفعته إليك بعد خصم {fee}% من المبلغ المدفوع.
 سيعود هذا المبلغ إلى محفظتك ويمكنك استخدامه للتسجيل في مقررات أخرى ولكن لا يمكن استرداده يدويًا.<br>
 بالضغط على الشراء يعني أنك وافقت على هذه الشروط.
@@ -606,11 +553,11 @@ $string['unenrolrefundpolicy_help'] = 'في حالة تمكين استرداد �
 $string['unenrolrefund_desc'] = 'في حالة التمكين، سيتم استرداد أموال المستخدمين إذا قاموا بإلغاء تسجيلهم في المقرر.';
 $string['unenrolrefund_head'] = 'استرداد أموال المستخدمين عند إلغاء التسجيل.';
 $string['unenrolrefund_head_desc'] = 'أعد الرسوم المدفوعة للمقرر بعد إلغاء التسجيل فيها.';
-$string['unenrolselfconfirm'] = 'هل تريد فعلاً إلغاء تسجيلك من المقرر \"{$a}\"؟';
+$string['unenrolselfconfirm'] = 'هل تريد فعلاً إلغاء تسجيلك من المقرر \\\\\\\\\"{$a}\\\\\\\\\"؟';
 $string['unenrolselfenabled'] = 'تمكين إلغاء التسجيل الذاتي';
 $string['unenrolselfenabled_desc'] = 'في حالة التمكين، يُسمح للمستخدمين بإلغاء تسجيل أنفسهم من المقرر الدراسي.';
 $string['unenrolself_notallowed'] = 'لم تتمكن من إلغاء تسجيلك في هذه المقرر.';
-$string['unenroluser'] = 'هل تريد حقاً إلغاء تسجيل \"{$a->user}\" من المقرر الدراسي \"{$a->course}؟';
+$string['unenroluser'] = 'هل تريد حقاً إلغاء تسجيل \\\\\\\\\"{$a->user}\\\\\\\\\" من المقرر الدراسي \\\\\\\\\"{$a->course}؟';
 $string['unenrolusers'] = 'إلغاء تسجيل المستخدمين';
 $string['uploadcsvfilerequired'] = 'منفضلك إرفع ملف csv.';
 $string['upload_coupons'] = 'كوبونات التحميل';

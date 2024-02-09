@@ -54,11 +54,10 @@ class observer_test extends \advanced_testcase {
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
 
-        $balance1 = transactions::get_user_balance($user1->id);
-
-        $this->assertEquals(0, $balance1);
-
-        transactions::payment_topup(100, $user1->id);
+        $op = new balance_op($user1->id);
+        $this->assertEquals(0, $op->get_main_balance());
+        $op->credit(100);
+        $this->assertEquals(100, $op->get_main_balance());
 
         $course1 = $this->getDataGenerator()->create_course(['enablecompletion' => true]);
 
@@ -77,7 +76,8 @@ class observer_test extends \advanced_testcase {
         $walletplugin->enrol_self($instance1, $user1);
         $this->getDataGenerator()->enrol_user($user2->id, $course1->id, 'student');
 
-        $this->assertEquals(50, transactions::get_user_balance($user1->id));
+        $balance = new balance($user1->id);
+        $this->assertEquals(50, $balance->get_total_balance());
 
         $this->assertEquals(0, $DB->count_records('enrol_wallet_awards'));
 
@@ -88,6 +88,7 @@ class observer_test extends \advanced_testcase {
 
         // The event should be triggered and caught by our observer.
         $balance = new balance($user1->id, $course1->category);
+        $this->assertEquals(50, $balance->get_main_balance());
         $this->assertEquals(70, $balance->get_valid_balance());
         $this->assertEquals(20, $balance->get_valid_nonrefundable());
         $this->assertEquals(20, $balance->get_valid_free());
@@ -169,9 +170,8 @@ class observer_test extends \advanced_testcase {
 
         // Create user and check that there is no balance.
         $user1 = $this->getDataGenerator()->create_user();
-        $balance1 = transactions::get_user_balance($user1->id);
-
-        $this->assertEquals(0, $balance1);
+        $balance = new balance($user1->id);
+        $this->assertEquals(0, $balance->get_total_balance());
 
         // Enable gifting.
         $walletplugin->set_config('newusergift', 1);
