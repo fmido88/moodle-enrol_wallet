@@ -21,7 +21,7 @@ use core_course_category;
 use core_user;
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
 /**
@@ -56,18 +56,19 @@ class transfer_form extends \moodleform {
      * Form definition.
      */
     protected function definition() {
-        $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+        global $CFG, $USER;
+
+        $transferenabled = (bool)get_config('enrol_wallet', 'transfer_enabled');
         if (empty($transferenabled)) {
             return;
         }
         $this->config = (object)[
             'transfer_enabled' => $transferenabled,
-            'transferpercent'  => get_config('enrol_wallet', 'transferpercent'),
+            'transferpercent'  => (float)get_config('enrol_wallet', 'transferpercent'),
             'transferfee_from' => get_config('enrol_wallet', 'transferfee_from'),
-            'mintransfer'      => get_config('enrol_wallet', 'mintransfer'),
+            'mintransfer'      => (float)get_config('enrol_wallet', 'mintransfer'),
         ];
-        global $CFG, $USER;
-        require_once($CFG->libdir.'/formslib.php');
+
         $isparent = false;
         if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
             require_once("$CFG->dirroot/auth/parent/lib.php");
@@ -77,8 +78,8 @@ class transfer_form extends \moodleform {
 
         $mform = $this->_form;
 
-        $balance = new balance();
-        $total = $balance->get_total_balance();
+        $this->balance = new balance();
+        $total = $this->balance->get_total_balance();
         $currency = get_config('enrol_wallet', 'currency');
 
         $mform->addElement('header', 'transferformhead', get_string('transfer', 'enrol_wallet'));
@@ -86,17 +87,28 @@ class transfer_form extends \moodleform {
         $displaybalance = format_string(format_float($total, 2) . ' ' . $currency);
         $mform->addElement('static', 'displaybalance', get_string('availablebalance', 'enrol_wallet'), $displaybalance);
 
-        if (!empty($balance->details['catbalance'])) {
-            $options = [0 => get_string('site')];
-            foreach ($balance->details['catbalance'] as $id => $obj) {
-                $category = core_course_category::get($id, IGNORE_MISSING);
-                if (!empty($category)) {
-                    $name = $category->get_nested_name(false);
-                    $mform->addElement('static', 'cat'.$id, $name, number_format($obj->balance, 2));
-                    $options[$id] = $name;
+        if ($this->balance->catenabled) {
+            $main = $this->balance->get_main_balance();
+            $mainbalance = format_string(format_float($main, 2) . ' ' . $currency);
+            $mform->addElement('static', 'mainbalance', get_string('mainbalance', 'enrol_wallet'), $displaybalance);
+
+            $details = $this->balance->get_balance_details();
+            if (!empty($details['catbalance'])) {
+                $options = [0 => get_string('site')];
+                foreach ($details['catbalance'] as $id => $obj) {
+                    $category = core_course_category::get($id, IGNORE_MISSING);
+                    if (!empty($category)) {
+                        $name = $category->get_nested_name(false);
+                        $mform->addElement('static', 'cat'.$id, $name, number_format($obj->balance, 2));
+                        $options[$id] = $name;
+                    }
                 }
+                $mform->addElement('select', 'category', get_string('category'), $options);
             }
-            $mform->addElement('select', 'category', get_string('category'), $options);
+        } else {
+            $mform->addElement('hidden', 'category');
+            $mform->setType('category', PARAM_INT);
+            $mform->setDefault('category', 0);
         }
 
         if ($isparent) {
@@ -107,9 +119,6 @@ class transfer_form extends \moodleform {
             }
             $mform->addElement('select',  'email',  get_string('user'),  $options);
 
-            $mform->addElement('hidden', 'parent');
-            $mform->setType('parent', PARAM_BOOL);
-            $mform->setDefault('parent', true);
         } else {
             $mform->addElement('text', 'email', get_string('email'));
             $mform->setType('email', PARAM_EMAIL);
@@ -135,7 +144,7 @@ class transfer_form extends \moodleform {
      * Dummy stub method - override if you needed to perform some extra validation.
      * If there are errors return array of errors ("fieldname"=>"error message"),
      * otherwise true if ok.
-     * Server side rules do not work for uploaded files, implement serverside rules here if needed.
+     * Server side rules do not work for uploaded files, implement server side rules here if needed.
      * returns of "element_name"=>"error_description" if there are errors,
      * or an empty array if everything is OK (true allowed for backwards compatibility too).
      *
@@ -146,17 +155,23 @@ class transfer_form extends \moodleform {
     public function validation($data, $files) {
         $errors = parent::validation($data, $files);
 
+        if (!$this->config->transfer_enabled) {
+            $elements = array_keys($this->_form->_elements);
+            foreach ($elements as $element) {
+                $errors[$element] = get_string('transfer_notenabled', 'enrol_wallet');
+            }
+        }
+
         // No email or invalid email format.
         if (empty($data['email'])) {
             $errors['email'] = get_string('wrongemailformat', 'enrol_wallet');
         }
 
+        $condition = $this->config->mintransfer;
         // No amount or invalid amount.
         if (empty($data['amount']) || $data['amount'] < 0) {
             $errors['amount'] = get_string('charger_novalue', 'enrol_wallet');
-        }
-        $condition = get_config('enrol_wallet', 'mintransfer');
-        if ($data['amount'] < (int)$condition) {
+        } else if ($data['amount'] < $condition) {
             $errors['amount'] = get_string('mintransfer', 'enrol_wallet', $condition);
         }
 
@@ -166,25 +181,8 @@ class transfer_form extends \moodleform {
             $balance = $this->balance->get_main_balance();
         }
 
-        $parent = ($data['parent'] ?? false) && $this->parent;
+        [$debit, $credit] = $this->get_debit_credit($data['amount']);
 
-        if ($parent) {
-            $fee = 0;
-        } else {
-            // Check the transfer fees.
-            $percentfee = $this->config->transferpercent;
-            $percentfee = (!empty($percentfee)) ? $percentfee : 0;
-            $fee = $data['amount'] * $percentfee / 100;
-        }
-
-        $feefrom = $this->config->transferfee_from;
-        if ($feefrom == 'sender') {
-            $debit = $data['amount'] + $fee;
-            $credit = $data['amount'];
-        } else if ($feefrom == 'receiver') {
-            $credit = $data['amount'] - $fee;
-            $debit = $data['amount'];
-        }
         // No sufficient balance.
         if ($debit > $balance || $credit < 0 || $debit < 0) {
             $errors['amount'] = get_string('insufficientbalance', 'enrol_wallet', ['amount' => $debit, 'balance' => $balance]);
@@ -196,5 +194,35 @@ class transfer_form extends \moodleform {
             $errors['email'] = get_string('usernotfound', 'enrol_wallet', $data['email']);
         }
         return $errors;
+    }
+
+    /**
+     * Get the debit amount from sender and the credit amount for the reciever.
+     * @param float $amount
+     * @return array[float]
+     */
+    public function get_debit_credit($amount) {
+        $amount = (float)$amount;
+
+        $parent = $this->parent;
+
+        if ($parent) {
+            $fee = 0;
+        } else {
+            // Check the transfer fees.
+            $percentfee = $this->config->transferpercent ?? 0;
+            $fee = $amount * $percentfee / 100;
+        }
+
+        $feefrom = $this->config->transferfee_from;
+        if ($feefrom == 'sender') {
+            $debit = $amount + $fee;
+            $credit = $amount;
+        } else if ($feefrom == 'receiver') {
+            $credit = $amount - $fee;
+            $debit = $amount;
+        }
+
+        return [$debit, $credit];
     }
 }

@@ -27,6 +27,8 @@ global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
 use enrol_wallet\category\options;
+use enrol_wallet\util\balance;
+
 /**
  * The form that able the user to topup their wallet using payment gateways.
  * @package enrol_wallet
@@ -128,15 +130,29 @@ class topup_form extends \moodleform {
                 $mform->setConstant('discount_rule_'.$i, json_encode($discountrule));
             }
         }
+        $balance = new balance;
 
-        $categorytitle = get_string('category');
-        if (empty($instance->id)) {
-            $catoptions = options::get_all_options_with_discount();
-        } else {
-            $helper = options::create_from_instance_id($instance->id);
-            $catoptions = $helper->get_local_options_with_discounts();
+        $catoptions = [];
+        if ($balance->catenabled) {
+            $categorytitle = get_string('category');
+            if (empty($instance->id)) {
+                $catoptions = options::get_all_options_with_discount();
+            } else {
+                $helper = options::create_from_instance_id($instance->id);
+                $catoptions = $helper->get_local_options_with_discounts();
+            }
         }
-        $mform->addElement('select', 'category', $categorytitle, $catoptions);
+        if (count($catoptions) > 1) {
+            $mform->addElement('select', 'category', $categorytitle, $catoptions);
+        } else {
+            $mform->addElement('hidden', 'category');
+            $mform->setType('category', PARAM_INT);
+            if (!empty($catoptions)) {
+                $mform->setDefault('category', array_key_first($catoptions));
+            } else {
+                $mform->setDefault('category', 0);
+            }
+        }
 
         $mform->addElement('text', 'value', get_string('topupvalue', 'enrol_wallet'));
         $mform->setType('value', PARAM_FLOAT);

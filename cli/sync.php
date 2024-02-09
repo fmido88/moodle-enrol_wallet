@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/** CLI update for wallet enrolments, use for debugging or immediate update of all courses
+/**
+ * CLI update for wallet enrolments, use for debugging or immediate update of all courses
  *
  * Notes:
  *   - it is required to use the web server account when executing PHP CLI scripts
@@ -59,7 +60,7 @@ Example:
 }
 
 if (!enrol_is_enabled('wallet')) {
-    cli_error('enrol_wallet plugin is disabled, synchronisation stopped', 2);
+    cli_error('enrol_wallet plugin is disabled, synchronization stopped', 2);
 }
 
 if (empty($options['verbose'])) {

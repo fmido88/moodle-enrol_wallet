@@ -104,16 +104,24 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
         // Check if the payment is for enrolment or topping up the wallet.
         if ($paymentarea == 'walletenrol') {
-            $plugin = enrol_get_plugin('wallet');
+            $plugin = new \enrol_wallet_plugin;
             $instance = $plugin->get_instance_by_id($item->instanceid);
 
             $user = \core_user::get_user($userid);
 
-            $done = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc, false);
+            $done = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc);
 
             if ($done) {
                 // Now enrol the user after successful payment.
-                $enroled = $plugin->enrol_self($instance, $user);
+                try {
+                    $enroled = $plugin->enrol_self($instance, $user);
+                } catch (\moodle_exception $e) {
+                    if (in_array($e->errorcode, ['cannotdeductbalance', 'negativebalance'])) {
+                        $enroled = false;
+                    } else {
+                        throw $e;
+                    }
+                }
 
                 if (true === $enroled) {
                     return true;

@@ -58,21 +58,6 @@ class operations extends cathelper {
     public $balance;
 
     /**
-     * The table name
-     */
-    private const TABLE_NAME = 'enrol_wallet_balance';
-
-    /**
-     * The record id
-     * @var int
-     */
-    private $recordid;
-
-    /**
-     * @var balance
-     */
-    private $balancehelper;
-    /**
      * The details array
      * @var array[object]
      */
@@ -122,7 +107,6 @@ class operations extends cathelper {
      * Compute the category balance for the required user.
      */
     private function compute_cat_balance() {
-        global $DB;
 
         $details = $this->details;
 
@@ -202,7 +186,6 @@ class operations extends cathelper {
      * @param bool $free If this amount is due to a free gift or so.
      */
     public function add($amount, $refundable = true, $free = false) {
-        global $DB;
         $catobj = (object) [
             'refundable' => $this->details[$this->catid]->refundable ?? 0,
             'nonrefundable' => $this->details[$this->catid]->nonrefundable ?? 0,

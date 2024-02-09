@@ -86,6 +86,12 @@ class balance {
      */
     public $valid;
     /**
+     * If category balance is available in this site.
+     * @var bool
+     */
+    public $catenabled;
+
+    /**
      * Balance helper object to get all balance data of a given user.
      * use enrol_wallet\util\balance_op for operations like credit or debit.
      * @param int $userid
@@ -99,22 +105,24 @@ class balance {
             global $USER;
             $this->userid = $USER->id;
         }
+        $this->catenabled = (bool)get_config('enrol_wallet', 'catbalance') && $this->source == self::MOODLE;
+        if ($this->catenabled) {
+            if (empty($category)) {
+                global $COURSE;
+                $category = $COURSE->category ?? 0;
+            }
 
-        if (empty($category)) {
-            global $COURSE;
-            $category = $COURSE->category ?? 0;
-        }
+            if (is_object($category)) {
+                $this->catid = $category->id;
+            } else if ($category > 0) {
+                $this->catid = $category;
+            } else {
+                $this->catid = 0;
+            }
 
-        if (is_object($category)) {
-            $this->catid = $category->id;
-        } else if ($category > 0) {
-            $this->catid = $category;
-        } else {
-            $this->catid = 0;
-        }
-
-        if (!empty($this->catid) && $this->catid > 0) {
-            $this->catop = new operations($this->catid, $this->userid);
+            if (!empty($this->catid) && $this->catid > 0) {
+                $this->catop = new operations($this->catid, $this->userid);
+            }
         }
 
         $this->set_details_from_cache();
@@ -122,11 +130,13 @@ class balance {
 
     /**
      * Set the main balance of the given user.
+     * this is called in case of using wordpress as source
+     * or when first calling this class after upgrade.
      */
     protected function set_main_balance() {
         global $DB;
 
-        $balancedata = [];
+        $this->details = [];
 
         if ($this->source == self::WP) {
             $wordpress = new wordpress;
@@ -135,12 +145,13 @@ class balance {
             if (!is_numeric($response)) {
                 // This mean error or user not exist yet.
                 $this->balance = 0;
-                return;
+                $this->details['mainbalance'] = 0;
+                $this->details['mainnonrefund'] = 0;
+            } else {
+                $this->details['mainbalance'] = (float)$response;
+                $this->details['mainnonrefund'] = $this->get_nonrefund_from_transactions();
             }
-            $balancedata['mainbalance'] = $response;
-            $this->details = $balancedata;
-            $this->balance = $response;
-            return;
+
         } else if ($this->source == self::MOODLE) {
 
             // Get the balance from the last transaction.
@@ -154,14 +165,40 @@ class balance {
             $record = reset($records);
             // Getting the balance from last transaction.
             // User with no records of any transactions means no balance yet.
-            $balance = (!empty($record)) ? $record->balance : 0;
+            $balance = (!empty($record)) ? (float)$record->balance : 0;
 
-            $balancedata['mainbalance'] = $balance;
-            $balancedata['mainnonrefund'] = (!empty($record)) ? $record->norefund : 0;
-            $balancedata['mainfree'] = 0;
-            $this->details = $balancedata;
-            $this->balance = (float)$balance;
+            $this->details['mainbalance'] = (float)$balance;
+            $this->details['mainnonrefund'] = (!empty($record)) ? (float)$record->norefund : 0;
         }
+
+        $this->details['mainfree'] = 0;
+        $this->details['catbalance'] = [];
+        $this->update();
+    }
+
+    /**
+     * Get the non-refundable balance by the legacy method
+     * from the transaction table.
+     * @return float
+     */
+    private function get_nonrefund_from_transactions():float {
+        global $DB;
+        $balance = $this->get_main_balance();
+        $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $this->userid], 'id DESC', 'norefund', 0, 1);
+
+        // Getting the non refundable balance from last transaction.
+        if (!empty($record)) {
+            $key = array_key_first($record);
+            $norefund = $record[$key]->norefund;
+        } else {
+            $norefund = 0;
+        }
+
+        if ($balance < $norefund) {
+            $norefund = $balance;
+        }
+        $this->details['mainnonrefund'] = $norefund;
+        return $this->details['mainnonrefund'];
     }
 
     /**
@@ -171,12 +208,9 @@ class balance {
     private function get_record() {
         global $DB;
         $userid = $this->userid;
-        // To avoid errors during update.
-        $dbman = $DB->get_manager();
-        $exist = $dbman->table_exists(self::BALANCE_T);
-        if ($exist) {
-            $record = $DB->get_record(self::BALANCE_T, ['userid' => $userid]);
-        }
+
+        $record = $DB->get_record(self::BALANCE_T, ['userid' => $userid]);
+
         if (empty($record)) {
             $this->set_main_balance();
             $balance = $this->details['mainbalance'];
@@ -188,7 +222,8 @@ class balance {
             $record->freegift = $this->details['mainfree'];
             $record->timecreated = time();
             $record->timemodified = time();
-            $record->id = $exist ? $DB->insert_record(self::BALANCE_T, $record) : 0;
+            $record->id = $this->recordid;
+            return $record;
         }
         $this->recordid = $record->id;
 
@@ -205,9 +240,16 @@ class balance {
         $record->refundable = $this->details['mainrefundable'];
         $record->nonrefundable = $this->details['mainnonrefund'];
         $record->freegift = $this->details['mainfree'] ?? 0;
-        $record->cat_balance = $this->format_cat_balance();
         $record->timemodified = time();
-        $DB->update_record(self::BALANCE_T, $record);
+        if (empty($this->recordid)) {
+            unset($record->id);
+            $record->userid = $this->userid;
+            $record->timecreated = time();
+            $this->recordid = $DB->insert_record(self::BALANCE_T, $record);
+        } else {
+            $record->cat_balance = $this->format_cat_balance();
+            $DB->update_record(self::BALANCE_T, $record);
+        }
     }
 
     /**
@@ -228,6 +270,9 @@ class balance {
      * Get all balance details for a given user
      */
     private function set_balance_details() {
+        if ($this->source == self::WP) {
+            return $this->set_main_balance();
+        }
         $record = $this->get_record();
         // Main.
         $details = [
@@ -278,8 +323,9 @@ class balance {
      */
     private function set_details_from_cache() {
         $cashed = cache::make('enrol_wallet', 'balance');
-        if ($details = $cashed->get($this->userid)) {
-            $this->details = $details;
+
+        if (($details = $cashed->get($this->userid)) && $this->source == self::MOODLE) {
+            $this->details = (array)$details;
             $this->recordid = $details['recordid'];
             $this->balance = $details['mainbalance'];
 
@@ -315,7 +361,11 @@ class balance {
     protected function update() {
         $details = $this->details;
         // Main.
-        $details['mainbalance'] = $details['mainrefundable'] + $details['mainnonrefund'];
+        if (isset($details['mainrefundable'])) {
+            $details['mainbalance'] = $details['mainrefundable'] + $details['mainnonrefund'];
+        } else {
+            $details['mainrefundable'] = $details['mainbalance'] - $details['mainnonrefund'];
+        }
 
         // Totals.
         $details['total'] = $details['mainbalance'];
@@ -408,6 +458,9 @@ class balance {
      */
     public function get_main_balance() {
         $this->check();
+        if (!$this->catenabled) {
+            return $this->get_total_balance();
+        }
         return $this->details['mainbalance'];
     }
 
@@ -417,6 +470,9 @@ class balance {
      */
     public function get_main_nonrefundable() {
         $this->check();
+        if (!$this->catenabled) {
+            return $this->get_total_nonrefundable();
+        }
         return $this->details['mainnonrefund'];
     }
 
@@ -426,6 +482,9 @@ class balance {
      */
     public function get_main_refundable() {
         $this->check();
+        if (!$this->catenabled) {
+            return $this->get_total_refundable();
+        }
         return $this->details['mainrefundable'];
     }
     /**
@@ -435,6 +494,9 @@ class balance {
      */
     public function get_valid_balance() {
         $this->check();
+        if (!$this->catenabled) {
+            return $this->get_total_balance();
+        }
         return $this->valid;
     }
 
@@ -445,6 +507,9 @@ class balance {
      */
     public function get_valid_nonrefundable() {
         $this->check();
+        if (!$this->catenabled) {
+            return $this->get_total_nonrefundable();
+        }
         $nonrefundable = $this->details['mainnonrefund'];
         if (!empty($this->catop)) {
             $nonrefundable += @$this->catop->get_non_refundable_balance() ?? 0;
@@ -479,6 +544,9 @@ class balance {
      * @return float
      */
     public function get_valid_free() {
+        if (!$this->catenabled) {
+            return $this->get_total_free();
+        }
         $valid = $this->get_main_free();
         if (!empty($this->catop)) {
             $valid += $this->catop->get_free_balance();
@@ -492,7 +560,11 @@ class balance {
      */
     public function get_cat_balance($catid) {
         $this->check();
-        return $this->details['catbalance']->balance ?? 0;
+        if (!isset($this->details['catbalance'][$catid])) {
+            return 0;
+        }
+        $details = $this->details['catbalance'][$catid];
+        return $details->balance ?? $details->refundable + $details->nonrefundable;
     }
 
     /**

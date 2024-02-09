@@ -51,4 +51,13 @@ $functions = [
         'services'    => [],
         'ajax'        => true,
     ],
+    'enrol_wallet_get_offer_form_fragment' => [
+        'classname'   => 'enrol_wallet\api\offers_form',
+        'methodname'  => 'get_form_fragment',
+        'classpath'   => 'enrol/wallet/classes/api/offers_form.php',
+        'description' => 'Get a fragment of the offer form',
+        'type'        => 'read',
+        'services'    => [],
+        'ajax'        => true,
+    ],
 ];

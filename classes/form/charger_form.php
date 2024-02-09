@@ -27,6 +27,7 @@ global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
 use enrol_wallet\category\options;
+use enrol_wallet\util\balance;
 
 /**
  * The form that able the user to topup their wallet using payment gateways.
@@ -151,9 +152,16 @@ class charger_form extends \moodleform {
         $mform->setType('value', PARAM_FLOAT);
         $mform->hideIf('value', 'op', 'eq', 'balance');
 
-        $categorytitle = get_string('category');
-        $catoptions = options::get_all_categories_options();
-        $mform->addElement('select', 'category', $categorytitle, $catoptions);
+        $balance = new balance;
+        if ($balance->catenabled) {
+            $categorytitle = get_string('category');
+            $catoptions = options::get_all_categories_options();
+            $mform->addElement('select', 'category', $categorytitle, $catoptions);
+        } else {
+            $mform->addElement('hidden', 'category');
+            $mform->setType('category', PARAM_INT);
+            $mform->setDefault('category', 0);
+        }
 
         $mform->addElement('checkbox', 'neg', get_string('debitnegative', 'enrol_wallet'));
         $mform->hideIf('neg', 'op', 'neq', 'debit');

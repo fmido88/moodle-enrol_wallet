@@ -207,6 +207,34 @@ class balance_op extends balance {
     }
 
     /**
+     * Cut balance from all categories and main.
+     * @param float $remain
+     */
+    private function total_cut($remain) {
+
+        if (!empty($this->details['catbalance'])) {
+            foreach ($this->details['catbalance'] as $id => $detail) {
+                $balance = $detail->balance ?? $detail->refundable + $detail->nonrefundable;
+                if (empty($balance)) {
+                    continue;
+                }
+                $op = new operations($id, $this->userid);
+                $remain = $op->deduct($remain);
+                $this->details['catbalance'] = $op->details;
+                $this->freecut += $op->get_free_cut();
+                $this->update();
+
+                if ($remain == 0) {
+                    break;
+                }
+            }
+        }
+        if (!empty($remain)) {
+            $this->cut_from_main($remain);
+        }
+
+    }
+    /**
      * Add an amount to the main balance
      * @param float $amount
      * @param bool $refundable
@@ -256,6 +284,7 @@ class balance_op extends balance {
         }
 
         $this->amount = $amount;
+
         $this->set_category(self::DEBIT, $for, $thingid);
 
         $description = $this->get_debit_description($for, $thingid, $desc);
@@ -290,10 +319,13 @@ class balance_op extends balance {
             }
 
             $remain = $amount;
-            if (!empty($this->catop)) {
+            if (!$this->catenabled) {
+                $this->total_cut($amount);
+            } else if (!empty($this->catop)) {
                 $remain = $this->catop->deduct($amount);
                 $this->freecut += $this->catop->get_free_cut();
                 $this->details['catbalance'] = $this->catop->details;
+
                 if (!empty($remain)) {
                     $this->cut_from_main($remain);
                 }
@@ -303,13 +335,15 @@ class balance_op extends balance {
             }
 
             $this->update();
+            $this->reset();
+
             $newbalance = $this->get_valid_balance();
             $newnonrefund = $this->get_valid_nonrefundable();
         }
 
         // No debit occurs.
         if ($newbalance != $before - $amount) {
-            return false;
+            debugging("no debit occur");
         }
 
         $recorddata = [
@@ -461,7 +495,7 @@ class balance_op extends balance {
             }
             $newbalance = $this->get_main_balance();
             $newnonrefund = $this->get_main_nonrefundable();
-        } else if (!empty($this->catop)) {
+        } else if (!empty($this->catop) && $this->catenabled) {
             $before = $this->catop->get_balance();
             $this->catop->add($amount, $refundable, $this->is_free($by, $refundable));
             $this->details['catbalance'] = $this->catop->details;
@@ -588,6 +622,10 @@ class balance_op extends balance {
         if ($this->source == self::WP || !empty($this->catop)) {
             return;
         }
+        if (!empty($this->catop)) {
+            return;
+        }
+
         if ($op == self::DEBIT) {
             switch($reason) {
                 case self::D_ENROL_COURSE:
@@ -613,6 +651,9 @@ class balance_op extends balance {
                 $this->catop = new operations($category, $this->userid);
             }
         } else if ($op == self::CREDIT) {
+            if (!$this->catenabled) {
+                return;
+            }
             switch ($reason) {
                 case self::C_AWARD:
                 case self::C_CASHBACK:
@@ -669,7 +710,7 @@ class balance_op extends balance {
             }
         }
         if (!empty($this->helper) && empty($this->courseid)) {
-            $this->courseid = $this->helper->get_course()->id;
+            $this->courseid = $this->helper->courseid;
         }
     }
 
@@ -826,11 +867,14 @@ class balance_op extends balance {
         if (!empty($this->catop)) {
             $transform = min($amount, $this->catop->get_refundable_balance());
             $this->catop->deduct($transform);
+            $this->update();
+            $this->catop = new operations($this->catid, $this->userid);
             $this->catop->add($transform, false);
             $this->details['catbalance'] = $this->catop->details;
         } else {
             $transform = min($amount, $this->get_main_refundable());
             $this->cut_from_main($transform);
+            $this->update();
             $this->add_to_main($transform, false);
         }
         $this->update();
@@ -840,31 +884,35 @@ class balance_op extends balance {
      * Transfer balance to another user.
      * @param \stdClass $data the data submited by the form.
      * @param \enrol_wallet\form\transfer_form $mform
+     * @return string
      */
-    public function transfer_to_other($data, $mform) {
-        $email  = $data->email;
-        $amount = $data->amount;
-        $catid = $data->category;
-        $parent = $data->parent && $mform->parent;
+    public function transfer_to_other($data, $mform = null) {
+        global $USER, $CFG;
+
+        if (empty($mform)) {
+            $mform = new \enrol_wallet\form\transfer_form;
+        }
+
+        $config = $mform->config;
+        if (empty($config->transfer_enabled) || $this->userid != $USER->id) {
+            throw new \moodle_exception('transfer_notenabled', 'enrol_wallet');
+        }
+
+        if (!$mform->get_data()) {
+            $errors = $mform->validation((array)$data, []);
+            if (!empty($errors)) {
+                return reset($errors);
+            }
+        }
+
+        $email    = $data->email;
+        $amount   = $data->amount;
+        $catid    = $data->category ?? 0;
+
         $receiver = \core_user::get_user_by_email($email);
 
-        if ($parent) {
-            $fee = 0;
-        } else {
-            // Check the transfer fees.
-            $percentfee = $mform->config->transferpercent;
-            $percentfee = (!empty($percentfee)) ? $percentfee : 0;
-            $fee = $amount * $percentfee / 100;
-        }
-
-        $feefrom = $mform->config->transferfee_from;
-        if ($feefrom == 'sender') {
-            $debit = $amount + $fee;
-            $credit = $amount;
-        } else if ($feefrom == 'receiver') {
-            $credit = $amount - $fee;
-            $debit = $amount;
-        }
+        list($debit, $credit) = $mform->get_debit_credit($amount);
+        $fee = abs($credit - $debit);
 
         $unknownerror = get_string('error');
         // Debit the sender.

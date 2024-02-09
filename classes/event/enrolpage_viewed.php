@@ -74,11 +74,13 @@ class enrolpage_viewed extends \core\event\base {
         global $USER;
         static $viewed = false;
         if (!$viewed) {
-            $data['contextid'] = \context_course::instance($instance->courseid);
+            $context = \context_course::instance($instance->courseid);
+            $data['contextid'] = $context->id;
             $data['courseid'] = $instance->courseid;
             $data['userid'] = $USER->id;
             $event = self::create($data);
             $event->trigger();
+            $viewed = true;
         }
     }
 }

@@ -440,7 +440,8 @@ class coupons {
         if (!$this->type == self::CATEGORY) {
             return;
         }
-        if (empty($this->category)) {
+        $catenabled = (bool)get_config('enrol_wallet', 'catbalance') && $this->source == balance::MOODLE;
+        if (empty($this->category) || (!$catenabled && $this->area == self::AREA_TOPUP)) {
             $this->error = get_string('coupon_applynothere_category', 'enrol_wallet');
             $this->valid = false;
             return;
@@ -698,6 +699,9 @@ class coupons {
      * @return balance_op
      */
     private function get_balance_operation() {
+        if ($this->type === self::FIXED) {
+            return new balance_op($this->userid);
+        }
         switch ($this->area) {
             case self::AREA_ENROL:
                 return balance_op::create_from_instance($this->areaid, $this->userid);

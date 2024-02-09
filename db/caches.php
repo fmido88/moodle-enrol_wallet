@@ -28,6 +28,9 @@ $definitions = [
     'balance' => [
         'mode' => cache_store::MODE_APPLICATION,
     ],
+    'offers' => [
+        'mode' => cache_store::MODE_APPLICATION,
+    ],
     'coupon' => [
         'mode' => cache_store::MODE_SESSION,
     ],

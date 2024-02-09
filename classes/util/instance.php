@@ -39,6 +39,21 @@ use core_course_category;
  */
 class instance {
     /**
+     * Calculate the cost after discount sequentially
+     * @var int
+     */
+    public const B_SEQ = 1;
+    /**
+     * Apply the sum of discounts
+     * @var int
+     */
+    public const B_SUM = 2;
+    /**
+     * Apply max discount
+     * @var int
+     */
+    public const B_MAX = 0;
+    /**
      * The enrol wallet instance
      * @var \stdClass
      */
@@ -71,6 +86,17 @@ class instance {
      * @var int
      */
     public $userid;
+
+    /**
+     * The all discounts in this instance.
+     * @var array
+     */
+    private $discounts = [0];
+    /**
+     * The behavior of discount calculation.
+     * 
+     */
+    private $behavior;
 
     /**
      * Create a new enrol wallet instance helper class.
@@ -153,44 +179,26 @@ class instance {
         $wallet = new wallet;
         return $wallet->get_instance_name($this->instance);
     }
+
     /**
-     * Get percentage discount for a user from custom profile field and coupon code.
-     * and then calculate the cost of the course after discount.
-     * @return void
+     * Calculate and return discount due to discount coupon.
+     * @return float from 0 to 1
      */
-    private function calculate_cost_after_discount() {
-        global $DB;
-        $userid = $this->userid;
-
-        $instance = $this->instance;
-        $cost = $instance->cost;
-        if ($ue = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $userid])) {
-            if (!empty($ue->timeend) && get_config('enrol_wallet', 'repurchase')) {
-                if ($first = get_config('enrol_wallet', 'repurchase_firstdis')) {
-                    $cost = (100 - $first) * $instance->cost / 100;
-                    $second = get_config('enrol_wallet', 'repurchase_seconddis');
-                    $timepassed = $ue->timemodified > $ue->timecreated + $ue->timeend - $ue->timestart;
-                    if ($second && $ue->modifierid == $userid && $timepassed) {
-                        $cost = (100 - $second) * $instance->cost / 100;
-                    }
-                }
-            }
-        }
-
+    private function get_coupon_discount() {
         // Check if there is a discount coupon first.
         $coupon = coupons::check_discount_coupon();
 
-        $costaftercoupon = $cost;
+        $discount = 0;
 
         if (!empty($coupon)) {
-            $couponutil = new coupons($coupon, $userid);
+            $couponutil = new coupons($coupon, $this->userid);
 
-            $validation = $couponutil->validate_coupon(coupons::AREA_ENROL, $instance->id);
+            $validation = $couponutil->validate_coupon(coupons::AREA_ENROL, $this->instance->id);
 
             if (true === $validation) {
                 $this->couponutil = $couponutil;
                 if ($couponutil->type == coupons::DISCOUNT && $couponutil->valid) {
-                    $costaftercoupon = $instance->cost * (1 - $couponutil->value / 100);
+                    $discount = min($couponutil->value / 100, 1);
                 }
             } else if (is_string($validation)) {
                 static $warned = false;
@@ -200,51 +208,246 @@ class instance {
                 }
             }
         }
+        return $discount;
+    }
 
+    /**
+     * Calculate and return discount due to repurchasing the course.
+     * @return float from 0 to 1
+     */
+    private function get_repurchase_discount() {
+        global $DB;
+        $userid = $this->userid;
+        $instanceid = $this->instance->id;
+        $discount = 0;
+        if ($ue = $DB->get_record('user_enrolments', ['enrolid' => $instanceid, 'userid' => $userid])) {
+            if (!empty($ue->timeend) && get_config('enrol_wallet', 'repurchase')) {
+                if ($first = get_config('enrol_wallet', 'repurchase_firstdis')) {
+                    $discount = min($first / 100, 1);
+                    $second = get_config('enrol_wallet', 'repurchase_seconddis');
+                    $timepassed = $ue->timemodified > $ue->timecreated + $ue->timeend - $ue->timestart;
+                    if ($second && $ue->modifierid == $userid && $timepassed) {
+                        $discount = max($second / 100, $discount);
+                    }
+                }
+            }
+        }
+        return min($discount, 1);
+    }
+
+    /**
+     * Calculate and return the discount due to offers.
+     * @return float from 0 to 1
+     */
+    private function get_offers_discount() {
+        $offers = new offers($this->instance, $this->userid);
+        $discount = 0;
+        switch ($this->behavior) {
+            case self::B_SUM:
+                $discount = $offers->get_sum_discounts();
+                break;
+            case self::B_MAX:
+                $discount = $offers->get_max_valid_discount();
+                break;
+            case self::B_SEQ;
+            default:
+                $discount = $this->calculate_sequential_discount($offers->get_available_discounts());
+        }
+        return min(1, $discount / 100);
+    }
+
+    /**
+     * Calculate and return the discount due to profile field.
+     * @return float from 0 to 1
+     */
+    private function get_profile_field_discount() {
+        global $DB;
+        $discount = 0;
         // Check if the discount according to custom profile field in enabled.
         if (!$fieldid = get_config('enrol_wallet', 'discount_field')) {
-            $this->costafter = $costaftercoupon;
-            return;
+            return $discount;
         }
 
         // Check the data in the discount field.
-        $data = $DB->get_field('user_info_data', 'data', ['userid' => $userid, 'fieldid' => $fieldid]);
+        $data = $DB->get_field('user_info_data', 'data', ['userid' => $this->userid, 'fieldid' => $fieldid]);
 
         if (empty($data)) {
-            $this->costafter = $costaftercoupon;
-            return;
+            return $discount;
         }
         // If the user has free access to courses return 0 cost.
         if (stripos(strtolower($data), 'free') !== false) {
-            $this->costafter = 0;
+            $discount = 1;
             // If there is a word no in the data means no discount.
         } else if (stripos(strtolower($data), 'no') !== false) {
-            $this->costafter = $costaftercoupon;
+            $discount = 0;
         } else {
             // Get the integer from the data.
             preg_match('/\d+/', $data, $matches);
             if (isset($matches[0]) && intval($matches[0]) <= 100) {
                 // Cannot allow discount more than 100%.
-                $discount = intval($matches[0]);
-                $this->costafter = $costaftercoupon * (100 - $discount) / 100;
-            } else {
-                $this->costafter = $costaftercoupon;
+                $discount = intval($matches[0]) / 100;
             }
         }
+        return min(1, $discount);
     }
 
     /**
+     * Calculate, store and return all types of discounts.
+     * @return array
+     */
+    private function calculate_discounts() {
+        $this->discounts = [
+            'coupons'    => $this->get_coupon_discount(),
+            'profile'    => $this->get_profile_field_discount(),
+            'repurchase' => $this->get_repurchase_discount(),
+            'offers'     => $this->get_offers_discount(),
+        ];
+        return $this->discounts;
+    }
+    /**
+     * Get percentage discount for a user from custom profile field and coupon code.
+     * and then calculate the cost of the course after discount.
+     * @return void
+     */
+    private function calculate_cost_after_discount() {
+        $instance = $this->instance;
+        $cost = $instance->cost;
+        if (!is_numeric($cost) || $cost < 0) {
+            $this->costafter = null;
+            return;
+        }
+        $cost = (float)$cost;
+        if ($cost == 0) {
+            $this->costafter = $cost;
+            return;
+        }
+        $discounts = $this->calculate_discounts();
+        $discount = 0;
+
+        $behavior = (int)get_config('enrol_wallet', 'discount_behavior');
+        if ($behavior === self::B_SUM) {
+            $discount = array_sum($discounts);
+        } else if ($behavior === self::B_MAX) {
+            $discount = max($discounts);
+        } else {
+            $discount = $this->calculate_sequential_discount($discounts);
+        }
+        $discount = min(1, $discount);
+        $this->costafter = $cost * (1 - $discount);
+    }
+
+    /**
+     * sequentially calculate discount
+     * @param array $discounts
+     * @return float
+     */
+    private function calculate_sequential_discount($discounts) {
+        $discount = 0;
+        \core_collator::asort($discounts, \core_collator::SORT_NUMERIC);
+        $discounts = array_reverse($discounts);
+        foreach ($discounts as $d) {
+            $discount = $discount + $d * (1 - $discount);
+        }
+        return min(1, $discount);
+    }
+    /**
      * Get the cost of the enrol instance after discount.
      * @param bool $recalculate
-     * @return float the cost after discount.
+     * @return float|null the cost after discount.
      */
     public function get_cost_after_discount($recalculate = false) {
         if ($recalculate) {
             $this->calculate_cost_after_discount();
         }
-        return $this->costafter;
+        if (!is_null($this->costafter) && is_numeric($this->costafter)) {
+            return (float)$this->costafter;
+        }
+        return null;
     }
 
+    /**
+     * Check if there is a discount in this instance.
+     * @return bool
+     */
+    public function has_discount() {
+        if ($this->costafter < $this->instance->cost || $this->costafter === (float)0) {
+            return true;
+        }
+        $costs = $this->get_all_costs();
+        if ($this->costafter < max($costs)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * get the discount in this instance in percentage
+     * @return int from 0 to 100
+     */
+    public function get_rounded_discount() {
+        if ($this->costafter === (float)0) {
+            return 100;
+        }
+
+        $difference = $this->instance->cost - $this->costafter;
+        if ($difference <= 0) {
+            $costs = $this->get_all_costs();
+            $difference = max($costs) - $this->costafter;
+        }
+
+        if ($difference > 0) {
+            return (int)($difference / $this->instance->cost * 100);
+        }
+        return 0;
+    }
+
+    /**
+     * Return all discounts in all instances.
+     * @return array
+     */
+    public function get_all_discounts() {
+        global $DB;
+        $instances = $DB->get_records('enrol', ['courseid' => $this->courseid]);
+        $discounts = [];
+        foreach ($instances as $instance) {
+            $helper = new self($instance);
+            $discounts[] = $helper->get_rounded_discount();
+        }
+        return $discounts;
+    }
+    /**
+     * Return an array of costs of non restricted instances keyed with the instance id;
+     * @return array
+     */
+    public function get_all_costs() {
+        global $DB;
+        $instances = $DB->get_records('enrol', ['courseid' => $this->courseid]);
+        $costs = [];
+        foreach ($instances as $instance) {
+            $wallet = new wallet($instance);
+            $cost = $wallet->get_cost_after_discount($this->userid, $instance);
+            $enrolstat = $wallet->can_self_enrol($instance);
+            if (in_array($enrolstat, [true, wallet::INSUFFICIENT_BALANCE, wallet::INSUFFICIENT_BALANCE_DISCOUNTED], true)) {
+                $costs[$instance->id] = $cost;
+            }
+        }
+        return $costs;
+    }
+
+    /**
+     * Return the id of cheapest instance in this course.
+     * @return int|null
+     */
+    public function get_the_cheapest_instance_id() {
+        $costs = $this->get_all_costs();
+        $min = min($costs);
+        foreach ($costs as $id => $cost) {
+            if ($cost == $min) {
+                return $id;
+            }
+        }
+        return null;
+    }
     /**
      * Get the coupon code used for discount if existed.
      * @return coupons|null
