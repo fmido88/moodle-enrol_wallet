@@ -21,7 +21,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-const config = { attributes: true, childList: true, subtree: true };
+const config = {attributes: true, childList: true, subtree: true};
 // Create an observer instance linked to the callback function
 let observer;
 let regionMain;

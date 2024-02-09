@@ -94,7 +94,7 @@ class instance {
     private $discounts = [0];
     /**
      * The behavior of discount calculation.
-     * 
+     * @var int
      */
     private $behavior;
 
@@ -122,6 +122,7 @@ class instance {
         } else {
             $this->userid = $userid;
         }
+        $this->behavior = (int)get_config('enrol_wallet', 'discount_behavior');
         $this->calculate_cost_after_discount();
     }
 
@@ -324,10 +325,9 @@ class instance {
         $discounts = $this->calculate_discounts();
         $discount = 0;
 
-        $behavior = (int)get_config('enrol_wallet', 'discount_behavior');
-        if ($behavior === self::B_SUM) {
+        if ($this->behavior === self::B_SUM) {
             $discount = array_sum($discounts);
-        } else if ($behavior === self::B_MAX) {
+        } else if ($this->behavior === self::B_MAX) {
             $discount = max($discounts);
         } else {
             $discount = $this->calculate_sequential_discount($discounts);

@@ -53,7 +53,7 @@ function addFragment(type) {
  */
 function addDeleteButtonListener() {
     for (let j = 1; j <= i; j++) {
-        var deletebutton = document.querySelector('[name=offer_delete_'+j+']');
+        var deletebutton = document.querySelector('[name=offer_delete_' + j + ']');
         if (!deletebutton) {
             continue;
         }
