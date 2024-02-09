@@ -57,7 +57,7 @@ function addDeleteButtonListener() {
         if (!deletebutton) {
             continue;
         }
-        document.querySelector('[name=offer_delete_' + j + ']').onclick = (event) => {
+        deletebutton.onclick = (event) => {
             let number = event.target.getAttribute('data-action-delete');
             let set = document.getElementById('offer_group_' + number);
             set.remove();
