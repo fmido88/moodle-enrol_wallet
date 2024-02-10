@@ -252,7 +252,7 @@ class instance {
                 break;
             case self::B_SEQ;
             default:
-                $discount = $this->calculate_sequential_discount($offers->get_available_discounts());
+                $discount = $this->calculate_sequential_discount($offers->get_available_discounts(), true);
         }
         return min(1, $discount / 100);
     }
@@ -326,7 +326,9 @@ class instance {
         $discount = 0;
 
         if ($this->behavior === self::B_SUM) {
-            $discount = array_sum($discounts);
+            foreach ($discounts as $d) {
+                $discount += $d;
+            }
         } else if ($this->behavior === self::B_MAX) {
             $discount = max($discounts);
         } else {
@@ -339,16 +341,23 @@ class instance {
     /**
      * sequentially calculate discount
      * @param array $discounts
+     * @param bool $percentage
      * @return float
      */
-    private function calculate_sequential_discount($discounts) {
-        $discount = 0;
+    private function calculate_sequential_discount($discounts, $percentage = false) {
         \core_collator::asort($discounts, \core_collator::SORT_NUMERIC);
         $discounts = array_reverse($discounts);
+
+        $discount = 0;
         foreach ($discounts as $d) {
-            $discount = $discount + $d * (1 - $discount);
+            $d = $percentage ? $d / 100 : $d;
+            $discount = 1 - (1 - $discount) * (1 - $d);
         }
-        return min(1, $discount);
+        $discount = min(1, $discount);
+        if ($percentage) {
+            return $discount * 100;
+        }
+        return $discount;
     }
     /**
      * Get the cost of the enrol instance after discount.

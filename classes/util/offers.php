@@ -25,6 +25,7 @@
  */
 
 namespace enrol_wallet\util;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -143,7 +144,7 @@ class offers {
             $this->userid = $USER->id;
         }
         if (!empty($instance->customtext3)) {
-            $this->offers = json_decode($instance->customtext3);
+            $this->offers = (array)json_decode($instance->customtext3);
         } else {
             $this->offers = [];
         }
@@ -227,7 +228,7 @@ class offers {
                         'op' => get_string('offers_pfop_'.$offer->op, 'enrol_wallet'),
                         'discount' => $offer->discount,
                         'field' => $fieldname,
-                        'value' => $offer->v,
+                        'value' => $offer->value,
                     ];
                     $descriptions[$key] = get_string('offers_pf_desc', 'enrol_wallet', $a);
                     break;
@@ -301,7 +302,11 @@ class offers {
                 return 0;
             }
         }
-        return min(array_sum($this->discounts), 1);
+        $sum = 0;
+        foreach ($this->discounts as $d) {
+            $sum += $d;
+        }
+        return min($sum, 100);
     }
     /**
      * Return array with available valid discounts for the passed user.
@@ -963,6 +968,58 @@ class offers {
         }
 
         return $return;
+    }
+
+    /**
+     * Get all courses with offers and add it to course object $course->offers as array keyed with
+     * instance id and each contain array with offers details.
+     * @param int $categoryid
+     * @return array
+     */
+    public static function get_courses_with_offers($categoryid = 0) {
+        global $DB;
+        $sql = "SELECT e.id as instanceid, c.*, e.customtext3
+        From {course} c
+        JOIN {enrol} e ON  e.courseid = c.id
+            WHERE e.status = :stat
+              AND (e.enrolstartdate < :time1 OR e.enrolstartdate = 0)
+              AND (e.enrolenddate > :time2 OR e.enrolenddate = 0)
+              AND e.enrol = :wallet";
+        $params = [
+            'stat' => ENROL_INSTANCE_ENABLED,
+            'time1' => time(),
+            'time2' => time(),
+            'wallet' => 'wallet',
+        ];
+        if (!empty($categoryid)) {
+            $category = core_course_category::get($categoryid);
+            $catids = $category->get_all_children_ids();
+            $catids[] = $categoryid;
+            list($in, $inparams) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
+            $sql .= " AND c.category $in";
+            $params = $params + $inparams;
+        }
+        $courses = $DB->get_records_sql($sql, $params);
+        $final = [];
+        foreach ($courses as $instanceid => $course) {
+            $instance = new stdClass;
+            $instance->id = $instanceid;
+            $instance->courseid = $course->id;
+            $instance->customtext3 = $course->customtext3;
+
+            $class = new self($instance);
+            if (empty($class->get_raw_offers())) {
+                continue;
+            }
+            if (!isset($final[$course->id])) {
+                $final[$course->id] = $course;
+                $final[$course->id]->offers = [];
+                unset($final[$course->id]->instanceid);
+                unset($final[$course->id]->customtext3);
+            }
+            $final[$course->id]->offers[$instanceid] = $class;
+        }
+        return $final;
     }
 }
 
