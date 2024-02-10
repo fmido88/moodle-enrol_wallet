@@ -63,13 +63,39 @@ function searchAndInject(node = document) {
         titleElement.dataIdentifier = id;
         titleElement.title = icons[i].title;
         titleElement.classList.add('enrol_wallet_walletcost');
-        parent.insertBefore(titleElement, icons[i]);
+
+        let container = document.createElement('div');
+        container.className = 'wallet-icon';
+        container.style.position = 'relative';
+        container.style.display = 'flex';
+        icons[i].className = 'icon';
+        parent.style.display = 'flex';
+        parent.style.justifyContent = 'center';
+        parent.style.alignItems = 'center';
+
+        container.appendChild(icons[i].cloneNode(true));
+        container.appendChild(titleElement);
+
+        // parent.insertBefore(titleElement, icons[i]);
         if (discount > 0) {
             var discountLabel = document.createElement('div');
             discountLabel.classList.add('enrol_wallet_offer');
             discountLabel.innerHTML = '<div class="enrol-wallet-inner-offer">' + discount + '%' + '</div>';
-            parent.parentNode.parentNode.appendChild(discountLabel);
+            let found = false;
+            while(!found) {
+                if (parent.getAttribute('data-courseid') || parent.getAttribute('data-course-id')) {
+                    parent.style.position = 'relative';
+                    parent.appendChild(discountLabel);
+                    found = true;
+                    break;
+                }
+                parent = parent.parentNode;
+                if (parent.tagName == 'BODY') {
+                    break;
+                }
+            }
         }
+        icons[i].replaceWith(container);
     }
     startObserver();
 }
