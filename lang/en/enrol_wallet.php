@@ -105,11 +105,11 @@ $string['checkout_borrow_discounted'] = '<del>{$a->credit_cost} {$a->currency}</
 $string['checkout_discounted'] = '<del>{$a->credit_cost} {$a->currency}</del> {$a->after_discount} {$a->currency} will be deducted from your balance of {$a->user_balance} {$a->currency}.';
 $string['ch_result_after'] = '<p>Balance After: <b>{$a}</b></p>';
 $string['ch_result_before'] = '<p>Balance Before: <b>{$a}</b></p>';
-$string['ch_result_error'] = '<p style = \\\\\\\\\\\\\\\\\"text-align: center;\\\\\\\\\\\\\\\\\"><b> ERROR <br>{$a}<br> Please go back and check it again</b></p>';
-$string['ch_result_info_balance'] = '<span style=\\\\\\\\\\\\\\\\\"text-align: center; width: 100%;\\\\\\\\\\\\\\\\\"><h5>
+$string['ch_result_error'] = '<p style = "text-align: center;"><b> ERROR <br>{$a}<br> Please go back and check it again</b></p>';
+$string['ch_result_info_balance'] = '<span style="text-align: center; width: 100%;"><h5>
 the user: {$a->userfull} is having a balance of {$a->before}
 </h5></span>';
-$string['ch_result_info_charge'] = '<span style=\\\\\\\\\\\\\\\\\"text-align: center; width: 100%;\\\\\\\\\\\\\\\\\">
+$string['ch_result_info_charge'] = '<span style="text-align: center; width: 100%;">
 <h5>the user: {$a->userfull} is now having a balance of {$a->after} after charging him/her by {$a->after_before}...</h5>
 </span>';
 $string['ch_result_negative'] = '<p><b>THIS USER HAS A NEGATIVE BALANCE</b></p>';
@@ -439,7 +439,7 @@ $string['offers_error_othercnocourses'] = 'Please select number of courses.';
 $string['offers_error_othercnotexist'] = 'Category not exist.';
 $string['offers_error_pfnovalue'] = 'Please enter a value.';
 $string['offers_error_pfselect'] = 'Please select a profile field';
-$string['offers_error_timefrom'] = 'The time cannot exceed the \\\\\\\\\\\\\"time to\\\\\\\\\\\\\".';
+$string['offers_error_timefrom'] = 'The time cannot exceed the "time to".';
 $string['offers_error_timeto'] = 'Cannot select time in the past.';
 $string['offers_location_based'] = 'Geo Location based offer';
 $string['offers_nc_desc'] = '{$a->discount}% DISCOUNT if you are already enrolled in at least {$a->number} courses inside the category {$a->catname}';
@@ -452,7 +452,7 @@ $string['offers_pfop_isempty'] = 'Is empty';
 $string['offers_pfop_isequalto'] = 'Is equal to';
 $string['offers_pfop_isnotempty'] = 'Is not empty';
 $string['offers_pfop_startswith'] = 'Starts with';
-$string['offers_pf_desc'] = '{$a->discount}% DISCOUNT if your profile field {$a->field} {$a->op} \\\\\\\\\"{$a->value}\\\\\\\\\"';
+$string['offers_pf_desc'] = '{$a->discount}% DISCOUNT if your profile field {$a->field} {$a->op} "{$a->value}"';
 $string['offers_please_select'] = 'Please select a type of offers to add';
 $string['offers_profile_field'] = 'Profile Field';
 $string['offers_profile_field_based'] = 'Profile field based offer';
@@ -636,8 +636,8 @@ $string['unenrolrefundfee_desc'] = 'Choose a percentage amount that will not be 
 $string['unenrolrefundperiod'] = 'Refund upon unenrol grace period';
 $string['unenrolrefundperiod_desc'] = 'If the user unenrolled within this period from the enrol start date he will be refunded.';
 $string['unenrolrefundpolicy'] = 'Unenrol Refunding Policy';
-$string['unenrolrefundpolicy_default'] = '<p dir=\\\\\\\\\\\\\\\\\"ltr\\\\\\\\\\\\\\\\\" style=\\\\\\\\\\\\\\\\\"text-align: left;\\\\\\\\\\\\\\\\\"><strong>Conditions for refunding upon unenrol:</strong></p>
-<p dir=\\\\\\\\\\\\\\\\\"ltr\\\\\\\\\\\\\\\\\" style=\\\\\\\\\\\\\\\\\"text-align: left;\\\\\\\\\\\\\\\\\">
+$string['unenrolrefundpolicy_default'] = '<p dir="ltr" style="text-align: left;"><strong>Conditions for refunding upon unenrol:</strong></p>
+<p dir="ltr" style="text-align: left;">
 If you are unenrolled from the course within {period} days from the start date you will be refunded with the amount you pay after deducting a {fee}% from the paid amount.
 This amount will return to your wallet and can use it to enrol in other courses but not be able to be manually refunded.<br>
 By pressing purchase means you have agreed to these conditions.
@@ -648,11 +648,11 @@ placing {period} will be replaced by the grace period in days.';
 $string['unenrolrefund_desc'] = 'If enabled, users will be refunded if they unenrolled from the course.';
 $string['unenrolrefund_head'] = 'Refund users upon unenrol.';
 $string['unenrolrefund_head_desc'] = 'Return the paid fee of a course after unenrol from the course.';
-$string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course \\\\\\\\\\\\\\\\\"{$a}\\\\\\\\\\\\\\\\\"?';
+$string['unenrolselfconfirm'] = 'Do you really want to unenrol yourself from course "{$a}"?';
 $string['unenrolselfenabled'] = 'Enable self unenrol';
 $string['unenrolselfenabled_desc'] = 'If enable, then users are allowed to unenrol themselves from the course.';
 $string['unenrolself_notallowed'] = 'You are not unenrol yourself from this course.';
-$string['unenroluser'] = 'Do you really want to unenrol \\\\\\\\\\\\\\\\\"{$a->user}\\\\\\\\\\\\\\\\\" from course \\\\\\\\\\\\\\\\\"{$a->course}\\\\\\\\\\\\\\\\\"?';
+$string['unenroluser'] = 'Do you really want to unenrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolusers'] = 'Unenrol users';
 $string['uploadcsvfilerequired'] = 'Please upload the csv file.';
 $string['upload_coupons'] = 'Upload Coupons';
