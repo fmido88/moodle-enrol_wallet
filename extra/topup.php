@@ -48,20 +48,7 @@ $enabled   = get_config('enrol_wallet', 'conditionaldiscount_apply');
 $discount  = 0;
 
 if (!empty($enabled)) {
-    $params = [
-        'time1' => time(),
-        'time2' => time(),
-    ];
-    $select = '(timefrom <= :time1 OR timefrom = 0 ) AND (timeto >= :time2 OR timeto = 0)';
-    $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
-
-    foreach ($records as $record) {
-        if ($val >= $record->cond && $record->percent > $discount) {
-            $discount = $record->percent;
-        }
-    }
-
-    $value = (float)($val * (1 - $discount / 100));
+    $value = enrol_wallet\util\discount_rules::get_the_before($val, $category);
 } else {
     $value = $val;
 }

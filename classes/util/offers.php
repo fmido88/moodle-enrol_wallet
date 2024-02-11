@@ -261,6 +261,7 @@ class offers {
         $output .= html_writer::end_tag('ul');
         return $output;
     }
+
     /**
      * Return the max discount at all no matter if it is valid
      * for the user or not.
@@ -270,11 +271,29 @@ class offers {
         if (empty($this->offers)) {
             return 0;
         }
-        $max = 0;
+
+        $discounts = [];
         foreach ($this->offers as $obj) {
-            $max = max($obj->discount, $max);
+            $discounts[] = (float)$obj->discount;
         }
-        return $max;
+
+        $behavior = (int)get_config('enrol_wallet', 'discount_behavior');
+        if ($behavior === instance::B_MAX) {
+            return max($discounts);
+        } else if ($behavior === instance::B_SUM) {
+            return min(array_sum($discounts), 100);
+        }
+
+        $max = 0;
+        \core_collator::asort($discounts, \core_collator::SORT_NUMERIC);
+        $discounts = array_reverse($discounts);
+
+        foreach ($discounts as $d) {
+            $d = $d / 100;
+            $max = 1 - (1 - $max) * (1 - $d);
+        }
+
+        return min(1, $max) * 100;
     }
     /**
      * Return the max discount valid for the passed user.
@@ -978,13 +997,17 @@ class offers {
      */
     public static function get_courses_with_offers($categoryid = 0) {
         global $DB;
-        $sql = "SELECT e.id as instanceid, c.*, e.customtext3
+        $notempty = $DB->sql_isnotempty('enrol', 'e.customtext3', true, true);
+
+        $sql = "SELECT e.id as instanceid, c.*, e.customtext3, e.cost
         From {course} c
-        JOIN {enrol} e ON  e.courseid = c.id
+        JOIN {enrol} e ON e.courseid = c.id
             WHERE e.status = :stat
               AND (e.enrolstartdate < :time1 OR e.enrolstartdate = 0)
               AND (e.enrolenddate > :time2 OR e.enrolenddate = 0)
-              AND e.enrol = :wallet";
+              AND e.enrol = :wallet
+              AND c.visible = 1
+              AND (e.cost = 0 OR $notempty)";
         $params = [
             'stat' => ENROL_INSTANCE_ENABLED,
             'time1' => time(),
@@ -1000,6 +1023,7 @@ class offers {
             $params = $params + $inparams;
         }
         $courses = $DB->get_records_sql($sql, $params);
+
         $final = [];
         foreach ($courses as $instanceid => $course) {
             $instance = new stdClass;
@@ -1007,17 +1031,21 @@ class offers {
             $instance->courseid = $course->id;
             $instance->customtext3 = $course->customtext3;
 
+            $zero = is_number($course->cost) && $course->cost == 0;
             $class = new self($instance);
-            if (empty($class->get_raw_offers())) {
+            if (empty($class->get_raw_offers()) && !$zero) {
                 continue;
             }
             if (!isset($final[$course->id])) {
                 $final[$course->id] = $course;
+                $final[$course->id]->free = $zero;
+                $final[$course->id]->hasoffer = !$zero;
                 $final[$course->id]->offers = [];
                 unset($final[$course->id]->instanceid);
                 unset($final[$course->id]->customtext3);
+                unset($final[$course->id]->cost);
             }
-            $final[$course->id]->offers[$instanceid] = $class;
+            $final[$course->id]->offers[$instanceid] = $class->format_offers_descriptions();
         }
         return $final;
     }

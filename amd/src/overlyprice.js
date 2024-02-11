@@ -76,13 +76,12 @@ function searchAndInject(node = document) {
         container.appendChild(icons[i].cloneNode(true));
         container.appendChild(titleElement);
 
-        // parent.insertBefore(titleElement, icons[i]);
         if (discount > 0) {
             var discountLabel = document.createElement('div');
             discountLabel.classList.add('enrol_wallet_offer');
             discountLabel.innerHTML = '<div class="enrol-wallet-inner-offer">' + discount + '%' + '</div>';
             let found = false;
-            while(!found) {
+            while (!found) {
                 if (parent.getAttribute('data-courseid') || parent.getAttribute('data-course-id')) {
                     parent.style.position = 'relative';
                     parent.appendChild(discountLabel);

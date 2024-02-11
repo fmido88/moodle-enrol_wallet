@@ -28,6 +28,7 @@ require_once($CFG->libdir.'/formslib.php');
 
 use enrol_wallet\category\options;
 use enrol_wallet\util\balance;
+use enrol_wallet\util\discount_rules;
 
 /**
  * The form that able the user to topup their wallet using payment gateways.
@@ -108,26 +109,7 @@ class charger_form extends \moodleform {
         // Check the conditional discount.
         $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
         if (!empty($enabled)) {
-            $params = [
-                'time1' => time(),
-                'time2' => time(),
-            ];
-            $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
-            $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
-
-            $i = 0;
-            foreach ($records as $record) {
-                $i++;
-                // This element only used to pass the values to js code.
-                $discountrule = (object)[
-                    'discount' => $record->percent / 100,
-                    'condition' => $record->cond,
-                    'category' => $record->category ?? 0,
-                ];
-                $mform->addElement('hidden', 'discount_rule_'.$i);
-                $mform->setType('discount_rule_'.$i, PARAM_TEXT);
-                $mform->setConstant('discount_rule_'.$i, json_encode($discountrule));
-            }
+            $i = discount_rules::add_discounts_to_form($mform);
         }
 
         if (file_exists($CFG->dirroot.'/blocks/vc/lib.php')

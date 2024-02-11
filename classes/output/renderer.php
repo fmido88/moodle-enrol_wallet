@@ -63,4 +63,16 @@ class renderer extends plugin_renderer_base {
     public function render_top_up_options() {
         return '';
     }
+
+    /**
+     * Conditional discounts
+     * @param int $categoryid
+     * @return string
+     */
+    public function get_conditional_discounts($categoryid = 0) {
+        global $DB;
+        $output = '';
+
+        return $output;
+    }
 }

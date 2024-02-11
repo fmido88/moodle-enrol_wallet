@@ -305,6 +305,7 @@ class instance {
         ];
         return $this->discounts;
     }
+
     /**
      * Get percentage discount for a user from custom profile field and coupon code.
      * and then calculate the cost of the course after discount.

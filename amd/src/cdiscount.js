@@ -145,7 +145,26 @@ function calculateBefore() {
     var realValueBefore = value / (1 - maxDiscount);
     valueInput.value = realValueBefore;
 }
+/**
+ * Hide discount rule for non-selected category.
+ */
+function hideElse() {
+    let container = document.getElementsByClassName('enrol-wallet-discounts-container');
 
+    let cat = parseInt(categoryInput.value);
+    for (let i = 0; i < container.length; i++) {
+        let children = container[i].children;
+
+        for (let x = 0; x < children.length; x++) {
+            let catid = children[x].getAttribute('data-catid');
+            if (catid == cat) {
+                children[x].style.display = '';
+            } else {
+                children[x].style.display = 'none';
+            }
+        }
+    }
+}
 /**
  * Adding event listeners to the top up form.
  */
@@ -154,6 +173,10 @@ function addListenersTopUpForm() {
     valueInput.onkeyup = calculateAfter;
     valueAfterInput.onchange = calculateBefore;
     valueAfterInput.onkeyup = calculateBefore;
+    categoryInput.addEventListener('change', () => {
+        calculateAfter();
+        hideElse();
+    });
 }
 
 /**
@@ -180,7 +203,7 @@ export const init = (formid, formType) => {
         object.category = parseInt(object.category);
         rules.push(object);
     }
-
+    hideElse();
     if (formType == 'charge') {
         proceedChargerForm();
     } else {
