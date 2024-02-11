@@ -259,7 +259,12 @@ if ($ADMIN->fulltree) {
                                             get_string('frontpageoffers', 'enrol_wallet'),
                                             get_string('frontpageoffers_desc', 'enrol_wallet'), 0));
 
-    $url = new moodle_url('/enrol/wallet/extra/offers_nav.php', ['return' => $PAGE->url]);
+    if ($PAGE->has_set_url()) {
+        $return = $PAGE->url->out();
+    } else {
+        $return = (new moodle_url('/admin/settings.php', ['section' => 'enrolsettingswallet']))->out();
+    }
+    $url = new moodle_url('/enrol/wallet/extra/offers_nav.php', ['return' => $return]);
     $button = html_writer::link($url, get_string('offersnav', 'enrol_wallet'), ['class' => 'btn btn-secondary']);
     $settings->add(new admin_setting_description('enrol_wallet/offers_nav', get_string('offersnav_desc', 'enrol_wallet'), $button));
 

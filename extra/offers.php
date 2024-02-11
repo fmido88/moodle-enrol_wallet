@@ -73,6 +73,7 @@ if (!empty($rules)) {
     $out .= $OUTPUT->heading(get_string('topupoffers', 'enrol_wallet'));
     $out .= $OUTPUT->box(get_string('topupoffers_desc', 'enrol_wallet'));
     $out .= $rules;
+    $out .= "<hr/>";
 }
 $config = get_config('enrol_wallet');
 if (!empty($config->cashback)) {
@@ -80,6 +81,7 @@ if (!empty($config->cashback)) {
     if ($cashbackvalue > 0 && $cashbackvalue <= 100) {
         $out .= $OUTPUT->heading(get_string('cashback', 'enrol_wallet'));
         $out .= $OUTPUT->box(get_string('cashback_desc', 'enrol_wallet', $cashbackvalue));
+        $out .= "<hr/>";
     }
 }
 
@@ -89,16 +91,19 @@ if (!empty($config->referral_enabled) && (float)$config->referral_amount > 0) {
     $text = get_string('clickhere');
     $link = html_writer::link($url, $text);
     $out .= $OUTPUT->box(get_string('referral_site_desc', 'enrol_wallet') . $link);
+    $out .= "<hr/>";
 }
 
 if (!empty($free)) {
     $out .= $OUTPUT->heading(get_string('freecourses', 'enrol_wallet'));
     $out .= html_writer::div($free, 'courses courses-flex-cards');
+    $out .= "<hr/>";
 }
 
 if (!empty($withoffers)) {
     $out .= $OUTPUT->heading(get_string('courseswithdiscounts', 'enrol_wallet'));
     $out .= html_writer::div($withoffers, 'courses courses-flex-cards');
+    $out .= "<hr/>";
 }
 
 $out .= $OUTPUT->footer();
