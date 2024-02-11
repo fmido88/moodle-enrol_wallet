@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use enrol_wallet\util\balance;
+
 /**
  * To add the category and node information into the my profile page.
  * If is a regular user, it show the balance, refund policy and topping up options.
@@ -244,6 +245,20 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             );
             $parentnode->add_node($node);
         }
+    }
+
+    if ((bool)get_config('enrol_wallet', 'frontpageoffers')) {
+        // Add offers node.
+        $offers = get_string('offers', 'enrol_wallet');
+        $node = navigation_node::create(
+            $offers,
+            new moodle_url('/enrol/wallet/extra/offers.php'),
+            navigation_node::TYPE_CUSTOM,
+            $offers,
+            'enrol-wallet-offers',
+            new pix_icon('wallet', $offers, 'enrol_wallet')
+        );
+        $parentnode->add_node($node);
     }
 }
 

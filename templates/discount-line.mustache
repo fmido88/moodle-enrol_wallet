@@ -1,0 +1,64 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template enrol_wallet/discount-line
+
+    Example context (json):
+    {
+        "data": [
+            {
+                "heading": "Site",
+                "discounts": [
+                    {
+                        "discount": "15%",
+                        "condition": "> 150 EGP",
+                        "percent": "12",
+                        "order": "2"
+                    },
+                    {
+                        "discount": "20%",
+                        "condition": "> 250 EGP",
+                        "percent": "18",
+                        "order": "3"
+                    }
+
+                ]
+            }
+        ]
+    }
+}}
+<div class="enrol-wallet-discounts-container">
+    {{# data}}
+        <div class="discount-line" data-catid="{{catid}}">
+        {{{heading}}}
+        {{# discounts}}
+            <div class="rule-container" style="left:{{percent}}%">
+                <h5>{{discount}}</h5>
+                <p class="condition">
+                    {{condition}}
+                </p>
+            </div>
+            <span style="left:{{percent}}%;{{!
+                        }}position:absolute;{{!
+                        }}width:calc(100% - {{percent}}%);{{!
+                        }}height: 100%;{{!
+                        }}z-index:{{order}};{{!
+                        }}background-color: color(srgb calc(1 - ({{order}}/10)) calc(1 - ({{order}}/10)) 1);"></span>
+        {{/ discounts}}
+        </div>
+    {{/ data}}
+</div>

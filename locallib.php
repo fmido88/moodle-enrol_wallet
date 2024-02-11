@@ -23,6 +23,7 @@
  */
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;
+use enrol_wallet\util\discount_rules;
 use enrol_wallet\coupons;
 
 /**
@@ -486,6 +487,7 @@ function enrol_wallet_display_topup_options() {
 
     $data->instance = $instance;
     $data->user     = $user;
+
     $render = '';
     // First check if payments is enabled.
     if (enrol_wallet_is_valid_account($account)) {
@@ -549,6 +551,9 @@ function enrol_wallet_display_topup_options() {
         $render .= $OUTPUT->box_end();
     }
 
+    if (!empty($render)) {
+        $render = discount_rules::get_the_discount_line(-1) . $render;
+    }
     // Display the manual refund policy.
     $policy = get_config('enrol_wallet', 'refundpolicy');
     if (!empty($policy) && !empty($render)) {
@@ -591,7 +596,6 @@ function enrol_wallet_display_topup_options() {
         $PAGE->requires->js_init_code($jscode);
     }
 
-    // Display user with manual charge capabilities.
     if (!empty($render)) {
         return $OUTPUT->box($render);
     } else {

@@ -158,7 +158,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $attributes = [
                 'class'            => 'wallet-icon',
                 'data-instance-id' => $instance->id,
-                'data-cost'        => $cost,
+                'data-cost'        => is_numeric($cost) ? (int)ceil($cost) : $cost,
                 'data-selector'    => 'enrol_wallet_icon',
                 'data-discount'    => $discount,
                 'title' => get_string('pluginname', 'enrol_wallet') . " ($cost)",

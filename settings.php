@@ -255,6 +255,14 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('enrol_wallet_discounts',
                                             get_string('discountscopouns', 'enrol_wallet'),
                                             get_string('discountscopouns_desc', 'enrol_wallet')));
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/frontpageoffers',
+                                            get_string('frontpageoffers', 'enrol_wallet'),
+                                            get_string('frontpageoffers_desc', 'enrol_wallet'), 0));
+
+    $url = new moodle_url('/enrol/wallet/extra/offers_nav.php', ['return' => $PAGE->url]);
+    $button = html_writer::link($url, get_string('offersnav', 'enrol_wallet'), ['class' => 'btn btn-secondary']);
+    $settings->add(new admin_setting_description('enrol_wallet/offers_nav', get_string('offersnav_desc', 'enrol_wallet'), $button));
+
     $behaviors = [
         instance::B_SEQ => get_string('discount_behavior_sequential', 'enrol_wallet'),
         instance::B_SUM => get_string('discount_behavior_sum', 'enrol_wallet'),
