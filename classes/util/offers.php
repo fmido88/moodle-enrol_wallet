@@ -1000,14 +1000,15 @@ class offers {
         $notempty = $DB->sql_isnotempty('enrol', 'e.customtext3', true, true);
 
         $sql = "SELECT e.id as instanceid, c.*, e.customtext3, e.cost
-        From {course} c
-        JOIN {enrol} e ON e.courseid = c.id
-            WHERE e.status = :stat
-              AND (e.enrolstartdate < :time1 OR e.enrolstartdate = 0)
-              AND (e.enrolenddate > :time2 OR e.enrolenddate = 0)
-              AND e.enrol = :wallet
-              AND c.visible = 1
-              AND (e.cost = 0 OR $notempty)";
+                From {course} c
+                JOIN {enrol} e ON e.courseid = c.id
+                WHERE e.status = :stat
+                  AND (e.enrolstartdate < :time1 OR e.enrolstartdate = 0)
+                  AND (e.enrolenddate > :time2 OR e.enrolenddate = 0)
+                  AND e.enrol = :wallet
+                  AND c.visible = 1
+                  AND (e.cost = 0 OR $notempty)
+                ORDER BY c.timecreated DESC";
         $params = [
             'stat' => ENROL_INSTANCE_ENABLED,
             'time1' => time(),
