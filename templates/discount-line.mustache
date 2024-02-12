@@ -27,13 +27,15 @@
                         "discount": "15%",
                         "condition": "> 150 EGP",
                         "percent": "12",
-                        "order": "2"
+                        "order": "2",
+                        "color": "135"
                     },
                     {
                         "discount": "20%",
                         "condition": "> 250 EGP",
                         "percent": "18",
-                        "order": "3"
+                        "order": "3",
+                        "color": "200"
                     }
 
                 ]
@@ -57,7 +59,7 @@
                         }}width:calc(100% - {{percent}}%);{{!
                         }}height: 100%;{{!
                         }}z-index:{{order}};{{!
-                        }}background-color: color(srgb calc(1 - ({{order}}/10)) calc(1 - ({{order}}/10)) 1);"></span>
+                        }}background-color: rgb({{color}} {{color}} 255);"></span>
         {{/ discounts}}
         </div>
     {{/ data}}

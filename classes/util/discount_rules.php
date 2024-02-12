@@ -52,7 +52,7 @@ class discount_rules {
             $select .= $catselect;
             $params += $catparams;
         } else {
-            $select .= ' AND (IS NULL category OR category = 0)';
+            $select .= ' AND (category IS NULL OR category = 0)';
         }
         return $DB->get_records_select('enrol_wallet_cond_discount', $select, $params, 'cond DESC, percent DESC');
     }
@@ -85,9 +85,9 @@ class discount_rules {
             $i++;
             // This element only used to pass the values to js code.
             $discountrule = (object)[
-                'discount' => $record->percent / 100,
+                'discount'  => $record->percent / 100,
                 'condition' => $record->cond,
-                'category' => $record->category ?? 0,
+                'category'  => $record->category ?? 0,
             ];
             $mform->addElement('hidden', 'discount_rule_'.$i);
             $mform->setType('discount_rule_'.$i, PARAM_TEXT);
@@ -244,6 +244,7 @@ class discount_rules {
             $discounts[$id] = new \stdClass;
             $discounts[$id]->percent = $record->cond / $maxcondition * 100;
             $discounts[$id]->order = (int)round((float)$record->cond / $maxcondition * 10);
+            $discounts[$id]->color = (int)round((1 - ((float)$record->cond / $maxcondition)) * 255);
             $discounts[$id]->condition = '>' . format_float($record->cond, 2) . " $currency";
             $discounts[$id]->discount = format_float($record->percent, 2) . '%';
         }
