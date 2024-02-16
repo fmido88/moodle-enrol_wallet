@@ -495,7 +495,8 @@ function enrol_wallet_display_topup_options() {
         // Display options to charge with coupons or other payment methods.
         $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
         $topupform = new \enrol_wallet\form\topup_form($topupurl, $data);
-        $render .= $topupform->render();
+        $rules = discount_rules::get_the_discount_line(-1);
+        $render .= enrol_wallet_topup_option($rules . $topupform->render(), get_string('topupbypayment', 'enrol_wallet'));
     }
 
     // Check if fixed coupons enabled.
@@ -511,24 +512,17 @@ function enrol_wallet_display_topup_options() {
             enrol_wallet_process_coupon_data($submitteddata);
         }
 
-        $render .= $couponform->render();
+        $render .= enrol_wallet_topup_option($couponform->render(), get_string('topupbycoupon', 'enrol_wallet'));
     }
 
     // If plugin block_vc exist, add credit options by it.
     if (file_exists("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php")
-            && get_config('block_vc', 'enablecredit')) {
+            && (bool)get_config('block_vc', 'enablecredit')) {
 
         require_once("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php");
         $vcform = new \block_vc\form\vc_credit_form($CFG->wwwroot.'/blocks/vc/credit.php');
 
-        $render .= $OUTPUT->box($vcform->render());
-
-        // This code make the container collapsed at the load of the page, where setExpanded not working.
-        $jscode = "
-            var vcContainer = document.getElementById('id_vccreditcontainer');
-            vcContainer.setAttribute('class', 'fcontainer collapseable collapse');
-        ";
-        $PAGE->requires->js_init_code($jscode, true);
+        $render .= enrol_wallet_topup_option($vcform->render(), get_string('topupbyvc', 'enrol_wallet'));
     }
 
     // Display teller men (user with capabilities to credit and choosen in the settings to be displayed).
@@ -536,24 +530,22 @@ function enrol_wallet_display_topup_options() {
     if (!empty($tellermen)) {
         require_once($CFG->dirroot.'/user/lib.php');
         $chargerids = explode(',', $tellermen);
-        $render .= $OUTPUT->box_start();
-        $render .= $OUTPUT->heading(get_string('tellermen_display_guide', 'enrol_wallet'), 6);
-        $render .= html_writer::start_tag('ul');
+        $tm = $OUTPUT->box_start();
+        $tm .= $OUTPUT->heading(get_string('tellermen_display_guide', 'enrol_wallet'), 6);
+        $tm .= html_writer::start_tag('ul');
         foreach ($chargerids as $tellerid) {
             $teller = core_user::get_user($tellerid);
             $tellername = fullname($teller);
             if (user_can_view_profile($teller)) {
                 $tellername = html_writer::link(new moodle_url('/user/view.php', ['id' => $tellerid]), $tellername);
             }
-            $render .= html_writer::tag('li', $tellername);
+            $tm .= html_writer::tag('li', $tellername);
         }
-        $render .= html_writer::end_tag('ul');
-        $render .= $OUTPUT->box_end();
+        $tm .= html_writer::end_tag('ul');
+        $tm .= $OUTPUT->box_end();
+        $render .= enrol_wallet_topup_option($tm, get_string('topupbytellerman', 'enrol_wallet'));
     }
 
-    if (!empty($render)) {
-        $render = discount_rules::get_the_discount_line(-1) . $render;
-    }
     // Display the manual refund policy.
     $policy = get_config('enrol_wallet', 'refundpolicy');
     if (!empty($policy) && !empty($render)) {
@@ -567,6 +559,7 @@ function enrol_wallet_display_topup_options() {
         $data = new stdClass;
         $data->policy = $policy;
         $data->id     = $id;
+        $data->topup  = true;
         $warn .= $OUTPUT->render_from_template('enrol_wallet/manualpolicy', $data);
 
         // Agree checkbox, the whole topping up options hidden until the user check the box.
@@ -580,29 +573,31 @@ function enrol_wallet_display_topup_options() {
         $box = $OUTPUT->box_start('enrol_wallet_topup_options generalbox', 'enrol_wallet_topup_box_'.$id, $attr);
         $render = $warn . $box . $render;
         $render .= $OUTPUT->box_end();
-
-        // JS code to Hide/Show topping up options.
-        $jscode = "
-            var walletPolicyAgreed = document.getElementById('wallet_topup_policy_confirm_$id');
-            walletPolicyAgreed.addEventListener('change', function() {
-                var topUpBox = document.getElementById('enrol_wallet_topup_box_$id');
-                if (walletPolicyAgreed.checked == true) {
-                    topUpBox.style.display = 'block';
-                } else {
-                    topUpBox.style.display = 'none';
-                }
-            })
-        ";
-        $PAGE->requires->js_init_code($jscode);
     }
 
     if (!empty($render)) {
-        return $OUTPUT->box($render);
+        return $OUTPUT->box($render, 'generalbox enrol_wallet_topup');
     } else {
         return '';
     }
 }
-
+/**
+ * Add the top up option to accordion element.
+ * @param string $content the content of accordion
+ * @param string $label
+ * @return string
+ */
+function enrol_wallet_topup_option($content, $label) {
+    static $i = 0;
+    $chked = empty($i) ? 1 : null;
+    $out = html_writer::start_div('accordion');
+    $radio = html_writer::tag('input', '', ['type' => 'radio', 'name' => 'radio', 'id' => 'topup_radio_'.$i, 'checked' => $chked]);
+    $out .= html_writer::label("$label".$radio, 'topup_radio_'.$i, true, ['class' => 'accordion__title']);
+    $out .= html_writer::div($content, 'accordion__text');
+    $out .= html_writer::end_div();
+    $i++;
+    return $out;
+}
 /**
  * Check the payment account id if it is valid or not.
  *

@@ -50,6 +50,10 @@ class balance_op_test extends \advanced_testcase {
         $user2 = $this->getDataGenerator()->create_user();
         $user3 = $this->getDataGenerator()->create_user();
         $user4 = $this->getDataGenerator()->create_user();
+        $user5 = $this->getDataGenerator()->create_user();
+
+        $cat1 = $this->getDataGenerator()->create_category();
+
         $this->setAdminUser();
         global $USER;
         $now = time();
@@ -57,6 +61,16 @@ class balance_op_test extends \advanced_testcase {
         $params = [
             'cond' => 400,
             'percent' => 15,
+            'timecreated' => $now,
+            'timemodified' => $now,
+            'usermodified' => $USER->id,
+        ];
+        $DB->insert_record('enrol_wallet_cond_discount', $params);
+
+        $params = [
+            'cond' => 200,
+            'percent' => 15,
+            'category' => $cat1->id,
             'timecreated' => $now,
             'timemodified' => $now,
             'usermodified' => $USER->id,
@@ -101,16 +115,24 @@ class balance_op_test extends \advanced_testcase {
         ];
         $DB->insert_record('enrol_wallet_cond_discount', $params);
 
-        transactions::payment_topup(200, $user1->id);
+        $op = new balance_op($user1->id);
+        $op->credit(200);
+
         // The user tries to pay 500, this is the number passes to the function.
         $extra2 = 500 * 0.15;
-        transactions::payment_topup(500 * 0.85, $user2->id);
+        $op = new balance_op($user2->id);
+        $op->credit(500 * 0.85);
 
         $extra3 = 700 * 0.2;
-        transactions::payment_topup(700 * 0.8, $user3->id);
+        $op = new balance_op($user3->id);
+        $op->credit(700 * 0.8);
 
         $extra4 = 1000 * 0.25;
-        transactions::payment_topup(1000 * 0.75, $user4->id);
+        $op = new balance_op($user4->id);
+        $op->credit(1000 * 0.75);
+
+        $op = new balance_op($user5->id, $cat1->id);
+        $op->credit(400 * 0.85);
 
         $balance = new balance($user1->id);
         $balance1 = $balance->get_total_balance();
@@ -148,6 +170,17 @@ class balance_op_test extends \advanced_testcase {
         $this->assertEquals($extra4, $norefund4);
         $this->assertEquals($extra4, $free4);
 
+        $balance = new balance($user5->id);
+        $this->assertEquals(400, $balance->get_total_balance());
+        $this->assertEquals(0, $balance->get_main_balance());
+        $this->assertEquals(0, $balance->get_valid_balance());
+        $this->assertEquals(400 * 0.15, $balance->get_total_nonrefundable());
+        $this->assertEquals(400 * 0.15, $balance->get_total_free());
+
+        $balance = new balance($user5->id, $cat1->id);
+        $this->assertEquals(400, $balance->get_valid_balance());
+        $this->assertEquals(400 * 0.15, $balance->get_valid_nonrefundable());
+        $this->assertEquals(400 * 0.15, $balance->get_valid_free());
     }
 
     /**

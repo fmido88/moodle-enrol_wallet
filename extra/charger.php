@@ -116,8 +116,7 @@ if ($submit) {
                 $msg = get_string('confirm_credit', 'enrol_wallet', $a);
                 list($extra, $condition) = enrol_wallet\util\discount_rules::get_the_rest($data['value'], $data['category']);
                 if (!empty($extra)) {
-                    $a = ['extra' => $extra, 'condition' => $condition];
-                    $msg .= '<br>'.get_string('confirm_additional_credit', 'enrol_wallet', $a);
+                    $msg .= '<br>'.get_string('confirm_additional_credit', 'enrol_wallet', $extra);
                 }
                 break;
             default:

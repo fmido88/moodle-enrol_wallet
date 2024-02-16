@@ -45,22 +45,24 @@
 }}
 <div class="enrol-wallet-discounts-container">
     {{# data}}
-        <div class="discount-line" data-catid="{{catid}}">
-        {{{heading}}}
-        {{# discounts}}
-            <div class="rule-container" style="left:{{percent}}%">
-                <h5>{{discount}}</h5>
-                <p class="condition">
-                    {{condition}}
-                </p>
+        <div class="discount-cat-container" data-catid="{{catid}}">
+            {{{heading}}}
+            <div class="discount-line">
+            {{# discounts}}
+                <div class="rule-container" style="left:{{percent}}%;">
+                    <h5 class="discount-percent">{{discount}}</h5>
+                    <p class="condition">
+                        {{condition}}
+                    </p>
+                </div>
+                <span style="left:{{percent}}%;{{!
+                            }}position:absolute;{{!
+                            }}width:calc(100% - {{percent}}%);{{!
+                            }}height: 100%;{{!
+                            }}z-index:{{order}};{{!
+                            }}background-color: rgb({{color}} {{color}} 255);"></span>
+            {{/ discounts}}
             </div>
-            <span style="left:{{percent}}%;{{!
-                        }}position:absolute;{{!
-                        }}width:calc(100% - {{percent}}%);{{!
-                        }}height: 100%;{{!
-                        }}z-index:{{order}};{{!
-                        }}background-color: rgb({{color}} {{color}} 255);"></span>
-        {{/ discounts}}
         </div>
     {{/ data}}
 </div>

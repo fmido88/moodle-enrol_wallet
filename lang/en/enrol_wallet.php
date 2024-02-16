@@ -142,7 +142,7 @@ $string['confirmedit'] = 'Confirm edit';
 $string['confirmpayment'] = 'Confirm payment of {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
 $string['confirmpayment_discounted'] = 'Confirm payment of <del>{$a->before} {$a->currency}</del> {$a->value} {$a->currency}. Note that: press yes means that you have agreed to refund policy.<br> {$a->policy}';
 $string['confirm_additional_credit'] = '<strong> With addition to {$a} due to conditional discount.</strong>';
-$string['confirm_credit'] = 'You are about to add an amount of {$a->amount} to the user {$a->name} <strong>{$a->category} wallet</strong> who already got a balance of {$a->balance} valid it.';
+$string['confirm_credit'] = 'You are about to add an amount of {$a->amount} to the user {$a->name} <strong>{$a->category} wallet</strong> who already got a balance of {$a->balance} valid in it.';
 $string['confirm_debit'] = 'You are about to deduct an amount of {$a->amount} from the user {$a->name} in the <strong>{$a->category} balance</strong> whose current balance is {$a->balance} valid to be used in {$a->category}. The balance after transaction should be {$a->after}';
 $string['confirm_enrol_confirm'] = 'You are about to get enrolled is the course <strong>{$a->course}</strong>. <br>
 This require a <strong>{$a->cost} {$a->currency}</strong> to be deducted from you balance. <br>
@@ -382,6 +382,7 @@ $string['lowerletters'] = 'lower case';
 
 
 $string['mainbalance'] = 'Main balance: ';
+$string['manualrefundboxlabel'] = 'Check the following box to display the top up options.';
 $string['maxenrolled'] = 'Max enrolled users';
 $string['maxenrolledreached'] = 'Maximum number of users allowed to enrol was already reached.';
 $string['maxenrolled_help'] = 'Specifies the maximum number of users that can enrol. 0 means no limit.';
@@ -607,6 +608,10 @@ $string['tellermen_heading_desc'] = 'All users with capabilities to credit or de
 $string['topup'] = 'topup';
 $string['topupafterdiscount'] = 'Actual payment';
 $string['topupafterdiscount_help'] = 'The amount after discount.';
+$string['topupbycoupon'] = 'Using Coupons';
+$string['topupbypayment'] = 'Using Payment';
+$string['topupbytellerman'] = 'Manually from ourside';
+$string['topupbyvc'] = 'Using transfer to mobile wallet or instapay';
 $string['topupcoupon_desc'] = 'by coupon code {$a}';
 $string['topupoffers'] = 'Wallet Topping Up offers';
 $string['topupoffers_desc'] = 'By topping up your wallet by one or greater than the given values you will be discounted by the specified amount and only have to pay less than this amount by this percentage value.';

@@ -36,6 +36,9 @@
         {{/ policy}}
     </div>
     <div id="enrol_wallet_transactions-policy-{{{id}}}" class="transactions-policy" style="display:none;">{{{policy}}}</div><br>
+    {{#topup}}
+        <h6 style="color:#9f0f0f;"> &#8595; {{# str }} manualrefundboxlabel, enrol_wallet {{/ str }}</h6>
+    {{/topup}}
 </div>
 
 
@@ -49,4 +52,15 @@
             policy.style.display = "none";
         }
     });
+    {{#topup}}
+    var walletPolicyAgreed = document.getElementById('wallet_topup_policy_confirm_{{id}}');
+    walletPolicyAgreed.addEventListener('change', function() {
+        var topUpBox = document.getElementById('enrol_wallet_topup_box_{{id}}');
+        if (walletPolicyAgreed.checked == true) {
+            topUpBox.style.display = 'block';
+        } else {
+            topUpBox.style.display = 'none';
+        }
+    });
+    {{/topup}}
 {{/js}}

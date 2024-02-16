@@ -67,15 +67,19 @@ $string['bulk_instancesyes'] = 'تم تحديث نسخ التسجيل {$a->updat
 
 $string['cachedef_balance'] = 'تخزين بيانات عن رصيد المستخدم';
 $string['cachedef_coupon'] = 'تخزين بيانات عن الكوبونات';
+$string['cachedef_offers'] = 'Offers cache data';
 $string['cannotdeductbalance'] = 'لا يمكن خصم الرصيد بسبب حدوث خطأ. الرجاء المحاولة مرة أخرى وإذا كانت المشكلة لا تزال موجودة، فاتصل بدعم الموقع.';
 $string['canntenrol'] = 'التسجيل معطل أو غير نشط';
 $string['canntenrolearly'] = 'لا يمكنك التسجيل بعد؛ يبدأ التسجيل في {$a}.';
 $string['canntenrollate'] = 'لا يمكنك التسجيل بعد الآن، منذ انتهاء التسجيل في {$a}.';
+$string['cashback'] = 'كاشباك';
 $string['cashbackdesc'] = 'تمت الإضافة عن طريق الاسترداد النقدي بسبب التسجيل في {$a}';
 $string['cashbackenable'] = 'تمكين الاسترداد النقدي';
 $string['cashbackenable_desc'] = 'عندما يتم تمكين هذا، سيحصل الطالب على نسبة مئوية من مبلغ الاسترداد النقدي في كل مرة يستخدم فيها المحفظة لشراء مقرر تدريبية.';
 $string['cashbackpercent'] = 'النسبة المئوية لمبلغ الاسترداد النقدي';
 $string['cashbackpercent_help'] = 'النسبة المئوية للمبلغ المسترد للمحفظة من المبلغ المدفوع بواسطة رصيد المحفظة.';
+$string['cashback_desc'] = 'سوف تحصل على {$a}% كاشباك لكل مرة تشتري محاضرة بإستخدام المحفظة.';
+$string['catbalance'] = 'رصيد الفئات';
 $string['categorycoupon'] = 'كوبون الفئة';
 $string['categorycoupondisabled'] = 'كوبونات الفئات غير مفعلة.';
 $string['category_options'] = 'الفئة';
@@ -234,6 +238,7 @@ $string['coursesrestriction'] = 'قيد آخر للمقرر';
 $string['coursesrestriction_help'] = 'فقط المستخدمين المسجلين في أكثر من أو يساوي العدد المطلوب من المقررات المحددة يمكنهم شراء هذه المقرر.';
 $string['coursesrestriction_num'] = 'عدد المقررات المطلوبة';
 $string['coursesrestriction_num_help'] = 'اختر الحد الأدنى من المقررات المطلوبة التي يجب على المستخدم تسجيلها لشراء هذه المقرر باستخدام هذا المثال.';
+$string['courseswithdiscounts'] = 'محاضرات بها عروض خصم';
 $string['courses_options'] = 'المقررات';
 $string['courses_options_help'] = 'اختر المقررات لتسجيل المستخدم مباشرة باستخدام هذه الكوبونات.';
 $string['createdfrom'] = 'تم الإنشاء بعد';
@@ -272,7 +277,9 @@ $string['defaultrole'] = 'تعيين الدور الافتراضي';
 $string['defaultrole_desc'] = 'اختر الدور الذي يجب تعيينه للمستخدمين أثناء التسجيل';
 $string['deleteselectedusers'] = 'حذف تسجيلات المستخدم المحدد';
 $string['digits'] = 'أرقام (أرقام)';
+$string['discount'] = 'خصم';
 $string['discountcoupondisabled'] = 'كوبونات الخصم معطلة في هذا الموقع.';
+$string['discounts'] = 'خصومات';
 $string['discountscopouns'] = 'الخصومات والكوبونات';
 $string['discountscopouns_desc'] = 'اختر ما إذا كنت تريد تطبيق نسبة الخصومات على المستخدمين باستخدام حقل ملف تعريف مخصص. <br>
 وأيضًا، تطبيق كوبونات لهذا البرنامج المساعد.';
@@ -331,6 +338,7 @@ $string['filter_coupons'] = 'كوبونات التصفية';
 $string['filter_transaction'] = 'معاملات التصفية';
 $string['fixedcoupondisabled'] = 'الكوبونات ذات القيمة الثابتة معطلة في هذا الموقع.';
 $string['fixedvaluecoupon'] = 'كوبون ذات قيمة ثابتة';
+$string['freecourses'] = 'مقررات مجانية';
 
 
 $string['giftdesc'] = 'مستخدم جديد بالمعرف {$a->userid} في {$a->time} حصل على هدية بقيمة {$a->amount} في محفظته.';
@@ -410,6 +418,19 @@ $string['notrefund'] = ' غير قابل للاسترداد (إضافي): ';
 $string['not_set'] = 'غير محدد';
 
 
+$string['offers'] = 'عروض';
+$string['offers_ce_desc'] = '{$a->discount}% خصم إنت كنت بالفعل مشترك في  {$a->condition} من هذه المقررات:<br> {$a->courses}';
+$string['offers_course_enrol_based'] = 'خصم مبني على الإشتراك في مقررات أخرى';
+$string['offers_nc_desc'] = '{$a->discount}% خصم إن كنت بالفعل مشترك في عدد {$a->number} مقررات لنفس الفئة {$a->catname}';
+$string['offers_pfop_contains'] = 'يحتوي على';
+$string['offers_pfop_doesnotcontain'] = 'لا يحتوي على';
+$string['offers_pfop_endswith'] = 'يتنهي بـ';
+$string['offers_pfop_isempty'] = 'فارغ';
+$string['offers_pfop_isequalto'] = 'يساوي';
+$string['offers_pfop_isnotempty'] = 'غير فارغ';
+$string['offers_pfop_startswith'] = 'يبدأ بـ';
+$string['offers_pf_desc'] = '{$a->discount}% خصم إن كانت خانة الملف الشخصي {$a->field} {$a->op} "{$a->value}"';
+$string['offers_time_desc'] = '{$a->discount}% خصم إن إشتركت في الكورس في الفترة من {$a->from} إلى {$a->to}';
 $string['othercourserestriction'] = 'غير قادر على تسجيل نفسك في هذه المقرر إلا إذا كنت مسجلاً في هذه المقررات {$a}';
 
 
@@ -506,7 +527,13 @@ $string['tellermen_heading'] = 'أمناء الخزنة';
 $string['topup'] = 'اشحن رصيدك';
 $string['topupafterdiscount'] = 'الدفع الفعلي';
 $string['topupafterdiscount_help'] = 'المبلغ بعد الخصم.';
+$string['topupbycoupon'] = 'بإستخدام الكوبونات (الأكواد)';
+$string['topupbypayment'] = 'دفع مباشر';
+$string['topupbytellerman'] = 'يدويا عن طريقنا';
+$string['topupbyvc'] = 'عن طريق التحويل لمحافظ الموبايلات أو إنسناباي';
 $string['topupcoupon_desc'] = 'بواسطة رمز الكوبون {$a}';
+$string['topupoffers'] = 'عروض شحن المحفظة';
+$string['topupoffers_desc'] = 'إن شحنت المحفظة بأحد القيم المتاحة أو أكثر منها, فإنك شوف تحصل على الخصم المتاح وستدفع فقط قيمة أقل من المفترض.';
 $string['topuppayment_desc'] = 'تعبئة المحفظة عن طريق دفع {$a} باستخدام بوابة الدفع.';
 $string['topupvalue'] = 'قيمة الشحن';
 $string['topupvalue_help'] = 'قيمة تعبئة محفظتك باستخدام طرق الدفع';

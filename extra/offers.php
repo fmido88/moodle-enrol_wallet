@@ -88,7 +88,7 @@ if (!empty($config->cashback)) {
 
 if (!empty($config->referral_enabled) && (float)$config->referral_amount > 0) {
     $out .= $OUTPUT->heading(get_string('referral_program', 'enrol_wallet'));
-    $url = new moodle_url('/enrol/wallet/referral.php');
+    $url = new moodle_url('/enrol/wallet/extra/referral.php');
     $text = get_string('clickhere');
     $link = html_writer::link($url, $text);
     $out .= $OUTPUT->box(get_string('referral_site_desc', 'enrol_wallet') . $link);
