@@ -48,8 +48,8 @@ class discount_rules {
         if (!empty($catid)) {
             $all = core_course_category::get($catid)->get_parents();
             $all[] = $catid;
-            list($catselect, $catparams) = $DB->get_in_or_equal($all, SQL_PARAMS_NAMED);
-            $select .= $catselect;
+            list($catin, $catparams) = $DB->get_in_or_equal($all, SQL_PARAMS_NAMED);
+            $select .= " AND category $catin";
             $params += $catparams;
         } else {
             $select .= ' AND (category IS NULL OR category = 0)';

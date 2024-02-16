@@ -113,6 +113,7 @@ class options {
         foreach ($allcats as $catid => $cat) {
             $catoptions[$catid] = $cat->get_nested_name(false);
         }
+        asort($catoptions, SORT_STRING | SORT_FLAG_CASE);
         return $catoptions;
     }
 
@@ -130,8 +131,8 @@ class options {
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         if (!empty($this->catid)) {
-            list($catselect, $catparams) = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
-            $select .= $catselect;
+            list($in, $catparams) = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
+            $select .= " AND category $in";
             $params += $catparams;
         } else {
             $select .= ' AND (category IS NULL OR category = 0)';
@@ -156,8 +157,8 @@ class options {
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         if (!empty($this->catid)) {
-            list($catselect, $catparams) = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
-            $select .= $catselect;
+            list($in, $catparams) = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
+            $select .= " AND category $in";
             $params += $catparams;
         }
         $select .= ' AND (category IS NULL OR category = 0)';

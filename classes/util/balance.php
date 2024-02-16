@@ -326,6 +326,9 @@ class balance {
 
         if (($details = $cashed->get($this->userid)) && $this->source == self::MOODLE) {
             $this->details = (array)$details;
+            if (!isset($details['recordid'])) {
+                return $this->set_balance_details();
+            }
             $this->recordid = $details['recordid'];
             $this->balance = $details['mainbalance'];
 
@@ -440,7 +443,7 @@ class balance {
      */
     public function get_total_nonrefundable() {
         $this->check();
-        return $this->details['total_nonrefundable'];
+        return $this->details['total_nonrefundable'] ?? 0;
     }
 
     /**
@@ -473,7 +476,7 @@ class balance {
         if (!$this->catenabled) {
             return $this->get_total_nonrefundable();
         }
-        return $this->details['mainnonrefund'];
+        return $this->details['mainnonrefund'] ?? 0;
     }
 
     /**
@@ -485,7 +488,7 @@ class balance {
         if (!$this->catenabled) {
             return $this->get_total_refundable();
         }
-        return $this->details['mainrefundable'];
+        return $this->details['mainrefundable'] ?? 0;
     }
     /**
      * Get the valid balance to be used in the specified category,
