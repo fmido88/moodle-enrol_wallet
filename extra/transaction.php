@@ -25,7 +25,6 @@
 require_once('../../../config.php');
 require_once(__DIR__.'/../lib.php');
 require_once(__DIR__.'/../locallib.php');
-require_once($CFG->libdir.'/tablelib.php');
 require_once($CFG->libdir.'/formslib.php');
 
 global $DB, $USER;

@@ -321,5 +321,32 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024020300, 'enrol', 'wallet');
     }
 
+    if ($oldversion < 2024022500) {
+
+        // Define field bundle to be added to enrol_wallet_cond_discount.
+        $table = new xmldb_table('enrol_wallet_cond_discount');
+        $field = new xmldb_field('bundle', XMLDB_TYPE_NUMBER, '10, 2', null, null, null, null, 'timeto');
+
+        // Conditionally launch add field bundle.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('bundledesc', XMLDB_TYPE_TEXT, null, null, null, null, null, 'bundle');
+
+        // Conditionally launch add field bundledesc.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $field = new xmldb_field('descformat', XMLDB_TYPE_INTEGER, '1', null, null, null, null, 'bundledesc');
+
+        // Conditionally launch add field descformat.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2024022500, 'enrol', 'wallet');
+    }
     return true;
 }

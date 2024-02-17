@@ -946,6 +946,8 @@ class balance_op_test extends \advanced_testcase {
         $user1 = $gen->create_user();
         $user2 = $gen->create_user();
 
+        $cat1 = $gen->create_category();
+
         $enabled = get_config('enrol_wallet', 'transfer_enabled');
         $this->assertEmpty($enabled);
 
@@ -1023,6 +1025,30 @@ class balance_op_test extends \advanced_testcase {
         // Let's start fresh.
         $this->reset_balance($user1->id);
         $this->reset_balance($user2->id);
+
+        set_config('transferpercent', 0, 'enrol_wallet');
+
+        $op = new balance_op($user1->id, $cat1->id);
+        $op->credit(500);
+
+        $this->assertEquals(500, $op->get_cat_balance($cat1->id));
+
+        $data->amount = 150;
+        $op->transfer_to_other($data);
+
+        $this->assertStringContainsString('Sorry, you have insufficient balance for this operation.', $error);
+
+        $data->category = $cat1->id;
+        $msg = $op->transfer_to_other($data);
+
+        $balance = new balance($user1->id, $cat1->id);
+        $this->assertEquals(350, $balance->get_valid_balance(), $msg);
+
+        $balance = new balance($user2->id, $cat1->id);
+        $this->assertEquals(150, $balance->get_valid_balance());
+        $this->assertEquals(0, $balance->get_main_balance());
+        $this->assertEquals(150, $balance->get_valid_nonrefundable());
+        $this->assertEquals(0, $balance->get_valid_free());
     }
 
     /**

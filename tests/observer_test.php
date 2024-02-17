@@ -26,7 +26,7 @@ namespace enrol_wallet;
 use enrol_wallet\observer;
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;
-use enrol_wallet\transactions;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');

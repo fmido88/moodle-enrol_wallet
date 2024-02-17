@@ -406,7 +406,7 @@ function enrol_wallet_process_coupon_data($data) {
  * @return string
  */
 function enrol_wallet_display_coupon_urls() {
-    if (get_config('enrol_wallet', 'walletsource') !== balance::MOODLE) {
+    if (get_config('enrol_wallet', 'walletsource') != balance::MOODLE) {
         return '';
     }
     $context = context_system::instance();
@@ -420,15 +420,15 @@ function enrol_wallet_display_coupon_urls() {
         $render .= html_writer::link($url, get_string('coupon_table', 'enrol_wallet')).'<br>';
 
         $url = new moodle_url('/enrol/wallet/extra/couponusage.php');
-        $render .= html_writer::link($url, get_string('coupon_usage', 'enrol_wallet')).'<br>';
+        $render .= html_writer::link($url, get_string('coupon_usage', 'enrol_wallet'));
 
         if ($cangeneratecoupon) {
             $url = new moodle_url('/enrol/wallet/extra/coupon.php');
-            $render .= html_writer::link($url, get_string('coupon_generation', 'enrol_wallet'));
+            $render .= '<br>' . html_writer::link($url, get_string('coupon_generation', 'enrol_wallet'));
         }
         if ($cangeneratecoupon && $caneditcoupon) {
             $url = new moodle_url('/enrol/wallet/extra/couponupload.php');
-            $render .= html_writer::link($url, get_string('upload_coupons', 'enrol_wallet'));
+            $render .= '<br>' . html_writer::link($url, get_string('upload_coupons', 'enrol_wallet'));
         }
     }
     return $render;
@@ -493,10 +493,13 @@ function enrol_wallet_display_topup_options() {
     if (enrol_wallet_is_valid_account($account)) {
         // If the user don't have capability to charge others.
         // Display options to charge with coupons or other payment methods.
+        $bundles = enrol_wallet\util\discount_rules::bundles_buttons();
+        if (!empty($bundles)) {
+            $render .= enrol_wallet_topup_option($bundles, get_string('bundle_value', 'enrol_wallet'));
+        }
         $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
         $topupform = new \enrol_wallet\form\topup_form($topupurl, $data);
-        $rules = discount_rules::get_the_discount_line(-1);
-        $render .= enrol_wallet_topup_option($rules . $topupform->render(), get_string('topupbypayment', 'enrol_wallet'));
+        $render .= enrol_wallet_topup_option($topupform->render(), get_string('topupbypayment', 'enrol_wallet'));
     }
 
     // Check if fixed coupons enabled.

@@ -22,22 +22,20 @@
         "data": [
             {
                 "heading": "Site",
+                "catid": "0",
                 "discounts": [
                     {
                         "discount": "15%",
                         "condition": "> 150 EGP",
                         "percent": "12",
-                        "order": "2",
                         "color": "135"
                     },
                     {
                         "discount": "20%",
                         "condition": "> 250 EGP",
                         "percent": "18",
-                        "order": "3",
                         "color": "200"
                     }
-
                 ]
             }
         ]
@@ -45,22 +43,18 @@
 }}
 <div class="enrol-wallet-discounts-container">
     {{# data}}
+        <hr>
         <div class="discount-cat-container" data-catid="{{catid}}">
             {{{heading}}}
             <div class="discount-line">
             {{# discounts}}
-                <div class="rule-container" style="left:{{percent}}%;">
+                <div class="rule-container" style="width:{{percent}}%;{{!
+                                                    }}border-bottom-color: rgb({{color}} {{color}} 255);">
                     <h5 class="discount-percent">{{discount}}</h5>
                     <p class="condition">
                         {{condition}}
                     </p>
                 </div>
-                <span style="left:{{percent}}%;{{!
-                            }}position:absolute;{{!
-                            }}width:calc(100% - {{percent}}%);{{!
-                            }}height: 100%;{{!
-                            }}z-index:{{order}};{{!
-                            }}background-color: rgb({{color}} {{color}} 255);"></span>
             {{/ discounts}}
             </div>
         </div>

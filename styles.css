@@ -13,13 +13,29 @@
     font-variant-caps: all-small-caps;
     text-align: center;
 }
+
 .enrol-wallet-balance-details {
     display: flex;
     align-items: stretch;
     justify-content: center;
-    align-content: stretch;
+    align-content: center;
     flex-wrap: wrap;
     gap: 10px;
+    flex-direction: column;
+}
+
+.enrol-wallet-cat-balance {
+    border: solid 2px #a3a3a3;
+    border-radius: 15px;
+    padding: 5px;
+    margin: 0 5px;
+}
+
+.enrol-wallet-administration {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-evenly;
 }
 
 .enrol_wallet_offer {
@@ -61,10 +77,54 @@
     justify-content: center;
     align-items: center;
 }
-
 .enrol-wallet-inner-offer {
     width: max-content;
     margin: 25%;
+}
+.enrol-wallet-bundle-button {
+    padding: 0;
+    height: 100%;
+    background: linear-gradient(153deg, rgba(255, 203, 203, 1) 5%, rgba(254, 255, 119, 1) 43%, rgba(190, 186, 255, 1) 100%);
+}
+.enrol-wallet-bundle-button:hover {
+    background: linear-gradient(333deg, rgba(255, 203, 203, 1) 5%, rgba(254, 255, 119, 1) 43%, rgba(190, 186, 255, 1) 100%);
+}
+.enrol-wallet-bundles {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-content: center;
+    align-items: stretch;
+}
+.enrol-wallet-ribbon {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    border: dashed 3px #cb3737;
+    border-radius: inherit;
+}
+.enrol-wallet-ribbon .bundle-inner {
+    padding: 24px 39px 0 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.enrol-wallet-ribbon span {
+    width: 40%;
+    height: min-content;
+    top: 5%;
+    right: -13%;
+    position: absolute;
+    display: block;
+    background: #cb3737;
+    font-size: 140%;
+    color: #fff;
+    text-align: center;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
 }
 
 @media (min-width: 768px) {
@@ -101,37 +161,29 @@
 
 .enrol-wallet-discounts-container .discount-line {
     display: flex;
-    position: relative;
-    flex-direction: row;
+    flex-direction: row-reverse;
     flex-wrap: nowrap;
     align-items: flex-end;
     height: 12px;
-    margin-top: 75px;
+    margin-top: 86px;
     background-color: white;
     border-color: black;
     border-style: outset;
     border-radius: 15px;
 }
+
 .enrol-wallet-discounts-container .discount-line .rule-container {
-    position: absolute;
     border-left: 1px solid #000;
-    font-size: 1em;
-}
-.enrol-wallet-discounts-container .discount-line .rule-container .discount-percent {
-    font-size: 1.1em;
-}
-.enrol-wallet-discounts-container .discount-cat-container {
-    margin-top: 10px;
+    /* text-wrap: nowrap; */
+    border-bottom-style: solid;
+    border-bottom-width: 7px;
 }
 
-@media screen and (max-width: 600px) {
-    .enrol-wallet-discounts-container .discount-line .rule-container .discount-percent {
-        font-size: 1em;
-    }
-    .enrol-wallet-discounts-container .discount-line .rule-container {
-        max-width: min-content;
-        font-size: 0.8em;
-    }
+.enrol-wallet-discounts-container .discount-cat-container {
+    margin-top: 10px;
+    min-width: fit-content;
+    max-width: 100%;
+    overflow-x: auto;
 }
 
 .enrol_wallet_topup .accordion .accordion__title {
@@ -153,7 +205,6 @@
 }
 
 .enrol_wallet_topup .accordion .accordion__title:after {
-    /* font-family: "Font Awesome 5 Free"; */
     text-transform: unset;
     transition: all 0.25s ease;
     font-weight: 900;
@@ -169,7 +220,6 @@
 }
 
 .enrol_wallet_topup .accordion .accordion__title:has(input:checked):after {
-    /* font-family: "Font Awesome 5 Free"; */
     font-weight: 900;
     content: '\2B9F';
     float: right;

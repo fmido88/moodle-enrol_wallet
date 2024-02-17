@@ -42,28 +42,14 @@ $PAGE->set_title($title);
 $PAGE->set_heading($title);
 $PAGE->set_url($url);
 
-$mform = new \enrol_wallet\form\transfer_form();
+ob_start();
 
-if ($data = $mform->get_data()) {
+enrol_wallet\pages::process_transfer_page($url);
 
-    $catid  = $data->category;
-    $op = new enrol_wallet\util\balance_op(0, $catid);
+$form = ob_get_clean();
 
-    $msg = $op->transfer_to_other($data, $mform);
-    if (stristr($msg, 'error')) {
-        $type = 'error';
-    } else {
-        $type = 'success';
-    }
-    // All done.
-    redirect($url, $msg, null, $type);
+echo $OUTPUT->header();
 
-} else {
+echo $form;
 
-    echo $OUTPUT->header();
-
-    $mform->display();
-
-    echo $OUTPUT->footer();
-}
-
+echo $OUTPUT->footer();

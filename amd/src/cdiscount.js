@@ -23,171 +23,172 @@
 /* eslint-disable camelcase */
 import {get_string} from 'core/str';
 
-let form;
-let valueInput;
-let opInput;
-let categoryInput;
-let valueAfterInput;
-let chargingLabel = '';
-let calculateValueHolder;
-let rules = [];
+export const init = (formid, formType) => {
 
-/**
- * For the charger form.
- * calculate the actual charge value and display it.
- */
-function calculateCharge() {
-    var value = parseFloat(valueInput.value);
-    var op = opInput.value;
-    var cat = parseInt(categoryInput.value);
+    let form;
+    let valueInput;
+    let opInput;
+    let categoryInput;
+    let valueAfterInput;
+    let chargingLabel = '';
+    let calculateValueHolder;
+    let rules = [];
 
-    var maxDiscount = 0;
-    var calculatedValue = value;
-    for (var i = 0; i < rules.length; i++) {
-        var category = rules[i].category;
-        if (category !== cat) {
-            continue;
+    /**
+     * For the charger form.
+     * calculate the actual charge value and display it.
+     */
+    function calculateCharge() {
+        var value = parseFloat(valueInput.value);
+        var op = opInput.value;
+        var cat = parseInt(categoryInput.value);
+
+        var maxDiscount = 0;
+        var calculatedValue = value;
+        for (var i = 0; i < rules.length; i++) {
+            var category = rules[i].category;
+            if (category !== cat) {
+                continue;
+            }
+            var discount = rules[i].discount;
+            var condition = rules[i].condition;
+            var valueBefore = value + (value * discount / (1 - discount));
+
+            if (valueBefore >= condition && discount > maxDiscount) {
+                maxDiscount = discount;
+                calculatedValue = valueBefore;
+            }
         }
-        var discount = rules[i].discount;
-        var condition = rules[i].condition;
-        var valueBefore = value + (value * discount / (1 - discount));
 
-        if (valueBefore >= condition && discount > maxDiscount) {
-            maxDiscount = discount;
-            calculatedValue = valueBefore;
-        }
-    }
-
-    if (op == "credit") {
-        calculateValueHolder.innerHTML = chargingLabel + Math.round(calculatedValue * 100) / 100;
-        calculateValueHolder.style.display = '';
-    } else {
-        calculateValueHolder.innerHTML = "";
-        calculateValueHolder.style.display = 'none';
-    }
-}
-
-/**
- * Add listeners for the inputs of charger form.
- */
-function addListenersChargerForm() {
-    valueInput.addEventListener('change', () => {
-        calculateCharge();
-    });
-    valueInput.addEventListener('keyup', () => {
-        calculateCharge();
-    });
-    opInput.addEventListener('change', () => {
-        calculateCharge();
-    });
-    categoryInput.addEventListener('change', () => {
-        calculateCharge();
-    });
-}
-
-/**
- * Continue the procedure of the charger form.
- */
-function proceedChargerForm() {
-    calculateValueHolder = form.querySelector("[data-holder=calculated-value]");
-    opInput = form.querySelector("[name=op]");
-    addListenersChargerForm();
-    get_string('charging_value', 'enrol_wallet').done((data) => {
-        chargingLabel = data;
-    });
-}
-
-/**
- * Calculate the value after discount and put it in the discounted input.
- */
-function calculateAfter() {
-    var value = parseFloat(valueInput.value);
-    var cat = parseInt(categoryInput.value);
-    var maxDiscount = 0;
-    for (var i = 0; i < rules.length; i++) {
-        var category = rules[i].category;
-        if (category !== cat) {
-            continue;
-        }
-        var discount = rules[i].discount;
-        var condition = rules[i].condition;
-
-        if (value >= condition && discount > maxDiscount) {
-            maxDiscount = discount;
+        if (op == "credit") {
+            calculateValueHolder.innerHTML = chargingLabel + Math.round(calculatedValue * 100) / 100;
+            calculateValueHolder.style.display = '';
+        } else {
+            calculateValueHolder.innerHTML = "";
+            calculateValueHolder.style.display = 'none';
         }
     }
 
-    var calculatedValue = value - (value * maxDiscount);
-    valueAfterInput.value = calculatedValue;
-}
-
-/**
- * Calculate the value before the discount and put it in the value input.
- */
-function calculateBefore() {
-    var value = parseFloat(valueAfterInput.value);
-    var cat = parseInt(categoryInput.value);
-    var maxDiscount = 0;
-    for (var i = 0; i < rules.length; i++) {
-        var category = rules[i].category;
-        if (category !== cat) {
-            continue;
-        }
-        var discount = rules[i].discount;
-        var condition = rules[i].condition;
-
-        var valueBefore = value / (1 - discount);
-        if (valueBefore >= condition && discount > maxDiscount) {
-            maxDiscount = discount;
-        }
+    /**
+     * Add listeners for the inputs of charger form.
+     */
+    function addListenersChargerForm() {
+        valueInput.addEventListener('change', () => {
+            calculateCharge();
+        });
+        valueInput.addEventListener('keyup', () => {
+            calculateCharge();
+        });
+        opInput.addEventListener('change', () => {
+            calculateCharge();
+        });
+        categoryInput.addEventListener('change', () => {
+            calculateCharge();
+        });
     }
 
-    var realValueBefore = value / (1 - maxDiscount);
-    valueInput.value = realValueBefore;
-}
-/**
- * Hide discount rule for non-selected category.
- */
-function hideElse() {
-    let container = document.getElementsByClassName('enrol-wallet-discounts-container');
+    /**
+     * Continue the procedure of the charger form.
+     */
+    function proceedChargerForm() {
+        calculateValueHolder = form.querySelector("[data-holder=calculated-value]");
+        opInput = form.querySelector("[name=op]");
+        addListenersChargerForm();
+        get_string('charging_value', 'enrol_wallet').done((data) => {
+            chargingLabel = data;
+        });
+    }
 
-    let cat = parseInt(categoryInput.value);
-    for (let i = 0; i < container.length; i++) {
-        let children = container[i].children;
+    /**
+     * Calculate the value after discount and put it in the discounted input.
+     */
+    function calculateAfter() {
+        var value = parseFloat(valueInput.value);
+        var cat = parseInt(categoryInput.value);
+        var maxDiscount = 0;
+        for (var i = 0; i < rules.length; i++) {
+            var category = rules[i].category;
+            if (category !== cat) {
+                continue;
+            }
+            var discount = rules[i].discount;
+            var condition = rules[i].condition;
 
-        for (let x = 0; x < children.length; x++) {
-            let catid = children[x].getAttribute('data-catid');
-            if (catid == cat) {
-                children[x].style.display = '';
-            } else {
-                children[x].style.display = 'none';
+            if (value >= condition && discount > maxDiscount) {
+                maxDiscount = discount;
+            }
+        }
+
+        var calculatedValue = value - (value * maxDiscount);
+        valueAfterInput.value = calculatedValue;
+    }
+
+    /**
+     * Calculate the value before the discount and put it in the value input.
+     */
+    function calculateBefore() {
+        var value = parseFloat(valueAfterInput.value);
+        var cat = parseInt(categoryInput.value);
+        var maxDiscount = 0;
+        for (var i = 0; i < rules.length; i++) {
+            var category = rules[i].category;
+            if (category !== cat) {
+                continue;
+            }
+            var discount = rules[i].discount;
+            var condition = rules[i].condition;
+
+            var valueBefore = value / (1 - discount);
+            if (valueBefore >= condition && discount > maxDiscount) {
+                maxDiscount = discount;
+            }
+        }
+
+        var realValueBefore = value / (1 - maxDiscount);
+        valueInput.value = realValueBefore;
+    }
+    /**
+     * Hide discount rule for non-selected category.
+     */
+    function hideElse() {
+        let container = form.getElementsByClassName('enrol-wallet-discounts-container');
+
+        let cat = parseInt(categoryInput.value);
+        for (let i = 0; i < container.length; i++) {
+            let children = container[i].children;
+
+            for (let x = 0; x < children.length; x++) {
+                let catid = children[x].getAttribute('data-catid');
+                if (catid == cat) {
+                    children[x].style.display = '';
+                } else {
+                    children[x].style.display = 'none';
+                }
             }
         }
     }
-}
-/**
- * Adding event listeners to the top up form.
- */
-function addListenersTopUpForm() {
-    valueInput.onchange = calculateAfter;
-    valueInput.onkeyup = calculateAfter;
-    valueAfterInput.onchange = calculateBefore;
-    valueAfterInput.onkeyup = calculateBefore;
-    categoryInput.addEventListener('change', () => {
-        calculateAfter();
-        hideElse();
-    });
-}
+    /**
+     * Adding event listeners to the top up form.
+     */
+    function addListenersTopUpForm() {
+        valueInput.onchange = calculateAfter;
+        valueInput.onkeyup = calculateAfter;
+        valueAfterInput.onchange = calculateBefore;
+        valueAfterInput.onkeyup = calculateBefore;
+        categoryInput.addEventListener('change', () => {
+            calculateAfter();
+            hideElse();
+        });
+    }
 
-/**
- * Continue the procedure for the top up form.
- */
-function proceedTopUpForm() {
-    valueAfterInput = form.querySelector('[name=value-after]');
-    addListenersTopUpForm();
-}
+    /**
+     * Continue the procedure for the top up form.
+     */
+    function proceedTopUpForm() {
+        valueAfterInput = form.querySelector('[name=value-after]');
+        addListenersTopUpForm();
+    }
 
-export const init = (formid, formType) => {
     form = document.getElementById(formid);
     valueInput = form.querySelector("[name=value]");
     categoryInput = form.querySelector("[name=category]");

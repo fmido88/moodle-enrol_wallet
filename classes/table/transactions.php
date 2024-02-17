@@ -23,6 +23,11 @@
  */
 
 namespace enrol_wallet\table;
+
+defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require_once($CFG->libdir.'/tablelib.php');
+
 use moodle_url;
 use table_sql;
 use core_user;
@@ -56,9 +61,9 @@ class transactions extends table_sql {
      * Creates a transaction table.
      *
      * @param int $uniqueid all tables have to have a unique id.
-     * @param stdClass $filterdata The data passed from the filtration form.
+     * @param stdClass|null $filterdata The data passed from the filtration form.
      */
-    public function __construct($uniqueid, $filterdata) {
+    public function __construct($uniqueid, $filterdata = null) {
         parent::__construct($uniqueid);
         $columnsandheaders = [
             'user'        => get_string('user'),

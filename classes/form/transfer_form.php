@@ -90,7 +90,7 @@ class transfer_form extends \moodleform {
         if ($this->balance->catenabled) {
             $main = $this->balance->get_main_balance();
             $mainbalance = format_string(format_float($main, 2) . ' ' . $currency);
-            $mform->addElement('static', 'mainbalance', get_string('mainbalance', 'enrol_wallet'), $displaybalance);
+            $mform->addElement('static', 'mainbalance', get_string('mainbalance', 'enrol_wallet'), $mainbalance);
 
             $details = $this->balance->get_balance_details();
             if (!empty($details['catbalance'])) {

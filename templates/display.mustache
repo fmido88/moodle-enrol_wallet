@@ -68,12 +68,14 @@
         {{/ hasdetails}}
         <div id="balance-details-{{uniqid}}" style="display:none;" class="enrol-wallet-balance-details">
         {{# catdetails }}
-            <ul style="text-align: left;">
-                <li><strong>{{ name }}</strong></li>
-                <li>Refundable: {{refundable}}</li>
-                <li>Non-refundable: {{nonrefundable}}</li>
-                <li>Total: {{total}}</li>
-            </ul>
+            <div class="enrol-wallet-cat-balance">
+                <h5>{{ name }}</h5>
+                <ul style="text-align: left;">
+                    <li><strong>Total: {{total}}</strong></li>
+                    <li>Refundable: {{refundable}}</li>
+                    <li>Non-refundable: {{nonrefundable}}</li>
+                </ul>
+            </div>
         {{/ catdetails }}
         </div>
         {{# policy}}

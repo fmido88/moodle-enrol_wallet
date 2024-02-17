@@ -22,6 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['addbundle'] = 'Add bundle';
+$string['addbundle_help'] = 'Add a quick top up value associated with this conditional discount rule.';
 $string['agreepolicy_intro'] = 'In order to perform any wallet top up process it means that you have <strong>read and agreed</strong> the manual refund policy.<br/>
 Click on the link below to read the policy.<br/>';
 $string['agreepolicy_label'] = 'I agree to the manual refund policy.';
@@ -50,6 +52,7 @@ $string['awardvalue'] = 'Award value';
 $string['awardvalue_help'] = 'How much did the student get for each one grade above the condition?';
 
 
+$string['balance'] = 'Balance';
 $string['balance_after'] = 'Balance after';
 $string['balance_before'] = 'Balance before';
 $string['borrow'] = 'Borrowing balance';
@@ -67,6 +70,12 @@ $string['bulk_instanceshead'] = 'Bulk Enrollment Edit (for all instances courses
 $string['bulk_instancesno'] = 'No instances created or updated';
 $string['bulk_instancestitle'] = 'Bulk wallet enrol instances edit';
 $string['bulk_instancesyes'] = '{$a->updated} enrol instances has been updated AND {$a->created} has been created.';
+$string['bundlevalidin'] = 'valid to be used in';
+$string['bundle_desc'] = 'The bundle description';
+$string['bundle_desc_help'] = 'Add a description for this bundle. (ex. enough for 11 courses in the price of 9)';
+$string['bundle_value'] = 'Quick top up value';
+$string['bundle_value_error'] = 'bundle value should be greater than or equals the condition';
+$string['bundle_value_help'] = 'This value must be greater than or equal to the condition. Also make sure this is the value before discount.';
 
 
 $string['cachedef_balance'] = 'This is store the user\'s balance details';
@@ -91,6 +100,7 @@ $string['category_options'] = 'Category';
 $string['category_options_help'] = 'Same as fixed coupons except it is restricted to be used unless in the chosen category';
 $string['characters'] = 'Characters in code.';
 $string['characters_help'] = 'Choose the type of characters in the generated codes.';
+$string['charge'] = 'Charge';
 $string['charger_credit_desc'] = 'charging manually by {$a}';
 $string['charger_debit_desc'] = '(deduct manually by {$a})';
 $string['charger_debit_err'] = 'The value ({$a->value}) is greater that the user\'s balance ({$a->before})';
@@ -127,7 +137,7 @@ $string['conditionaldiscount_apply_help'] = 'Enable conditional discount for the
 $string['conditionaldiscount_condition'] = 'Condition for applying discount';
 $string['conditionaldiscount_condition_help'] = 'Discounts won\'t be applied unless the user\'s wallet charged by more than or equal the value entered here.';
 $string['conditionaldiscount_desc'] = 'charge wallet due to conditional discounts by {$a->rest} for charging wallet for more than {$a->condition}';
-$string['conditionaldiscount_link_desc'] = 'Add, Edit or delete conditional discount rules';
+$string['conditionaldiscount_link_desc'] = 'Add, edit or delete conditional discount rules';
 $string['conditionaldiscount_percent'] = 'The percentage amount of discount';
 $string['conditionaldiscount_percentage'] = 'Percentage';
 $string['conditionaldiscount_percent_help'] = 'The users get credited by this percent. (Applied only for charging the wallet)<br>
@@ -220,7 +230,7 @@ $string['coupon_novalue'] = 'the coupon return with no value, likely the coupon 
 $string['coupon_perpage'] = 'Coupons per page';
 $string['coupon_resetusetime'] = 'Reset used';
 $string['coupon_resetusetime_help'] = 'Reset the usage of the coupon to zero.';
-$string['coupon_table'] = 'View Wallet Coupons';
+$string['coupon_table'] = 'View wallet coupons';
 $string['coupon_type'] = 'Type of coupons';
 $string['coupon_type_help'] = 'choose the type of coupons to generate.<br>
 Fixed value coupons: used any where and top up the user\'s wallet by its value, and if used in enrollment page, it will enrol the user to the course if it is sufficient.<br>
@@ -476,6 +486,8 @@ $string['paymentrequired'] = 'You can pay for this course directly using availab
 $string['paymenttopup_desc'] = 'Payment to top up the wallet';
 $string['percentcoupondisabled'] = 'Discount coupons disabled in this website.';
 $string['percentdiscountcoupon'] = 'Percentage discount coupon';
+$string['percent_error'] = 'Percentage value should be between 0-100';
+$string['pluginconfig'] = 'Enrol wallet configuration';
 $string['pluginname'] = 'Wallet enrolment';
 $string['pluginname_desc'] = '';
 $string['privacy:metadata'] = 'The Wallet enrolment plugin does not store any personal data.';
@@ -531,6 +543,7 @@ $string['purchasedescription'] = 'Enrolment in course {$a}';
 
 $string['randomcoupons'] = 'Random Coupons';
 $string['receiver'] = 'Receiver';
+$string['referral'] = 'Referral';
 $string['referral_amount'] = 'Referral Amount.';
 $string['referral_amount_desc'] = 'The gift amount that both referring and referred users will receive in their wallets.';
 $string['referral_amount_help'] = 'The gift amount that you and the new user will receive in the wallet.';
@@ -583,7 +596,7 @@ $string['repurchase_seconddis_desc'] = 'For the third time the users purchase (s
 $string['restrictionenabled'] = 'Enable restriction.';
 $string['restrictionenabled_desc'] = 'If disabled, not restrictions will be checked.';
 $string['restrictions'] = 'Enrolment restrictions';
-$string['restrictions_desc'] = 'Like sections and course modules, now Wallet Enrollments offers an option to add restriction to the enrolment, not all availability plugins tested well, so you can choose from here what works fine and please report ant error so we can improve this functionality.';
+$string['restrictions_desc'] = 'Like sections and course modules, now Wallet Enrollments offers an option to add restriction to the enrolment, not all availability plugins tested well, so you can choose from here what works fine and please report any error so we can improve this functionality.';
 $string['role'] = 'Default assigned role';
 
 
@@ -616,6 +629,7 @@ $string['tellermen_heading_desc'] = 'All users with capabilities to credit or de
 $string['topup'] = 'topup';
 $string['topupafterdiscount'] = 'Actual payment';
 $string['topupafterdiscount_help'] = 'The amount after discount.';
+$string['topupbundle'] = 'Top up your wallet and pay only:';
 $string['topupbycoupon'] = 'Using Coupons';
 $string['topupbypayment'] = 'Using Payment';
 $string['topupbytellerman'] = 'Manually from our side';
@@ -627,6 +641,7 @@ $string['topuppayment_desc'] = 'Topping up the wallet by payment of {$a} using p
 $string['topupvalue'] = 'TopUp value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
 $string['transactions'] = 'Wallet transactions';
+$string['transactions_details'] = 'More transaction details';
 $string['transaction_perpage'] = 'Transactions per page';
 $string['transaction_type'] = 'Type of transaction';
 $string['transfer'] = 'Transfer balance to other user';

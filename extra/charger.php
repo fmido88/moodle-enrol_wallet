@@ -78,57 +78,12 @@ if ($submit) {
         redirect($returnurl);
         exit;
     } else {
-        $confirmurl = new moodle_url($pageurl, $data);
-        $confirmurl->param('confirm', true);
-        $confirmurl->param('return', $returnurl->out_as_local_url());
-        $confirmbutton = new single_button($confirmurl, get_string('confirm'), 'post');
-        $cancelbutton = new single_button($returnurl, get_string('cancel'), 'post');
 
-        if (!empty($data['category'])) {
-            $category = core_course_category::get($data['category'], IGNORE_MISSING);
-        } else {
-            $category = 0;
-        }
-
-        $balance = new enrol_wallet\util\balance($data['userlist'], $category);
-        $userbalance = $balance->get_valid_balance();
-
-        $user = core_user::get_user($data['userlist']);
-        $name = html_writer::link(new moodle_url('/user/view.php', ['id' => $user->id]), fullname($user), ['target' => '_blank']);
-
-        $a = [
-            'name' => $name,
-            'amount' => $data['value'],
-            'balance' => $userbalance,
-        ];
-        $a['category'] = !(empty($category)) ? $category->get_nested_name(false) : get_string('site');
-
-        $negativewarn = false;
-        switch ($data['op']) {
-            case 'debit':
-                $a['after'] = ($userbalance - $data['value']);
-                if ($a['after'] < 0) {
-                    $negativewarn = true;
-                }
-                $msg = get_string('confirm_debit', 'enrol_wallet', $a);
-                break;
-            case 'credit':
-                $msg = get_string('confirm_credit', 'enrol_wallet', $a);
-                list($extra, $condition) = enrol_wallet\util\discount_rules::get_the_rest($data['value'], $data['category']);
-                if (!empty($extra)) {
-                    $msg .= '<br>'.get_string('confirm_additional_credit', 'enrol_wallet', $extra);
-                }
-                break;
-            default:
-                $msg = '';
-        }
-
+        $confirm = enrol_wallet\pages::get_charger_confirm($data, $returnurl, $pageurl);
         echo $OUTPUT->header();
-        if ($negativewarn) {
-            $warning = get_string('confirm_negative', 'enrol_wallet');
-            $msg .= $OUTPUT->notification($warning, 'error', false);
-        }
-        echo $OUTPUT->confirm($msg, $confirmbutton, $cancelbutton);
+
+        echo $confirm;
+
         echo $OUTPUT->footer();
         exit;
     }
@@ -142,6 +97,7 @@ if (!empty($result)) {
 
 // Display the charger form.
 $form = enrol_wallet_display_charger_form();
+
 echo $OUTPUT->box($form);
 
 echo $OUTPUT->footer();

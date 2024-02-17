@@ -23,7 +23,6 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\transactions;
 use enrol_wallet\task\turn_non_refundable;
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;

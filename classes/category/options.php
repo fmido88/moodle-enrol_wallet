@@ -93,7 +93,7 @@ class options {
      * @return array[string]
      */
     public function get_parents_options() {
-        $catoptions = [0 => get_string('any')];
+        $catoptions = [0 => get_string('site')];
         foreach ($this->parents as $catid) {
             $catname = core_course_category::get($catid)->get_formatted_name();
             $catoptions[$catid] = $catname;
@@ -114,7 +114,7 @@ class options {
             $catoptions[$catid] = $cat->get_nested_name(false);
         }
         asort($catoptions, SORT_STRING | SORT_FLAG_CASE);
-        $catoptions = [0 => get_string('any')] + $catoptions;
+        $catoptions = [0 => get_string('site')] + $catoptions;
         return $catoptions;
     }
 
@@ -170,7 +170,7 @@ class options {
                 if (isset($options[0])) {
                     continue;
                 }
-                $options[0] = get_string('any');
+                $options[0] = get_string('site');
                 continue;
             }
             if (isset($options[$record->category])) {
@@ -207,7 +207,7 @@ class options {
                 if (isset($options[0])) {
                     continue;
                 }
-                $options[0] = get_string('any');
+                $options[0] = get_string('site');
                 continue;
             }
             if (isset($options[$record->category])) {

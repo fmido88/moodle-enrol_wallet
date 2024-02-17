@@ -25,7 +25,7 @@
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 require_once($CFG->libdir.'/tablelib.php');
-require_once($CFG->libdir.'/formslib.php');
+
 global $OUTPUT, $PAGE, $DB;
 
 // Adding some security.
@@ -38,78 +38,6 @@ require_capability('enrol/wallet:manage', $frontpagecontext);
 
 $url = new moodle_url('/enrol/wallet/extra/conditionaldiscount.php');
 
-// Parameters.
-$id               = optional_param('id', 0, PARAM_INT);
-$condition        = optional_param('cond', '', PARAM_FLOAT);
-$catid            = optional_param('category', 0, PARAM_INT);
-$percentage       = optional_param('percent', '', PARAM_FLOAT);
-if (isset($_GET['timeto']) && is_array($_GET['timeto'])) {
-    $timetoarray  = optional_param_array('timeto', [], PARAM_INT);
-} else {
-    $timeto  = optional_param('timeto', null, PARAM_INT);
-}
-if (isset($_GET['timefrom']) && is_array($_GET['timefrom'])) {
-    $timefromarray = optional_param_array('timefrom', [], PARAM_INT);
-} else {
-    $timefrom = optional_param('timefrom', null, PARAM_INT);
-}
-$delete           = optional_param('delete', false, PARAM_BOOL);
-$add              = optional_param('add', false, PARAM_BOOL);
-$edit             = optional_param('edit', false, PARAM_BOOL);
-$confirmedit      = optional_param('confirmedit', false, PARAM_BOOL);
-$sesskey          = optional_param('sesskey', '', PARAM_RAW);
-
-if (!empty($sesskey) && confirm_sesskey()) {
-    $done = false;
-    $arraydates = [];
-    if (!empty($timetoarray)) {
-        $arraydates['timeto'] = $timetoarray;
-    }
-    if (!empty($timefromarray)) {
-        $arraydates['timefrom'] = $timefromarray;
-    }
-    // ...mktime all dates.
-    foreach ($arraydates as $key => $date) {
-        if (!empty($date)) {
-            $$key = mktime(
-                $date['hour'],
-                $date['minute'],
-                0,
-                $date['month'],
-                $date['day'],
-                $date['year'],
-            );
-        } else {
-            $$key = 0;
-        }
-    }
-    $dataobject = new stdClass;
-    $dataobject->cond = $condition;
-    $dataobject->percent = $percentage;
-    $dataobject->category = $catid;
-    $dataobject->timemodified = time();
-    $dataobject->usermodified = $USER->id;
-    if (!empty($timeto)) {
-        $dataobject->timeto = $timeto;
-    }
-    if (!empty($timefrom)) {
-        $dataobject->timefrom = $timefrom;
-    }
-
-    if ($add) {
-        $dataobject->timecreated = time();
-        $done = $DB->insert_record('enrol_wallet_cond_discount', $dataobject);
-    } else if ($confirmedit && !empty($id)) {
-        $dataobject->id = $id;
-        $done = $DB->update_record('enrol_wallet_cond_discount', $dataobject);
-    } else if ($delete && !empty($id)) {
-        $done = $DB->delete_records('enrol_wallet_cond_discount', ['id' => $id]);
-    }
-    if (!empty($done)) {
-        redirect($url);
-    }
-}
-
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
@@ -117,58 +45,53 @@ $PAGE->set_url($url);
 $PAGE->set_title(get_string('conditionaldiscount', 'enrol_wallet'));
 $PAGE->set_heading(get_string('conditionaldiscount', 'enrol_wallet'));
 
-// --------------------------------------------------------------------------------------
-// Form.
-// Setup the filtration form.
-$mform = new \MoodleQuickForm('conditionaldiscount', 'get', 'conditionaldiscount.php');
+$id     = optional_param('id', 0, PARAM_INT);
+$delete = optional_param('delete', false, PARAM_BOOL);
+$add    = optional_param('add', false, PARAM_BOOL);
+$edit   = optional_param('edit', false, PARAM_BOOL);
+$confirmedit = optional_param('confirmedit', false, PARAM_BOOL);
 
-$mform->addElement('header', 'conditionaldiscount', get_string('conditionaldiscount', 'enrol_wallet'));
+$customdata = [
+    'edit' => $edit,
+    'id'   => $id,
+];
+$mform = new enrol_wallet\form\conditional_discount(null, $customdata, 'get');
+$done = false;
+if ($data = $mform->get_data()) {
 
-$options = enrol_wallet\category\options::get_all_categories_options();
-$mform->addElement('select', 'category', get_string('category'), $options);
+    $dataobject = new stdClass;
+    $dataobject->cond = $data->cond;
+    $dataobject->percent = $data->percent;
+    $dataobject->category = $data->category;
+    $dataobject->timemodified = time();
+    $dataobject->usermodified = $USER->id;
+    $dataobject->timeto = $data->timeto ?? null;
+    $dataobject->timefrom = $data->timefrom ?? null;
 
-$mform->addElement('text', 'cond', get_string('conditionaldiscount_condition', 'enrol_wallet'));
-$mform->setType('cond', PARAM_FLOAT);
-$mform->addHelpButton('cond', 'conditionaldiscount_condition', 'enrol_wallet');
-if (!empty($condition)) {
-    $mform->setDefault('cond', $condition);
+    if (!empty($data->have_bundle)) {
+        $dataobject->bundle = $data->bundle_value;
+        $dataobject->bundledesc = $data->bundle_desc['text'];
+        $dataobject->descformat = $data->bundle_desc['format'];
+    } else {
+        $dataobject->bundle = null;
+        $dataobject->bundledesc = null;
+        $dataobject->descformat = null;
+    }
+    if ($add) {
+        $dataobject->timecreated = time();
+        $done = $DB->insert_record('enrol_wallet_cond_discount', $dataobject);
+    } else if ($confirmedit && !empty($data->id)) {
+        $dataobject->id = $data->id;
+        $done = $DB->update_record('enrol_wallet_cond_discount', $dataobject);
+    }
 }
 
-$mform->addElement('text', 'percent', get_string('conditionaldiscount_percent', 'enrol_wallet'));
-$mform->setType('percent', PARAM_FLOAT);
-$mform->addHelpButton('percent', 'conditionaldiscount_percent', 'enrol_wallet');
-if (!empty($percentage)) {
-    $mform->setDefault('percent', $percentage);
+if ($delete && !empty($id) && confirm_sesskey()) {
+    $done = $DB->delete_records('enrol_wallet_cond_discount', ['id' => $id]);
 }
 
-$mform->addElement('date_time_selector', 'timefrom',
-                    get_string('conditionaldiscount_timefrom', 'enrol_wallet'), ['optional' => true]);
-$mform->addHelpButton('timefrom', 'conditionaldiscount_timefrom', 'enrol_wallet');
-if (!empty($timefrom)) {
-    $mform->setDefault('timefrom', $timefrom);
-}
-
-$mform->addElement('date_time_selector', 'timeto',
-                    get_string('conditionaldiscount_timeto', 'enrol_wallet'), ['optional' => true]);
-$mform->addHelpButton('timefrom', 'conditionaldiscount_timeto', 'enrol_wallet');
-if (!empty($timeto)) {
-    $mform->setDefault('timeto', $timeto);
-}
-
-if (!empty($id)) {
-    $mform->addElement('hidden', 'id');
-    $mform->setType('id', PARAM_INT);
-    $mform->setDefault('id', $id);
-}
-
-$mform->addElement('hidden', 'sesskey');
-$mform->setType('sesskey', PARAM_RAW);
-$mform->setConstant('sesskey', sesskey());
-
-if ($edit) {
-    $mform->addElement('submit', 'confirmedit', get_string('confirmedit', 'enrol_wallet'));
-} else {
-    $mform->addElement('submit', 'add', get_string('add'));
+if (!empty($done)) {
+    redirect($url);
 }
 
 echo $OUTPUT->header();
@@ -190,6 +113,8 @@ $columns = [
             'category'    => get_string('category'),
             'timeto'      => get_string('conditionaldiscount_timeto', 'enrol_wallet'),
             'timefrom'    => get_string('conditionaldiscount_timefrom', 'enrol_wallet'),
+            'bundle'      => get_string('bundle_value', 'enrol_wallet'),
+            'bundledesc'  => get_string('bundle_desc', 'enrol_wallet'),
             'edit'        => null,
             'delete'      => null,
         ];
@@ -215,7 +140,14 @@ if (!empty($records)) {
         if (empty($record->timefrom)) {
             unset($record->timefrom);
         }
+
         $editparams = array_merge(['edit' => true, 'sesskey' => sesskey()], (array)$record);
+        if (!empty($record->bundle)) {
+            $editparams['have_bundle'] = 1;
+            $editparams['bundle_value'] = $record->bundle;
+            $editparams['bundle_desc[text]'] = $record->bundledesc;
+            $editparams['bundle_desc[format]'] = $record->descformat;
+        }
         $deleteparams = ['delete' => true, 'sesskey' => sesskey(), 'id' => $record->id];
         $editurl = new moodle_url('conditionaldiscount.php', $editparams);
         $deleteurl = new moodle_url('conditionaldiscount.php', $deleteparams);
@@ -238,6 +170,8 @@ if (!empty($records)) {
             'category'   => $catname,
             'timefrom'   => !empty($record->timefrom) ? userdate($record->timefrom) : '',
             'timeto'     => !empty($record->timeto) ? userdate($record->timeto) : '',
+            'bundle'     => $record->bundle ?? '',
+            'bundledesc' => !empty($record->bundledesc) ? format_text($record->bundledesc, $record->descformat) : '',
             'edit'       => $editbutton,
             'delete'     => $deletebutton,
         ];

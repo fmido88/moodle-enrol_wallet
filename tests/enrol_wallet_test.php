@@ -23,9 +23,9 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\transactions;
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
@@ -210,7 +210,7 @@ class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $walletplugin = enrol_get_plugin('wallet');
+        $walletplugin = new enrol_wallet_plugin;
         $this->assertNotEmpty($walletplugin);
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
@@ -708,8 +708,11 @@ class enrol_wallet_test extends \advanced_testcase {
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
 
-        transactions::payment_topup(250, $user1->id);
-        transactions::payment_topup(250, $user2->id);
+        $op = new balance_op($user1->id);
+        $op->credit(250);
+
+        $op = new balance_op($user2->id);
+        $op->credit(250);
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
@@ -1109,13 +1112,16 @@ class enrol_wallet_test extends \advanced_testcase {
 
         $walletplugin = new enrol_wallet_plugin;
         $user1 = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(250, $user1->id);
+        $op = new balance_op($user1->id);
+        $op->credit(250);
 
         $user2 = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(50, $user2->id);
+        $op = new balance_op($user2->id);
+        $op->credit(50);
 
         $user3 = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(100, $user3->id);
+        $op = new balance_op($user3->id);
+        $op->credit(100);
 
         $course = $this->getDataGenerator()->create_course();
 
@@ -1181,7 +1187,8 @@ class enrol_wallet_test extends \advanced_testcase {
         $context = \context_course::instance($course->id);
 
         $user = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(100, $user->id);
+        $op = new balance_op($user->id);
+        $op->credit(100);
 
         $wallet = new enrol_wallet_plugin;
         // Update the instance such that the enrol duration is 2 hours.
@@ -1272,7 +1279,9 @@ class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(0, $balance);
 
         // Now test the refund fee.
-        transactions::payment_topup(100, $user->id);
+        $op = new balance_op($user->id);
+        $op->credit(100);
+
         $this->setAdminUser();
         // Set to 10%.
         set_config('unenrolrefundfee', 10, 'enrol_wallet');
@@ -1306,7 +1315,8 @@ class enrol_wallet_test extends \advanced_testcase {
         $context = \context_course::instance($course->id);
 
         $user = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(100, $user->id);
+        $op = new balance_op($user->id);
+        $op->credit(100);
 
         $wallet = new enrol_wallet_plugin;
         // Update the instance such that the enrol duration is 2 hours.

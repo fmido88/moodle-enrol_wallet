@@ -125,6 +125,14 @@ class topup_form extends \moodleform {
                 $catoptions = $helper->get_local_options_with_discounts();
             }
         }
+
+        if (count($catoptions) === 1) {
+            $rules = discount_rules::get_the_discount_line(reset($catoptions));
+        } else {
+            $rules = discount_rules::get_the_discount_line(-1);
+        }
+        $mform->addElement('html', $rules);
+
         if (count($catoptions) > 1) {
             $mform->addElement('select', 'category', $categorytitle, $catoptions);
         } else {
