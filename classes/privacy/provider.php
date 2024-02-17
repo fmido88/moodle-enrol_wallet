@@ -90,6 +90,18 @@ class provider implements
             'referrer' => "privacy:metadata:enrol_wallet_hold_gift:referrer",
         ], "privacy:metadata:enrol_wallet_hold_gift");
 
+        $collection->add_database_table('enrol_wallet_balance', [
+            'userid'      => "privacy:metadata:enrol_wallet_balance:userid",
+            'refundable'     => "privacy:metadata:enrol_wallet_balance:refundable",
+            "nonrefundable"   => "privacy:metadata:enrol_wallet_balance:nonrefundable",
+            'cat_balance' => "privacy:metadata:enrol_wallet_balance:catbalance",
+            'freegift'    => "privacy:metadata:enrol_wallet_balance:freegift",
+        ], "privacy:metadata:enrol_wallet_balance",);
+
+        $collection->add_database_table('enrol_wallet_cond_discount', [
+            'usermodified' => "privacy:metadata:enrol_wallet_cond_discount:usermodified",
+        ], "privacy:metadata:enrol_wallet_cond_discount");
+
         $source = get_config('enrol_wallet', 'walletsource');
         if ($source == balance::WP) {
             $collection->add_external_location_link('wordpress', [
