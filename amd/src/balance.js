@@ -22,6 +22,7 @@
  */
 
 import Ajax from 'core/ajax';
+import {init as expenders} from 'enrol_wallet/expenders';
 
 let holder;
 let button;
@@ -43,16 +44,12 @@ function getData() {
                                     }
                                 }]);
 
-        request[0].catch((e) => {
-            holder.innerHTML = '<pre>' + e.message + e.backtrace + '</pre>';
-        });
         request[0].done((data) => {
             holder.innerHTML = data.details;
             let uniqIdHolder = holder.querySelector('[data-identifier=uniqid');
             let uniqId = uniqIdHolder.getAttribute('data-uniqid');
-            require(['enrol_wallet/expenders'], function(ex) {
-                ex.init(uniqId);
-            });
+
+            expenders(uniqId);
         });
     }
 }
