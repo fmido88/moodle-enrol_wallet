@@ -22,10 +22,11 @@
  */
 
 export const init = (uniqid) => {
+    // Manual refund policy.
     var enrolWalletPolicyUrl = document.getElementById('enrol_wallet_transactions-policy-url-' + uniqid);
-    if (enrolWalletPolicyUrl) {
+    var policy = document.getElementById('enrol_wallet_transactions-policy-' + uniqid);
+    if (enrolWalletPolicyUrl && policy) {
         enrolWalletPolicyUrl.addEventListener("click", function() {
-            var policy = document.getElementById('enrol_wallet_transactions-policy-' + uniqid);
             if (policy.style.display === "none") {
                 policy.style.display = "block";
             } else {
@@ -33,15 +34,39 @@ export const init = (uniqid) => {
             }
         });
     }
+
+    // More balance details.
     var moreBalanceDetails = document.getElementById('more-details-' + uniqid);
-    if (moreBalanceDetails) {
+    var details = document.getElementById('balance-details-' + uniqid);
+    if (moreBalanceDetails && details) {
         moreBalanceDetails.addEventListener("click", function() {
-            var details = document.getElementById('balance-details-' + uniqid);
             if (details.style.display === "none") {
                 details.style.display = "flex";
             } else {
                 details.style.display = "none";
             }
         });
+    }
+
+    // Show top up options after confirm the agreement.
+    var walletPolicyAgreed = document.getElementById('wallet_topup_policy_confirm_' + uniqid);
+    var topUpBox = document.getElementById('enrol_wallet_topup_box_' + uniqid);
+    if (walletPolicyAgreed && topUpBox) {
+        // As the user may click the check box while the page not loaded yet.
+        setTimeout(function() {
+            showHideTopUp();
+        });
+
+        walletPolicyAgreed.addEventListener('change', function() {
+            showHideTopUp();
+        });
+
+        const showHideTopUp = () => {
+            if (walletPolicyAgreed.checked == true) {
+                topUpBox.style.display = 'block';
+            } else {
+                topUpBox.style.display = 'none';
+            }
+        };
     }
 };

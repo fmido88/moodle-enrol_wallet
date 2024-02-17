@@ -96,7 +96,7 @@ class provider implements
             "nonrefundable"   => "privacy:metadata:enrol_wallet_balance:nonrefundable",
             'cat_balance' => "privacy:metadata:enrol_wallet_balance:catbalance",
             'freegift'    => "privacy:metadata:enrol_wallet_balance:freegift",
-        ], "privacy:metadata:enrol_wallet_balance",);
+        ], "privacy:metadata:enrol_wallet_balance");
 
         $collection->add_database_table('enrol_wallet_cond_discount', [
             'usermodified' => "privacy:metadata:enrol_wallet_cond_discount:usermodified",

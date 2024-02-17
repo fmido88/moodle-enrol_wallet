@@ -99,7 +99,8 @@ class transfer_form extends \moodleform {
                     $category = core_course_category::get($id, IGNORE_MISSING);
                     if (!empty($category)) {
                         $name = $category->get_nested_name(false);
-                        $mform->addElement('static', 'cat'.$id, $name, number_format($obj->balance, 2));
+                        $catbalance = $obj->balance ?? $obj->refundable + $obj->nonrefundable;
+                        $mform->addElement('static', 'cat'.$id, $name, number_format($catbalance, 2));
                         $options[$id] = $name;
                     }
                 }

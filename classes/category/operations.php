@@ -190,8 +190,9 @@ class operations extends cathelper {
             'refundable' => $this->details[$this->catid]->refundable ?? 0,
             'nonrefundable' => $this->details[$this->catid]->nonrefundable ?? 0,
             'free' => $this->details[$this->catid]->free ?? 0,
-            'balance' => $this->details[$this->catid]->balance ?? 0,
         ];
+        $catobj->balance = $this->details[$this->catid]->balance
+                            ?? $catobj->refundable + $catobj->nonrefundable;
         if ($refundable) {
             $this->refundable += $amount;
             $catobj->refundable += $amount;

@@ -123,6 +123,8 @@ class balance {
             if (!empty($this->catid) && $this->catid > 0) {
                 $this->catop = new operations($this->catid, $this->userid);
             }
+        } else {
+            $this->catid = 0;
         }
 
         $this->set_details_from_cache();
@@ -260,8 +262,8 @@ class balance {
     private function format_cat_balance() {
         $catbalance = [];
         foreach ($this->details['catbalance'] as $id => $obj) {
-            unset($obj->balance);
             $catbalance[$id] = $obj;
+            unset($catbalance[$id]->balance);
         }
         return json_encode($catbalance);
     }

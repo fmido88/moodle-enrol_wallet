@@ -56,6 +56,7 @@ function getData() {
         });
     }
 }
+
 export const init = (formid) => {
     form = document.getElementById(formid);
     holder = form.querySelector("[data-purpose=balance-holder]");

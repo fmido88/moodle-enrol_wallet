@@ -31,7 +31,7 @@ use enrol_wallet\util\instance as helper;
  */
 class instance extends external_api {
     /**
-     * Returns description of get_balance_details() parameters
+     * Returns description of get_cost() parameters
      *
      * @return external_function_parameters
      */
@@ -43,7 +43,7 @@ class instance extends external_api {
     }
 
     /**
-     * Returns the balance details for a single user.
+     * Returns the cost of an instance to the given user.
      *
      * @param int $instanceid
      * @param int $userid
@@ -60,7 +60,7 @@ class instance extends external_api {
     }
 
     /**
-     * Returns description of get_balance_details() result value.
+     * Returns description of get_cost() result value.
      *
      * @return external_single_structure
      */

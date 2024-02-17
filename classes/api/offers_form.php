@@ -24,15 +24,15 @@ use external_value;
 use enrol_wallet\util\offers;
 
 /**
- * Class balance_op
+ * Class offers form.
  *
  * @package    enrol_wallet
- * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
+ * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class offers_form extends external_api {
     /**
-     * Returns description of get_balance_details() parameters
+     * Returns description of get_form_fragment() parameters
      *
      * @return external_function_parameters
      */
@@ -45,7 +45,7 @@ class offers_form extends external_api {
     }
 
     /**
-     * Returns the balance details for a single user.
+     * Return an html fragment of form elements used in offers editing.
      *
      * @param string $type
      * @param int $increment
@@ -65,7 +65,7 @@ class offers_form extends external_api {
     }
 
     /**
-     * Returns description of get_balance_details() result value.
+     * Returns description of get_form_fragment() result value.
      *
      * @return external_description
      */

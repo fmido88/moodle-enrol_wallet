@@ -169,13 +169,13 @@ class balance_op extends balance {
     public function __construct($userid = 0, $category = 0) {
         parent::__construct($userid, $category);
         if (empty($category)) {
-            unset($this->catid);
+            $this->catid = 0;
             unset($this->catop);
         }
     }
 
     /**
-     * Cut amount from the main balance, this is not checking for negative blance.
+     * Cut amount from the main balance, this is not checking for negative balance.
      * Which means that the balance could be negative, so before using this validate if the new balance
      * could be negative of not.
      *
@@ -818,7 +818,7 @@ class balance_op extends balance {
                                     'type'       => $type,
                                     'amount'     => $this->amount,
                                     'refundable' => $refundable,
-                                    'freecut'    => $type === self::DEBIT ? $this->get_free_cut() : 0,
+                                    'freecut'    => $type === self::DEBIT ? $this->get_free_cut(false) : 0,
                                     'desc'       => $desc,
                                     ],
                     ];
@@ -909,6 +909,15 @@ class balance_op extends balance {
         $amount   = $data->amount;
         $catid    = $data->category ?? 0;
 
+        if ($this->catid != $catid) {
+            $this->catid = $catid;
+            if (!empty($this->catid)) {
+                $this->catop = new operations($this->catid, $this->userid);
+            } else {
+                unset($this->catop);
+            }
+        }
+
         $receiver = \core_user::get_user_by_email($email);
 
         list($debit, $credit) = $mform->get_debit_credit($amount);
@@ -920,6 +929,7 @@ class balance_op extends balance {
             return $unknownerror;
         }
 
+        $this->get_free_cut();
         // Credit the receiver.
         $a = [
             'fee'      => $fee,

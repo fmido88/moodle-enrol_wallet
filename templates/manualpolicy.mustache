@@ -41,26 +41,8 @@
     {{/topup}}
 </div>
 
-
 {{#js}}
-    var urlPolicy = document.getElementById('enrol_wallet_transactions-policy-url-{{{id}}}');
-    urlPolicy.addEventListener("click", function() {
-        var policy = document.getElementById('enrol_wallet_transactions-policy-{{{id}}}');
-        if (policy.style.display === "none") {
-            policy.style.display = "block";
-        } else {
-            policy.style.display = "none";
-        }
+    require(['enrol_wallet/expenders'], function(ex) {
+        ex.init('{{id}}');
     });
-    {{#topup}}
-    var walletPolicyAgreed = document.getElementById('wallet_topup_policy_confirm_{{id}}');
-    walletPolicyAgreed.addEventListener('change', function() {
-        var topUpBox = document.getElementById('enrol_wallet_topup_box_{{id}}');
-        if (walletPolicyAgreed.checked == true) {
-            topUpBox.style.display = 'block';
-        } else {
-            topUpBox.style.display = 'none';
-        }
-    });
-    {{/topup}}
 {{/js}}
