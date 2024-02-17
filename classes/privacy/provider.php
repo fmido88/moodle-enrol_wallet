@@ -46,7 +46,7 @@ class provider implements
      * @param collection $collection The initialized collection to add items to.
      * @return collection A listing of user data stored through this system.
      */
-    public static function get_metadata(collection $collection) :collection {
+    public static function get_metadata(collection $collection): collection {
         $collection->add_database_table('enrol_wallet_items', [
             'userid'     => "privacy:metadata:enrol_wallet_items:userid",
             'cost'       => "privacy:metadata:enrol_wallet_items:cost",

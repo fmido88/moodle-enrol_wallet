@@ -108,12 +108,13 @@ class options {
      * @return array[string]
      */
     public static function get_all_categories_options() {
-        $catoptions = [0 => get_string('any')];
+        $catoptions = [];
         $allcats = \core_course_category::get_all();
         foreach ($allcats as $catid => $cat) {
             $catoptions[$catid] = $cat->get_nested_name(false);
         }
         asort($catoptions, SORT_STRING | SORT_FLAG_CASE);
+        $catoptions = [0 => get_string('any')] + $catoptions;
         return $catoptions;
     }
 

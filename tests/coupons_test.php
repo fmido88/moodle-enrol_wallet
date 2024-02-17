@@ -78,7 +78,7 @@ class coupons_test extends \advanced_testcase {
      * Test if a certain type of coupons are enabled
      * @covers ::is_enabled_type
      */
-    public function test_is_enabled_type():void {
+    public function test_is_enabled_type(): void {
         $this->setUser($this->u2);
         $coupons = new coupons('fixed1');
         $this->assertFalse($coupons->is_enabled_type());
@@ -119,7 +119,7 @@ class coupons_test extends \advanced_testcase {
      * Test if coupons are enabled in this site.
      * @covers ::is_enabled()
      */
-    public function test_is_enabled():void {
+    public function test_is_enabled(): void {
         $this->assertFalse(coupons::is_enabled());
         $this->set_config(coupons::DISCOUNT);
         $this->assertTrue(coupons::is_enabled());
@@ -138,7 +138,7 @@ class coupons_test extends \advanced_testcase {
      * Test validation for fixed coupons
      * @covers ::validate_coupon()
      */
-    public function test_validate_fixed_coupon():void {
+    public function test_validate_fixed_coupon(): void {
         $this->set_config(coupons::ALL);
         // Not logged in.
         $coupons = new coupons('fixed1');
@@ -212,7 +212,7 @@ class coupons_test extends \advanced_testcase {
      * Test validation for enrol coupons
      * @covers ::validate_coupon
      */
-    public function test_validate_enrol_coupon():void {
+    public function test_validate_enrol_coupon(): void {
         $this->setUser($this->u1);
         $this->set_config([coupons::ENROL]);
         $coupons = new coupons('enrol1');
@@ -329,7 +329,7 @@ class coupons_test extends \advanced_testcase {
      * Validation for discount coupons.
      * @covers ::validate_coupon()
      */
-    public function test_validate_discount_coupon():void {
+    public function test_validate_discount_coupon(): void {
         $this->set_config(coupons::DISCOUNT);
         $coupons = new coupons('percent1');
         $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
@@ -437,7 +437,7 @@ class coupons_test extends \advanced_testcase {
      * Validate category coupons
      * @covers ::validate_coupons()
      */
-    public function test_validate_category_coupon():void {
+    public function test_validate_category_coupon(): void {
         $this->set_config(coupons::CATEGORY);
         // Not logged in.
         $coupons = new coupons('category1');
@@ -506,7 +506,7 @@ class coupons_test extends \advanced_testcase {
      * Test applying fixed coupon
      * @covers ::apply_coupon()
      */
-    public function test_apply_fixed_coupon():void {
+    public function test_apply_fixed_coupon(): void {
         $this->set_config(coupons::FIXED);
         $coupons = new coupons('fixed1', $this->u1->id);
         $coupons->apply_coupon();
@@ -576,7 +576,7 @@ class coupons_test extends \advanced_testcase {
      * Test applying category coupon
      * @covers ::apply_coupon()
      */
-    public function test_apply_category_coupon():void {
+    public function test_apply_category_coupon(): void {
         $this->set_config(coupons::CATEGORY);
 
         $this->setUser($this->u1);
@@ -616,7 +616,7 @@ class coupons_test extends \advanced_testcase {
      * Test applying enrol coupons
      * @covers ::apply_coupon
      */
-    public function test_apply_enrol_coupon():void {
+    public function test_apply_enrol_coupon(): void {
         $this->set_config(coupons::ENROL);
         $this->setUser($this->u1);
         $coupons = new coupons('enrol1');
@@ -647,7 +647,7 @@ class coupons_test extends \advanced_testcase {
      * Generate a number of coupons of different data, types and restrictions
      * to be tested.
      */
-    protected function setUp() :void {
+    protected function setUp(): void {
         parent::setUp();
         global $DB, $CFG;
         require_once($CFG->dirroot."/enrol/wallet/locallib.php");
@@ -945,7 +945,7 @@ class coupons_test extends \advanced_testcase {
      * We will use this frequently, so we can shorten the arguments.
      * @param int|array $value
      */
-    private function set_config($value) {
+    private function set_config($value): void {
         if (is_array($value)) {
             $value = implode(',', $value);
         }

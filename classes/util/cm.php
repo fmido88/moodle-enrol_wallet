@@ -98,7 +98,7 @@ class cm {
      * Set all available costs for this cm, considering multiple conditions may be applied.
      * @param \stdClass $conditions the availability tree.
      */
-    private function set_costs ($conditions) {
+    private function set_costs($conditions) {
         foreach ($conditions->c as $child) {
             if (!empty($child->c) && !empty($child->op)) {
                 $this->set_costs($child);

@@ -188,7 +188,7 @@ class balance_op_test extends \advanced_testcase {
      * @covers ::credit
      * @return void
      */
-    public function test_credit():void {
+    public function test_credit(): void {
         global $DB;
         $this->resetAfterTest();
         $gen = $this->getDataGenerator();
@@ -377,7 +377,7 @@ class balance_op_test extends \advanced_testcase {
      * @covers ::credit
      * @return void
      */
-    public function test_credit_nocat():void {
+    public function test_credit_nocat(): void {
         global $DB;
         $this->resetAfterTest();
         $gen = $this->getDataGenerator();
@@ -506,7 +506,7 @@ class balance_op_test extends \advanced_testcase {
      * @covers ::debit
      * @return void
      */
-    public function test_debit():void {
+    public function test_debit(): void {
         global $DB;
         $this->resetAfterTest();
         $gen = $this->getDataGenerator();
@@ -640,7 +640,7 @@ class balance_op_test extends \advanced_testcase {
      * @covers ::debit
      * @return void
      */
-    public function test_debit_nocat():void {
+    public function test_debit_nocat(): void {
         global $DB;
         $this->resetAfterTest();
         set_config('catbalance', 0, 'enrol_wallet');
@@ -802,7 +802,7 @@ class balance_op_test extends \advanced_testcase {
      * @covers ::get_total_free
      * @return void
      */
-    public function test_free_balance():void {
+    public function test_free_balance(): void {
         global $DB;
         $this->resetAfterTest();
         $gen = $this->getDataGenerator();
@@ -940,7 +940,7 @@ class balance_op_test extends \advanced_testcase {
      * Test transferring balance to another user.
      * @covers ::transfer_to_other()
      */
-    public function test_transfer_to_other():void {
+    public function test_transfer_to_other(): void {
         $this->resetAfterTest();
         $gen = $this->getDataGenerator();
         $user1 = $gen->create_user();
@@ -1029,7 +1029,7 @@ class balance_op_test extends \advanced_testcase {
      * Used to reset the balance of a user to zero.
      * @param int $userid
      */
-    private function reset_balance($userid):void {
+    private function reset_balance($userid): void {
         $op = new balance_op($userid);
         $op->debit($op->get_valid_balance(), $op::OTHER);
         $details = $op->get_balance_details();

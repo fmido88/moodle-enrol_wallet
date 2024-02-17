@@ -181,7 +181,7 @@ class balance {
      * from the transaction table.
      * @return float
      */
-    private function get_nonrefund_from_transactions():float {
+    private function get_nonrefund_from_transactions(): float {
         global $DB;
         $balance = $this->get_main_balance();
         $record = $DB->get_records('enrol_wallet_transactions', ['userid' => $this->userid], 'id DESC', 'norefund', 0, 1);

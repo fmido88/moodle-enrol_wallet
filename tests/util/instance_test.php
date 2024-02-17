@@ -142,7 +142,7 @@ class instance_test extends \advanced_testcase {
      * Testing discounts after first and second repurchase
      * @covers ::get_cost_after_discount
      */
-    public function test_repurchase_discount_and_function():void {
+    public function test_repurchase_discount_and_function(): void {
         global $DB;
         $this->resetAfterTest();
         $wallet = new enrol_wallet_plugin;
