@@ -126,6 +126,7 @@ $mform->addElement('header', 'conditionaldiscount', get_string('conditionaldisco
 
 $options = enrol_wallet\category\options::get_all_categories_options();
 $mform->addElement('select', 'category', get_string('category'), $options);
+$mform->setDefault('category', $catid);
 
 $mform->addElement('text', 'cond', get_string('conditionaldiscount_condition', 'enrol_wallet'));
 $mform->setType('cond', PARAM_FLOAT);
