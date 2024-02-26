@@ -348,5 +348,20 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         // Wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2024022500, 'enrol', 'wallet');
     }
+
+    if ($oldversion < 2024022619) {
+
+        // Changing type of field percent on table enrol_wallet_cond_discount to number.
+        $table = new xmldb_table('enrol_wallet_cond_discount');
+        $field = new xmldb_field('percent', XMLDB_TYPE_NUMBER, '4, 2', null, XMLDB_NOTNULL, null, null, 'cond');
+
+        // Launch change of type for field percent.
+        $dbman->change_field_precision($table, $field);
+        $dbman->change_field_type($table, $field);
+
+        // Wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2024022619, 'enrol', 'wallet');
+    }
+
     return true;
 }

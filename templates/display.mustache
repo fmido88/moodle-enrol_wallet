@@ -55,7 +55,13 @@
 <span class="hidden" data-uniqid="{{uniqid}}" data-identifier="uniqid"></span>
 <div style="text-align: center; padding-bottom: 0px;">
     {{# currentuser}}
-    <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
+    {{#walleturl}}
+    <a href="{{walleturl}}">
+    {{/walleturl}}
+        <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
+    {{#walleturl}}
+    </a>
+    {{/walleturl}}
     {{/ currentuser}}
     <div class="balance-card" style="text-align: center; direction: ltr;">
         {{# currentuser}}{{# str }} youhavebalance, enrol_wallet {{/ str }}{{/ currentuser}}<br>

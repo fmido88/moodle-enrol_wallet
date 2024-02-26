@@ -135,6 +135,7 @@ class wallet_balance implements renderable, templatable {
             $tempctx->transfer     = !empty($transferenabled) ? $transfer : false;
             $tempctx->referral     = !empty($refenabled) ? $referral : false;
             $tempctx->policy       = !empty($policy) ? $policy : false;
+            $tempctx->walleturl    = (new moodle_url('/enrol/wallet/wallet.php#linkbalance'))->out();
         }
         $tempctx->currentuser = $this->currentuser;
         return $tempctx;
