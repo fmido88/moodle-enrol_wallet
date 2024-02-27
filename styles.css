@@ -106,12 +106,13 @@
     border-radius: inherit;
 }
 .enrol-wallet-ribbon .bundle-inner {
+    display: block;
     padding: 24px 39px 0 10px;
     position: relative;
     z-index: 1;
 }
 
-.enrol-wallet-ribbon span {
+.enrol-wallet-ribbon span.ribbon {
     width: 40%;
     height: min-content;
     top: 5%;

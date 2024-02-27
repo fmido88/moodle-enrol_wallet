@@ -45,16 +45,16 @@
             {{#tooltip}}title="{{tooltip}}"{{/tooltip}}
             {{#disabled}}disabled{{/disabled}}
             {{#attributes}} {{name}}="{{value}}" {{/attributes}}>
-            <div class="enrol-wallet-ribbon">
-                <span>{{discount}}%</span>
-                <div class="bundle-inner">
+            <span class="enrol-wallet-ribbon">
+                <span class="ribbon">{{discount}}%</span>
+                <span class="bundle-inner">
                     <h5>{{#str}} topupbundle, enrol_wallet {{/str}}</h5>
-                    <div><strong>{{after}} {{currency}}</strong> <del style="font-size:small;">{{before}} {{currency}}</del></div>
+                    <span><strong>{{after}} {{currency}}</strong> <del style="font-size:small;">{{before}} {{currency}}</del></span>
                     {{#str}} bundlevalidin, enrol_wallet {{/str}}
                     <h6>{{{category}}}</h6>
-                    <p>{{{description}}}</p>
-                </div>
-            </div>
+                    <span>{{{description}}}</span>
+                </span>
+            </span>
         </button>
         {{#hasenddate}}{{/hasenddate}}
     </form>
