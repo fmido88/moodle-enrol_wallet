@@ -89,7 +89,7 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="cond" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
-        <FIELD NAME="percent" TYPE="number" LENGTH="3" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="percent" TYPE="number" LENGTH="4" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
         <FIELD NAME="category" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The id of the category at which the conditional discount applied, 0 mean main balance discount"/>
         <FIELD NAME="timefrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timeto" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
