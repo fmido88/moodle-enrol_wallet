@@ -320,7 +320,7 @@ class discount_rules {
         $topupurl = new \moodle_url('/enrol/wallet/extra/topup.php', (array)$data);
 
         $context = [
-            'discount'    => $discount,
+            'discount'    => format_float($discount, 2, true, true),
             'after'       => $after,
             'before'      => $before,
             'description' => $desc,
