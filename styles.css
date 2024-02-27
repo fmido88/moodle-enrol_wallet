@@ -111,7 +111,10 @@
     position: relative;
     z-index: 1;
 }
-
+.enrol-wallet-ribbon .bundle-inner .price {
+    color: #c70000;
+    text-shadow: 1px 1px #8c9500, -1px -1px #000, -1px 1px #000, 1px -1px #000;
+}
 .enrol-wallet-ribbon span.ribbon {
     width: 40%;
     height: min-content;
