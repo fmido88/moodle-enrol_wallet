@@ -31,7 +31,7 @@ use enrol_wallet\coupons;
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class instance_test extends \advanced_testcase {
+final class instance_test extends \advanced_testcase {
     /**
      * Testing get cost after discount.
      *

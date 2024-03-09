@@ -23,8 +23,6 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\transactions;
-
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
@@ -36,7 +34,7 @@ require_once($CFG->dirroot.'/enrol/wallet/lib.php');
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class transactions_test extends \advanced_testcase {
+final class transactions_test extends \advanced_testcase {
 
     /**
      * The transactions class.

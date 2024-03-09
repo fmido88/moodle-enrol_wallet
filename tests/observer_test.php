@@ -38,7 +38,7 @@ use enrol_wallet_plugin;
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class observer_test extends \advanced_testcase {
+final class observer_test extends \advanced_testcase {
     /**
      * Test event observer completion awards.
      * @covers ::wallet_completion_awards

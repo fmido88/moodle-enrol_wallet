@@ -30,7 +30,7 @@ use enrol_wallet\util\instance;
  * Unit tests for the enrol_wallet's payment subsystem callback implementation.
  *
  */
-class service_provider_test extends \advanced_testcase {
+final class service_provider_test extends \advanced_testcase {
 
     /**
      * Test for service_provider::get_payable().

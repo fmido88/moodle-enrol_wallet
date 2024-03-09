@@ -34,7 +34,7 @@ use enrol_wallet\util\balance_op;
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class turn_non_refundable_test extends \advanced_testcase {
+final class turn_non_refundable_test extends \advanced_testcase {
     /**
      * Test adhoc task turn_non_refundable.
      * @covers \turn_non_refundable
