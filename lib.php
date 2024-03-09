@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // Disable all callbacks during upgrade.
 $version = get_config('enrol_wallet', 'version');
-if ($version >= 2024021018) {
+if ($version >= 2024030900) {
     global $CFG;
     require_once("$CFG->dirroot/enrol/wallet/extendlib.php");
 }

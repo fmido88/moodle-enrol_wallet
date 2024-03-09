@@ -1,8 +1,14 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 5.3.2 ##
+- Adding main page for wallet (when the user click my wallet).
+- Add bundles for quick top up with conditional discounts
+- Fix conditional discount precision.
+- Bug fixes.
+
 ## V 5.2.0 ##
 - Add a page to display offers.
-- Display conditional discouts available to users in the top up form.
+- Display conditional discounts available to users in the top up form.
 - Bug fixes.
 
 ## V 5.1.0 ##
