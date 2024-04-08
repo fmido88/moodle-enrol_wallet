@@ -29,8 +29,10 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
 
-/** Enrollment form.
+/**
+ * Enrollment form.
  *
+ * @package enrol_wallet
  */
 class enrol_form extends \moodleform {
     /**
@@ -40,7 +42,7 @@ class enrol_form extends \moodleform {
     protected $instance;
     /**
      * toomany
-     * @var
+     * @var bool
      */
     protected $toomany = false;
 

@@ -38,7 +38,7 @@ final class transactions_test extends \advanced_testcase {
 
     /**
      * The transactions class.
-     * @var
+     * @var \enrol_wallet\transactions
      */
     private $transactions;
 

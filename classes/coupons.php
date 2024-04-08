@@ -664,7 +664,6 @@ class coupons {
             $fee = (float)$util->get_cost_after_discount();
             $plugin = new wallet();
 
-
             if ($this->type == self::ENROL
                 || (
                     ($this->type == self::CATEGORY || $this->type == self::FIXED)

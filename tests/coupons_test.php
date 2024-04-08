@@ -34,15 +34,32 @@ use enrol_wallet_plugin;
 final class coupons_test extends \advanced_testcase {
 
     /**
-     * Categories.
+     * Category 1.
      * @var object
      */
-    private $cat1, $cat2, $cat3, $cat4;
+    private $cat1;
+    /**
+     * Category 2.
+     * @var object
+     */
+    private $cat2;
+    /**
+     * Category 3.
+     * @var object
+     */
+    private $cat3;
+    /**
+     * Category 4.
+     * @var object
+     */
+    private $cat4;
+    /** Course 1 @var \stdClass */
+    private $c1;
     /**
      * Courses
      * @var \stdClass
      */
-    private $c1, $c2, $c3, $c4, $c5, $c6, $c7;
+    private $c2, $c3, $c4, $c5, $c6, $c7;
     /**
      * Users
      * @var \stdClass

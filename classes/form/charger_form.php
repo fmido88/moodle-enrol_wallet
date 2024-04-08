@@ -14,7 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/** The form that able the user to topup their wallet using payment gateways.
+/**
+ * Charger form.
+ *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -31,7 +33,7 @@ use enrol_wallet\util\balance;
 use enrol_wallet\util\discount_rules;
 
 /**
- * The form that able the user to topup their wallet using payment gateways.
+ * The form by which managers could charge others manually.
  * @package enrol_wallet
  */
 class charger_form extends \moodleform {
