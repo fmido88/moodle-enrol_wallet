@@ -50,7 +50,6 @@ class instance extends external_api {
      * @return array
      */
     public static function get_cost($instanceid, $userid) {
-        global $CFG, $PAGE;
         $params = ['instanceid' => $instanceid, 'userid' => $userid];
         $params = self::validate_parameters(self::get_cost_parameters(), $params);
         $userid = $params['userid'];

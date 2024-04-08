@@ -93,7 +93,7 @@ class wallet_balance implements renderable, templatable {
         // Prepare transaction URL to display.
         $params = [];
         if (!$this->currentuser) {
-            $params['user'] = $this->userid;
+            $params['userid'] = $this->userid;
         }
         $transactionsurl = new moodle_url('/enrol/wallet/extra/transaction.php', $params);
         $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));

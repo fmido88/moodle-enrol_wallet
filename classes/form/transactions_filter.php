@@ -102,7 +102,17 @@ class transactions_filter extends \moodleform {
         ];
         foreach ($_GET as $key => $value) {
             if ($mform->elementExists($key) && isset($types[$key])) {
-                $mform->setDefault($key, clean_param($value, $types[$key]));
+                if (is_array($value)) {
+                    $array = clean_param_array($value, $types[$key]);
+                    $time = make_timestamp($array['year'],
+                                           $array['month'],
+                                           $array['day'] ?? 1,
+                                           $array['hour'] ?? 0,
+                                           $array['minute'] ?? 0);
+                    $mform->setDefault($key, $time);
+                } else {
+                    $mform->setDefault($key, clean_param($value, $types[$key]));
+                }
             }
         }
     }

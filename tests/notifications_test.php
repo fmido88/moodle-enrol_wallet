@@ -32,7 +32,7 @@ use enrol_wallet\notifications;
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class notifications_test extends \advanced_testcase {
+final class notifications_test extends \advanced_testcase {
     /**
      * Test transaction_notifications
      * @covers ::transaction_notify()

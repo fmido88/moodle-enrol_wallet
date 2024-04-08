@@ -510,16 +510,20 @@ class coupons {
      * @param int $areaid the area at which the coupon applied (instanceid, cmid, sectionid)
      * @return bool|string
      */
-    public function validate_coupon($area = self::AREA_TOPUP, $areaid = 0) {
+    public function validate_coupon($area = null, $areaid = 0) {
         if (!empty($this->error)) {
             return $this->error;
         }
 
         $this->valid = true;
-        if (is_string($area)) {
+        if (is_string($area) && !is_number($area)) {
             $area = self::AREAS[$area];
         }
-        $this->set_area($area, $areaid);
+
+        if (!is_null($area) && in_array($area, self::AREAS)) {
+            $this->set_area($area, $areaid);
+        }
+
         $this->validate_area();
 
         if (!empty($this->error)) {
@@ -659,27 +663,33 @@ class coupons {
             $user = \core_user::get_user($this->userid);
             $fee = (float)$util->get_cost_after_discount();
             $plugin = new wallet();
-            if ($this->type == self::FIXED) {
+
+
+            if ($this->type == self::ENROL
+                || (
+                    ($this->type == self::CATEGORY || $this->type == self::FIXED)
+                    && $balance >= $fee
+                    )
+                ) {
+
+                $used = true;
                 // Check if the coupon value is grater than or equal the fee.
                 // Enrol the user in the course.
-                if ($balance >= $fee) {
-                    $plugin->enrol_self($instance, $user);
-                    $used = true;
+                $context = \context_course::instance($instance->courseid);
+                if (!is_enrolled($context, $user, '', true)) {
+                    if ($this->type == self::ENROL) {
+                        $charge = false;
+                    } else {
+                        $charge = true;
+                    }
+                    $plugin->enrol_self($instance, $user, $charge);
+                } else if ($this->type == self::ENROL) {
+                    $used = false;
                 }
 
-            } else if ($this->type == self::ENROL) {
-
-                $plugin->enrol_self($instance, $user, false);
-                $used = true;
-
-            } else if ($this->type == self::CATEGORY) {
-                if ($balance >= $fee) {
-                    $plugin->enrol_self($instance, $user);
-                    $used = true;
-                } else {
-                    $error = get_string('coupon_cat_notsufficient', 'enrol_wallet');
-                    \core\notification::error($error);
-                }
+            } else if ($this->type == self::CATEGORY && $balance < $fee) {
+                $error = get_string('coupon_cat_notsufficient', 'enrol_wallet');
+                \core\notification::error($error);
             }
         }
 
@@ -738,7 +748,7 @@ class coupons {
         // Unset the session coupon to make sure not used again.
         self::unset_session_coupon();
 
-        if ($this->area == self::ENROL) {
+        if ($this->area == self::AREA_ENROL) {
             $instanceid = $this->areaid;
         } else {
             $instanceid = 0;
@@ -855,7 +865,7 @@ class coupons {
         }
 
         if ($apply) {
-            $coupon->apply_coupon();
+            $coupon->apply_coupon($area, $areaid);
         }
 
         return $coupon->get_data();

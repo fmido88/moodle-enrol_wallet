@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 
 // Disable all callbacks during upgrade.
 $version = get_config('enrol_wallet', 'version');
-if ($version >= 2024021018) {
+if ($version >= 2024030900) {
     global $CFG;
     require_once("$CFG->dirroot/enrol/wallet/extendlib.php");
 }
@@ -599,6 +599,18 @@ class enrol_wallet_plugin extends enrol_plugin {
         $enrolstatus = $this->can_self_enrol($instance);
 
         $output = '';
+        if (coupons::is_enabled()) {
+            $formdata = new stdClass();
+            $formdata->header   = $this->get_instance_name($instance);
+            $formdata->instance = $instance;
+            $formdata->url = (new \moodle_url('/enrol/index.php', ['id' => $instance->courseid]))->out();
+            $couponaction = new \moodle_url('/enrol/wallet/extra/coupon_action.php');
+            $couponform = new applycoupon_form($couponaction, $formdata);
+            if ($submitteddata = $couponform->get_data()) {
+                enrol_wallet_process_coupon_data($submitteddata);
+            }
+        }
+
         if (true === $enrolstatus) {
 
             $confirmpage = new moodle_url('/enrol/wallet/confirm.php');
@@ -621,15 +633,6 @@ class enrol_wallet_plugin extends enrol_plugin {
             // Now prepare the coupon form.
             // Check the coupons settings first.
             if (coupons::is_enabled() && $costafter != 0) {
-                $data = new stdClass();
-                $data->header   = $this->get_instance_name($instance);
-                $data->instance = $instance;
-                $data->url = (new \moodle_url('/enrol/index.php', ['id' => $instance->courseid]))->out();
-                $couponaction = new \moodle_url('/enrol/wallet/extra/coupon_action.php');
-                $couponform = new applycoupon_form($couponaction, $data);
-                if ($submitteddata = $couponform->get_data()) {
-                    enrol_wallet_process_coupon_data($submitteddata);
-                }
                 ob_start();
                 $couponform->display();
                 $output .= ob_get_clean();
@@ -665,12 +668,6 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             // Now prepare the coupon form.
             if (coupons::is_enabled()) {
-                $data->url = (new \moodle_url('/enrol/index.php', ['id' => $instance->courseid]))->out();
-                $couponaction = new \moodle_url('/enrol/wallet/extra/coupon_action.php');
-                $couponform = new applycoupon_form($couponaction, $data);
-                if ($submitteddata = $couponform->get_data()) {
-                    enrol_wallet_process_coupon_data($submitteddata);
-                }
                 ob_start();
                 $couponform->display();
                 $output .= ob_get_clean();

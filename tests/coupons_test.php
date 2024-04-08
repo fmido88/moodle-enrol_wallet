@@ -31,7 +31,7 @@ use enrol_wallet_plugin;
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class coupons_test extends \advanced_testcase {
+final class coupons_test extends \advanced_testcase {
 
     /**
      * Categories.

@@ -350,7 +350,7 @@ function enrol_wallet_process_coupon_data($data) {
             default:
         }
 
-        $couponutil->apply_coupon();
+        $couponutil->apply_coupon($area, $areaid);
         // Check the type to determine what to do.
         if ($type == $couponutil::FIXED) {
             // Apply the coupon code to add its value to the user's wallet and enrol if value is enough.
@@ -523,7 +523,8 @@ function enrol_wallet_display_topup_options() {
             && (bool)get_config('block_vc', 'enablecredit')) {
 
         require_once("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php");
-        $vcform = new \block_vc\form\vc_credit_form($CFG->wwwroot.'/blocks/vc/credit.php');
+        $action = new moodle_url('/blocks/vc/credit.php');
+        $vcform = new \block_vc\form\vc_credit_form($action);
 
         $render .= enrol_wallet_topup_option($vcform->render(), get_string('topupbyvc', 'enrol_wallet'));
     }

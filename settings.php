@@ -286,7 +286,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configselect('enrol_wallet/discount_field',
                         get_string('profile_field_map', 'enrol_wallet'),
                         get_string('profile_field_map_help', 'enrol_wallet'),
-                        null,
+                        0,
                         $menu));
 
     // Adding options to enable and disable coupons.

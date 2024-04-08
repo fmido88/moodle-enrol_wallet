@@ -39,7 +39,7 @@ use enrol_wallet_plugin;
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class enrol_wallet_test extends \advanced_testcase {
+final class enrol_wallet_test extends \advanced_testcase {
     /**
      * Basic test for enrol wallet plugin
      * @covers \enrol_wallet_plugin

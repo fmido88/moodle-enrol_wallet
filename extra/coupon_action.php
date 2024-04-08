@@ -24,6 +24,8 @@
 
 require_once('../../../config.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+// Any error displaying causing page to not redirect and charging operation may be proceeded twice.
+set_debugging(DEBUG_NONE, false);
 require_login(null, false);
 
 $data = [
