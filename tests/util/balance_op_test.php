@@ -35,6 +35,7 @@ use enrol_wallet\transactions;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\util\balance_op
  */
 final class balance_op_test extends \advanced_testcase {
     /**
