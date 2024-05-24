@@ -22,6 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['MWC'] = 'Wallet Coins';
+
+
 $string['addbundle'] = 'Add bundle';
 $string['addbundle_help'] = 'Add a quick top up value associated with this conditional discount rule.';
 $string['agreepolicy_intro'] = 'In order to perform any wallet top up process it means that you have <strong>read and agreed</strong> the manual refund policy.<br/>
@@ -418,7 +421,6 @@ $string['mintransfer'] = 'The minimum transfer amount is {$a}';
 $string['mintransfer_config'] = 'Minimum allowed transfer';
 $string['mintransfer_config_desc'] = 'Minimum allowed transfer amount, users cannot transfer balance to each others less than this amount.';
 $string['mustselectchar'] = 'Must select at least one character type.';
-$string['MWC'] = 'Wallet Coins';
 $string['mywallet'] = 'My Wallet';
 
 

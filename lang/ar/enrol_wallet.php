@@ -22,6 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+$string['MWC'] = 'عملات المحفظة';
+
+
 $string['agreepolicy_intro'] = 'لتنفيذ أي عملية تعبئة للمحفظة، فهذا يعني أنك <strong>قرأت ووافقت</strong> على سياسة استرداد الأموال اليدوية.<br/>
 انقر على الرابط أدناه لقراءة السياسة.<br/>';
 $string['agreepolicy_label'] = 'أوافق على سياسة استرداد الأموال اليدوية.';
@@ -391,7 +394,6 @@ $string['mintransfer'] = 'الحد الأدنى لمبلغ التحويل هو {
 $string['mintransfer_config'] = 'الحد الأدنى المسموح به للنقل';
 $string['mintransfer_config_desc'] = 'الحد الأدنى المسموح به لمبلغ التحويل، لا يمكن للمستخدمين تحويل رصيد لبعضهم البعض أقل من هذا المبلغ.';
 $string['mustselectchar'] = 'يجب تحديد نوع حرف واحد على الأقل.';
-$string['MWC'] = 'عملات المحفظة';
 $string['mywallet'] = 'محفظتي';
 
 
