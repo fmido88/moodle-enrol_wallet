@@ -349,10 +349,6 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool - true means it is possible to change enrol period and status in user_enrolments table
      */
     public function allow_manage(stdClass $instance) {
-        $context = context_course::instance($instance->courseid);
-        if (!has_capability('enrol/wallet:manage', $context)) {
-            return false;
-        }
         return true;
     }
 

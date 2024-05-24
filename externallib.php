@@ -24,8 +24,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once("$CFG->libdir/externallib.php");
+global $CFG;
 require_once("$CFG->dirroot/enrol/wallet/lib.php");
+require_once("$CFG->dirroot/enrol/wallet/externalclasses.php");
 
 use enrol_wallet\util\balance;
 

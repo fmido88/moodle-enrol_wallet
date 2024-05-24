@@ -53,33 +53,152 @@ final class coupons_test extends \advanced_testcase {
      * @var object
      */
     private $cat4;
-    /** Course 1 @var \stdClass */
+
+    /**
+     * Course 1
+     * @var \stdClass
+     */
     private $c1;
     /**
-     * Courses
+     * Course 1
      * @var \stdClass
      */
-    private $c2, $c3, $c4, $c5, $c6, $c7;
+    private $c2;
     /**
-     * Users
+     * Course 2
      * @var \stdClass
      */
-    private $u1, $u2, $u3, $u4, $u5, $u6;
+    private $c3;
     /**
-     * Enrol wallet instances.
+     * Course 4
      * @var \stdClass
      */
-    private $inst1, $inst2, $inst3, $inst4, $inst5, $inst6, $inst7;
+    private $c4;
     /**
-     * Course sections
+     * Course 5
      * @var \stdClass
      */
-    private $sec1, $sec2, $sec3;
+    private $c5;
     /**
-     * Course modules.
+     * Course 6
      * @var \stdClass
      */
-    private $cm1, $cm2, $cm3, $cm4, $cm5;
+    private $c6;
+    /**
+     * Course 7
+     * @var \stdClass
+     */
+    private $c7;
+
+    /**
+     * User 1
+     * @var \stdClass
+     */
+    private $u1;
+    /**
+     * User 2
+     * @var \stdClass
+     */
+    private $u2;
+    /**
+     * User 3
+     * @var \stdClass
+     */
+    private $u3;
+    /**
+     * User 4
+     * @var \stdClass
+     */
+    private $u4;
+    /**
+     * User 4
+     * @var \stdClass
+     */
+    private $u5;
+    /**
+     * User 6
+     * @var \stdClass
+     */
+    private $u6;
+
+    /**
+     * Enrol wallet instance 1.
+     * @var \stdClass
+     */
+    private $inst1;
+    /**
+     * Enrol wallet instance 2.
+     * @var \stdClass
+     */
+    private $inst2;
+    /**
+     * Enrol wallet instance 3.
+     * @var \stdClass
+     */
+    private $inst3;
+    /**
+     * Enrol wallet instance 4.
+     * @var \stdClass
+     */
+    private $inst4;
+    /**
+     * Enrol wallet instance 5.
+     * @var \stdClass
+     */
+    private $inst5;
+    /**
+     * Enrol wallet instance 6.
+     * @var \stdClass
+     */
+    private $inst6;
+    /**
+     * Enrol wallet instance 7.
+     * @var \stdClass
+     */
+    private $inst7;
+
+    /**
+     * Course section 1
+     * @var \stdClass
+     */
+    private $sec1;
+    /**
+     * Course section 2
+     * @var \stdClass
+     */
+    private $sec2;
+    /**
+     * Course section 3
+     * @var \stdClass
+     */
+    private $sec3;
+
+    /**
+     * Course module 1.
+     * @var \stdClass
+     */
+    private $cm1;
+    /**
+     * Course module 2.
+     * @var \stdClass
+     */
+    private $cm2;
+    /**
+     * Course module 3.
+     * @var \stdClass
+     */
+    private $cm3;
+    /**
+     * Course module 4.
+     * @var \stdClass
+     */
+    private $cm4;
+    /**
+     * Course module 5.
+     * @var \stdClass
+     */
+    private $cm5;
+
     /**
      * Data Generator
      * @var \testing_data_generator

@@ -16,12 +16,14 @@
 
 namespace enrol_wallet\api;
 
+defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require_once("$CFG->dirroot/enrol/wallet/externalclasses.php");
 use external_api;
 use external_function_parameters;
 use external_description;
 use external_single_structure;
 use external_value;
-
 /**
  * Class balance_op
  *
@@ -37,7 +39,7 @@ class balance_op extends external_api {
      */
     public static function get_balance_details_parameters() {
         return new external_function_parameters([
-            'userid' => new external_value(PARAM_INT, 'The id of the user', VALUE_OPTIONAL, 0),
+            'userid' => new external_value(PARAM_INT, 'The id of the user', VALUE_DEFAULT, 0),
         ]);
     }
     /**

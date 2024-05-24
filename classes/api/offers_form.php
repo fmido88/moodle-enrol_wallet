@@ -16,6 +16,9 @@
 
 namespace enrol_wallet\api;
 
+defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require_once("$CFG->dirroot/enrol/wallet/externalclasses.php");
 use external_api;
 use external_function_parameters;
 use external_description;
