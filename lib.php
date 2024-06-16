@@ -402,7 +402,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param bool $charge Charge the user to enrol (only false in case of enrol coupons)
      * @return bool|array true if enrolled else error code and message
      */
-    public function enrol_self(stdClass $instance, \stdClass|null $user = null, $charge = true) {
+    public function enrol_self(stdClass $instance, $user = null, $charge = true) {
         global $CFG, $DB, $USER;
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
         if (empty($user)) {
