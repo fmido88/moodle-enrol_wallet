@@ -47,7 +47,7 @@ class pages {
      * @param int $userid
      */
     public static function process_referral_page($userid = 0) {
-        global $DB, $USER, $CFG, $OUTPUT;
+        global $DB, $USER, $CFG, $OUTPUT, $SITE;
         if (!(bool)get_config('enrol_wallet', 'referral_enabled')) {
             echo get_string('referral_not_enabled', 'enrol_wallet');
             return;
@@ -94,6 +94,11 @@ class pages {
 
         $output = '';
 
+        $emaildata = [
+            'amount' => $amount,
+            'url'    => $signup->out(),
+            'site'   => $SITE->fullname,
+        ];
         $templatedata = [
             'amount'       => $amount,
             'url'          => $signup->out(),

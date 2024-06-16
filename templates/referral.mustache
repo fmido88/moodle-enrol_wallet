@@ -24,8 +24,8 @@
         "amount": "50",
         "code": "something123",
         "url": "https://something.com/login/signup.php?refcode=something123",
-        "mail_subject": "You got invitation",
-        "mail_body": "Hello! You got invitation from me. Please use this link to sign"
+        "mail_subject": "invitation",
+        "mail_body": "Hello"
     }
 }}
 
@@ -37,18 +37,18 @@
                 <p>{{#str}} referral_subheader, enrol_wallet, {{amount}} {{/str}}</p>
                 <div class='shareLink'>
                     <div class='permalink'>
-                        <input class='textLink search-input' id='code_{{uniqid}}' type='text' value='{{code}}' readonly>
-                        <span class='copyLink' id='copy_code_{{uniqid}}' tooltip="{{#str}} referral_copy_to_clipboard, enrol_wallet{{/str}}">
+                        <input class='form-control textLink search-input' id='code_{{uniqid}}' type='text' value='{{code}}' readonly>
+                        <button class='copyLink' id='copy_code_{{uniqid}}' tooltip="{{#str}} referral_copy_to_clipboard, enrol_wallet{{/str}}">
                             <i class='fa fa-regular fa-copy'></i>
-                        </span>
+                        </button>
                     </div>
                 </div>
                 <div class='shareLink'>
                     <div class='permalink'>
-                        <input class='textLink search-input' id='url_{{uniqid}}' type='text' value='{{url}}' readonly>
-                        <span class='copyLink' id='copy_url_{{uniqid}}' tooltip="{{#str}} referral_copy_to_clipboard, enrol_wallet{{/str}}">
+                        <input class='form-control textLink search-input' id='url_{{uniqid}}' type='text' value='{{url}}' readonly>
+                        <button class='copyLink' id='copy_url_{{uniqid}}' tooltip="{{#str}} referral_copy_to_clipboard, enrol_wallet{{/str}}">
                             <i class='fa fa-regular fa-copy'></i>
-                        </span>
+                        </button>
                     </div>
                 </div>
                 <div class='shareReferral'>

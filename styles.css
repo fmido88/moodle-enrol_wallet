@@ -240,7 +240,9 @@
     max-height: 1080px;
 }
 
-
+#page-enrol-wallet-extra-referral .row {
+    border-radius: 10px;
+}
 #page-enrol-wallet-extra-referral .shareReferral {
     display: flex;
     flex-flow: column;
@@ -337,11 +339,8 @@
     right: 25px;
     cursor: pointer;
     transform: translateY(-50%);
-}
-#page-enrol-wallet-extra-referral .shareLink .permalink .copyLink {
-    position: absolute;
-    right: 14px;
-    top: 14px;
+    border: none;
+    background: none;
 }
 #page-enrol-wallet-extra-referral .shareLink .permalink .copyLink:hover:after {
     opacity: 1;
@@ -356,6 +355,7 @@
     border-radius: 4px;
     font-size: 0.8rem;
     opacity: 0;
+    z-index: 3;
     pointer-events: none;
     position: absolute;
     background-color: #000;

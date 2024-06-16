@@ -554,18 +554,22 @@ $string['referral_code'] = 'Referral Code';
 $string['referral_code_help'] = 'Instate of the referral URL you can send this referral code instead and the new user enter it in the signup page.';
 $string['referral_code_signup'] = '';
 $string['referral_code_signup_help'] = 'If this is empty, enter a referral code to receive the referral gift.';
+$string['referral_copied'] = 'Copied!';
+$string['referral_copy_to_clipboard'] = 'Copy to clipboard';
 $string['referral_data'] = 'Referral Data';
 $string['referral_done'] = 'Gift granted';
 $string['referral_enabled'] = 'Enable Referral Program';
 $string['referral_exceeded'] = 'The referral code: {$a} exceeds it\'s max usage.';
 $string['referral_gift'] = 'Due to referral code from user: {$a}';
+$string['referral_header'] = 'Share link and earn credits in Wallet!';
 $string['referral_hold'] = 'Gift in hold';
 $string['referral_holdgift'] = 'You have a holding gift ({$a->amount}) due to use of referral code from {$a->name}, buy a course to get your gift.';
 $string['referral_max'] = 'Maximum Referrals';
 $string['referral_max_desc'] = 'The maximum times a user can receive referral gifts (0 means unlimited).';
-$string['referral_not_enabled'] = 'Referrals not enabled';
 $string['referral_noparents'] = 'Parents not allow to access referral program';
+$string['referral_not_enabled'] = 'Referrals not enabled';
 $string['referral_notexist'] = 'The code: \'{$a}\' not exist in the database.';
+$string['referral_notyet'] = 'Not yet received!';
 $string['referral_past'] = 'Past Referrals';
 $string['referral_plugins'] = 'Enrol plugins';
 $string['referral_plugins_desc'] = 'As users does not receive the referral gift until the referred user get enrolled in a course to make sure that this is an active user.<br/>Choose the enrolment methods allowed to make the users receive this gift';
@@ -573,7 +577,16 @@ $string['referral_program'] = 'Referrals Program';
 $string['referral_program_desc'] = 'Existence users can refer new user to join this website and both receive a referral gift.';
 $string['referral_remain'] = 'Remained Referrals.';
 $string['referral_remain_help'] = 'Remained times available to receive the referral gift.';
+$string['referral_share_body'] = 'Greetings;
+
+You have been invited to join {$a->site} and get a free {$a->amount} as joining gift at your wallet.
+
+Please use the following link to signup.
+
+{$a->url}';
+$string['referral_share_subject'] = 'Join {$a->site} and get a free credit on your wallet.';
 $string['referral_site_desc'] = 'This site has a referral program, where you can send the referral code to your friend and when join us in at least one of our course both will get a gift on your wallets, for more information ';
+$string['referral_subheader'] = 'Simple share link and when someone registers and purchases a course, you\'ll receive {$a} in your Wallet.';
 $string['referral_timecreated'] = 'Signed up time';
 $string['referral_timereleased'] = 'Gifted at:';
 $string['referral_topup'] = 'Due to referral for user: {$a}.';
@@ -611,6 +624,7 @@ $string['sendcoursewelcomemessage_help'] = 'When a user enrols in the course, th
 $string['sender'] = 'Sender';
 $string['sendexpirynotificationstask'] = 'Wallet enrolment send expiry notifications task';
 $string['sendpaymentbutton'] = 'direct payment';
+$string['share_referral'] = 'Share with friends';
 $string['showbalance'] = 'Show balance';
 $string['showprice'] = 'Show price on enrol icon';
 $string['showprice_desc'] = 'If selected the price of the course will be displayed over the enrollment icon in the course card.';
@@ -761,13 +775,3 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
-
-
-$string['referral_header'] = 'Share link and earn credits in Wallet!';
-$string['referral_subheader'] = 'Simple share link and when someone registers and purchases a course, you\'ll receive {$a} in your Wallet.';
-$string['share_referral'] = 'Share with friends';
-$string['referral_notyet'] = 'Not yet received!';
-$string['referral_copy_to_clipboard'] = 'Copy to clipboard';
-$string['referral_copied'] = 'Copied!';
-$string['referral_share_subject'] = 'Email subject text - change in language strings!';
-$string['referral_share_body'] = 'Email body text - change in language strings!';
