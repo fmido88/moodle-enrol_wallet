@@ -159,12 +159,12 @@ class info extends \core_availability\info {
      *   required for all course-modules, to make the front page and similar
      *   pages work more quickly (works only for current user)
      * @param int $userid If set, specifies a different user ID to check availability for
-     * @param \course_modinfo $modinfo Usually leave as null for default. Specify when
+     * @param \course_modinfo|null $modinfo Usually leave as null for default. Specify when
      *   calling recursively from inside get_fast_modinfo()
      * @return bool True if this item is available to the user, false otherwise
      */
     public function is_available(&$information, $grabthelot = false, $userid = 0,
-            \course_modinfo $modinfo = null) {
+            \course_modinfo|null $modinfo = null) {
         global $USER, $OUTPUT, $DB;
 
         // Default to no information.

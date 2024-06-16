@@ -402,7 +402,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param bool $charge Charge the user to enrol (only false in case of enrol coupons)
      * @return bool|array true if enrolled else error code and message
      */
-    public function enrol_self(stdClass $instance, \stdClass $user = null, $charge = true) {
+    public function enrol_self(stdClass $instance, \stdClass|null $user = null, $charge = true) {
         global $CFG, $DB, $USER;
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
         if (empty($user)) {
@@ -1893,10 +1893,10 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Add new instance of enrol plugin.
      * @param object $course
-     * @param array $fields instance fields
+     * @param array|null $fields instance fields
      * @return int id of new instance, null if can not be created
      */
-    public function add_instance($course, array $fields = null) {
+    public function add_instance($course, array|null $fields = null) {
 
         offers::parse_data($fields);
 
