@@ -239,3 +239,145 @@
 .enrol_wallet_topup .accordion .accordion__title:has(input:checked) + .accordion__text {
     max-height: 1080px;
 }
+
+
+#page-enrol-wallet-extra-referral .shareReferral {
+    display: flex;
+    flex-flow: column;
+    width: 100%;
+}
+
+#page-enrol-wallet-extra-referral .shareSocial {
+    display: flex;
+    flex-flow: row;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+@media (max-width: 767px) {
+    #page-enrol-wallet-extra-referral .shareSocial {
+        flex-flow: column;
+    }
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialTitle {
+    margin: 0 15px 0 0;
+    font-size: 20px;
+}
+
+@media (max-width: 767px) {
+    #page-enrol-wallet-extra-referral .shareSocial .socialTitle {
+        margin-bottom: 15px;
+        text-align: center;
+    }
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    /* justify-content: flex-start; */
+    justify-content: center;
+    flex-flow: row wrap;
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li {
+    margin: 5px;
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li:first-child {
+    padding-left: 0;
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li a {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 50px;
+    height: 50px;
+    border-radius: 100%;
+    text-decoration: none;
+    background-color: #999;
+    color: #fff;
+    transition: 0.35s;
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li a i {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform-origin: top left;
+    transform: scale(1) translate(-50%, -50%);
+    transition: 0.35s;
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li a:hover i {
+    transform: scale(1.5) translate(-50%, -50%);
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li:nth-child(1) a {
+    background-color: #135cb6;
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li:nth-child(2) a {
+    background-color: #075e54;
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li:nth-child(3) a {
+    background-color: #26617c
+}
+#page-enrol-wallet-extra-referral .shareSocial .socialList li:nth-child(4) a {
+    background-color: #111;
+}
+#page-enrol-wallet-extra-referral .shareLink .permalink {
+    position: relative;
+    border-radius: 30px;
+}
+#page-enrol-wallet-extra-referral .shareLink .permalink .textLink {
+    padding: 12px 60px 12px 30px;
+    font-size: 14px;
+    letter-spacing: 0.3px;
+    width: 100%;
+}
+#page-enrol-wallet-extra-referral .shareLink .permalink .copyLink {
+    position: absolute;
+    top: 50%;
+    right: 25px;
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+#page-enrol-wallet-extra-referral .shareLink .permalink .copyLink {
+    position: absolute;
+    right: 14px;
+    top: 14px;
+}
+#page-enrol-wallet-extra-referral .shareLink .permalink .copyLink:hover:after {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+}
+#page-enrol-wallet-extra-referral .shareLink .permalink .copyLink:after {
+    content: attr(tooltip);
+    width: 140px;
+    bottom: -40px;
+    left: 50%;
+    padding: 5px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    opacity: 0;
+    pointer-events: none;
+    position: absolute;
+    background-color: #000;
+    color: #fff;
+    transform: translateY(-10px) translateX(-50%);
+    transition: all 300ms ease;
+    text-align: center;
+    z-index: 1100;
+}
+#page-enrol-wallet-extra-referral .shareLink .permalink .copyLink i {
+    font-size: 18px;
+    color: #9500d8;
+}
+
+@media (min-width: 1100px) {
+    #page-enrol-wallet-extra-referral .referral-page-content .rui-img-rounded--lg {
+        position: relative;
+    }
+    #page-enrol-wallet-extra-referral .referral-page-content .rui-img-rounded--lg img {
+        transform: scale(1.6);
+        position: absolute;
+        top: 4px;
+        right: 80px;
+    }
+}

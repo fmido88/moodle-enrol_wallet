@@ -30,21 +30,20 @@ global $DB, $USER;
 $isparent = false;
 if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
     require_once("$CFG->dirroot/auth/parent/auth.php");
-    require_once("$CFG->dirroot/auth/parent/lib.php");
     $authparent = new auth_plugin_parent;
     $isparent = $authparent->is_parent($USER);
 }
 
 if ($isparent) {
-    redirect(new moodle_url('/'), 'Parents not allow to access referral program.');
+    redirect(new moodle_url('/'), get_string('referral_noparents', 'enrol_wallet'));
 }
 
-if (!(bool)get_config('referral_enabled', 'enrol_wallet')) {
-    redirect(new moodle_url('/'));
+if (empty(get_config('enrol_wallet', 'referral_enabled'))) {
+    redirect(new moodle_url('/'), get_string('referral_not_enabled', 'enrol_wallet'));
 }
 
 // Adding some security.
-require_login();
+require_login(null, false);
 $thisurl = new moodle_url('/enrol/wallet/extra/referral.php');
 
 $PAGE->set_url($thisurl);

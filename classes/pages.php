@@ -48,8 +48,8 @@ class pages {
      */
     public static function process_referral_page($userid = 0) {
         global $DB, $USER, $CFG, $OUTPUT;
-        if (!(bool)get_config( 'enrol_wallet', 'referral_enabled')) {
-            echo 'Referrals not enabled';
+        if (!(bool)get_config('enrol_wallet', 'referral_enabled')) {
+            echo get_string('referral_not_enabled', 'enrol_wallet');
             return;
         }
 
@@ -67,13 +67,14 @@ class pages {
         }
 
         if ($isparent) {
-            echo 'Parents not allow to access referral program.';
+            echo get_string('referral_noparents', 'enrol_wallet');
             return;
         }
 
         $amount = get_config('enrol_wallet', 'referral_amount');
         $maxref = get_config('enrol_wallet', 'referral_max');
 
+        // If the referral code not exist for this user, create a new one.
         $exist = $DB->get_record('enrol_wallet_referral', ['userid' => $user->id]);
         if (!$exist) {
             $data = (object)[
@@ -84,11 +85,23 @@ class pages {
             $exist = $DB->get_record('enrol_wallet_referral', ['userid' => $user->id]);
         }
 
-        $holdgift = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $user->username]);
+        $signup = new moodle_url('/login/signup.php', ['refcode' => $exist->code]);
 
+        // Check if there is a hold gift for this user.
+        $holdgift = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $user->username]);
+        // Check if there is past referrals by this user.
         $refusers = $DB->get_records('enrol_wallet_hold_gift', ['referrer' => $user->id]);
 
         $output = '';
+
+        $templatedata = [
+            'amount'       => $amount,
+            'url'          => $signup->out(),
+            'code'         => $exist->code,
+            'mail_subject' => rawurlencode(get_string('referral_share_subject', 'enrol_wallet')),
+            'mail_body'    => rawurlencode(get_string('referral_share_body', 'enrol_wallet'))
+        ];
+        $output .= $OUTPUT->render_from_template('enrol_wallet/referral', $templatedata);
         if (!empty($holdgift)) {
             $referrer = core_user::get_user($holdgift->referrer);
             $a = [
@@ -99,6 +112,8 @@ class pages {
             $output .= $OUTPUT->notification($message);
         }
 
+        $output .= html_writer::start_div('wrapper referral-page-past-invites');
+        $output .= $OUTPUT->heading(get_string('referral_past', 'enrol_wallet'));
         if (!empty($refusers)) {
             $table = new html_table;
             $headers = [
@@ -126,10 +141,10 @@ class pages {
             $message = get_string('noreferraldata', 'enrol_wallet');
             $output .= $OUTPUT->notification($message);
         }
+        $output .= html_writer::end_div();
 
         $mform = new MoodleQuickForm('referral_info', 'get', null);
 
-        $signup = new moodle_url('/login/signup.php', ['refcode' => $exist->code]);
         $mform->addElement('static', 'refurl', get_string('referral_url', 'enrol_wallet'), $signup->out(false));
         $mform->addHelpButton('refurl',  'referral_url',  'enrol_wallet');
 
@@ -154,8 +169,6 @@ class pages {
             $mform->setConstant('refremain', $maxref - $exist->usetimes);
             $mform->disabledIf('refremain',  'disable',  'neq',  1);
         }
-
-        echo $OUTPUT->heading(get_string('referral_past', 'enrol_wallet'));
 
         echo $output;
 
