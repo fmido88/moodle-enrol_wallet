@@ -67,11 +67,11 @@ function copyText(target, element) {
 
     navigator.clipboard.writeText(input[0].value);
 
-    element.setAttribute('tooltip', copiedTooltip);
+    element.setAttribute('title', copiedTooltip);
 }
 
 const resetTooltip = (element) => {
-    element.setAttribute('tooltip', copyTooltip);
+    element.setAttribute('title', copyTooltip);
 };
 
 /**
