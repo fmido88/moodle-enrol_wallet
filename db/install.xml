@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/wallet/db" VERSION="20240226" COMMENT="XMLDB file for Moodle enrol/wallet"
+<XMLDB PATH="enrol/wallet/db" VERSION="20240616" COMMENT="XMLDB file for Moodle enrol/wallet"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -7,7 +7,7 @@
     <TABLE NAME="enrol_wallet_items" COMMENT="Fake items added to be purchased during wallet topup">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="cost" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="the price should be added"/>
+        <FIELD NAME="cost" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="the price should be added"/>
         <FIELD NAME="currency" TYPE="char" LENGTH="3" NOTNULL="true" DEFAULT="EGP" SEQUENCE="false" COMMENT="the currency"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false" COMMENT="the id of the user doing the operation"/>
         <FIELD NAME="instanceid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Enrol Instance id"/>
@@ -26,7 +26,7 @@
         <FIELD NAME="grade" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="maxgrade" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="percent" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
-        <FIELD NAME="amount" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="amount" TYPE="number" LENGTH="25" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -38,12 +38,12 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="type" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="amount" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
-        <FIELD NAME="balbefore" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
-        <FIELD NAME="balance" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
-        <FIELD NAME="norefund" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="amount" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="balbefore" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="balance" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="norefund" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="category" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The category id if the transaction done for a category balance"/>
-        <FIELD NAME="descripe" TYPE="char" LENGTH="255" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="descripe" TYPE="char" LENGTH="1333" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
@@ -55,7 +55,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="code" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="type" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="value" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="value" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="category" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="courses" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="maxusage" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -76,7 +76,7 @@
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="code" TYPE="char" LENGTH="20" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="type" TYPE="char" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="value" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="value" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="instanceid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timeused" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -88,12 +88,12 @@
     <TABLE NAME="enrol_wallet_cond_discount" COMMENT="Data for conditional discounts in the website.">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-        <FIELD NAME="cond" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="cond" TYPE="number" LENGTH="25" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="percent" TYPE="number" LENGTH="4" NOTNULL="true" SEQUENCE="false" DECIMALS="2"/>
         <FIELD NAME="category" TYPE="int" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" COMMENT="The id of the category at which the conditional discount applied, 0 mean main balance discount"/>
         <FIELD NAME="timefrom" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timeto" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
-        <FIELD NAME="bundle" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="2" COMMENT="bundle for quick top up with the discount"/>
+        <FIELD NAME="bundle" TYPE="number" LENGTH="25" NOTNULL="false" SEQUENCE="false" DECIMALS="5" COMMENT="bundle for quick top up with the discount"/>
         <FIELD NAME="bundledesc" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="Additional description of the bundle"/>
         <FIELD NAME="descformat" TYPE="int" LENGTH="1" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="usermodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -126,7 +126,7 @@
         <FIELD NAME="referrer" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="referred" TYPE="char" LENGTH="225" NOTNULL="true" SEQUENCE="false"/>
         <FIELD NAME="courseid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-        <FIELD NAME="amount" TYPE="number" LENGTH="10" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
+        <FIELD NAME="amount" TYPE="number" LENGTH="25" NOTNULL="true" SEQUENCE="false" DECIMALS="5"/>
         <FIELD NAME="released" TYPE="int" LENGTH="1" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
@@ -140,9 +140,9 @@
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="false"/>
-        <FIELD NAME="refundable" TYPE="number" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="2" COMMENT="The main refundable balance"/>
-        <FIELD NAME="nonrefundable" TYPE="number" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" DECIMALS="2" COMMENT="The nonrefundable main balance"/>
-        <FIELD NAME="freegift" TYPE="number" LENGTH="10" NOTNULL="false" DEFAULT="0" SEQUENCE="false" DECIMALS="2" COMMENT="free balance added from gift or so"/>
+        <FIELD NAME="refundable" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="The main refundable balance"/>
+        <FIELD NAME="nonrefundable" TYPE="number" LENGTH="25" NOTNULL="false" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="The nonrefundable main balance"/>
+        <FIELD NAME="freegift" TYPE="number" LENGTH="25" NOTNULL="false" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="free balance added from gift or so"/>
         <FIELD NAME="cat_balance" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The category balance details, json data keyed with category id"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>

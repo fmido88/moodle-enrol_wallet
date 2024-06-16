@@ -363,5 +363,104 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024022619, 'enrol', 'wallet');
     }
 
+    // Changing all precisions of fields handle cost, balance, ..
+    if ($oldversion < 2024061600) {
+
+        // Changing precision of field cost on table enrol_wallet_items to (25, 5).
+        $table = new xmldb_table('enrol_wallet_items');
+        $field = new xmldb_field('cost', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'id');
+
+        // Launch change of precision for field cost.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field amount on table enrol_wallet_awards to (25, 5).
+        $table = new xmldb_table('enrol_wallet_awards');
+        $field = new xmldb_field('amount', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, null, 'percent');
+
+        // Launch change of precision for field amount.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field amount on table enrol_wallet_transactions to (25, 5).
+        $table = new xmldb_table('enrol_wallet_transactions');
+        $field = new xmldb_field('amount', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'type');
+
+        // Launch change of precision for field amount.
+        $dbman->change_field_precision($table, $field);
+        // Changing precision of field balbefore on table enrol_wallet_transactions to (25, 5).
+
+        $field = new xmldb_field('balbefore', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'amount');
+
+        // Launch change of precision for field balbefore.
+        $dbman->change_field_precision($table, $field);
+        // Changing precision of field balance on table enrol_wallet_transactions to (25, 5).
+
+        $field = new xmldb_field('balance', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'balbefore');
+
+        // Launch change of precision for field balance.
+        $dbman->change_field_precision($table, $field);
+            // Changing precision of field norefund on table enrol_wallet_transactions to (25, 5).
+        $field = new xmldb_field('norefund', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'balance');
+
+        // Launch change of precision for field norefund.
+        $dbman->change_field_precision($table, $field);
+        // Changing precision of field descripe on table enrol_wallet_transactions to (1333).
+        $field = new xmldb_field('descripe', XMLDB_TYPE_CHAR, '1333', null, null, null, null, 'category');
+
+        // Launch change of precision for field descripe.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field value on table enrol_wallet_coupons to (25, 5).
+        $table = new xmldb_table('enrol_wallet_coupons');
+        $field = new xmldb_field('value', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'type');
+
+        // Launch change of precision for field value.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field value on table enrol_wallet_coupons_usage to (25, 5).
+        $table = new xmldb_table('enrol_wallet_coupons_usage');
+        $field = new xmldb_field('value', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'type');
+
+        // Launch change of precision for field value.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field cond on table enrol_wallet_cond_discount to (25, 5).
+        $table = new xmldb_table('enrol_wallet_cond_discount');
+        $field = new xmldb_field('cond', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, null, 'id');
+
+        // Launch change of precision for field cond.
+        $dbman->change_field_precision($table, $field);
+        // Changing precision of field bundle on table enrol_wallet_cond_discount to (25, 5).
+        $field = new xmldb_field('bundle', XMLDB_TYPE_NUMBER, '25, 5', null, null, null, null, 'timeto');
+
+        // Launch change of precision for field bundle.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field amount on table enrol_wallet_hold_gift to (25, 5).
+        $table = new xmldb_table('enrol_wallet_hold_gift');
+        $field = new xmldb_field('amount', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, null, 'courseid');
+
+        // Launch change of precision for field amount.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field refundable on table enrol_wallet_balance to (25, 5).
+        $table = new xmldb_table('enrol_wallet_balance');
+        $field = new xmldb_field('refundable', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'userid');
+
+        // Launch change of precision for field refundable.
+        $dbman->change_field_precision($table, $field);
+        // Changing precision of field nonrefundable on table enrol_wallet_balance to (25, 5).
+        $field = new xmldb_field('nonrefundable', XMLDB_TYPE_NUMBER, '25, 5', null, null, null, '0', 'refundable');
+
+        // Launch change of precision for field nonrefundable.
+        $dbman->change_field_precision($table, $field);
+
+        // Changing precision of field freegift on table enrol_wallet_balance to (25, 5).
+        $field = new xmldb_field('freegift', XMLDB_TYPE_NUMBER, '25, 5', null, null, null, '0', 'nonrefundable');
+
+        // Launch change of precision for field freegift.
+        $dbman->change_field_precision($table, $field);
+        // Wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2024061600, 'enrol', 'wallet');
+    }
     return true;
 }
