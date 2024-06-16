@@ -1,0 +1,72 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template enrol_wallet/referral
+
+    TODO describe template referral
+
+    Example context (json):
+    {
+    }
+}}
+
+<div class='wrapper referral-page-content'>
+    <div class='row' style='background-color: #D0EDE7;'>
+        <div class='col-xs-12 col-md-12 col-lg-8'>
+            <div>
+                <h3 class='referral-title'>{{#str}} referral_header, enrol_wallet{{/str}}</h3>
+                <p>{{#str}} referral_subheader, enrol_wallet, {{amount}} {{/str}}</p>
+                <div class='shareLink'>
+                    <div class='permalink'>
+                        <input class='textLink search-input' id='code_{{uniqid}}' type='text' value='{{code}}' readonly>
+                        <span class='copyLink' id='copy_code_{{uniqid}}' tooltip="{{#str}} referral_copy_to_clipboard, enrol_wallet{{/str}}">
+                            <i class='fa fa-regular fa-copy'></i>
+                        </span>
+                    </div>
+                </div>
+                <div class='shareLink'>
+                    <div class='permalink'>
+                        <input class='textLink search-input' id='url_{{uniqid}}' type='text' value='{{url}}' readonly>
+                        <span class='copyLink' id='copy_url_{{uniqid}}' tooltip="{{#str}} referral_copy_to_clipboard, enrol_wallet{{/str}}">
+                            <i class='fa fa-regular fa-copy'></i>
+                        </span>
+                    </div>
+                </div>
+                <div class='shareReferral'>
+                    <div class='shareSocial'>
+                        <h3 class='socialTitle'>{{#str}} share_referral, enrol_wallet{{/str}}</h3>
+                        <ul class='socialList'>
+                        <li><a href='#shareOnFacebook'><i class='fa fa-brands fa-facebook-f'></i></a></li>
+                        <li><a href='#shareOnWhatsApp'><i class='fa fa-brands fa-whatsapp'></i></a></li>
+                        <li><a href='#shareOnTelegram'><i class="fa fa-brands fa-telegram"></i></a></li>
+                        <li><a href='mailto:?subject={{mail_subject}}&body={{mail_body}}'><i class='fa fa-solid fa-envelope'></i></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class='col-xs-12 col-md-12 col-lg-4'>
+        </div>
+    </div>
+</div>
+
+{{#js}}
+    require(['enrol_wallet/referral'], function(ref) {
+        ref.init('{{url}}', '{{uniqid}}');
+    });
+{{/js}}
