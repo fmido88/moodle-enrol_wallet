@@ -164,7 +164,7 @@ class info extends \core_availability\info {
      * @return bool True if this item is available to the user, false otherwise
      */
     public function is_available(&$information, $grabthelot = false, $userid = 0,
-            \course_modinfo|null $modinfo = null) {
+                                $modinfo = null) {
         global $USER, $OUTPUT, $DB;
 
         // Default to no information.

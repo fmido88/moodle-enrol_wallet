@@ -81,7 +81,9 @@ class transactions_filter extends \moodleform {
         $mform->addElement('text', 'value', get_string('value', 'enrol_wallet'));
         $mform->setType('value', PARAM_FLOAT);
 
-        $options = \enrol_wallet\category\options::get_all_categories_options();
+        $catoptions = \enrol_wallet\category\options::get_all_categories_options();
+        $mform->addElement('select', 'category', get_string('category'), $catoptions);
+
         // Transaction per page.
         $limits = [];
         for ($i = 25; $i <= 1000; $i = $i + 25) {

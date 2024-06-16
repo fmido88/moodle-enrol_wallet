@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
 $string['MWC'] = 'Wallet Coins';
 
 
@@ -562,6 +563,8 @@ $string['referral_hold'] = 'Gift in hold';
 $string['referral_holdgift'] = 'You have a holding gift ({$a->amount}) due to use of referral code from {$a->name}, buy a course to get your gift.';
 $string['referral_max'] = 'Maximum Referrals';
 $string['referral_max_desc'] = 'The maximum times a user can receive referral gifts (0 means unlimited).';
+$string['referral_not_enabled'] = 'Referrals not enabled';
+$string['referral_noparents'] = 'Parents not allow to access referral program';
 $string['referral_notexist'] = 'The code: \'{$a}\' not exist in the database.';
 $string['referral_past'] = 'Past Referrals';
 $string['referral_plugins'] = 'Enrol plugins';
@@ -758,3 +761,13 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
+
+
+$string['referral_header'] = 'Share link and earn credits in Wallet!';
+$string['referral_subheader'] = 'Simple share link and when someone registers and purchases a course, you\'ll receive {$a} in your Wallet.';
+$string['share_referral'] = 'Share with friends';
+$string['referral_notyet'] = 'Not yet received!';
+$string['referral_copy_to_clipboard'] = 'Copy to clipboard';
+$string['referral_copied'] = 'Copied!';
+$string['referral_share_subject'] = 'Email subject text - change in language strings!';
+$string['referral_share_body'] = 'Email body text - change in language strings!';

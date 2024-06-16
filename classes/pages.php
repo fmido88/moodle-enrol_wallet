@@ -99,7 +99,7 @@ class pages {
             'url'          => $signup->out(),
             'code'         => $exist->code,
             'mail_subject' => rawurlencode(get_string('referral_share_subject', 'enrol_wallet')),
-            'mail_body'    => rawurlencode(get_string('referral_share_body', 'enrol_wallet'))
+            'mail_body'    => rawurlencode(get_string('referral_share_body', 'enrol_wallet')),
         ];
         $output .= $OUTPUT->render_from_template('enrol_wallet/referral', $templatedata);
         if (!empty($holdgift)) {

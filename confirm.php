@@ -38,25 +38,26 @@ $instanceid = required_param('instance', PARAM_INT);
 $courseid = required_param('id', PARAM_INT);
 $confirm = optional_param('confirm', false, PARAM_BOOL);
 
+$params = [
+    'instance' => $instanceid,
+    'confirm'  => $confirm,
+];
+
+$pageurl = new moodle_url('/enrol/wallet/confirm.php', $params);
+$courseurl = new moodle_url('/course/view.php', ['id' => $courseid]);
+
 $context = context_course::instance($courseid);
 $PAGE->set_context($context);
+$PAGE->set_url($pageurl);
 
 if (is_enrolled($context, null, '', true)) {
-    redirect(new moodle_url('/course/view.php', ['id' => $courseid]));
+    redirect($courseurl);
 }
 
 $helper = new instance($instanceid);
 $wallet = new enrol_wallet_plugin;
 $instance = $helper->get_instance();
 $course = get_course($courseid);
-
-$params = [
-    'instance' => $instance->id,
-    'id' => $course->id,
-    'confirm' => $confirm,
-];
-
-$PAGE->set_url($CFG->wwwroot.'/enrol/wallet/confirm.php', $params);
 
 $canselfenrol = ($wallet->can_self_enrol($instance, false) === true);
 
@@ -69,7 +70,7 @@ if (
     || !$canselfenrol
     ) {
     $msg = get_string('confirm_enrol_error', 'enrol_wallet');
-    redirect(new moodle_url('/'), $msg, null, 'error');
+    redirect($courseurl, $msg, null, 'error');
 }
 
 if (!$course->visible && !has_capability('moodle/course:viewhiddencourses', context_course::instance($course->id))) {
@@ -92,7 +93,7 @@ if ($confirm && confirm_sesskey()) {
 
     $wallet->enrol_self($instance);
 
-    redirect(new moodle_url('/course/view.php', ['id' => $courseid]));
+    redirect($courseurl);
 }
 
 $PAGE->set_title($course->shortname);
@@ -113,8 +114,9 @@ $cancelurl = new moodle_url('/enrol/index.php', ['id' => $course->id]);
 $cancelbutton = new single_button($cancelurl, get_string('cancel'));
 
 $params['confirm'] = true;
-$confirmurl = new moodle_url('/enrol/wallet/confirm.php', $params);
-$confirmbutton = new single_button($confirmurl, get_string('confirm'));
+$pageurl->param('confirm', true);
+$confirmbutton = new single_button($pageurl, get_string('confirm'));
+
 $balance = balance::create_from_instance($instance);
 $a = [
     'balance'  => $balance->get_valid_balance(),

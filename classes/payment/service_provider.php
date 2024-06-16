@@ -94,6 +94,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
      */
     public static function deliver_order(string $paymentarea, int $itemid, int $paymentid, int $userid): bool {
         global $DB, $CFG;
+
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
         // Get the fake item in case of topping up the wallet.
         $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);

@@ -1,5 +1,11 @@
 # Wallet Enrollment for Moodle #
 ==========
+
+## V 5.4.0 ##
+- increase precisions of data fields holding amounts.
+- Improve the UI of the referrals page (thanks to Davor Budimir)
+- Fix bug in referral page that always redirect users.
+
 ## V 5.3.2 ##
 - Adding main page for wallet (when the user click my wallet).
 - Add bundles for quick top up with conditional discounts

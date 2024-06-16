@@ -28,7 +28,7 @@ use enrol_wallet\util\balance_op;
 use enrol_wallet\util\instance;
 /**
  * Unit tests for the enrol_wallet's payment subsystem callback implementation.
- * @coversDefaultClass \enrol_wallet\payment\service_provider
+ *
  */
 final class service_provider_test extends \advanced_testcase {
 

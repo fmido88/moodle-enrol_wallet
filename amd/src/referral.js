@@ -22,6 +22,7 @@
  */
 
 import $ from 'jquery';
+// eslint-disable-next-line camelcase
 import {get_strings} from 'core/str';
 import Prefetch from 'core/prefetch';
 

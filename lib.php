@@ -1896,7 +1896,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param array|null $fields instance fields
      * @return int id of new instance, null if can not be created
      */
-    public function add_instance($course, array|null $fields = null) {
+    public function add_instance($course, $fields = null) {
 
         offers::parse_data($fields);
 

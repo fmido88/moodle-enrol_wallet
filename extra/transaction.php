@@ -48,7 +48,7 @@ $urlparams = [
     'tsort'   => $sort,
     'pagesize' => $pagesize,
     'page'    => $limitfrom,
-    'userid'    => $userid,
+    'userid'  => $userid,
     'ttype'   => $ttype,
     'value'   => $value,
 ];

@@ -104,7 +104,9 @@ function searchAndInject(node = document) {
  */
 function startObserver() {
     regionMain = document.getElementById("region-main");
-    observer.observe(regionMain, config);
+    if (regionMain) {
+        observer.observe(regionMain, config);
+    }
 }
 
 /**

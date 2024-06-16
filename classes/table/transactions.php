@@ -162,6 +162,11 @@ class transactions extends table_sql {
             $params['timeto'] = $data->dateto;
             $where .= "AND timecreated <= :timeto ";
         }
+
+        if (!empty($data->category)) {
+            $params['category'] = $data->category;
+            $where .= "AND category = :category";
+        }
         $this->sql->where = $where;
         $this->sql->params = $params;
     }

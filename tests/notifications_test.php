@@ -31,7 +31,6 @@ use enrol_wallet\notifications;
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- * @coversDefaultClass \enrol_wallet\notifications
  */
 final class notifications_test extends \advanced_testcase {
     /**
