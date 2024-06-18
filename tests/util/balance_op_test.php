@@ -882,9 +882,11 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(50, $op->get_total_free());
         $this->assertEquals(50, $op->get_valid_free());
         $this->assertEquals(0, $op->get_main_free());
+
         $op = new balance_op($user5->id);
         $op->credit(50, $op::C_DISCOUNT, 0, '', false);
         $op->credit(50);
+
         $op = new balance_op($user5->id, $cat2);
         $this->assertEquals(150, $op->get_total_balance());
         $this->assertEquals(100, $op->get_main_balance());
@@ -894,6 +896,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(100, $op->get_total_nonrefundable());
         $this->assertEquals(100, $op->get_total_free());
         $this->assertEquals(100, $op->get_valid_free());
+
         $op = new balance_op($user5->id, $cat1);
         $this->assertEquals(150, $op->get_total_balance());
         $this->assertEquals(100, $op->get_main_balance());
@@ -903,6 +906,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(100, $op->get_total_nonrefundable());
         $this->assertEquals(100, $op->get_total_free());
         $this->assertEquals(50, $op->get_valid_free());
+
         $op = new balance_op($user5->id, $cat2);
         $sink = $this->redirectEvents();
         $op->debit(120, $op::OTHER);

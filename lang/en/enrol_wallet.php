@@ -775,3 +775,5 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
+
+

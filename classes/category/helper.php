@@ -63,7 +63,7 @@ class helper {
 
         $this->parents = $this->category->get_parents();
         // Include the catid with the parents array for easy search.
-        $this->parents[] = $this->catid;
+        $this->parents[$this->catid] = $this->catid;
     }
 
     /**

@@ -156,7 +156,7 @@ class balance_op extends balance {
      * How much of the free balance has been deducted.
      * @var float
      */
-    protected $freecut = 0;
+    protected $freecut;
 
     /**
      * Same as its parent constructor
@@ -172,6 +172,7 @@ class balance_op extends balance {
             $this->catid = 0;
             unset($this->catop);
         }
+        $this->freecut = 0;
     }
 
     /**
@@ -498,7 +499,6 @@ class balance_op extends balance {
         } else if (!empty($this->catop) && $this->catenabled) {
             $before = $this->catop->get_balance();
             $this->catop->add($amount, $refundable, $this->is_free($by, $refundable));
-            $this->details['catbalance'] = $this->catop->details;
             $this->update();
             $newbalance = $this->catop->get_balance();
             $newnonrefund = $this->catop->get_non_refundable_balance();
@@ -867,10 +867,13 @@ class balance_op extends balance {
         if (!empty($this->catop)) {
             $transform = min($amount, $this->catop->get_refundable_balance());
             $this->catop->deduct($transform);
+
             $this->update();
-            $this->catop = new operations($this->catid, $this->userid);
+
             $this->catop->add($transform, false);
+
             $this->details['catbalance'] = $this->catop->details;
+
         } else {
             $transform = min($amount, $this->get_main_refundable());
             $this->cut_from_main($transform);

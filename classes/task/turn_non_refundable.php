@@ -93,12 +93,15 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         $balancehelper = new balance($userid, $this->catid);
 
+        $mainbalance = $balancehelper->get_main_balance();
+        $mainnorefund = $balancehelper->get_main_nonrefundable();
+
         if (empty($this->catid)) {
-            $balance = $balancehelper->get_main_balance();
-            $norefund = $balancehelper->get_main_nonrefundable();
+            $balance = $mainbalance;
+            $norefund = $mainnorefund;
         } else {
-            $balance = $balancehelper->catop->get_balance();
-            $norefund = $balancehelper->catop->get_non_refundable_balance();
+            $balance = $balancehelper->get_valid_balance() - $mainbalance;
+            $norefund = $balancehelper->get_valid_nonrefundable() - $mainnorefund;
         }
 
         $period = get_config('enrol_wallet', 'refundperiod');

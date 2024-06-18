@@ -364,6 +364,10 @@ class balance {
      * Recalculate totals, and then update the record and caches.
      */
     protected function update() {
+        if (!empty($this->catop)) {
+            $this->details['catbalance'] = $this->catop->details;
+        }
+
         $details = $this->details;
         // Main.
         if (isset($details['mainrefundable'])) {

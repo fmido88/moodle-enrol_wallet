@@ -245,15 +245,22 @@ class operations extends cathelper {
         if (!isset($this->details[$id])) {
             return $amount;
         }
+
         $refundable = $this->details[$id]->refundable;
         $nonrefundable = $this->details[$id]->nonrefundable;
         $free = $this->details[$id]->free ?? 0;
+
         if ($refundable >= $amount) {
             $refundable = $refundable - $amount;
+            $this->refundable -= $amount;
             $remain = 0;
         } else {
             $nonrefundable = $nonrefundable - $amount + $refundable;
+            $this->nonrefundable = $this->nonrefundable - $amount + $refundable;
+
             $refundable = 0;
+            $this->refundable -= $refundable;
+
             $free = $this->details[$id]->free ?? 0;
             if ($nonrefundable >= 0) {
                 $remain = 0;
@@ -262,8 +269,11 @@ class operations extends cathelper {
                 $nonrefundable = 0;
             }
             $newfree = max($free - $remain, 0);
-            $this->freecut += max($free - $newfree, 0);
+            $freecut = max($free - $newfree, 0);
+            $this->free -= $freecut;
+            $this->freecut += $freecut;
         }
+
         $this->details[$id] = (object)[
             'refundable' => $refundable,
             'nonrefundable' => $nonrefundable,

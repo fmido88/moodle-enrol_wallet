@@ -1,5 +1,7 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 5.4.1 ##
+- Fix balance operation bug.
 
 ## V 5.4.0 ##
 - increase precisions of data fields holding amounts.
