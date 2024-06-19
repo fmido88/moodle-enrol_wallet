@@ -1,5 +1,8 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 5.4.2 ##
+- fix confirm page bug.
+
 ## V 5.4.1 ##
 - Fix balance operation bug.
 
