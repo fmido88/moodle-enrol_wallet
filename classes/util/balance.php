@@ -131,6 +131,14 @@ class balance {
     }
 
     /**
+     * Return the valid balance as string.
+     * @return string
+     */
+    public function __toString() {
+        return format_float($this->get_valid_balance(), 2);
+    }
+
+    /**
      * Set the main balance of the given user.
      * this is called in case of using wordpress as source
      * or when first calling this class after upgrade.
@@ -279,9 +287,9 @@ class balance {
         // Main.
         $details = [
             'mainrefundable' => $record->refundable,
-            'mainnonrefund' => $record->nonrefundable,
-            'mainbalance' => $record->refundable + $record->nonrefundable,
-            'mainfree'    => $record->freegift ?? 0,
+            'mainnonrefund'  => $record->nonrefundable,
+            'mainbalance'    => $record->refundable + $record->nonrefundable,
+            'mainfree'       => $record->freegift ?? 0,
         ];
 
         // The id of the record to be saved in the cache.
@@ -424,7 +432,7 @@ class balance {
 
     /**
      * Return array of the balance details
-     * keys area mainrefundable, mainnonrefund, mainbalance, total, total_nonrefundable, total_refundable
+     * keys are mainrefundable, mainnonrefund, mainbalance, total, total_nonrefundable, total_refundable
      * And catbalance, the last one is an array of objects keyed by category id, each object with keys as following:
      * refundable, nonrefundable, balance.
      * @return array
@@ -496,6 +504,7 @@ class balance {
         }
         return $this->details['mainrefundable'] ?? 0;
     }
+
     /**
      * Get the valid balance to be used in the specified category,
      * this includes the sum of balance in this category, parents and main balance.
@@ -519,12 +528,15 @@ class balance {
         if (!$this->catenabled) {
             return $this->get_total_nonrefundable();
         }
+
         $nonrefundable = $this->details['mainnonrefund'];
         if (!empty($this->catop)) {
             $nonrefundable += @$this->catop->get_non_refundable_balance() ?? 0;
         }
+
         return  $nonrefundable;
     }
+
     /**
      * Return the main free balance due to gifts and so.
      * @return float
@@ -548,6 +560,7 @@ class balance {
         }
         return $total;
     }
+
     /**
      * Get the free balance in main and category passed in construction
      * @return float
@@ -562,6 +575,7 @@ class balance {
         }
         return $valid;
     }
+
     /**
      * Return a balance for certain category.
      * @param int $catid
@@ -588,6 +602,7 @@ class balance {
         $category = $util->get_course_category();
         return new self($userid, $category);
     }
+
     /**
      * Create a balance util helper class to obtain balance data of a given user
      * by providing the course module record or its id.
@@ -600,6 +615,7 @@ class balance {
         $category = $util->get_course_category();
         return new self($userid, $category);
     }
+
     /**
      * Create a balance util helper class to obtain balance data of a given user
      * by providing the section record or its id.

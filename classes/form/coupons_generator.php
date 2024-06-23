@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/** Enrollment form Appear when the user's balance is sufficient for enrollment.
+/**
+ * Coupon Generation form.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
@@ -27,8 +28,10 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
 
-/** Enrollment form.
+/**
+ * Coupon Generation form.
  *
+ * @package enrol_wallet
  */
 class coupons_generator extends \moodleform {
 

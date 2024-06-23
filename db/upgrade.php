@@ -462,5 +462,36 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         // Wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2024061600, 'enrol', 'wallet');
     }
+
+    if ($oldversion < 2024062300) {
+
+        // Define field opby to be added to enrol_wallet_transactions.
+        $table = new xmldb_table('enrol_wallet_transactions');
+        $field = new xmldb_field('opby', XMLDB_TYPE_CHAR, '25', null, null, null, null, 'norefund');
+
+        // Conditionally launch add field opby.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+        // Define field thingid to be added to enrol_wallet_transactions.
+        $field = new xmldb_field('thingid', XMLDB_TYPE_INTEGER, '10', null, null, null, null, 'opby');
+
+        // Conditionally launch add field thingid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Define field area to be added to enrol_wallet_coupons_usage.
+        $table = new xmldb_table('enrol_wallet_coupons_usage');
+        $field = new xmldb_field('area', XMLDB_TYPE_INTEGER, '5', null, null, null, null, 'userid');
+
+        // Conditionally launch add field area.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2024062300, 'enrol', 'wallet');
+    }
     return true;
 }

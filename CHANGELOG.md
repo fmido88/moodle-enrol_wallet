@@ -1,5 +1,9 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 5.4.5 ##
+- Add more to operation logging.
+- Fix logic in completion award.
+
 ## V 5.4.1 ##
 - Fix balance operation bug.
 

@@ -23,14 +23,13 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\observer;
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-use enrol_wallet_plugin;
+
 /**
  * Wallet enrolment tests.
  *
@@ -73,6 +72,34 @@ final class observer_test extends \advanced_testcase {
         $DB->update_record('enrol', $instance1);
         $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
 
+        // Adding another instances to see which reward the user gets.
+        $instance2id = $walletplugin->add_default_instance($course1);
+        $instance2 = $DB->get_record('enrol', ['id' => $instance2id], '*', MUST_EXIST);
+        $instance2->customint6 = 1;
+        // Enable awarding.
+        $instance2->customint8 = 1;
+        // Award condition.
+        $instance2->customdec1 = 40;
+        // Credit per each mark above condition.
+        $instance2->customdec2 = 0.2;
+        $instance2->cost = 150;
+        $DB->update_record('enrol', $instance2);
+        $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
+
+        $instance3id = $walletplugin->add_default_instance($course1);
+        $instance3 = $DB->get_record('enrol', ['id' => $instance3id], '*', MUST_EXIST);
+        $instance3->customint6 = 1;
+        // Enable awarding.
+        $instance3->customint8 = 1;
+        // Award condition.
+        $instance3->customdec1 = 95;
+        // Credit per each mark above condition.
+        $instance3->customdec2 = 5;
+        $instance3->cost = 100;
+        $DB->update_record('enrol', $instance3);
+        $walletplugin->update_status($instance3, ENROL_INSTANCE_ENABLED);
+
+        // Let's start.
         $walletplugin->enrol_self($instance1, $user1);
         $this->getDataGenerator()->enrol_user($user2->id, $course1->id, 'student');
 
@@ -82,9 +109,9 @@ final class observer_test extends \advanced_testcase {
         $this->assertEquals(0, $DB->count_records('enrol_wallet_awards'));
 
         $cm = $this->course_completion_init($course1);
-        $this->course_completion_trigger($cm, $user1, $course1, 90);
 
-        $this->course_completion_trigger($cm, $user2, $course1, 40);
+        $this->course_completion_trigger($cm, $user1, $course1, 90);
+        $this->course_completion_trigger($cm, $user2, $course1, 35);
 
         // The event should be triggered and caught by our observer.
         $balance = new balance($user1->id, $course1->category);
@@ -100,21 +127,24 @@ final class observer_test extends \advanced_testcase {
         $this->course_completion_trigger($cm, $user1, $course1, 90);
         $balance = new balance($user1->id, $course1->category);
         $this->assertEquals(70, $balance->get_valid_balance());
+
         $this->assertEquals(1, $DB->count_records('enrol_wallet_awards'));
     }
 
     /**
      * Add assignment with completion to a course.
      * @param object $course
+     * @param int $maxgrade
      * @return \stdClass
      */
-    public function course_completion_init($course) {
+    public function course_completion_init($course, $maxgrade = 100) {
         // Make an assignment.
         $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
         $params = [
             'course' => $course->id,
             'completion' => COMPLETION_ENABLED,
             'completionusegrade' => 1,
+            'grade'              => $maxgrade,
         ];
         $assign = $assigngenerator->create_instance($params);
 

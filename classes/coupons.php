@@ -773,6 +773,7 @@ class coupons {
             'type'       => $this->get_key($this->type, self::TYPES),
             'value'      => $this->value,
             'userid'     => $this->userid,
+            'area'       => $this->area,
             'instanceid' => $instanceid,
             'timeused'   => time(),
         ];
@@ -787,10 +788,21 @@ class coupons {
         ];
 
         if (!empty($instanceid)) {
+
             $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
 
             $eventdata['courseid'] = $instance->courseid;
             $eventdata['context'] = \context_course::instance($instance->courseid);
+
+        } else if ($this->area == self::AREA_CM) {
+
+            $eventdata['context'] = \context_module::instance($this->areaid);
+
+        } else if ($this->area == self::AREA_SECTION) {
+
+            $courseid = $DB->get_field('course_sections', 'course', ['id' => $this->areaid]);
+            $eventdata['courseid'] = $courseid;
+            $eventdata['context'] = \context_course::instance($courseid);
 
         } else {
 
@@ -824,7 +836,7 @@ class coupons {
         }
         global $DB;
         $count = $DB->count_records('enrol_wallet_coupons_usage', [
-            'code' => $this->code,
+            'code'   => $this->code,
             'userid' => $this->userid,
         ]);
         return $count;

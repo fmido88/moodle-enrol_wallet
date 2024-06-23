@@ -41,6 +41,7 @@ $confirm = optional_param('confirm', false, PARAM_BOOL);
 $params = [
     'instance' => $instanceid,
     'confirm'  => $confirm,
+    'id'       => $courseid,
 ];
 
 $pageurl = new moodle_url('/enrol/wallet/confirm.php', $params);

@@ -355,6 +355,8 @@ class balance_op extends balance {
             'balance'     => $newbalance,
             'norefund'    => $newnonrefund,
             'category'    => $this->catid ?? 0,
+            'opby'        => $for,
+            'thingid'     => $thingid,
             'descripe'    => $description,
             'timecreated' => time(),
         ];
@@ -523,6 +525,8 @@ class balance_op extends balance {
             'balance'     => $newbalance,
             'norefund'    => $newnonrefund,
             'category'    => $this->catid ?? 0,
+            'opby'        => $by,
+            'thingid'     => $thingid,
             'descripe'    => $description,
             'timecreated' => time(),
         ];

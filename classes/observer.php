@@ -70,7 +70,7 @@ class observer {
 
         $percentage = ($usergrade / $maxgrade) * 100;
 
-        // Getting the enrol wallet instance in the course (there is only one because multiple isn't allowed).
+        // Getting the enrol wallet instance in the course.
         $instances = enrol_get_instances($courseid, true);
         $instance = null;
         $ta = 0; // Estimated Total award (Just for check and not used again).
@@ -80,10 +80,10 @@ class observer {
             if ($inst->enrol === 'wallet' // Wallet enrollments only.
             && !empty($inst->customint8) // Awards enabled.
             && $inst->customdec1 <= $percentage // Condition for award applied.
-            && $inst->customdec2 * (100 - $percentage) > $ta // Maximum award available.
+            && $inst->customdec2 * ($percentage - $inst->customdec1) > $ta // Maximum award available.
             ) {
                 $instance = $inst;
-                $ta = $inst->customdec2 * (100 - $percentage);
+                $ta = $inst->customdec2 * ($percentage - $inst->customdec1);
             }
         }
 
