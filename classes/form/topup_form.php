@@ -137,6 +137,7 @@ class topup_form extends \moodleform {
 
         if (count($catoptions) > 1) {
             $mform->addElement('select', 'category', $categorytitle, $catoptions);
+            $this->set_default_category();
         } else {
             $mform->addElement('hidden', 'category');
             $mform->setType('category', PARAM_INT);
@@ -190,5 +191,33 @@ class topup_form extends \moodleform {
 
         $this->add_action_buttons(false, get_string('topup', 'enrol_wallet'));
         $this->set_display_vertical();
+    }
+
+    /**
+     * Default select the category option according to the
+     * context of the page.
+     */
+    protected function set_default_category() {
+        global $PAGE;
+        $mform = $this->_form;
+        if (empty($PAGE->context)) {
+            return;
+        }
+        if ($PAGE->context->contextlevel == CONTEXT_COURSECAT) {
+            $mform->setDefault('category', $PAGE->context->instanceid);
+            return;
+        }
+        if ($coursectx = $PAGE->context->get_course_context(false)) {
+            $mform->setDefault('category', $coursectx->get_parent_context()->instanceid);
+            return;
+        }
+        if (!empty($PAGE->category)) {
+            $mform->setDefault('category', $PAGE->category);
+            return;
+        }
+        if (!empty($PAGE->course->category)) {
+            $mform->setDefault('category', $PAGE->course->category);
+            return;
+        }
     }
 }
