@@ -35,8 +35,8 @@ global $USER;
 require_login(null, false);
 
 $instanceid = required_param('instance', PARAM_INT);
-$courseid = required_param('id', PARAM_INT);
-$confirm = optional_param('confirm', false, PARAM_BOOL);
+$courseid   = required_param('id', PARAM_INT);
+$confirm    = optional_param('confirm', false, PARAM_BOOL);
 
 $params = [
     'instance' => $instanceid,

@@ -321,6 +321,7 @@ $catoptions = ['' => get_string('any')];
 foreach ($categories as $cat) {
     $catoptions[$cat->id] = $cat->get_nested_name(false);
 }
+
 $mform->addElement('select', 'category',  get_string('category'),  $catoptions);
 $mform->addHelpButton('category', 'category_options', 'enrol_wallet');
 $mform->hideIf('category', 'type', 'neq', 'category');

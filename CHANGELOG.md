@@ -1,7 +1,7 @@
 # Wallet Enrollment for Moodle #
 ==========
-## V 5.4.2 ##
-- fix confirm page bug.
+## V 5.4.6 ##
+- Fix discount line bug when no discount available.
 
 ## V 5.4.5 ##
 - Add more to operation logging.

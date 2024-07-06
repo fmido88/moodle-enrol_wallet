@@ -129,6 +129,7 @@ class topup_form extends \moodleform {
         }
 
         if (count($catoptions) === 1) {
+            $catoptions = array_flip($catoptions);
             $rules = discount_rules::get_the_discount_line(reset($catoptions));
         } else {
             $rules = discount_rules::get_the_discount_line(-1);
