@@ -28,6 +28,8 @@ require_once("$CFG->dirroot/enrol/wallet/locallib.php");
 require_login(null, false);
 
 $context = context_system::instance();
+$frontpagecontext = context_course::instance(SITEID);
+
 $url = new moodle_url('/enrol/wallet/wallet.php');
 $PAGE->set_url($url);
 $PAGE->set_context($context);
@@ -97,6 +99,9 @@ foreach ($tabnames as $key => $name) {
             if (has_capability('moodle/site:config', $context)) {
                 $configurl = new moodle_url('/admin/settings.php', ['section' => 'enrolsettingswallet']);
                 $text .= html_writer::link($configurl, get_string('pluginconfig', 'enrol_wallet'), $attributes) . '<hr>';
+            }
+
+            if (has_all_capabilities(['enrol/wallet:config', 'enrol/wallet:manage'] , $frontpagecontext)) {
                 $configurl = new moodle_url('/enrol/wallet/extra/conditionaldiscount.php');
                 $text .= html_writer::link($configurl, get_string('conditionaldiscount_link_desc', 'enrol_wallet'), $attributes);
                 $text .= '<hr>';

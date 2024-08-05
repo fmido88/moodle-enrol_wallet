@@ -295,7 +295,9 @@ class pages {
         libxml_use_internal_errors(true);
 
         foreach ($courses as $course) {
+
             $coursebox = mb_convert_encoding($renderer->course_info_box($course), 'HTML-ENTITIES', "UTF-8");
+
             $dom->loadHTML($coursebox);
 
             $fragment = $dom->createDocumentFragment();

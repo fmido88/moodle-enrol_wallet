@@ -143,6 +143,7 @@ class offers {
             global $USER;
             $this->userid = $USER->id;
         }
+
         if (!empty($instance->customtext3)) {
             $this->offers = (array)json_decode($instance->customtext3);
         } else {
@@ -167,6 +168,7 @@ class offers {
         if (empty($this->offers)) {
             return $descriptions;
         }
+
         foreach ($this->offers as $key => $offer) {
             $formatteddiscount = format_float($offer->discount, 2);
             switch($offer->type) {
@@ -295,6 +297,7 @@ class offers {
 
         return min(1, $max) * 100;
     }
+
     /**
      * Return the max discount valid for the passed user.
      * @return float
@@ -327,6 +330,7 @@ class offers {
         }
         return min($sum, 100);
     }
+
     /**
      * Return array with available valid discounts for the passed user.
      * @return array[float]
@@ -438,6 +442,7 @@ class offers {
         } else if ($condition == 'all' && count($records) >= count($ids)) {
             return true;
         }
+
         return false;
     }
     /**

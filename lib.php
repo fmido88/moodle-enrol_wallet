@@ -1541,19 +1541,22 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param context $context
      */
     protected function include_availability($instance, $mform, $context) {
-        global $CFG;
+        global $CFG, $OUTPUT;
         if (empty($this->get_config('restrictionenabled')) || empty($this->get_config('availability_plugins'))) {
             return;
         }
+
         if (!$course = self::get_course_by_instance_id($instance->id)) {
             $courseid = optional_param('courseid', null, PARAM_INT);
             if (!empty($courseid) && $courseid != SITEID) {
                 $course = get_course($courseid);
             }
         }
+
         if (empty($course)) {
             return;
         }
+
         $courses = [$course->id => $course];
         if (!empty($instance->customchar3)) {
             $coursesids = explode(',', $instance->customchar3);
@@ -1569,13 +1572,23 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addElement('static', 'availabilitynotice',
                     get_string('notice'),
                     get_string('availability_form_desc', 'enrol_wallet'));
+
         // Availability field. This is just a textarea; the user interface
         // interaction is all implemented in JavaScript. The field is named
         // availabilityconditionsjson for consistency with moodleform_mod.
-        $mform->addElement('textarea', 'availabilityconditionsjson',
+        $json = $mform->addElement('textarea', 'availabilityconditionsjson',
                     get_string('accessrestrictions', 'availability'));
-        frontend::include_availability_javascript($course, $courses);
 
+        if ($CFG->version >= 2023100900) { // Version 403.
+            $json->updateAttributes(['class' => 'd-none']);
+            // Availability loading indicator.
+            $loadingcontainer = $OUTPUT->container($OUTPUT->render_from_template('core/loading', []),
+                                                    'd-flex justify-content-center py-5 icon-size-5',
+                                                    'availabilityconditions-loading');
+            $mform->addElement('html', $loadingcontainer);
+        }
+
+        frontend::include_availability_javascript($course, $courses);
     }
 
     /**

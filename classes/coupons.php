@@ -774,6 +774,7 @@ class coupons {
             'value'      => $this->value,
             'userid'     => $this->userid,
             'area'       => $this->area,
+            'areaid'     => $this->areaid,
             'instanceid' => $instanceid,
             'timeused'   => time(),
         ];

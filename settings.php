@@ -259,14 +259,23 @@ if ($ADMIN->fulltree) {
                                             get_string('frontpageoffers', 'enrol_wallet'),
                                             get_string('frontpageoffers_desc', 'enrol_wallet'), 0));
 
-    if ($PAGE->has_set_url()) {
-        $return = $PAGE->url->out();
+    if ((int)$CFG->branch < 404) {
+        if ($PAGE->has_set_url()) {
+            $return = $PAGE->url->out();
+        } else {
+            $return = (new moodle_url('/admin/settings.php', ['section' => 'enrolsettingswallet']))->out();
+        }
+        $url = new moodle_url('/enrol/wallet/extra/offers_nav.php', ['return' => $return]);
+        $button = html_writer::link($url, get_string('offersnav', 'enrol_wallet'), ['class' => 'btn btn-secondary']);
+        $settings->add(new admin_setting_description('enrol_wallet/offers_nav',
+                                                    get_string('offersnav_desc', 'enrol_wallet'), $button));
     } else {
-        $return = (new moodle_url('/admin/settings.php', ['section' => 'enrolsettingswallet']))->out();
+        $settings->add(new admin_setting_configcheckbox('enrol_wallet/offers_nav',
+                                                        get_string('offersnav', 'enrol_wallet'),
+                                                        get_string('offersnav', 'enrol_wallet'),
+                                                        '0'));
     }
-    $url = new moodle_url('/enrol/wallet/extra/offers_nav.php', ['return' => $return]);
-    $button = html_writer::link($url, get_string('offersnav', 'enrol_wallet'), ['class' => 'btn btn-secondary']);
-    $settings->add(new admin_setting_description('enrol_wallet/offers_nav', get_string('offersnav_desc', 'enrol_wallet'), $button));
+
 
     $behaviors = [
         instance::B_SEQ => get_string('discount_behavior_sequential', 'enrol_wallet'),

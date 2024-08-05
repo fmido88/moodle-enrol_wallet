@@ -451,6 +451,7 @@ $string['notrefund'] = ' Nonrefundable (extra): ';
 $string['offers'] = 'Offers';
 $string['offers_ce_desc'] = '{$a->discount}% DISCOUNT if you are enrolled in {$a->condition} of these courses:<br> {$a->courses}';
 $string['offers_course_enrol_based'] = 'Another course enrolment based offer';
+$string['offers_desc'] = 'Offers and Free courses';
 $string['offers_error_ce'] = 'Please select at least one course';
 $string['offers_error_discountvalue'] = 'Invalid discount value.';
 $string['offers_error_ncnumber'] = 'Please choose number of courses.';
