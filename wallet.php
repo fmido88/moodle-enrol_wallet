@@ -70,7 +70,7 @@ foreach ($tabnames as $key => $name) {
             $transactionurl = new moodle_url('/enrol/wallet/extra/transaction.php');
             $class = ['class' => 'btn btn-primary'];
             $text = html_writer::link($transactionurl, get_string('transactions_details', 'enrol_wallet'), $class);
-            $table = new enrol_wallet\table\transactions($USER->id);
+            $table = new enrol_wallet\table\transactions($USER->id, (object)['userid' => $USER->id]);
             $table->define_baseurl($url->out()."#linktransactions");
             ob_start();
             $table->out(15, true);

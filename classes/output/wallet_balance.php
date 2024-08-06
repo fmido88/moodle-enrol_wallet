@@ -113,9 +113,14 @@ class wallet_balance implements renderable, templatable {
 
         $balancedetails = [];
         foreach ($details['catbalance'] as $id => $obj) {
-            $category = core_course_category::get($id);
+            $category = core_course_category::get($id, IGNORE_MISSING, true);
+
             $balancedetails[$id] = new stdClass;
-            $balancedetails[$id]->name = $category->get_nested_name(false);
+            if (empty($category)) {
+                $balancedetails[$id]->name = get_string('unknowncategory');
+            } else {
+                $balancedetails[$id]->name = $category->get_nested_name(false);
+            }
             $balancedetails[$id]->refundable = number_format($obj->refundable, 2) ?? 0;
             $balancedetails[$id]->nonrefundable = number_format($obj->nonrefundable, 2) ?? 0;
             $total = $obj->balance ?? $balancedetails[$id]->refundable + $balancedetails[$id]->nonrefundable;

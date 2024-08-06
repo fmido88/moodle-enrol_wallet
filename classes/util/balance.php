@@ -289,7 +289,7 @@ class balance {
             'mainrefundable' => $record->refundable,
             'mainnonrefund'  => $record->nonrefundable,
             'mainbalance'    => $record->refundable + $record->nonrefundable,
-            'mainfree'       => $record->freegift ?? 0,
+            'mainfree'       => min($record->freegift ?? 0, $record->nonrefundable),
         ];
 
         // The id of the record to be saved in the cache.
@@ -306,9 +306,10 @@ class balance {
             $cats = json_decode($record->cat_balance);
             foreach ($cats as $id => $obj) {
                 $details['catbalance'][$id] = new \stdClass;
+
                 $details['catbalance'][$id]->refundable = $obj->refundable;
                 $details['catbalance'][$id]->nonrefundable = $obj->nonrefundable;
-                $details['catbalance'][$id]->free = $obj->free ?? 0;
+                $details['catbalance'][$id]->free = min($obj->free ?? 0, $obj->nonrefundable);
                 $details['catbalance'][$id]->balance = $obj->refundable + $obj->nonrefundable;
 
                 $details['total'] += $obj->refundable + $obj->nonrefundable;

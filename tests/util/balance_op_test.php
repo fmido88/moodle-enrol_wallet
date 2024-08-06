@@ -887,16 +887,6 @@ final class balance_op_test extends \advanced_testcase {
         $op->credit(50, $op::C_DISCOUNT, 0, '', false);
         $op->credit(50);
 
-        $op = new balance_op($user5->id, $cat2);
-        $this->assertEquals(150, $op->get_total_balance());
-        $this->assertEquals(100, $op->get_main_balance());
-        $this->assertEquals(150, $op->get_valid_balance());
-        $this->assertEquals(50, $op->get_main_nonrefundable());
-        $this->assertEquals(50, $op->get_main_refundable());
-        $this->assertEquals(100, $op->get_total_nonrefundable());
-        $this->assertEquals(100, $op->get_total_free());
-        $this->assertEquals(100, $op->get_valid_free());
-
         $op = new balance_op($user5->id, $cat1);
         $this->assertEquals(150, $op->get_total_balance());
         $this->assertEquals(100, $op->get_main_balance());
@@ -906,6 +896,17 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(100, $op->get_total_nonrefundable());
         $this->assertEquals(100, $op->get_total_free());
         $this->assertEquals(50, $op->get_valid_free());
+
+        $op = new balance_op($user5->id, $cat2);
+        $this->assertEquals(150, $op->get_total_balance());
+        $this->assertEquals(100, $op->get_main_balance());
+        $this->assertEquals(150, $op->get_valid_balance());
+        $this->assertEquals(100, $op->get_valid_nonrefundable());
+        $this->assertEquals(50, $op->get_main_nonrefundable());
+        $this->assertEquals(50, $op->get_main_refundable());
+        $this->assertEquals(100, $op->get_total_nonrefundable());
+        $this->assertEquals(100, $op->get_total_free());
+        $this->assertEquals(100, $op->get_valid_free());
 
         $op = new balance_op($user5->id, $cat2);
         $sink = $this->redirectEvents();
@@ -938,6 +939,34 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(50, $op->get_main_free());
         $this->assertEquals(50, $op->get_total_free());
         $this->assertEquals(50, $op->get_valid_free());
+
+        $op = new balance_op($user7->id, $cat2);
+        $op->credit(100);
+        $op->credit(50, $op::C_DISCOUNT, 0, '', false);
+
+        $this->assertEquals(150, $op->get_total_balance());
+        $this->assertEquals(0, $op->get_main_balance());
+        $this->assertEquals(150, $op->get_valid_balance());
+        $this->assertEquals(0, $op->get_main_nonrefundable());
+        $this->assertEquals(0, $op->get_main_refundable());
+        $this->assertEquals(50, $op->get_total_nonrefundable());
+        $this->assertEquals(50, $op->get_total_free());
+        $this->assertEquals(50, $op->get_valid_free());
+
+        $sink = $this->redirectEvents();
+        $op->debit(120, $op::OTHER);
+        $events = $sink->get_events();
+        $sink->close();
+
+        foreach ($events as $key => $event) {
+            if ($event->eventname !== '\enrol_wallet\event\transactions_triggered') {
+                unset($events[$key]);
+            }
+        }
+
+        $this->assertEquals(1, count($events));
+        $debitevent = reset($events);
+        $this->assertEquals(20, $debitevent->other['freecut']);
     }
 
     /**

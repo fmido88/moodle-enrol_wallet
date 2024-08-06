@@ -80,7 +80,7 @@ class instance {
      * The coupon helper class object
      * @var coupons
      */
-    private $couponutil;
+    public $couponutil;
     /**
      * The id of the user we need to calculate the discount for.
      * @var int
@@ -98,6 +98,11 @@ class instance {
      */
     private $behavior;
 
+    /**
+     * Caching instances.
+     * @var array
+     */
+    protected static $cached = [];
     /**
      * Create a new enrol wallet instance helper class.
      * store the cost after discount.
@@ -122,10 +127,23 @@ class instance {
         } else {
             $this->userid = $userid;
         }
+
+
         $this->behavior = (int)get_config('enrol_wallet', 'discount_behavior');
         $this->calculate_cost_after_discount();
+        $this->set_static_cache();
     }
 
+    private function set_static_cache() {
+        $cache = new \stdClass;
+        $cache->costafter = $this->costafter;
+        $cache->discounts = $this->discounts;
+        self::$cached[$this->id . '-' . $this->userid] = $cache;
+    }
+
+    public static function reset_static_cache() {
+        self::$cached = [];
+    }
     /**
      * Get the enrol wallet instance by id.
      * @param int $instanceid
@@ -318,9 +336,17 @@ class instance {
             $this->costafter = null;
             return;
         }
+
         $cost = (float)$cost;
         if ($cost == 0) {
             $this->costafter = $cost;
+            return;
+        }
+
+        $cache = self::$cached[$this->id . '-' . $this->userid] ?? null;
+        if ($cache) {
+            $this->discounts = $cache->discounts;
+            $this->costafter = $cache->costafter;
             return;
         }
         $discounts = $this->calculate_discounts();
@@ -335,6 +361,7 @@ class instance {
         } else {
             $discount = $this->calculate_sequential_discount($discounts);
         }
+
         $discount = min(1, $discount);
         $this->costafter = $cost * (1 - $discount);
     }
@@ -367,11 +394,14 @@ class instance {
      */
     public function get_cost_after_discount($recalculate = false) {
         if ($recalculate) {
+            self::reset_static_cache();
             $this->calculate_cost_after_discount();
         }
+
         if (!is_null($this->costafter) && is_numeric($this->costafter)) {
             return (float)$this->costafter;
         }
+
         return null;
     }
 

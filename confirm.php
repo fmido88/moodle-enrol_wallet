@@ -58,6 +58,7 @@ if (is_enrolled($context, null, '', true)) {
 $helper = new instance($instanceid);
 $wallet = new enrol_wallet_plugin;
 $instance = $helper->get_instance();
+$cost = $helper->get_cost_after_discount();
 $course = get_course($courseid);
 
 $canselfenrol = ($wallet->can_self_enrol($instance, false) === true);
@@ -88,7 +89,7 @@ if (!core_course_category::can_view_course_info($course) && !is_enrolled($contex
     throw new \moodle_exception('coursehidden', '', $CFG->wwwroot . '/');
 }
 
-if ($confirm && confirm_sesskey()) {
+if ($cost <= 0.01 || ($confirm && confirm_sesskey())) {
     // Notice and warnings may cause double deduct to the balance.
     set_debugging(DEBUG_NONE, false);
 
@@ -104,24 +105,10 @@ $PAGE->add_body_class('limitedwidth');
 $PAGE->set_secondary_navigation(false);
 $PAGE->navbar->add(get_string('enrolmentoptions', 'enrol'));
 
-echo $OUTPUT->header();
-
-echo $OUTPUT->heading(format_string($wallet->get_instance_name($instance), true, ['context' => $context]));
-
-$courserenderer = $PAGE->get_renderer('core', 'course');
-echo $courserenderer->course_info_box($course);
-
-$cancelurl = new moodle_url('/enrol/index.php', ['id' => $course->id]);
-$cancelbutton = new single_button($cancelurl, get_string('cancel'));
-
-$params['confirm'] = true;
-$pageurl->param('confirm', true);
-$confirmbutton = new single_button($pageurl, get_string('confirm'));
-
 $balance = balance::create_from_instance($instance);
 $a = [
     'balance'  => $balance->get_valid_balance(),
-    'cost'     => $helper->get_cost_after_discount(),
+    'cost'     => $cost,
     'currency' => $instance->currency,
     'course'   => $course->fullname,
     'policy'   => '',
@@ -143,7 +130,21 @@ if (!empty($refund) && !empty($policy)) {
     $a['policy'] = $policy;
 }
 
+$cancelurl = new moodle_url('/enrol/index.php', ['id' => $course->id]);
+$cancelbutton = new single_button($cancelurl, get_string('cancel'));
+
+$params['confirm'] = true;
+$pageurl->param('confirm', true);
+$confirmbutton = new single_button($pageurl, get_string('confirm'));
+
 $confirmationmsg = get_string('confirm_enrol_confirm', 'enrol_wallet', $a);
+
+echo $OUTPUT->header();
+
+echo $OUTPUT->heading(format_string($wallet->get_instance_name($instance), true, ['context' => $context]));
+
+$courserenderer = $PAGE->get_renderer('core', 'course');
+echo $courserenderer->course_info_box($course);
 
 echo $OUTPUT->confirm($confirmationmsg, $confirmbutton, $cancelbutton);
 

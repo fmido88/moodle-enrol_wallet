@@ -256,19 +256,21 @@ class operations extends cathelper {
             $remain = 0;
         } else {
             $nonrefundable = $nonrefundable - $amount + $refundable;
+            $newfree = $free - $amount + $refundable;
+
             $this->nonrefundable = $this->nonrefundable - $amount + $refundable;
 
             $refundable = 0;
             $this->refundable -= $refundable;
 
-            $free = $this->details[$id]->free ?? 0;
             if ($nonrefundable >= 0) {
                 $remain = 0;
             } else {
                 $remain = abs($nonrefundable);
                 $nonrefundable = 0;
             }
-            $newfree = max($free - $remain, 0);
+
+            $newfree = max($newfree, 0);
             $freecut = max($free - $newfree, 0);
             $this->free -= $freecut;
             $this->freecut += $freecut;

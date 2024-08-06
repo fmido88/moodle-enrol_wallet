@@ -198,6 +198,7 @@ class balance_op extends balance {
             } else {
                 $nonrefundable = $nonrefundable - $remain;
             }
+
             $newfree = max($free - $remain, 0);
             $this->freecut += $free - $newfree;
         }

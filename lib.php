@@ -414,7 +414,9 @@ class enrol_wallet_plugin extends enrol_plugin {
         $op = new balance_op($user->id, $helper->get_course_category());
         // Get the final cost after discount (if there is no discount it return the full cost).
         $costafter = $helper->get_cost_after_discount();
+        $helper->reset_static_cache();
 
+        $charge = $charge && ($costafter >= 0.01);
         if ($charge) {
             $canborrow = enrol_wallet_is_borrow_eligible($user->id);
             // Deduct fees from user's account.
@@ -808,6 +810,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             }
         }
+
         // All restrictions checked.
         if (!empty($return)) {
             // Display them all.
@@ -869,6 +872,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         return $this->helper;
     }
+
     /**
      * Return information for enrolment instance containing list of parameters required
      * for enrolment, name of enrolment plugin etc.
@@ -1910,7 +1914,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return int id of new instance, null if can not be created
      */
     public function add_instance($course, $fields = null) {
-
+        helper::reset_static_cache();
         offers::parse_data($fields);
 
         // In the form we are representing 2 db columns with one field.
@@ -1936,7 +1940,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param stdClass $data modified instance fields
      */
     public function update_instance($instance, $data) {
-
+        helper::reset_static_cache();
         offers::parse_data($data);
 
         // Check first if expiry notify is sent by the edit form (not sent in case of bulk edit only).

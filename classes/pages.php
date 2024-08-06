@@ -290,19 +290,22 @@ class pages {
         $free = '';
         $withoffers = '';
 
-        $dom = new DOMDocument();
-        $injected = new DOMDocument();
+        $dom = new DOMDocument("1.0", "UTF-8");
+        $injected = new DOMDocument("1.0", "UTF-8");
         libxml_use_internal_errors(true);
 
         foreach ($courses as $course) {
 
-            $coursebox = mb_convert_encoding($renderer->course_info_box($course), 'HTML-ENTITIES', "UTF-8");
-
+            $coursebox = $renderer->course_info_box($course);
+            $coursebox = mb_encode_numericentity($coursebox, [0x80, 0x10FFFF, 0, ~0], 'UTF-8');
             $dom->loadHTML($coursebox);
 
             $fragment = $dom->createDocumentFragment();
             foreach ($course->offers as $offer) {
-                $injected->loadHTML(html_writer::div($offer, 'card-body'));
+                $offer = html_writer::div($offer, 'card-body');
+                $offer = mb_encode_numericentity($offer, [0x80, 0x10FFFF, 0, ~0], 'UTF-8');
+                $injected->loadHTML($offer);
+
                 $injectednode = $dom->importNode($injected->documentElement, true);
                 $fragment->appendChild($injectednode);
             }

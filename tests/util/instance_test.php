@@ -198,6 +198,9 @@ final class instance_test extends \advanced_testcase {
         $wallet = new enrol_wallet_plugin;
 
         $this->assertEquals(60, $inst->get_cost_after_discount(true));
+        $op = new balance_op($user->id);
+        $this->assertTrue(is_enrolled($context, $user));
+        $this->assertEquals(350, $op->get_total_balance());
         // Enrol the user.
         $wallet->enrol_self($instance, $user);
         $this->assertTrue(is_enrolled($context, $user, '', true));

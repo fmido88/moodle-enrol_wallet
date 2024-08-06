@@ -193,8 +193,15 @@ class transactions extends table_sql {
     protected function col_user($record) {
         if (!isset($this->users[$record->userid])) {
             $user = core_user::get_user($record->userid);
-            $user->fullname = fullname($user);
-            $user->url = new moodle_url('/user/profile.php', ['id' => $user->id]);
+            if (!$user) {
+                $user = new stdClass;
+                $user->fullname = get_string('usernotexist', 'enrol_wallet') . ' id:' . $record->userid;
+                $user->url = '#';
+            } else {
+                $user->fullname = fullname($user);
+                $user->url = new moodle_url('/user/profile.php', ['id' => $user->id]);
+            }
+
             $this->users[$record->userid] = $user;
         } else {
             $user = $this->users[$record->userid];
