@@ -1,5 +1,15 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 5.6.0 ##
+- Fix free cut calculations.
+- Add static cashes for discount calculation.
+- Fix deleted or hidden category balance error.
+- Skip confirm and transaction record for free instances.
+- Replace deprecated function mb_convert_encoding().
+
+## V 5.5.0 ##
+- Changes for moodle 4.3 and 4.4 compatibility.
+
 ## V 5.4.6 ##
 - Fix discount line bug when no discount available.
 

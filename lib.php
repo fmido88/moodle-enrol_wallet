@@ -1236,17 +1236,13 @@ class enrol_wallet_plugin extends enrol_plugin {
                 continue;
             }
 
-            $category = core_course_category::get($course->category);
-            $parentname = $category->name.': ';
-            // For sites with greate number of course.
-            // This will make it clearer for selections.
-            while ($category->parent > 0) {
-                $parent = core_course_category::get($category->parent);
-                $parentname = $parent->name . ': ' . $parentname;
-                $category = $parent;
+            $category = core_course_category::get($course->category, IGNORE_MISSING, true);
+            if (!$category) {
+                continue;
             }
+            $catname = $category->get_nested_name(false, ':') . ': ';
 
-            $options[$course->id] = $parentname.$course->fullname;
+            $options[$course->id] = $catname . $course->fullname;
         }
         return $options;
     }

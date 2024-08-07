@@ -96,7 +96,7 @@ class transfer_form extends \moodleform {
             if (!empty($details['catbalance'])) {
                 $options = [0 => get_string('site')];
                 foreach ($details['catbalance'] as $id => $obj) {
-                    $category = core_course_category::get($id, IGNORE_MISSING);
+                    $category = core_course_category::get($id, IGNORE_MISSING, true);
                     if (!empty($category)) {
                         $name = $category->get_nested_name(false);
                         $catbalance = $obj->balance ?? $obj->refundable + $obj->nonrefundable;

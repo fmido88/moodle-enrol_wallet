@@ -128,12 +128,16 @@ class instance {
             $this->userid = $userid;
         }
 
-
         $this->behavior = (int)get_config('enrol_wallet', 'discount_behavior');
         $this->calculate_cost_after_discount();
         $this->set_static_cache();
     }
 
+    /**
+     * Set static values to prevent recalculating the discounts
+     * for multiple callings.
+     * @return void
+     */
     private function set_static_cache() {
         $cache = new \stdClass;
         $cache->costafter = $this->costafter;
@@ -141,6 +145,10 @@ class instance {
         self::$cached[$this->id . '-' . $this->userid] = $cache;
     }
 
+    /**
+     * Reset static values.
+     * @return void
+     */
     public static function reset_static_cache() {
         self::$cached = [];
     }
@@ -178,7 +186,7 @@ class instance {
      */
     public function get_course_category() {
         $catid = $this->get_category_id();
-        return core_course_category::get($catid);
+        return core_course_category::get($catid, IGNORE_MISSING, true, $this->userid);
     }
 
     /**

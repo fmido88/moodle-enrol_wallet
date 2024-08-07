@@ -731,6 +731,7 @@ $string['uploadcsvfilerequired'] = 'Please upload the csv file.';
 $string['upperletters'] = 'UPPER case';
 $string['usedfrom'] = 'Used From';
 $string['usedto'] = 'Used To';
+$string['usernotexist'] = 'User not exist';
 $string['usernotfound'] = 'No user found with this email {$a}';
 
 
@@ -776,5 +777,3 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
-
-

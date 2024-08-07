@@ -495,7 +495,7 @@ $wallet = enrol_get_plugin('wallet');
 foreach ($records as $record) {
 
     if (!empty($record->category)) {
-        if ($category = core_course_category::get($record->category, IGNORE_MISSING)) {
+        if ($category = core_course_category::get($record->category, IGNORE_MISSING, true)) {
             $category = $category->get_nested_name(false);
         }
     }

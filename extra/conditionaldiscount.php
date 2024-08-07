@@ -157,10 +157,10 @@ if (!empty($records)) {
             if ($category = core_course_category::get($record->category, IGNORE_MISSING)) {
                 $catname = $category->get_nested_name(false);
             } else {
-                $catname = get_string('deleted');
+                $catname = get_string('unknowncategory');
             }
         } else {
-            $catname = $SITE->fullname;
+            $catname = format_string($SITE->fullname);
         }
 
         $row = [

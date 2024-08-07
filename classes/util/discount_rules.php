@@ -46,7 +46,10 @@ class discount_rules {
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         if (!empty($catid)) {
-            $all = core_course_category::get($catid)->get_parents();
+            $all = [];
+            if ($category = core_course_category::get($catid, IGNORE_MISSING, true)) {
+                $all = $category->get_parents();
+            }
             $all[] = $catid;
             list($catin, $catparams) = $DB->get_in_or_equal($all, SQL_PARAMS_NAMED);
             $select .= " AND category $catin";
@@ -262,8 +265,13 @@ class discount_rules {
                 if (empty($catid)) {
                     $name = get_string('site');
                 } else {
-                    $category = core_course_category::get($catid);
-                    $name = $category->get_nested_name(false);
+                    $category = core_course_category::get($catid, IGNORE_MISSING);
+                    if ($category) {
+                        $name = $category->get_nested_name(false);
+                    } else {
+                        // Don't display hidden or deleted categories.
+                        continue;
+                    }
                 }
                 $data->data[$catid]->heading = $OUTPUT->heading($name, 4);
                 $prevwidth = 0;

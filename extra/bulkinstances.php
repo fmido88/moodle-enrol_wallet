@@ -45,22 +45,20 @@ $PAGE->set_heading(get_string('bulk_instanceshead', 'enrol_wallet'));
 $mform = new MoodleQuickForm('bulkinstances_edit', 'post', 'bulkinstances_action.php');
 
 // Prepare the course selector.
-$courses = get_courses();
+$courses = get_courses('all', 'c.sortorder ASC', 'c.id, c.fullname');
 foreach ($courses as $course) {
     if ($course->id == 1) {
         continue;
     }
 
-    $category = core_course_category::get($course->category);
-    $parentname = $category->name.': ';
-
-    while ($category->parent > 0) {
-        $parent = core_course_category::get($category->parent);
-        $parentname = $parent->name . ': ' . $parentname;
-        $category = $parent;
+    $category = core_course_category::get($course->category, IGNORE_MISSING, true);
+    if (!$category) {
+        continue;
     }
 
-    $options[$course->id] = $parentname.$course->fullname;
+    $catname = $category->get_nested_name(false, ':');
+
+    $options[$course->id] = $catname . $course->fullname;
 }
 
 $select = $mform->addElement('select', 'courses', get_string('courses'), $options);

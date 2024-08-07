@@ -127,7 +127,7 @@ class cm {
     public function get_course_category() {
         $catid = $this->get_category_id();
         if (!empty($catid)) {
-            return core_course_category::get($catid);
+            return core_course_category::get($catid, IGNORE_MISSING, true);
         }
         return null;
     }

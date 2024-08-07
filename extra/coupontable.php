@@ -521,7 +521,7 @@ foreach ($records as $record) {
     $chkbox = ($candelete) ? '<input id="id_select_'.$record->id.'" type="checkbox" name="select['.$record->id.']" value="1"' : '';
 
     if (!empty($record->category)) {
-        if ($category = core_course_category::get($record->category, IGNORE_MISSING)) {
+        if ($category = core_course_category::get($record->category, IGNORE_MISSING, true)) {
             $category = $category->get_nested_name(false);
         }
     }

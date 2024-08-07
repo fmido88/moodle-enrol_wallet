@@ -230,10 +230,10 @@ class transactions extends table_sql {
      */
     protected function col_category($record) {
         if (!empty($record->category)) {
-            if ($category = \core_course_category::get($record->category, IGNORE_MISSING)) {
+            if ($category = \core_course_category::get($record->category, IGNORE_MISSING, true)) {
                 return $category->get_nested_name(false);
             }
-            return get_string('deleted');
+            return get_string('unknowncategory');
         }
         return get_string('site');
     }

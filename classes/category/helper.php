@@ -42,7 +42,7 @@ class helper {
     /**
      * @var array[int] the parents ids.
      */
-    protected $parents;
+    protected $parents = [];
     /**
      * Create a category helper object.
      *
@@ -52,18 +52,20 @@ class helper {
 
         if (is_number($categoryorid)) {
             $this->catid = $categoryorid;
-            $this->category = core_course_category::get($categoryorid);
+            $this->category = core_course_category::get($categoryorid, IGNORE_MISSING, true);
         } else if ($categoryorid instanceof core_course_category) {
             $this->catid = $categoryorid->id;
             $this->category = $categoryorid;
         } else if (is_object($categoryorid)) {
             $this->catid = $categoryorid->id;
-            $this->category = core_course_category::get($categoryorid->id);
+            $this->category = core_course_category::get($categoryorid->id, IGNORE_MISSING, true);
         }
 
-        $this->parents = $this->category->get_parents();
-        // Include the catid with the parents array for easy search.
-        $this->parents[$this->catid] = $this->catid;
+        if (!empty($this->category)) {
+            $this->parents = $this->category->get_parents();
+            // Include the catid with the parents array for easy search.
+            $this->parents[$this->catid] = $this->catid;
+        }
     }
 
     /**
@@ -95,10 +97,16 @@ class helper {
         if ($catid == $this->catid) {
             return true;
         }
+
+        if (empty($this->category)) {
+            return false;
+        }
+
         $ids = $this->category->get_all_children_ids();
         if (in_array($catid, $ids)) {
             return true;
         }
+
         return false;
     }
 

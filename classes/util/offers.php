@@ -182,7 +182,10 @@ class offers {
                     break;
                 case self::COURSE_ENROL_COUNT:
                     $course = get_course($this->instance->courseid);
-                    $category = core_course_category::get($course->category);
+                    $category = core_course_category::get($course->category, IGNORE_MISSING, false, $this->userid);
+                    if (!$category) {
+                        continue 2;
+                    }
                     $a = [
                         'catname'  => $category->get_nested_name(),
                         'number'   => $offer->number ?? $offer->courses,
@@ -191,7 +194,10 @@ class offers {
                     $descriptions[$key] = get_string('offers_nc_desc', 'enrol_wallet', $a);
                     break;
                 case self::OTHER_CATEGORY_COURSES:
-                    $category = core_course_category::get($offer->cat);
+                    $category = core_course_category::get($offer->cat, IGNORE_MISSING, false, $this->userid);
+                    if (!$category) {
+                        continue 2;
+                    }
                     $a = [
                         'catname'  => $category->get_nested_name(),
                         'number'   => $offer->number ?? $offer->courses,
@@ -460,7 +466,11 @@ class offers {
             return false;
         }
         $ids = [$catid];
-        $category = core_course_category::get($catid);
+        $category = core_course_category::get($catid, IGNORE_MISSING, false, $this->userid);
+        if (!$category) {
+            return false;
+        }
+
         $ids = array_merge($ids, $category->get_all_children_ids());
 
         list($in, $inparams) = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
@@ -478,6 +488,7 @@ class offers {
         if (count($records) >= $number) {
             return true;
         }
+
         return false;
     }
     /**
@@ -719,7 +730,10 @@ class offers {
      */
     protected static function add_elements_for_nc(&$mform, $inc, $courseid) {
         $thiscourse = get_course($courseid);
-        $category = core_course_category::get($thiscourse->category);
+        $category = core_course_category::get($thiscourse->category, IGNORE_MISSING);
+        if (!$category) {
+            return;
+        }
         $count = $category->get_courses_count(['recursive' => true]);
         $options = ['' => get_string('choosedots')];
         for ($i = 1; $i <= $count; $i++) {
@@ -738,7 +752,10 @@ class offers {
      */
     protected static function add_elements_for_ce(&$mform, $i, $courseid) {
         $thiscourse = get_course($courseid);
-        $category = core_course_category::get($thiscourse->category);
+        $category = core_course_category::get($thiscourse->category, IGNORE_MISSING);
+        if (!$category) {
+            return;
+        }
         $courses = $category->get_courses(['recursive' => true]);
         $options = [];
         foreach ($courses as $course) {
@@ -1021,8 +1038,11 @@ class offers {
             'wallet' => 'wallet',
         ];
         if (!empty($categoryid)) {
-            $category = core_course_category::get($categoryid);
-            $catids = $category->get_all_children_ids();
+            $category = core_course_category::get($categoryid, IGNORE_MISSING);
+            $catids = [];
+            if ($category) {
+                $catids = $category->get_all_children_ids();
+            }
             $catids[] = $categoryid;
             list($in, $inparams) = $DB->get_in_or_equal($catids, SQL_PARAMS_NAMED);
             $sql .= " AND c.category $in";

@@ -898,6 +898,7 @@ class coupons {
      */
     public static function set_session_coupon($code) {
         $_SESSION['coupon'] = $code;
+        util\instance::reset_static_cache();
     }
 
     /**
@@ -906,5 +907,6 @@ class coupons {
     public static function unset_session_coupon() {
         $_SESSION['coupon'] = null;
         unset($_SESSION['coupon']);
+        util\instance::reset_static_cache();
     }
 }

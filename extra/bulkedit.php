@@ -45,14 +45,19 @@ echo $OUTPUT->header();
 $form = new MoodleQuickForm('courses', 'post', 'bulkedit_action.php');
 
 // Prepare the course selector.
-$courses = get_courses();
+$courses = get_courses('all', 'c.sortorder ASC', 'c.id, c.fullname');
 foreach ($courses as $course) {
 
     if ($course->id == 1) {
         continue;
     }
 
-    $categoryname = core_course_category::get($course->category)->get_nested_name();
+    $category = core_course_category::get($course->category, IGNORE_MISSING, true);
+    if (!$category) {
+        continue;
+    }
+
+    $categoryname = $category->get_nested_name();
 
     $options[$course->id] = $categoryname . ': ' . $course->fullname;
 }
