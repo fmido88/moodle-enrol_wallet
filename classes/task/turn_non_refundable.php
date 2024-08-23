@@ -91,7 +91,29 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $amount = $data->amount;
         $this->catid = $data->catid ?? 0;
 
-        $balancehelper = new balance($userid, $this->catid);
+        if (!empty($this->catid)) {
+            $category = \core_course_category::get($this->catid, IGNORE_MISSING, true);
+            if (!$category) {
+                $output = 'Category not found...';
+                $trace->output($output);
+                if (!PHPUNIT_TEST) {
+                    return false;
+                }
+                return $output;
+            }
+        }
+
+        $user = \core_user::get_user($userid, 'id, deleted');
+        if (!$user || !empty($user->deleted)) {
+            $output = 'User not found...';
+            $trace->output($output);
+            if (!PHPUNIT_TEST) {
+                return false;
+            }
+            return $output;
+        }
+
+        $balancehelper = new balance($userid, $category ?? $this->catid);
 
         $mainbalance = $balancehelper->get_main_balance();
         $mainnorefund = $balancehelper->get_main_nonrefundable();
@@ -111,9 +133,8 @@ class turn_non_refundable extends \core\task\adhoc_task {
             $trace->output($output);
             if (!PHPUNIT_TEST) {
                 return false;
-            } else {
-                return $output;
             }
+            return $output;
         }
 
         // Get all transactions in this time.

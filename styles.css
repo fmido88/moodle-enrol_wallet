@@ -132,22 +132,21 @@
 }
 
 @media (min-width: 768px) {
-    #page-enrol-wallet-confirm #region-main {
-        .generalbox:first-of-type {
-            width: 33.33%;
-            float: left;
-        }
 
-        .generalbox:not(:first-of-type) {
-            float: right;
-            width: calc(66.66% - 1rem);
-            padding: 1rem;
-            margin-top: 1rem;
-            margin-left: 1rem;
-            border-radius: .5rem;
-            -webkit-box-shadow: 0 0 35px 0 rgba(154, 161, 171, .15);
-            box-shadow: 0 0 35px 0 rgba(154, 161, 171, .15);
-        }
+    #page-enrol-wallet-confirm #region-main .generalbox:first-of-type {
+        width: 33.33%;
+        float: left;
+    }
+
+    #page-enrol-wallet-confirm #region-main .generalbox:not(:first-of-type) {
+        float: right;
+        width: calc(66.66% - 1rem);
+        padding: 1rem;
+        margin-top: 1rem;
+        margin-left: 1rem;
+        border-radius: .5rem;
+        -webkit-box-shadow: 0 0 35px 0 rgba(154, 161, 171, .15);
+        box-shadow: 0 0 35px 0 rgba(154, 161, 171, .15);
     }
 }
 

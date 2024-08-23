@@ -39,19 +39,20 @@ $canedit     = has_capability('enrol/wallet:editcoupon', $systemcontext);
 $candownload = has_capability('enrol/wallet:downloadcoupon', $systemcontext);
 
 // Parameters.
-$ids              = optional_param('ids', false, PARAM_RAW);
-$code             = optional_param('code', '', PARAM_TEXT);
-$value            = optional_param('value', null, PARAM_TEXT);
+$ids   = optional_param('ids', false, PARAM_RAW);
+$code  = optional_param('code', '', PARAM_TEXT);
+$value = optional_param('value', null, PARAM_TEXT);
 if (!empty($value) || $value === '0') {
     $value = clean_param($value, PARAM_FLOAT);
 } else {
     $value = null;
 }
 
-$valuerelation    = optional_param('valuerelation', null, PARAM_TEXT);
-$type             = optional_param('type', null, PARAM_TEXT);
-$category         = optional_param('category', null, PARAM_INT);
-$courses          = optional_param_array('courses', null, PARAM_RAW);
+$valuerelation = optional_param('valuerelation', null, PARAM_TEXT);
+$type          = optional_param('type', null, PARAM_TEXT);
+$category      = optional_param('category', null, PARAM_INT);
+$courses       = optional_param_array('courses', null, PARAM_RAW);
+
 $checkarrays = ['validto', 'validfrom', 'createdfrom', 'createdto'];
 foreach ($checkarrays as $arrayparam) {
     $param = $arrayparam.'array';
@@ -62,26 +63,26 @@ foreach ($checkarrays as $arrayparam) {
     }
 }
 
-$maxusage         = optional_param('maxusage', null, PARAM_TEXT);
+$maxusage = optional_param('maxusage', null, PARAM_TEXT);
 if (!empty($maxusage) || $maxusage === '0') {
     $maxusage = clean_param($maxusage, PARAM_INT);
 } else {
     $maxusage = null;
 }
 
-$maxrelation      = optional_param('maxrelation', null, PARAM_TEXT);
-$usetimes         = optional_param('usetimes', null, PARAM_TEXT);
+$maxrelation = optional_param('maxrelation', null, PARAM_TEXT);
+$usetimes    = optional_param('usetimes', null, PARAM_TEXT);
 if (!empty($usetimes) || $usetimes === '0') {
     $usetimes = clean_param($usetimes, PARAM_INT);
 } else {
     $usetimes = null;
 }
 
-$userelation      = optional_param('userelation', null, PARAM_TEXT);
-$sort             = optional_param('tsort', 'id', PARAM_ALPHA);
-$download         = optional_param('download', '', PARAM_ALPHA);
-$page             = optional_param('page', 0, PARAM_INT);
-$limitnum         = optional_param('perpage', 50, PARAM_INT);
+$userelation = optional_param('userelation', null, PARAM_TEXT);
+$sort        = optional_param('tsort', 'id', PARAM_ALPHA);
+$download    = optional_param('download', '', PARAM_ALPHA);
+$page        = optional_param('page', 0, PARAM_INT);
+$limitnum    = optional_param('perpage', 50, PARAM_INT);
 
 // Sterilize the url parameters and conditions for sql.
 $conditions = '1=1';
@@ -343,7 +344,6 @@ $mform->hideIf('courses', 'type', 'neq', 'enrol');
 if (!empty($courses)) {
     $mform->setDefault('courses', $courses);
 }
-
 
 $usetimesgroup[] = $mform->createElement('select', 'userelation', '', $opt);
 

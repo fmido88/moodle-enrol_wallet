@@ -31,10 +31,11 @@ require_login();
 $systemcontext = context_system::instance();
 require_capability('enrol/wallet:createcoupon', $systemcontext);
 
+$pageurl = new moodle_url('/enrol/wallet/extra/coupon.php');
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
-$PAGE->set_url(new moodle_url('/enrol/wallet/extra/coupon.php'));
+$PAGE->set_url($pageurl);
 $PAGE->set_title(get_string('coupon_generation_title', 'enrol_wallet'));
 $PAGE->set_heading(get_string('coupon_generation_heading', 'enrol_wallet'));
 
@@ -100,17 +101,24 @@ if ($options = $mform->get_data()) {
     if ($options->type == 'enrol') {
         $options->value = 0;
     }
-    // Generate coupons with the options specified.
-    $ids = enrol_wallet_generate_coupons($options);
 
-    if (is_string($ids)) {
-        core\notification::error($ids);
-    } else {
-        $count = count($ids);
-        $msg = get_string('coupons_generation_success', 'enrol_wallet', $count);
-        $redirecturl = new moodle_url('/enrol/wallet/extra/coupontable.php', ['ids' => implode(',', $ids)]);
-        redirect($redirecturl, $msg);
-    }
+    $options->timecreated = time();
+
+    // Generate coupons with the options specified.
+    $task = new enrol_wallet\task\generate_coupons();
+    $task->set_custom_data($options);
+    $task->set_next_run_time(time() + 1);
+    \core\task\manager::queue_adhoc_task($task);
+
+    $couponsurl = new moodle_url('/enrol/wallet/extra/coupontable.php', [
+        'createdfrom' => $options->timecreated,
+        'createdto'   => $options->timecreated,
+    ]);
+    $msg = get_string('coupons_generation_taskcreated', 'enrol_wallet', [
+        'count' => $options->number,
+        'link'  => html_writer::link($couponsurl, get_string('check')),
+    ]);
+    redirect($pageurl, $msg);
 }
 
 echo $OUTPUT->header();

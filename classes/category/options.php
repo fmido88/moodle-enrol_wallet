@@ -210,12 +210,19 @@ class options {
                 $options[0] = get_string('site');
                 continue;
             }
+
             if (isset($options[$record->category])) {
                 continue;
             }
-            $cat = core_course_category::get($record->category);
+
+            $cat = core_course_category::get($record->category, IGNORE_MISSING);
+            if (!$cat) {
+                continue;
+            }
+
             $options[$record->category] = $cat->get_nested_name(false);
         }
+
         ksort($options, SORT_NUMERIC);
         return $options;
     }

@@ -105,7 +105,8 @@ class balance {
             global $USER;
             $this->userid = $USER->id;
         }
-        $this->catenabled = (bool)get_config('enrol_wallet', 'catbalance') && $this->source == self::MOODLE;
+
+        $this->catenabled = (bool)get_config('enrol_wallet', 'catbalance') && ($this->source == self::MOODLE);
         if ($this->catenabled) {
             if (empty($category)) {
                 global $COURSE;

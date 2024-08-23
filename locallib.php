@@ -92,10 +92,15 @@ function enrol_wallet_get_random_coupon($length, $options) {
  * Generating coupons.
  *
  * @param object $options the options from coupon form.
+ * @param progress_trace $trace
  * @return array|string array of coupon, or string of error.
  */
-function enrol_wallet_generate_coupons($options) {
+function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) {
     global $DB;
+
+    if (empty($trace)) {
+        $trace = new null_progress_trace;
+    }
 
     $number     = $options->number;
     $maxusage   = $options->maxusage;
@@ -115,7 +120,7 @@ function enrol_wallet_generate_coupons($options) {
         'maxperuser'  => $maxperuser,
         'validfrom'   => $from,
         'validto'     => $to,
-        'timecreated' => time(),
+        'timecreated' => $options->timecreated ?? time(),
     ];
 
     $ids = [];
@@ -123,6 +128,7 @@ function enrol_wallet_generate_coupons($options) {
         $recorddata->code = $code;
 
         $ids[] = $DB->insert_record('enrol_wallet_coupons', $recorddata);
+        $trace->output('Single coupon created...');
     } else {
 
         $length = $options->length;
@@ -130,7 +136,14 @@ function enrol_wallet_generate_coupons($options) {
         $upper  = $options->upper;
         $digits = $options->digits;
 
+        $lastprogress = 0;
         for ($i = 0; $i < $number; $i++) {
+            $progress = round($i / $number * 100);
+            if ($progress > $lastprogress + 5) {
+                $trace->output('Generating coupons... ' . $progress . '%');
+                $lastprogress = $progress;
+            }
+
             $gopt = [
                 'lower' => $lower,
                 'upper' => $upper,
@@ -409,6 +422,11 @@ function enrol_wallet_display_coupon_urls() {
     if (get_config('enrol_wallet', 'walletsource') != balance::MOODLE) {
         return '';
     }
+
+    if (!isloggedin() || isguestuser()) {
+        return '';
+    }
+
     $context = context_system::instance();
     $canviewcoupons = has_capability('enrol/wallet:viewcoupon', $context);
     $cangeneratecoupon = has_capability('enrol/wallet:createcoupon', $context);
@@ -443,6 +461,10 @@ function enrol_wallet_display_coupon_urls() {
  */
 function enrol_wallet_display_current_user_balance($userid = 0) {
     global $USER, $OUTPUT, $CFG, $PAGE;
+    if (!isloggedin() || isguestuser()) {
+        return '';
+    }
+
     $renderable = new \enrol_wallet\output\wallet_balance($userid);
     $renderer = $PAGE->get_renderer('enrol_wallet');
     return $renderer->render($renderable);
@@ -458,16 +480,16 @@ function enrol_wallet_display_topup_options() {
     require_once($CFG->dirroot.'/enrol/wallet/classes/form/topup_form.php');
     require_once(__DIR__.'/lib.php');
 
-    if (!isloggedin() || isguestuser()) {
-        return '';
-    }
-
     $username = optional_param('s', '', PARAM_USERNAME);
     if (!empty($username)) {
         $user = get_complete_user_data('username', $username);
     } else {
         global $USER;
         $user = $USER;
+    }
+
+    if (empty($user) || empty($user->id) || isguestuser($user)) {
+        return '';
     }
 
     // Get the default currency.
@@ -538,7 +560,14 @@ function enrol_wallet_display_topup_options() {
         $tm .= $OUTPUT->heading(get_string('tellermen_display_guide', 'enrol_wallet'), 6);
         $tm .= html_writer::start_tag('ul');
         foreach ($chargerids as $tellerid) {
+            if (empty($tellerid)) {
+                continue;
+            }
             $teller = core_user::get_user($tellerid);
+            if (!$teller || isguestuser($teller) || !core_user::is_real_user($tellerid)) {
+                continue;
+            }
+
             $tellername = fullname($teller);
             if (user_can_view_profile($teller)) {
                 $tellername = html_writer::link(new moodle_url('/user/view.php', ['id' => $tellerid]), $tellername);

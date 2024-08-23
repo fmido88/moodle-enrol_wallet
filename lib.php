@@ -1884,19 +1884,12 @@ class enrol_wallet_plugin extends enrol_plugin {
             return strcmp($a, $b);
         });
 
-        // Adding Wallet Coins currency and empty currency.
-        if (empty($currencies)) {
-            $currencies = [
-                ''    => '',
-                'MCW' => get_string('MWC', 'enrol_wallet'),
-            ];
-        }
         // Adding custom currency in case of there is no available payment gateway or customize the wallet.
         if (empty($currencies) || (empty($account))) {
-            $customcurrency = $this->get_config('customcurrency') ?? '';
-            $cc = $this->get_config('customcurrencycode') ?? '';
+            $customcurrency = $this->get_config('customcurrency') ?? get_string('MWC', 'enrol_wallet');
+            $cc = $this->get_config('customcurrencycode');
             // Don't override standard currencies.
-            if (!array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MCW') {
+            if (!array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MWC') {
                 $currencies[$cc] = $customcurrency;
             }
         }

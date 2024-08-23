@@ -233,6 +233,7 @@ $string['coupons_courseserror'] = 'Must select at least one course.';
 $string['coupons_delete_selected'] = 'Delete selected coupons';
 $string['coupons_discount_error'] = 'Discount value cannot exceed 100%';
 $string['coupons_generation_success'] = '{$a} coupon codes successfully generated.';
+$string['coupons_generation_taskcreated'] = '{$a->count} coupon generation task processing in the back ground, check this link after a while {$a->link}.';
 $string['coupons_ids'] = 'Coupon id(s) separated by (,)';
 $string['coupons_length'] = 'Length';
 $string['coupons_length_help'] = 'How many characters in a single coupon';

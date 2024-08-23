@@ -89,12 +89,14 @@ class wallet_balance implements renderable, templatable {
         $details = $helper->get_balance_details();
         // Get the default currency.
         $currency = get_config('enrol_wallet', 'currency');
+
         $policy = get_config('enrol_wallet', 'refundpolicy');
         // Prepare transaction URL to display.
         $params = [];
         if (!$this->currentuser) {
             $params['userid'] = $this->userid;
         }
+
         $transactionsurl = new moodle_url('/enrol/wallet/extra/transaction.php', $params);
         $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));
         if ($this->currentuser && !AJAX_SCRIPT) {
@@ -121,6 +123,7 @@ class wallet_balance implements renderable, templatable {
             } else {
                 $balancedetails[$id]->name = $category->get_nested_name(false);
             }
+
             $balancedetails[$id]->refundable = number_format($obj->refundable, 2) ?? 0;
             $balancedetails[$id]->nonrefundable = number_format($obj->nonrefundable, 2) ?? 0;
             $total = $obj->balance ?? $balancedetails[$id]->refundable + $balancedetails[$id]->nonrefundable;
