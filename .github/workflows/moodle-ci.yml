@@ -24,17 +24,9 @@ jobs:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
 
-    # PHP Compatibility Matrix Moodle             End of life
-    # Moodle 4.0: php7.3, php7.4, php8.0 (exp)      Nov 2023
-    # earlier versions of Moodle and php are not included, as support was dropped
-
     strategy:
       fail-fast: false
       matrix:
-        # Overall strategy is to run as few jobs as possible, but:
-        # - each php version at least once
-        # - each moodle version at least once
-        # - each database at least once
         include:
           - {php: '8.0', moodle-branch: MOODLE_311_STABLE, database: mariadb}
           - {php: '8.0', moodle-branch: MOODLE_401_STABLE, database: mariadb}
@@ -57,6 +49,11 @@ jobs:
           ini-values: max_input_vars=5000
           coverage: none
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+
       - name: Initialise moodle-plugin-ci
         run: |
           composer create-project -n --no-dev --prefer-dist moodlehq/moodle-plugin-ci ci ^4
@@ -67,7 +64,7 @@ jobs:
 
       - name: Install moodle-plugin-ci
         run: |
-          moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1
+          moodle-plugin-ci install --plugin ./plugin --db-host=127.0.0.1 --no-plugin-node
         env:
           DB: ${{ matrix.database }}
           MOODLE_BRANCH: ${{ matrix.moodle-branch }}
