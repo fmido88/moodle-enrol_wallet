@@ -883,7 +883,7 @@ class offers {
 
                     break;
                 case self::PROFILE_FIELD:
-                    if (empty($offer->field)) {
+                    if (empty($offer->cf) || empty($offer->sf)) {
                         $errors[self::fname($type, '', $i)] = get_string('offers_error_pfselect', 'enrol_wallet');
                     } else if (!in_array($offer->op, [self::PFOP_IS_EMPTY, self::PFOP_IS_NOT_EMPTY])) {
                         if (empty($offer->value)) {

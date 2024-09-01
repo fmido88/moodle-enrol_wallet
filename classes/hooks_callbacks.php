@@ -35,6 +35,10 @@ class hooks_callbacks {
      * @return void
      */
     public static function show_price(before_footer_html_generation $hook) {
+        if (during_initial_install()) {
+            return;
+        }
+
         $showprice = (bool)get_config('enrol_wallet', 'showprice');
         if ($showprice) {
             $page = $hook->renderer->get_page();
@@ -50,7 +54,7 @@ class hooks_callbacks {
      */
     public static function low_balance_warning(before_standard_top_of_body_html_generation $hook) {
         // Don't display notice for guests or logged out.
-        if (!isloggedin() || isguestuser()) {
+        if (!isloggedin() || isguestuser() || during_initial_install()) {
             return;
         }
 
@@ -78,6 +82,10 @@ class hooks_callbacks {
      * @return void
      */
     public static function add_offers(primary_extend $hook) {
+        if (during_initial_install()) {
+            return;
+        }
+
         $enabled = (bool)get_config('enrol_wallet', 'offers_nav');
         if (empty($enabled)) {
             return;

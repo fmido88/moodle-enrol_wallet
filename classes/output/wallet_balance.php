@@ -124,11 +124,12 @@ class wallet_balance implements renderable, templatable {
                 $balancedetails[$id]->name = $category->get_nested_name(false);
             }
 
-            $balancedetails[$id]->refundable = number_format($obj->refundable, 2) ?? 0;
-            $balancedetails[$id]->nonrefundable = number_format($obj->nonrefundable, 2) ?? 0;
-            $total = $obj->balance ?? $balancedetails[$id]->refundable + $balancedetails[$id]->nonrefundable;
+            $balancedetails[$id]->refundable = number_format($obj->refundable ?? 0, 2);
+            $balancedetails[$id]->nonrefundable = number_format($obj->nonrefundable ?? 0, 2);
+            $total = $obj->balance ?? (float)(($obj->refundable ?? 0) + ($obj->nonrefundable ?? 0));
             $balancedetails[$id]->total = number_format($total, 2);
         }
+
         $balancedetails = !(empty($balancedetails)) ? array_values($balancedetails) : false;
 
         $tempctx = new stdClass;
@@ -138,6 +139,7 @@ class wallet_balance implements renderable, templatable {
         $tempctx->hasdetails   = !empty($balancedetails);
         $tempctx->catdetails   = $balancedetails;
         $tempctx->currency     = $currency;
+
         if (!AJAX_SCRIPT) {
             $tempctx->transactions = $transactions;
             $tempctx->transfer     = !empty($transferenabled) ? $transfer : false;
@@ -145,6 +147,7 @@ class wallet_balance implements renderable, templatable {
             $tempctx->policy       = !empty($policy) ? $policy : false;
             $tempctx->walleturl    = (new moodle_url('/enrol/wallet/wallet.php#linkbalance'))->out();
         }
+
         $tempctx->currentuser = $this->currentuser;
         return $tempctx;
     }
