@@ -778,3 +778,5 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
+
+$string['enrolpage_analytics'] = 'Enrolment Page Analytics';
