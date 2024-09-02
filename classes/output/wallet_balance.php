@@ -108,7 +108,7 @@ class wallet_balance implements renderable, templatable {
             if (!$this->isparent) {
                 // Referral link.
                 $refenabled = get_config('enrol_wallet', 'referral_enabled');
-                $referralurl = new moodle_url('/enrol/wallet/extra/referral.php');
+                $referralurl = new moodle_url('/enrol/wallet/referral_signup.php', ['refcode' => $refcode]);
                 $referral = html_writer::link($referralurl, get_string('referral_program', 'enrol_wallet'));
             }
         }

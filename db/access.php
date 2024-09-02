@@ -163,4 +163,17 @@ $capabilities = [
             'user' => CAP_ALLOW,
         ],
     ],
+    /* View referral signup page */
+    'enrol/wallet:viewreferralsignup' => [
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_SYSTEM,
+        'archetypes' => [
+            'guest' => CAP_ALLOW,
+            'user' => CAP_ALLOW,
+            'student' => CAP_ALLOW,
+            'teacher' => CAP_ALLOW,
+            'editingteacher' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        ],
+    ],
 ];
