@@ -53,7 +53,9 @@ class transactions {
      * @return int|string the id of transaction record or error string.
      * @deprecated
      */
-    public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true, $trigger = true) {
+    public static function payment_topup(float $amount, int $userid, string $description = '', $charger = '', bool $refundable = true, bool $trigger = true) {
+        global $DB;
+
         $util = new balance_op($userid);
         if (!empty($cahrger)) {
             $by = balance_op::USER;
@@ -62,8 +64,58 @@ class transactions {
             $by = balance_op::OTHER;
             $thingid = 0;
         }
+
+        // Insert the transaction record into the database.
+        $id = $DB->insert_record('enrol_wallet_transactions', $recorddata);
+
+        // Check if referral on top-up is enabled.
+        if (get_config('enrol_wallet', 'referral_on_topup')) {
+            self::apply_referral_on_topup($userid, $amount);
+        }
+
+        if ($refundable) {
+            self::queue_transaction_transformation($id);
+        }
+
         $util->credit($amount, $by, $thingid, $description, $refundable, $trigger);
         return $util->get_transaction_id();
+    }
+
+    /**
+     * Apply referral credit on wallet top-up.
+     *
+     * @param int $userid The ID of the user topping up their wallet.
+     * @param float $amount The amount of the top-up.
+     */
+    private static function apply_referral_on_topup(int $userid, float $amount): void {
+        global $DB;
+
+        $referralamount = (float)get_config('enrol_wallet', 'referral_amount');
+        $minimumtopup = (float)get_config('enrol_wallet', 'referral_topup_minimum');
+
+        // Check if the top-up amount meets the minimum requirement.
+        if ($amount < $minimumtopup) {
+            return;
+        }
+
+        // Check if this user was referred.
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $userid]);
+
+        if ($hold && !$hold->released) {
+            $referrer = \core_user::get_user($hold->referrer);
+
+            // Credit the referrer.
+            $refdesc = get_string('referral_topup', 'enrol_wallet', fullname($referrer));
+            self::payment_topup($referralamount, $hold->referrer, $refdesc, $userid, false, false);
+
+            // Credit the referred user.
+            $desc = get_string('referral_gift', 'enrol_wallet', fullname($referrer));
+            self::payment_topup($referralamount, $userid, $desc, $hold->referrer, false, false);
+
+            // Mark the referral as released.
+            $DB->set_field('enrol_wallet_hold_gift', 'released', 1, ['id' => $hold->id]);
+            $DB->set_field('enrol_wallet_hold_gift', 'timemodified', time(), ['id' => $hold->id]);
+        }
     }
 
     /** Function to deduct the credit from wallet balance.

@@ -196,4 +196,43 @@ final class transactions_test extends \advanced_testcase {
 
         $this->assertEquals($user->id, $usage->userid);
     }
+
+    /**
+     * Test referral on wallet top-up functionality.
+     */
+    public function test_referral_on_topup() {
+        $this->resetAfterTest();
+
+        // Enable referral on top-up and set minimum amount.
+        set_config('referral_on_topup', 1, 'enrol_wallet');
+        set_config('referral_topup_minimum', 50, 'enrol_wallet');
+        set_config('referral_amount', 10, 'enrol_wallet');
+
+        // Create users.
+        $referrer = $this->getDataGenerator()->create_user();
+        $referred = $this->getDataGenerator()->create_user();
+
+        // Set up referral.
+        $holdgift = new stdClass();
+        $holdgift->referrer = $referrer->id;
+        $holdgift->referred = $referred->id;
+        $holdgift->amount = 10;
+        $holdgift->released = 0;
+        $holdgift->timecreated = time();
+        $holdgift->timemodified = time();
+        $DB->insert_record('enrol_wallet_hold_gift', $holdgift);
+
+        // Top up below minimum - should not trigger referral.
+        \enrol_wallet\transactions::payment_topup(40, $referred->id, 'Test top-up');
+        $this->assertEquals(0, \enrol_wallet\transactions::get_user_balance($referrer->id));
+        $this->assertEquals(40, \enrol_wallet\transactions::get_user_balance($referred->id));
+
+        // Top up above minimum - should trigger referral.
+        \enrol_wallet\transactions::payment_topup(60, $referred->id, 'Test top-up');
+        $this->assertEquals(10, \enrol_wallet\transactions::get_user_balance($referrer->id));
+        $this->assertEquals(110, \enrol_wallet\transactions::get_user_balance($referred->id));
+
+        // Check that referral is marked as released.
+        $this->assertTrue($DB->record_exists('enrol_wallet_hold_gift', ['referred' => $referred->id, 'released' => 1]));
+    }
 }
