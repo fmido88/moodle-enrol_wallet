@@ -160,7 +160,12 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
         } else {
             $response = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc);
-            return $response;
+
+            if ($response) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 }

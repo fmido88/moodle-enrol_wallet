@@ -440,6 +440,22 @@ class enrol_wallet_plugin extends enrol_plugin {
             do {
                 $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend, null, true);
             } while (!$DB->record_exists('user_enrolments', $conditions));
+
+            try {
+                // Trigger event for successful enrolment.
+                $params = [
+                    'context'   => context_course::instance($instance->courseid),
+                    'objectid'  => $instance->id,
+                    'courseid'  => $instance->courseid,
+                    'relateduserid' => $user->id,
+                ];
+                $event = \core\event\user_enrolment_created::create($params);
+                $event->trigger();
+            } catch (\Exception $e) {
+                // Log the error but don't stop the enrolment process
+                debugging('Error triggering enrolment event: ' . $e->getMessage(), DEBUG_DEVELOPER);
+            }
+
         } catch (\moodle_exception $e) {
             // Rollback the transaction in case of error.
             if ($charge) {
