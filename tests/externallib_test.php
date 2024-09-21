@@ -18,7 +18,7 @@ namespace enrol_wallet;
 
 use enrol_wallet_external;
 use externallib_advanced_testcase;
-use enrol_wallet\transactions;
+use enrol_wallet\util\balance_op;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -96,7 +96,8 @@ final class externallib_test extends externallib_advanced_testcase {
 
         // Try to retrieve information using a normal user for a hidden course.
         $user = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(60, $user->id);
+        $balance_op = new balance_op($user->id);
+        $balance_op->credit(60, balance_op::OTHER, 0, 'Test credit');
         $this->setUser($user);
         try {
             enrol_wallet_external::get_instance_info($instanceid1);
@@ -140,7 +141,8 @@ final class externallib_test extends externallib_advanced_testcase {
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
         $user1 = $this->getDataGenerator()->create_user();
-        transactions::payment_topup(100, $user1->id);
+        $balance_op = new balance_op($user1->id);
+        $balance_op->credit(100, balance_op::OTHER, 0, 'Test credit');
 
         $context1 = \context_course::instance($course1->id);
         $context2 = \context_course::instance($course2->id);
@@ -170,7 +172,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $this->assertTrue($result['status']);
         $this->assertEquals(1, $DB->count_records('user_enrolments', ['enrolid' => $instance1->id]));
         $this->assertTrue(is_enrolled($context1, $user1));
-        $balance = transactions::get_user_balance($user1->id);
+        $balance = $balance_op->get_valid_balance();
         $this->assertEquals(50, $balance);
 
         // Try instance not enabled.
@@ -191,7 +193,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $this->assertEquals('1', $result['warnings'][0]['warningcode']);
         $this->assertFalse(is_enrolled($context2, $user1));
         // Make sure no balance deducted.
-        $balance = transactions::get_user_balance($user1->id);
+        $balance = $balance_op->get_valid_balance();
         $this->assertEquals(50, $balance);
     }
 }

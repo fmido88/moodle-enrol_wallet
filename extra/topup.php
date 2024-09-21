@@ -139,6 +139,34 @@ if ($confirm) {
     // This code is required for payment button.
     $PAGE->requires->js_call_amd('core_payment/gateways_modal', 'init');
 
+    // Add JavaScript to handle successful payment and apply referral
+    $PAGE->requires->js_amd_inline("
+        require(['jquery'], function($) {
+            $('#gateways-modal-trigger-$account').on('click', function() {
+                var checkPaymentStatus = setInterval(function() {
+                    if ($('.modal-backdrop').length === 0) {
+                        clearInterval(checkPaymentStatus);
+                        $.ajax({
+                            url: M.cfg.wwwroot + '/enrol/wallet/extra/referral.php',
+                            type: 'POST',
+                            data: {
+                                action: 'apply_referral_on_topup',
+                                amount: $value,
+                                sesskey: M.cfg.sesskey
+                            },
+                            success: function(response) {
+                                var result = JSON.parse(response);
+                                if (result.success) {
+                                    alert(result.message);
+                                }
+                            }
+                        });
+                    }
+                }, 1000);
+            });
+        });
+    ");
+
     echo $OUTPUT->confirm($message, $buttoncontinue, $buttoncancel);
     echo $OUTPUT->footer();
 }

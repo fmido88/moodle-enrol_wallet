@@ -37,28 +37,20 @@ require_once($CFG->dirroot.'/enrol/wallet/lib.php');
 final class transactions_test extends \advanced_testcase {
 
     /**
-     * The transactions class.
-     * @var \enrol_wallet\transactions
-     */
-    private $transactions;
-
-    /**
      * Setup.
      */
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest(true);
-
-        $this->transactions = new \enrol_wallet\transactions();
-
     }
+
     /**
      * Testing the functionalities of adding and deducting credits
      * from user's wallet.
      *
-     * @covers ::payment_topup()
+     * @covers ::credit()
      * @covers ::debit()
-     * @covers ::get_user_balance()
+     * @covers ::get_valid_balance()
      * @return void
      */
     public function test_credit_debit(): void {
@@ -72,16 +64,17 @@ final class transactions_test extends \advanced_testcase {
 
         $user = $this->getDataGenerator()->create_user(['firstname' => 'Mo', 'lastname' => 'Farouk']);
 
-        $balance = $this->transactions->get_user_balance($user->id);
+        $balance_op = new \enrol_wallet\util\balance_op($user->id);
+        $balance = $balance_op->get_valid_balance();
         $this->assertEquals(0, $balance);
 
         $sink = $this->redirectEvents();
-        $this->transactions->payment_topup(250, $user->id);
+        $balance_op->credit(250, \enrol_wallet\util\balance_op::OTHER, 0, 'Test credit');
         $events = $sink->get_events();
         $sink->clear();
 
-        $balance = $this->transactions->get_user_balance($user->id);
-        $norefund = $this->transactions->get_nonrefund_balance($user->id);
+        $balance = $balance_op->get_valid_balance();
+        $norefund = $balance_op->get_valid_nonrefundable();
         $this->assertEquals(250, $balance);
         $this->assertEquals(0, $norefund);
         // Two events: transaction_triggered and notification_sent.
@@ -90,7 +83,7 @@ final class transactions_test extends \advanced_testcase {
         $this->assertEquals(250, $events[1]->other['amount']);
         $this->assertEquals('credit', $events[1]->other['type']);
 
-        $this->transactions->debit($user->id, 50);
+        $balance_op->debit(50, \enrol_wallet\util\balance_op::OTHER, 0, 'Test debit');
         $events = $sink->get_events();
         $sink->close();
 
@@ -102,52 +95,56 @@ final class transactions_test extends \advanced_testcase {
         $count = $DB->count_records('enrol_wallet_transactions', ['userid' => $user->id]);
         $this->assertEquals(2, $count);
 
-        $balance = $this->transactions->get_user_balance($user->id);
+        $balance = $balance_op->get_valid_balance();
         $this->assertEquals(200, $balance);
 
         try {
-            $this->transactions->debit($user->id, 250);
+            $balance_op->debit(250, \enrol_wallet\util\balance_op::OTHER, 0, 'Test debit');
         } catch (\moodle_exception $e) {
             $msg = $e->getMessage();
         }
-        $balance = $this->transactions->get_user_balance($user->id);
+        $balance = $balance_op->get_valid_balance();
         $this->assertEquals(200, $balance, $msg);
+
         // Check that the value is nonrefundable.
         $user2 = $this->getDataGenerator()->create_user();
-        $this->transactions->payment_topup(50, $user2->id, '', '', false);
-        $balance = $this->transactions->get_user_balance($user2->id);
-        $norefund = $this->transactions->get_nonrefund_balance($user2->id);
+        $balance_op2 = new \enrol_wallet\util\balance_op($user2->id);
+        $balance_op2->credit(50, \enrol_wallet\util\balance_op::OTHER, 0, 'Test credit', false);
+        $balance = $balance_op2->get_valid_balance();
+        $norefund = $balance_op2->get_valid_nonrefundable();
         $this->assertEquals(50, $balance);
         $this->assertEquals(50, $norefund);
 
         // Check disable refund will make all values nonrefundable.
         set_config('enablerefund', 0, 'enrol_wallet');
         $user3 = $this->getDataGenerator()->create_user();
-        $this->transactions->payment_topup(100, $user3->id);
-        $balance = $this->transactions->get_user_balance($user3->id);
-        $norefund = $this->transactions->get_nonrefund_balance($user3->id);
+        $balance_op3 = new \enrol_wallet\util\balance_op($user3->id);
+        $balance_op3->credit(100, \enrol_wallet\util\balance_op::OTHER, 0, 'Test credit');
+        $balance = $balance_op3->get_valid_balance();
+        $norefund = $balance_op3->get_valid_nonrefundable();
         $this->assertEquals(100, $balance);
         $this->assertEquals(100, $norefund);
 
         // Testing that debit process will deduct from the refundable credit first.
         set_config('enablerefund', 1, 'enrol_wallet');
         $user4 = $this->getDataGenerator()->create_user();
-        $this->transactions->payment_topup(100, $user4->id);
-        $this->transactions->payment_topup(100, $user4->id, '', '', false);
-        $balance = $this->transactions->get_user_balance($user4->id);
-        $norefund = $this->transactions->get_nonrefund_balance($user4->id);
+        $balance_op4 = new \enrol_wallet\util\balance_op($user4->id);
+        $balance_op4->credit(100, \enrol_wallet\util\balance_op::OTHER, 0, 'Test credit');
+        $balance_op4->credit(100, \enrol_wallet\util\balance_op::OTHER, 0, 'Test credit', false);
+        $balance = $balance_op4->get_valid_balance();
+        $norefund = $balance_op4->get_valid_nonrefundable();
         $this->assertEquals(200, $balance);
         $this->assertEquals(100, $norefund);
 
-        $this->transactions->debit($user4->id, 50);
-        $balance = $this->transactions->get_user_balance($user4->id);
-        $norefund = $this->transactions->get_nonrefund_balance($user4->id);
+        $balance_op4->debit(50, \enrol_wallet\util\balance_op::OTHER, 0, 'Test debit');
+        $balance = $balance_op4->get_valid_balance();
+        $norefund = $balance_op4->get_valid_nonrefundable();
         $this->assertEquals(150, $balance);
         $this->assertEquals(100, $norefund);
 
-        $this->transactions->debit($user4->id, 100);
-        $balance = $this->transactions->get_user_balance($user4->id);
-        $norefund = $this->transactions->get_nonrefund_balance($user4->id);
+        $balance_op4->debit(100, \enrol_wallet\util\balance_op::OTHER, 0, 'Test debit');
+        $balance = $balance_op4->get_valid_balance();
+        $norefund = $balance_op4->get_valid_nonrefundable();
         $this->assertEquals(50, $balance);
         $this->assertEquals(50, $norefund);
     }
@@ -213,7 +210,7 @@ final class transactions_test extends \advanced_testcase {
         $referred = $this->getDataGenerator()->create_user();
 
         // Set up referral.
-        $holdgift = new stdClass();
+        $holdgift = new \stdClass();
         $holdgift->referrer = $referrer->id;
         $holdgift->referred = $referred->id;
         $holdgift->amount = 10;
@@ -222,15 +219,18 @@ final class transactions_test extends \advanced_testcase {
         $holdgift->timemodified = time();
         $DB->insert_record('enrol_wallet_hold_gift', $holdgift);
 
+        $balance_op_referrer = new \enrol_wallet\util\balance_op($referrer->id);
+        $balance_op_referred = new \enrol_wallet\util\balance_op($referred->id);
+
         // Top up below minimum - should not trigger referral.
-        \enrol_wallet\transactions::payment_topup(40, $referred->id, 'Test top-up');
-        $this->assertEquals(0, \enrol_wallet\transactions::get_user_balance($referrer->id));
-        $this->assertEquals(40, \enrol_wallet\transactions::get_user_balance($referred->id));
+        $balance_op_referred->credit(40, \enrol_wallet\util\balance_op::OTHER, 0, 'Test top-up');
+        $this->assertEquals(0, $balance_op_referrer->get_valid_balance());
+        $this->assertEquals(40, $balance_op_referred->get_valid_balance());
 
         // Top up above minimum - should trigger referral.
-        \enrol_wallet\transactions::payment_topup(60, $referred->id, 'Test top-up');
-        $this->assertEquals(10, \enrol_wallet\transactions::get_user_balance($referrer->id));
-        $this->assertEquals(110, \enrol_wallet\transactions::get_user_balance($referred->id));
+        $balance_op_referred->credit(60, \enrol_wallet\util\balance_op::OTHER, 0, 'Test top-up');
+        $this->assertEquals(10, $balance_op_referrer->get_valid_balance());
+        $this->assertEquals(110, $balance_op_referred->get_valid_balance());
 
         // Check that referral is marked as released.
         $this->assertTrue($DB->record_exists('enrol_wallet_hold_gift', ['referred' => $referred->id, 'released' => 1]));
