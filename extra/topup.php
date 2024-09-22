@@ -35,8 +35,9 @@ $currency   = required_param('currency', PARAM_TEXT);
 $val        = optional_param('value', 0, PARAM_FLOAT);
 $category   = optional_param('category', 0, PARAM_INT);
 $return     = optional_param('return', '', PARAM_LOCALURL);
+$success    = optional_param('success', 0, PARAM_BOOL);
 
-debugging("Parameters: instanceid=$instanceid, courseid=$courseid, confirm=$confirm, account=$account, currency=$currency, val=$val, category=$category", DEBUG_DEVELOPER);
+debugging("Parameters: instanceid=$instanceid, courseid=$courseid, confirm=$confirm, account=$account, currency=$currency, val=$val, category=$category, success=$success", DEBUG_DEVELOPER);
 
 $urlparams = [
     'instanceid' => $instanceid,
@@ -80,20 +81,51 @@ if ($value <= 0) {
 
 require_login();
 
-if ($confirm) {
-    debugging("Payment confirmed, applying referral bonus", DEBUG_DEVELOPER);
-    // Payment has been confirmed, apply the referral bonus if applicable
-    $balance_op = new \enrol_wallet\util\balance_op($USER->id);
-    $result = $balance_op->apply_referral_on_topup($value);
+debugging("Checking hold gift record for user {$USER->id}", DEBUG_DEVELOPER);
+$hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $USER->id, 'released' => 0]);
+if ($hold) {
+    debugging("Found hold gift record: " . var_export($hold, true), DEBUG_DEVELOPER);
+} else {
+    debugging("No hold gift record found for user {$USER->id}", DEBUG_DEVELOPER);
+}
+
+$referralenabled = get_config('enrol_wallet', 'referral_on_topup');
+$referralamount = (float)get_config('enrol_wallet', 'referral_amount');
+$minimumtopup = (float)get_config('enrol_wallet', 'referral_topup_minimum');
+debugging("Referral config: enabled={$referralenabled}, amount={$referralamount}, minimum={$minimumtopup}", DEBUG_DEVELOPER);
+
+if ($success) {
+    debugging("Payment successful, checking referral eligibility", DEBUG_DEVELOPER);
     
-    if ($result) {
-        debugging("Referral bonus applied successfully", DEBUG_DEVELOPER);
-        \core\notification::success(get_string('referral_success', 'enrol_wallet'));
+    // Check if referral on top-up is enabled
+    $referralenabled = get_config('enrol_wallet', 'referral_on_topup');
+    debugging("Referral on top-up enabled: " . ($referralenabled ? 'Yes' : 'No'), DEBUG_DEVELOPER);
+
+    if (!$referralenabled) {
+        debugging("Referral on top-up is not enabled. Skipping referral bonus application.", DEBUG_DEVELOPER);
     } else {
-        debugging("Referral bonus not applied", DEBUG_DEVELOPER);
-        \core\notification::info(get_string('referral_not_applied', 'enrol_wallet'));
+        // Check if the user is eligible for a referral bonus
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $USER->id, 'released' => 0]);
+        
+        if ($hold) {
+            debugging("User is eligible for referral bonus. Referrer ID: {$hold->referrer}", DEBUG_DEVELOPER);
+            
+            // Payment has been successful, apply the referral bonus if applicable
+            $balance_op = new \enrol_wallet\util\balance_op($USER->id);
+            $result = $balance_op->apply_referral_on_topup($value);
+            
+            if ($result) {
+                debugging("Referral bonus applied successfully", DEBUG_DEVELOPER);
+                \core\notification::success(get_string('referral_success', 'enrol_wallet'));
+            } else {
+                debugging("Referral bonus not applied", DEBUG_DEVELOPER);
+                \core\notification::info(get_string('referral_not_applied', 'enrol_wallet'));
+            }
+        } else {
+            debugging("User is not eligible for referral bonus. No unreleased hold gift found.", DEBUG_DEVELOPER);
+        }
     }
-    
+    debugging("Redirecting to: " . $url, DEBUG_DEVELOPER);
     redirect($url);
 } else {
     debugging("Displaying payment confirmation page", DEBUG_DEVELOPER);
@@ -126,7 +158,7 @@ if ($confirm) {
         'data-paymentarea' => "wallettopup",
         'data-itemid'      => "$id",
         'data-cost'        => "$value",
-        'data-successurl'  => $baseurl->out(false, ['confirm' => 1, 'sesskey' => sesskey()]),
+        'data-successurl'  => $baseurl->out(false, ['success' => 1, 'sesskey' => sesskey()]),
         'data-description' => "$desc",
     ];
 
