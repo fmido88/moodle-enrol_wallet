@@ -55,7 +55,7 @@ class transactions {
      */
     public static function payment_topup(float $amount, int $userid, string $description = '', $charger = '', bool $refundable = true, bool $trigger = true) {
         debugging('The function payment_topup() is deprecated. Use enrol_wallet\util\balance_op::credit() instead.', DEBUG_DEVELOPER);
-        
+
         $util = new balance_op($userid);
         if (!empty($charger)) {
             $by = balance_op::USER;
@@ -94,24 +94,19 @@ class transactions {
         }
 
         // Check if this user was referred.
-        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $userid]);
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $userid, 'released' => 0]);
 
-        if ($hold && !$hold->released) {
+        if ($hold) {
             debugging("Found unreleased hold gift. Referrer ID: {$hold->referrer}", DEBUG_DEVELOPER);
 
             $referrer = \core_user::get_user($hold->referrer);
+            $referred = \core_user::get_user($userid);
 
-            // Credit the referrer.
-            $refdesc = get_string('referral_topup', 'enrol_wallet', fullname($referrer));
+            // Credit only the referrer.
+            $refdesc = get_string('referral_topup', 'enrol_wallet', fullname($referred));
             $util = new balance_op($hold->referrer);
             $referrerResult = $util->credit($referralamount, balance_op::OTHER, $userid, $refdesc, false, false);
             debugging("Credited referrer. Result: $referrerResult", DEBUG_DEVELOPER);
-
-            // Credit the referred user.
-            $desc = get_string('referral_gift', 'enrol_wallet', fullname($referrer));
-            $util = new balance_op($userid);
-            $referredResult = $util->credit($referralamount, balance_op::OTHER, $hold->referrer, $desc, false, false);
-            debugging("Credited referred user. Result: $referredResult", DEBUG_DEVELOPER);
 
             // Mark the referral as released.
             $DB->set_field('enrol_wallet_hold_gift', 'released', 1, ['id' => $hold->id]);
