@@ -79,13 +79,23 @@ class transactions {
      * @param int $userid The ID of the user topping up their wallet.
      * @param float $amount The amount of the top-up.
      */
-    private static function apply_referral_on_topup(int $userid, float $amount): void {
+    public static function apply_referral_on_topup(int $userid, float $amount): void {
         global $DB;
+
+        debugging("Entering apply_referral_on_topup function. User ID: $userid, Amount: $amount", DEBUG_DEVELOPER);
+
+        $referral_enabled = get_config('enrol_wallet', 'referral_on_topup');
+        debugging("Referral on top-up enabled: " . ($referral_enabled ? 'Yes' : 'No'), DEBUG_DEVELOPER);
+
+        if (!$referral_enabled) {
+            debugging("Referral on top-up is not enabled. Exiting function.", DEBUG_DEVELOPER);
+            return;
+        }
 
         $referralamount = (float)get_config('enrol_wallet', 'referral_amount');
         $minimumtopup = (float)get_config('enrol_wallet', 'referral_topup_minimum');
 
-        debugging("Attempting to apply referral. User ID: $userid, Amount: $amount, Minimum: $minimumtopup", DEBUG_DEVELOPER);
+        debugging("Referral amount: $referralamount, Minimum top-up: $minimumtopup", DEBUG_DEVELOPER);
 
         // Check if the top-up amount meets the minimum requirement.
         if ($amount < $minimumtopup) {
@@ -94,9 +104,9 @@ class transactions {
         }
 
         // Check if this user was referred.
-        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $userid]);
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $userid, 'released' => 0]);
 
-        if ($hold && !$hold->released) {
+        if ($hold) {
             debugging("Found unreleased hold gift. Referrer ID: {$hold->referrer}", DEBUG_DEVELOPER);
 
             $referrer = \core_user::get_user($hold->referrer);
@@ -120,6 +130,8 @@ class transactions {
         } else {
             debugging("No unreleased hold gift found for user.", DEBUG_DEVELOPER);
         }
+
+        debugging("Exiting apply_referral_on_topup function.", DEBUG_DEVELOPER);
     }
 
     /** Function to deduct the credit from wallet balance.

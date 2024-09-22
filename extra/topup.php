@@ -23,7 +23,10 @@
 
 require_once('../../../config.php');
 require_once(__DIR__.'/../lib.php');
-global $DB;
+global $DB, $USER;
+
+debugging("Entering topup.php", DEBUG_DEVELOPER);
+
 $instanceid = required_param('instanceid', PARAM_INT);
 $courseid   = required_param('courseid', PARAM_INT);
 $confirm    = optional_param('confirm', 0, PARAM_BOOL);
@@ -32,6 +35,8 @@ $currency   = required_param('currency', PARAM_TEXT);
 $val        = optional_param('value', 0, PARAM_FLOAT);
 $category   = optional_param('category', 0, PARAM_INT);
 $return     = optional_param('return', '', PARAM_LOCALURL);
+
+debugging("Parameters: instanceid=$instanceid, courseid=$courseid, confirm=$confirm, account=$account, currency=$currency, val=$val, category=$category", DEBUG_DEVELOPER);
 
 $urlparams = [
     'instanceid' => $instanceid,
@@ -53,9 +58,12 @@ if (!empty($enabled)) {
     $value = $val;
 }
 
+debugging("Final value after discount: $value", DEBUG_DEVELOPER);
+
 $context = context_course::instance($courseid);
 
 if (!confirm_sesskey()) {
+    debugging("Invalid sesskey", DEBUG_DEVELOPER);
     throw new moodle_exception('invalidsesskey');
 }
 
@@ -66,28 +74,39 @@ if (!empty($return)) {
 }
 
 if ($value <= 0) {
+    debugging("Invalid value: $value", DEBUG_DEVELOPER);
     redirect($url, get_string('invalidvalue', 'enrol_wallet'), null, 'error');
 }
 
+require_login();
+
 if ($confirm) {
-    // No need for this condition as the payment button use its own success url.
-    // Just in case.
+    debugging("Payment confirmed, applying referral bonus", DEBUG_DEVELOPER);
+    // Payment has been confirmed, apply the referral bonus if applicable
+    $balance_op = new \enrol_wallet\util\balance_op($USER->id);
+    $result = $balance_op->apply_referral_on_topup($value);
+    
+    if ($result) {
+        debugging("Referral bonus applied successfully", DEBUG_DEVELOPER);
+        \core\notification::success(get_string('referral_success', 'enrol_wallet'));
+    } else {
+        debugging("Referral bonus not applied", DEBUG_DEVELOPER);
+        \core\notification::info(get_string('referral_not_applied', 'enrol_wallet'));
+    }
+    
     redirect($url);
 } else {
-    global $DB, $USER;
-
+    debugging("Displaying payment confirmation page", DEBUG_DEVELOPER);
     $PAGE->set_context(context_system::instance());
     $PAGE->set_pagelayout('standard');
     $PAGE->set_url($baseurl);
     $PAGE->set_title(new lang_string('confirm'));
 
-    require_login();
-
     echo $OUTPUT->header();
 
     $desc = get_string('paymenttopup_desc', 'enrol_wallet');
 
-    // Set a fake item form payment.
+    // Set a fake item for payment.
     $itemdata = [
         'cost'        => $value,
         'currency'    => $currency,
@@ -96,6 +115,7 @@ if ($confirm) {
         'timecreated' => time(),
     ];
     $id = $DB->insert_record('enrol_wallet_items', $itemdata);
+    debugging("Created payment item with ID: $id", DEBUG_DEVELOPER);
     // Prepare the payment button.
     $attributes = [
         'class'            => "btn btn-primary",
@@ -106,13 +126,10 @@ if ($confirm) {
         'data-paymentarea' => "wallettopup",
         'data-itemid'      => "$id",
         'data-cost'        => "$value",
-        'data-successurl'  => "$url",
+        'data-successurl'  => $baseurl->out(false, ['confirm' => 1, 'sesskey' => sesskey()]),
         'data-description' => "$desc",
     ];
 
-    // Again there is no need for this $yesurl as clicking the button trigger the payment.
-    // Just in case.
-    $baseurl->param('confirm', true);
     $buttoncontinue = new single_button($baseurl, get_string('yes'), 'get');
     foreach ($attributes as $name => $v) {
         $buttoncontinue->set_attribute($name, $v);
@@ -139,34 +156,8 @@ if ($confirm) {
     // This code is required for payment button.
     $PAGE->requires->js_call_amd('core_payment/gateways_modal', 'init');
 
-    // Add JavaScript to handle successful payment and apply referral
-    $PAGE->requires->js_amd_inline("
-        require(['jquery'], function($) {
-            $('#gateways-modal-trigger-$account').on('click', function() {
-                var checkPaymentStatus = setInterval(function() {
-                    if ($('.modal-backdrop').length === 0) {
-                        clearInterval(checkPaymentStatus);
-                        $.ajax({
-                            url: M.cfg.wwwroot + '/enrol/wallet/extra/referral.php',
-                            type: 'POST',
-                            data: {
-                                action: 'apply_referral_on_topup',
-                                amount: $value,
-                                sesskey: M.cfg.sesskey
-                            },
-                            success: function(response) {
-                                var result = JSON.parse(response);
-                                if (result.success) {
-                                    alert(result.message);
-                                }
-                            }
-                        });
-                    }
-                }, 1000);
-            });
-        });
-    ");
-
     echo $OUTPUT->confirm($message, $buttoncontinue, $buttoncancel);
     echo $OUTPUT->footer();
 }
+
+debugging("Exiting topup.php", DEBUG_DEVELOPER);

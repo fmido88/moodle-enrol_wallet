@@ -236,6 +236,67 @@ class balance_op extends balance {
         }
 
     }
+
+    /**
+     * Apply referral credit on wallet top-up.
+     *
+     * @param float $amount The amount of the top-up.
+     * @return bool True if referral was applied successfully, false otherwise.
+     */
+    public function apply_referral_on_topup($amount) {
+        global $DB;
+
+        debugging("Entering apply_referral_on_topup method. User ID: {$this->userid}, Amount: $amount", DEBUG_DEVELOPER);
+
+        $referralenabled = get_config('enrol_wallet', 'referral_on_topup');
+        if (!$referralenabled) {
+            debugging("Referral on top-up is not enabled.", DEBUG_DEVELOPER);
+            return false;
+        }
+
+        $referralamount = (float)get_config('enrol_wallet', 'referral_amount');
+        $minimumtopup = (float)get_config('enrol_wallet', 'referral_topup_minimum');
+
+        debugging("Attempting to apply referral. User ID: {$this->userid}, Amount: $amount, Minimum: $minimumtopup", DEBUG_DEVELOPER);
+
+        // Check if the top-up amount meets the minimum requirement.
+        if ($amount < $minimumtopup) {
+            debugging("Top-up amount less than minimum. Exiting.", DEBUG_DEVELOPER);
+            return false;
+        }
+
+        // Check if this user was referred.
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $this->userid, 'released' => 0]);
+
+        if ($hold) {
+            debugging("Found unreleased hold gift. Referrer ID: {$hold->referrer}", DEBUG_DEVELOPER);
+
+            $referrer = \core_user::get_user($hold->referrer);
+            $referred = \core_user::get_user($this->userid);
+
+            // Credit the referrer.
+            $refdesc = get_string('referral_topup', 'enrol_wallet', fullname($referred));
+            $referrerOp = new self($hold->referrer);
+            $referrerResult = $referrerOp->credit($referralamount, self::C_REFERRAL, $this->userid, $refdesc, false, false);
+            debugging("Credited referrer. Result: " . var_export($referrerResult, true), DEBUG_DEVELOPER);
+
+            // Credit the referred user.
+            $desc = get_string('referral_gift', 'enrol_wallet', fullname($referrer));
+            $referredResult = $this->credit($referralamount, self::C_REFERRAL, $hold->referrer, $desc, false, false);
+            debugging("Credited referred user. Result: " . var_export($referredResult, true), DEBUG_DEVELOPER);
+
+            // Mark the referral as released.
+            $DB->set_field('enrol_wallet_hold_gift', 'released', 1, ['id' => $hold->id]);
+            $DB->set_field('enrol_wallet_hold_gift', 'timemodified', time(), ['id' => $hold->id]);
+            debugging("Marked referral as released.", DEBUG_DEVELOPER);
+
+            return true;
+        } else {
+            debugging("No unreleased hold gift found for user.", DEBUG_DEVELOPER);
+            return false;
+        }
+    }
+
     /**
      * Add an amount to the main balance
      * @param float $amount

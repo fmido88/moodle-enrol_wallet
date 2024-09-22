@@ -57,64 +57,6 @@ $PAGE->set_pagelayout('frontpage');
 
 echo $OUTPUT->header();
 
-// Handle AJAX request for applying referral bonus on top-up
-if (optional_param('action', '', PARAM_ALPHA) === 'apply_referral_on_topup') {
-    require_sesskey();
-    $amount = required_param('amount', PARAM_FLOAT);
-    $result = apply_referral_on_topup($USER->id, $amount);
-    echo json_encode($result);
-    die();
-}
-
 enrol_wallet\pages::process_referral_page();
 
 echo $OUTPUT->footer();
-
-/**
- * Apply referral bonus on top-up
- *
- * @param int $userid The ID of the user who topped up their wallet
- * @param float $amount The amount of the top-up
- * @return array The result of the operation
- */
-function apply_referral_on_topup($userid, $amount) {
-    global $DB;
-
-    // Check if referral on top-up is enabled
-    if (!get_config('enrol_wallet', 'referral_on_topup')) {
-        return array('success' => false, 'message' => 'Referral on top-up is not enabled.');
-    }
-
-    // Get the minimum top-up amount for referral
-    $minimumtopup = (float)get_config('enrol_wallet', 'referral_topup_minimum');
-
-    // Check if the top-up amount meets the minimum requirement
-    if ($amount < $minimumtopup) {
-        return array('success' => false, 'message' => 'Top-up amount does not meet the minimum requirement for referral bonus.');
-    }
-
-    // Check if this user was referred
-    $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $userid]);
-
-    if ($hold && !$hold->released) {
-        $referralamount = (float)get_config('enrol_wallet', 'referral_amount');
-        $referrer = \core_user::get_user($hold->referrer);
-
-        // Credit the referrer
-        $refdesc = get_string('referral_topup', 'enrol_wallet', fullname($referrer));
-        $transactions = new enrol_wallet\transactions();
-        $referrerResult = $transactions->payment_topup($referralamount, $hold->referrer, $refdesc, $userid, false, false);
-
-        // Credit the referred user
-        $desc = get_string('referral_gift', 'enrol_wallet', fullname($referrer));
-        $referredResult = $transactions->payment_topup($referralamount, $userid, $desc, $hold->referrer, false, false);
-
-        // Mark the referral as released
-        $DB->set_field('enrol_wallet_hold_gift', 'released', 1, ['id' => $hold->id]);
-        $DB->set_field('enrol_wallet_hold_gift', 'timemodified', time(), ['id' => $hold->id]);
-
-        return array('success' => true, 'message' => 'Referral bonus applied successfully.');
-    }
-
-    return array('success' => false, 'message' => 'No unreleased hold gift found for user.');
-}
