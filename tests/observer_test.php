@@ -52,6 +52,7 @@ final class observer_test extends \advanced_testcase {
         // Create user and check that there is no balance.
         $user1 = $this->getDataGenerator()->create_user();
         $user2 = $this->getDataGenerator()->create_user();
+        $user3 = $this->getDataGenerator()->create_user();
 
         $op = new balance_op($user1->id);
         $this->assertEquals(0, $op->get_main_balance());
@@ -102,6 +103,8 @@ final class observer_test extends \advanced_testcase {
         // Let's start.
         $walletplugin->enrol_self($instance1, $user1);
         $this->getDataGenerator()->enrol_user($user2->id, $course1->id, 'student');
+        // Check the issue for full mark award;
+        $this->getDataGenerator()->enrol_user($user3->id, $course1->id, 'student');
 
         $balance = new balance($user1->id);
         $this->assertEquals(50, $balance->get_total_balance());
@@ -112,6 +115,7 @@ final class observer_test extends \advanced_testcase {
 
         $this->course_completion_trigger($cm, $user1, $course1, 90);
         $this->course_completion_trigger($cm, $user2, $course1, 35);
+        $this->course_completion_trigger($cm, $user3, $course1, 100);
 
         // The event should be triggered and caught by our observer.
         $balance = new balance($user1->id, $course1->category);
@@ -128,7 +132,13 @@ final class observer_test extends \advanced_testcase {
         $balance = new balance($user1->id, $course1->category);
         $this->assertEquals(70, $balance->get_valid_balance());
 
-        $this->assertEquals(1, $DB->count_records('enrol_wallet_awards'));
+        $this->assertEquals(2, $DB->count_records('enrol_wallet_awards'));
+
+        $balance = new balance($user3->id, $course1->category);
+        $this->assertEquals(0, $balance->get_main_balance());
+        $this->assertEquals(25, $balance->get_valid_balance());
+        $this->assertEquals(25, $balance->get_valid_nonrefundable());
+        $this->assertEquals(25, $balance->get_valid_free());
     }
 
     /**

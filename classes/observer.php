@@ -68,7 +68,7 @@ class observer {
             return;
         }
 
-        $percentage = ($usergrade / $maxgrade) * 100;
+        $percentage = min(($usergrade / $maxgrade) * 100, 100);
 
         // Getting the enrol wallet instance in the course.
         $instances = enrol_get_instances($courseid, true);
@@ -99,6 +99,10 @@ class observer {
 
         // Calculating the total award.
         $award = ($percentage - $condition) * $maxgrade * $awardper / 100;
+        if ($award <= 0) {
+            return;
+        }
+
         $course = get_course($courseid);
         $coursename = $course->shortname;
 
