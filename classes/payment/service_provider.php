@@ -48,7 +48,27 @@ class service_provider implements \core_payment\local\callback\service_provider 
         global $DB, $USER;
 
         // Get the fake item in case of topping up the wallet.
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
+
+        if (!$item) {
+            // If the item is not found in enrol_wallet_items, try to get it from paygw_bank if existed.
+            if ($DB->get_manager()->table_exists('paygw_bank')) {
+                $bankitem = $DB->get_record('paygw_bank', ['itemid' => $itemid], '*', IGNORE_MISSING);
+            }
+
+            if (empty($bankitem)) {
+                // If both records are missing, return a default payable object.
+                $defaultcost = 0;
+                $defaultcurrency = get_config('moodle', 'currency');
+                $defaultaccount = get_config('enrol_wallet', 'paymentaccount');
+                return new \core_payment\local\entities\payable($defaultcost, $defaultcurrency, $defaultaccount);
+            }
+
+            $item = new \stdClass();
+            $item->cost = $bankitem->totalamount;
+            $item->currency = $bankitem->currency;
+            $item->instanceid = $bankitem->itemid;
+        }
 
         // In this case we get the default settings.
         if ($paymentarea === 'walletenrol') {
@@ -70,6 +90,9 @@ class service_provider implements \core_payment\local\callback\service_provider 
     public static function get_success_url(string $paymentarea, int $itemid): \moodle_url {
         global $DB;
         $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
+        if (!$item && $DB->get_manager()->table_exists('paygw_bank')) {
+            $item = $DB->get_record('paygw_bank', ['itemid' => $itemid], '*', IGNORE_MISSING);
+        }
         // Check if the payment is for enrolment or topping up the wallet.
         if ($paymentarea == 'walletenrol' && !empty($item->instanceid)) {
 
@@ -80,6 +103,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
         } else {
 
             return new \moodle_url('/');
+
         }
     }
 
@@ -97,7 +121,18 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
         // Get the fake item in case of topping up the wallet.
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
+        if (!$item && $DB->get_manager()->table_exists('paygw_bank')) {
+            $item = $DB->get_record('paygw_bank', ['itemid' => $itemid], '*', IGNORE_MISSING);
+            if (!$item) {
+                return false;
+            }
+            $item->cost = $item->totalamount;
+        }
+
+       if (!$item) {
+            return false;
+        }
         $op = new op($userid, $item->category ?? 0);
 
         $coststring = \core_payment\helper::get_cost_as_string($item->cost, $item->currency);
@@ -132,7 +167,6 @@ class service_provider implements \core_payment\local\callback\service_provider 
             return false;
 
         } else {
-
             $response = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc);
 
             if ($response) {
