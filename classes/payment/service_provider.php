@@ -48,7 +48,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
         global $DB, $USER;
 
         // Get the fake item in case of topping up the wallet.
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
 
         if (!$item) {
             // If the item is not found in enrol_wallet_items, try to get it from paygw_bank
