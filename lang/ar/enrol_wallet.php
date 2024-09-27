@@ -660,3 +660,5 @@ $string['wrongemailformat'] = 'تنسيق بريد إلكتروني خاطئ.';
 
 
 $string['youhavebalance'] = 'لديك رصيد:';
+
+$string['enrolpage_analytics'] = 'تحليلات صفحة التسجيل';
