@@ -23,7 +23,7 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\transactions;
+use enrol_wallet\util\balance_op;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
@@ -61,17 +61,23 @@ final class locallib_test extends \advanced_testcase {
 
         set_config('borrowtrans', 3, 'enrol_wallet');
         set_config('borrowperiod', 15 * DAYSECS, 'enrol_wallet');
-        transactions::payment_topup(20, $user1->id);
-        transactions::payment_topup(20, $user1->id);
-        transactions::payment_topup(20, $user1->id);
 
-        transactions::payment_topup(20, $user2->id);
-        transactions::payment_topup(20, $user2->id);
-        transactions::payment_topup(20, $user2->id);
+        $balance_op1 = new balance_op($user1->id);
+        $balance_op2 = new balance_op($user2->id);
+        $balance_op3 = new balance_op($user3->id);
+        $balance_op4 = new balance_op($user4->id);
 
-        transactions::payment_topup(20, $user3->id);
-        transactions::payment_topup(20, $user3->id);
-        transactions::debit($user3->id, 10);
+        $balance_op1->credit(20, balance_op::OTHER, 0, 'Test credit');
+        $balance_op1->credit(20, balance_op::OTHER, 0, 'Test credit');
+        $balance_op1->credit(20, balance_op::OTHER, 0, 'Test credit');
+
+        $balance_op2->credit(20, balance_op::OTHER, 0, 'Test credit');
+        $balance_op2->credit(20, balance_op::OTHER, 0, 'Test credit');
+        $balance_op2->credit(20, balance_op::OTHER, 0, 'Test credit');
+
+        $balance_op3->credit(20, balance_op::OTHER, 0, 'Test credit');
+        $balance_op3->credit(20, balance_op::OTHER, 0, 'Test credit');
+        $balance_op3->debit(10, balance_op::OTHER, 0, 'Test debit');
 
         $transaction = ['userid' => $user4->id, 'amount' => 20, 'type' => 'credit', 'timecreated' => time() - 20 * DAYSECS];
         $transaction['balance'] = 20;
@@ -125,7 +131,7 @@ final class locallib_test extends \advanced_testcase {
         $this->assertFalse(is_enrolled($context, $user2, $error->getMessage()));
 
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user1));
-        $this->assertEquals(-40, transactions::get_user_balance($user1->id));
-        $this->assertEquals(60, transactions::get_user_balance($user2->id));
+        $this->assertEquals(-40, $balance_op1->get_valid_balance());
+        $this->assertEquals(60, $balance_op2->get_valid_balance());
     }
 }

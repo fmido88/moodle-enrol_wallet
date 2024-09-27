@@ -29,7 +29,7 @@ use enrol_wallet\coupons;
 
 /**
  * Functions to handle all wallet transactions and coupons operations.
- * @deprecated
+ * @deprecated since version 2.0. Use enrol_wallet\util\balance_op instead.
  */
 class transactions {
 
@@ -51,19 +51,87 @@ class transactions {
      * @param bool $refundable If this transaction is refundable or not.
      * @param bool $trigger Trigger the transaction event or not.
      * @return int|string the id of transaction record or error string.
-     * @deprecated
+     * @deprecated since version 2.0. Use enrol_wallet\util\balance_op::credit() instead.
      */
-    public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true, $trigger = true) {
+    public static function payment_topup(float $amount, int $userid, string $description = '', $charger = '', bool $refundable = true, bool $trigger = true) {
+        debugging('The function payment_topup() is deprecated. Use enrol_wallet\util\balance_op::credit() instead.', DEBUG_DEVELOPER);
+        
         $util = new balance_op($userid);
-        if (!empty($cahrger)) {
+        if (!empty($charger)) {
             $by = balance_op::USER;
             $thingid = $charger;
         } else {
             $by = balance_op::OTHER;
             $thingid = 0;
         }
-        $util->credit($amount, $by, $thingid, $description, $refundable, $trigger);
-        return $util->get_transaction_id();
+
+        // Apply referral if enabled
+        if (get_config('enrol_wallet', 'referral_on_topup')) {
+            self::apply_referral_on_topup($userid, $amount);
+        }
+
+        return $util->credit($amount, $by, $thingid, $description, $refundable, $trigger);
+    }
+
+    /**
+     * Apply referral credit on wallet top-up.
+     *
+     * @param int $userid The ID of the user topping up their wallet.
+     * @param float $amount The amount of the top-up.
+     */
+    public static function apply_referral_on_topup(int $userid, float $amount): void {
+        global $DB;
+
+        debugging("Entering apply_referral_on_topup function. User ID: $userid, Amount: $amount", DEBUG_DEVELOPER);
+
+        $referral_enabled = get_config('enrol_wallet', 'referral_on_topup');
+        debugging("Referral on top-up enabled: " . ($referral_enabled ? 'Yes' : 'No'), DEBUG_DEVELOPER);
+
+        if (!$referral_enabled) {
+            debugging("Referral on top-up is not enabled. Exiting function.", DEBUG_DEVELOPER);
+            return;
+        }
+
+        $referralamount = (float)get_config('enrol_wallet', 'referral_amount');
+        $minimumtopup = (float)get_config('enrol_wallet', 'referral_topup_minimum');
+
+        debugging("Referral amount: $referralamount, Minimum top-up: $minimumtopup", DEBUG_DEVELOPER);
+
+        // Check if the top-up amount meets the minimum requirement.
+        if ($amount < $minimumtopup) {
+            debugging("Top-up amount less than minimum. Exiting.", DEBUG_DEVELOPER);
+            return;
+        }
+
+        // Check if this user was referred.
+        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $userid, 'released' => 0]);
+
+        if ($hold) {
+            debugging("Found unreleased hold gift. Referrer ID: {$hold->referrer}", DEBUG_DEVELOPER);
+
+            $referrer = \core_user::get_user($hold->referrer);
+
+            // Credit the referrer.
+            $refdesc = get_string('referral_topup', 'enrol_wallet', fullname($referrer));
+            $util = new balance_op($hold->referrer);
+            $referrerResult = $util->credit($referralamount, balance_op::OTHER, $userid, $refdesc, false, false);
+            debugging("Credited referrer. Result: $referrerResult", DEBUG_DEVELOPER);
+
+            // Credit the referred user.
+            $desc = get_string('referral_gift', 'enrol_wallet', fullname($referrer));
+            $util = new balance_op($userid);
+            $referredResult = $util->credit($referralamount, balance_op::OTHER, $hold->referrer, $desc, false, false);
+            debugging("Credited referred user. Result: $referredResult", DEBUG_DEVELOPER);
+
+            // Mark the referral as released.
+            $DB->set_field('enrol_wallet_hold_gift', 'released', 1, ['id' => $hold->id]);
+            $DB->set_field('enrol_wallet_hold_gift', 'timemodified', time(), ['id' => $hold->id]);
+            debugging("Marked referral as released.", DEBUG_DEVELOPER);
+        } else {
+            debugging("No unreleased hold gift found for user.", DEBUG_DEVELOPER);
+        }
+
+        debugging("Exiting apply_referral_on_topup function.", DEBUG_DEVELOPER);
     }
 
     /** Function to deduct the credit from wallet balance.
@@ -74,7 +142,7 @@ class transactions {
      * @param string $other another description.
      * @param int $courseid
      * @param bool $neg Allow negative balance.
-     * @deprecated
+     * @deprecated since version 2.0. Use enrol_wallet\util\balance_op::debit() instead.
      * @return mixed
      */
     public static function debit(
@@ -86,6 +154,8 @@ class transactions {
                                 $courseid = 0,
                                 $neg = false
                                 ) {
+        debugging('The function debit() is deprecated. Use enrol_wallet\util\balance_op::debit() instead.', DEBUG_DEVELOPER);
+        
         $util = new balance_op($userid);
         if (!empty($coursename) && !empty($courseid)) {
             $for = balance_op::D_ENROL_COURSE;
@@ -98,8 +168,7 @@ class transactions {
             $thingid = 0;
         }
 
-        $util->debit($amount, $for, $thingid, $other, $neg);
-        return $util->get_transaction_id();
+        return $util->debit($amount, $for, $thingid, $other, $neg);
     }
 
     /**
@@ -108,9 +177,10 @@ class transactions {
      *
      * @param int $userid
      * @return float|false|string
-     * @deprecated
+     * @deprecated since version 2.0. Use enrol_wallet\util\balance::get_valid_balance() instead.
      */
     public static function get_user_balance($userid) {
+        debugging('The function get_user_balance() is deprecated. Use enrol_wallet\util\balance::get_valid_balance() instead.', DEBUG_DEVELOPER);
         $util = new balance($userid);
         return $util->get_valid_balance();
     }
@@ -120,11 +190,11 @@ class transactions {
      *
      * @param int $userid
      * @return float
-     * @deprecated
+     * @deprecated since version 2.0. Use enrol_wallet\util\balance_op::get_valid_nonrefundable() instead.
      */
     public static function get_nonrefund_balance($userid) {
+        debugging('The function get_nonrefund_balance() is deprecated. Use enrol_wallet\util\balance_op::get_valid_nonrefundable() instead.', DEBUG_DEVELOPER);
         $op = new balance_op($userid);
-
         return (float)$op->get_valid_nonrefundable();
     }
 
@@ -213,4 +283,3 @@ class transactions {
         $coupons->mark_coupon_used();
     }
 }
-
