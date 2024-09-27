@@ -45,16 +45,43 @@ class service_provider implements \core_payment\local\callback\service_provider 
      * @return \core_payment\local\entities\payable
      */
     public static function get_payable(string $paymentarea, int $itemid): \core_payment\local\entities\payable {
-        global $DB, $USER;
+        global $DB;
 
         // Get the fake item in case of topping up the wallet.
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        try {
+            $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+        } catch (\dml_exception $e) {
+            // Check for already paid item.
+            $conditions = [
+                'component'   => 'enrol_wallet',
+                'itemid'      => $itemid,
+                'paymentarea' => $paymentarea,
+            ];
 
-        // In this case we get the default settings.
-        if ($paymentarea === 'walletenrol') {
-            $account = $DB->get_field('enrol', 'customint1', ['id' => $item->instanceid]);
-        } else {
-            $account = get_config('enrol_wallet', 'paymentaccount');
+            $paid = false;
+            if ($DB->get_manager()->table_exists('payments')) {
+                $paid = $DB->get_record('payments', $conditions);
+            }
+
+            if (!$paid) {
+                throw $e;
+            }
+
+            $item = new \stdClass();
+
+            $item->id       = $itemid;
+            $item->cost     = $paid->amount;
+            $item->currency = $paid->currency;
+            $account        = $paid->accountid;
+        }
+
+        if (empty($account)) {
+            if ($paymentarea === 'walletenrol') {
+                $account = $DB->get_field('enrol', 'customint1', ['id' => $item->instanceid]);
+            } else {
+                // In this case we get the default settings.
+                $account = get_config('enrol_wallet', 'paymentaccount');
+            }
         }
 
         return new \core_payment\local\entities\payable($item->cost, $item->currency, $account);
@@ -71,7 +98,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
         global $DB;
         $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
         // Check if the payment is for enrolment or topping up the wallet.
-        if ($paymentarea == 'walletenrol' && !empty($item->instanceid)) {
+        if ($item && ($paymentarea == 'walletenrol') && !empty($item->instanceid)) {
 
             $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->instanceid], MUST_EXIST);
 
