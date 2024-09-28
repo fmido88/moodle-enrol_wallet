@@ -279,10 +279,19 @@ function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
     $mform->addHelpButton('refcode', 'referral_code_signup', 'enrol_wallet');
     $mform->setType('refcode', PARAM_ALPHANUM);
 
+    // Get only.
+    $hasref = !empty($_GET['refcode']) || optional_param('ref_get', false, PARAM_BOOL);
     $refcode = optional_param('refcode', '', PARAM_ALPHANUM);
-    if (!empty($refcode)) {
+    if ($hasref && !empty($refcode)) {
         global $DB;
-        $mform->setDefault('refcode', $refcode);
+        $mform->setConstant('refcode', $refcode);
+        $mform->updateElementAttr('refcode', ['disabled' => true]);
+
+        // This ensure the field not change after submission.
+        $mform->addElement('hidden', 'ref_get');
+        $mform->setType('ref_get', PARAM_BOOL);
+        $mform->setConstant('ref_get', true);
+
         if (!empty($maxref)) {
             // Check if this code exceeds the max limit.
             $refrecord = $DB->get_record('enrol_wallet_referral', ['code' => $refcode]);
