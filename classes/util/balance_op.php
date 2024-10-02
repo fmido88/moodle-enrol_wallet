@@ -188,20 +188,21 @@ class balance_op extends balance {
         $nonrefundable = $this->details['mainnonrefund'];
         $free = $this->details['mainfree'] ?? 0;
         if ($refundable >= $amount) {
-            $refundable = $refundable - $amount;
+            $refundable -= $amount;
         } else {
             $remain = $amount - $refundable;
             $refundable = 0;
             if ($remain > $nonrefundable) {
-                $nonrefundable = 0;
                 $refundable = $nonrefundable - $remain;
+                $nonrefundable = 0;
             } else {
-                $nonrefundable = $nonrefundable - $remain;
+                $nonrefundable -= $remain;
             }
 
             $newfree = max($free - $remain, 0);
             $this->freecut += $free - $newfree;
         }
+
         $this->details['mainrefundable'] = $refundable;
         $this->details['mainnonrefund'] = $nonrefundable;
         $this->details['mainbalance'] = $refundable + $nonrefundable;
@@ -275,6 +276,7 @@ class balance_op extends balance {
      */
     public function debit($amount, $for = self::USER, $thingid = 0, $desc = '', $neg = false) {
         global $DB, $USER;
+
         if ($for == self::USER) {
             $charger = !empty($thingid) ? $thingid : $USER->id;
         } else {
@@ -300,6 +302,7 @@ class balance_op extends balance {
             $response = $wordpress->debit($this->userid, $amount, $desc, $charger);
 
             if (!is_numeric($response)) {
+                debugging($response);
                 return false;
             }
 
@@ -344,8 +347,8 @@ class balance_op extends balance {
         }
 
         // No debit occurs.
-        if ($newbalance != $before - $amount) {
-            debugging("no debit occur");
+        if ($newbalance != ($before - $amount)) {
+            throw new \moodle_exception('Error while debiting');
         }
 
         $recorddata = [
@@ -367,7 +370,6 @@ class balance_op extends balance {
         (new notifications)->transaction_notify($recorddata);
 
         $this->trigger_transaction_event('debit', $charger, $description, false);
-
         return true;
     }
 
@@ -463,6 +465,7 @@ class balance_op extends balance {
      */
     public function credit($amount, $by = self::OTHER, $thingid = 0, $desc = '', $refundable = true, $trigger = true) {
         global $DB;
+
         if (in_array($by, [self::USER, self::C_TRANSFER, self::C_REFERRAL])) {
             $charger = $thingid;
         } else {

@@ -1099,7 +1099,62 @@ final class balance_op_test extends \advanced_testcase {
                 $op->debit($op->get_valid_balance(), $op::OTHER);
             }
         }
+
         $balance = new balance($userid);
         $this->assertEquals(0, $balance->get_total_balance());
+    }
+
+    /**
+     * Test if multiple transactions in one call will behave.
+     * @return void
+     */
+    public function test_multiple_transactions(): void {
+        global $CFG, $DB;
+        $this->resetAfterTest();
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        $op = new balance_op($user->id);
+        $op->credit(100, refundable: false);
+        $op->credit(50, refundable: false);
+        $op->debit(100);
+        $op->credit(50, refundable: false);
+
+        $op = new balance_op($user->id);
+        $op->debit(50);
+        $op->credit(100, refundable: false);
+        $op->credit(amount: 100, refundable: false);
+        $op->credit(amount: 30, refundable: false);
+        $op->debit(20);
+
+        $this->assertEquals(260, $op->get_total_balance());
+        $this->assertEquals(260, $op->get_valid_balance());
+        $this->assertEquals(260, $op->get_main_balance());
+
+        $op = new balance_op($user->id);
+        $this->assertEquals(260, $op->get_total_balance());
+        $this->assertEquals(260, $op->get_valid_balance());
+        $this->assertEquals(260, $op->get_main_balance());
+
+        purge_caches();
+        purge_all_caches();
+
+        $op = new balance_op($user->id);
+        $this->assertEquals(260, $op->get_total_balance());
+        $this->assertEquals(260, $op->get_valid_balance());
+        $this->assertEquals(260, $op->get_main_balance());
+
+        $op->debit(560, $op::USER, 0, '', true);
+        $op->debit(100, $op::USER, 0, '', true);
+        $op->debit(30, $op::USER, 0, '', true);
+        $op = new balance_op($user->id);
+        $op->debit(40, $op::USER, 0, '', true);
+        $op->debit(50, $op::USER, 0, '', true);
+        $op->debit(60, $op::USER, 0, '', true);
+
+        $op = new balance_op($user->id);
+        $this->assertEquals(-580, $op->get_total_balance());
+        $this->assertEquals(-580, $op->get_valid_balance());
+        $this->assertEquals(-580, $op->get_main_balance());
     }
 }
