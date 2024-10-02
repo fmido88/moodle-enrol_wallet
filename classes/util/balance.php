@@ -132,6 +132,28 @@ class balance {
     }
 
     /**
+     * Get the user id at which this balance util belongs to.
+     * @return int
+     */
+    public function get_user_id() {
+        return $this->userid;
+    }
+
+    /**
+     * Return the user object at which this transaction belongs to.
+     * @return bool|\stdClass
+     */
+    public function get_user() {
+        return \core_user::get_user($this->userid);
+    }
+    /**
+     * Get the category id at which this balance util belongs to.
+     * @return int
+     */
+    public function get_catid() {
+        return $this->catid ?? 0;
+    }
+    /**
      * Return the valid balance as string.
      * @return string
      */
