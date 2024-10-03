@@ -31,6 +31,7 @@ require_once($CFG->libdir.'/formslib.php');
 use enrol_wallet\category\options;
 use enrol_wallet\util\balance;
 use enrol_wallet\util\discount_rules;
+use enrol_wallet\util\form;
 
 /**
  * The form by which managers could charge others manually.
@@ -158,33 +159,7 @@ class charger_form extends \moodleform {
             $mform->addElement('html', $html);
         }
 
-        $courses = enrol_get_users_courses($USER->id, false);
-        $courseid = SITEID;
-        foreach ($courses as $course) {
-            $context = \context_course::instance($course->id);
-            if (has_capability('moodle/course:enrolreview', $context)) {
-                $courseid = $course->id;
-                break;
-            }
-        }
-        $context = \context_system::instance();
-        $options = [
-            'id'         => 'charger-userlist',
-            'ajax'       => 'enrol_manual/form-potential-user-selector',
-            'multiple'   => false,
-            'courseid'   => $courseid,
-            'enrolid'    => 0,
-            'perpage'    => $CFG->maxusersperpage,
-        ];
-
-        if (class_exists('core_user\fields')) {
-            $options['userfields'] = implode(',', \core_user\fields::get_identity_fields($context, true));
-        } else {
-            require_once($CFG->dirroot."/enrol/wallet/locallib.php");
-            $options['userfields'] = implode(',', enrol_wallet_get_identity_fields($context, true));
-        }
-
-        $mform->addElement('autocomplete', 'userlist', get_string('selectusers', 'enrol_manual'), [], $options);
+        form::add_user_auto_complete_selection($mform, 'userlist', get_string('selectusers', 'enrol_manual'), 'charger-userlist');
 
         $buttons = [];
         $buttons[] = $mform->createElement('submit', 'submit', get_string('submit'));
