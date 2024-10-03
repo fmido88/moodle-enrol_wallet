@@ -493,5 +493,37 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         // Wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2024062300, 'enrol', 'wallet');
     }
+
+    if ($oldversion < 2024100300) {
+
+        // Define table enrol_wallet_overrides to be created.
+        $table = new xmldb_table('enrol_wallet_overrides');
+
+        // Adding fields to table enrol_wallet_overrides.
+        $table->add_field('id', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, XMLDB_SEQUENCE, null);
+        $table->add_field('userid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('cohortid', XMLDB_TYPE_INTEGER, '10', null, null, null, null);
+        $table->add_field('thing', XMLDB_TYPE_CHAR, '255', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('thingid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, null);
+        $table->add_field('rules', XMLDB_TYPE_TEXT, null, null, XMLDB_NOTNULL, null, null);
+        $table->add_field('usermodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timecreated', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+        $table->add_field('timemodified', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0');
+
+        // Adding keys to table enrol_wallet_overrides.
+        $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+        $table->add_key('usermodified', XMLDB_KEY_FOREIGN, ['usermodified'], 'user', ['id']);
+        $table->add_key('userid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+        $table->add_key('cohortid', XMLDB_KEY_FOREIGN, ['cohortid'], 'cohort', ['id']);
+
+        // Conditionally launch create table for enrol_wallet_overrides.
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
+        }
+
+        // Wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2024100300, 'enrol', 'wallet');
+    }
+
     return true;
 }
