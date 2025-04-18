@@ -36,7 +36,7 @@ class form {
     public static function add_user_auto_complete_selection(\MoodleQuickForm &$mform, $elementname, $visiblename = '', $elementid = null, $multi = false) {
         global $USER, $CFG;
         if (empty($visiblename)) {
-            $visiblemame = get_string('selectusers', 'enrol_manual');
+            $visiblename = get_string('selectusers', 'enrol_manual');
         }
 
         $courses = enrol_get_users_courses($USER->id, false);
