@@ -391,6 +391,12 @@ if ($ADMIN->fulltree) {
                                             ['wallet'],
                                             $options));
 
+    // Custom referral page
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/enable_custom_referral_signup',
+    get_string('enable_custom_referral_signup', 'enrol_wallet'),
+    get_string('enable_custom_referral_signup_desc', 'enrol_wallet'),
+    0));
+
     // Add low balance notification settings.
     $settings->add(new admin_setting_heading('enrol_wallet_notify',
                                             get_string('lowbalancenotify', 'enrol_wallet'),

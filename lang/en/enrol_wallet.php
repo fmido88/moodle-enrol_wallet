@@ -778,3 +778,11 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
+
+$string['enable_custom_referral_signup'] = 'Enable custom referral signup page';
+$string['enable_custom_referral_signup_desc'] = 'If enabled, users who click on a referral link will be directed to a custom signup page.';
+$string['referral_signup_heading'] = 'Sign up with referral';
+$string['referral_signup_intro'] = '{$a} has invited you to join our site. Please fill out the form below to create your account.';
+$string['referral_signup_page_title'] = 'Sign up with referral - {$a}';
+$string['invalidrefcode'] = 'Invalid referral code';
+$string['unknown'] = 'Unknown user';
