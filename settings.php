@@ -391,6 +391,23 @@ if ($ADMIN->fulltree) {
                                             ['wallet'],
                                             $options));
 
+    // Add setting for referral on wallet top-up.
+    $settings->add(new admin_setting_configcheckbox(
+        'enrol_wallet/referral_on_topup',
+        get_string('referral_on_topup', 'enrol_wallet'),
+        get_string('referral_on_topup_desc', 'enrol_wallet'),
+        0
+    ));
+
+    // Add setting for minimum top-up amount for referral.
+    $settings->add(new admin_setting_configtext(
+        'enrol_wallet/referral_topup_minimum',
+        get_string('referral_topup_minimum', 'enrol_wallet'),
+        get_string('referral_topup_minimum_desc', 'enrol_wallet'),
+        '0', // Default value.
+        PARAM_FLOAT
+    ));
+
     // Add low balance notification settings.
     $settings->add(new admin_setting_heading('enrol_wallet_notify',
                                             get_string('lowbalancenotify', 'enrol_wallet'),
