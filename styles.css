@@ -237,6 +237,7 @@
 
 .enrol_wallet_topup .accordion .accordion__title:has(input:checked) + .accordion__text {
     max-height: 1080px;
+    overflow-y: auto;
 }
 
 #page-enrol-wallet-extra-referral .row {

@@ -134,7 +134,6 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return array of pix_icon
      */
     public function get_info_icons(array $instances) {
-        global $PAGE;
 
         $icons = [];
         foreach ($instances as $instance) {
@@ -181,7 +180,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return string
      */
     public function get_instance_name($instance) {
-        global $DB, $USER;
+        global $DB;
 
         if (empty($instance->name)) {
 
@@ -2139,8 +2138,8 @@ class enrol_wallet_plugin extends enrol_plugin {
     customdec1:      condition for award (percentage) (int) 0 - 99
     customdec2:      Award value per each raw mark above the condition (float)
     customtext1:     Welcome email content (string)
-    customtext2:     "not used" TODO add restriction rules.
-    customtext3:     "not used" TODO add offers rules.
+    customtext2:     restriction rules (JSON).
+    customtext3:     offers rules (JSON).
     customtext4:     "not used"
     timecreated:     the time at which the instance created (int)
     timemodified:    the time at which the instance modified (int)

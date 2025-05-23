@@ -78,6 +78,8 @@ class enrol_form extends \moodleform {
         $heading = $plugin->get_instance_name($instance);
         $mform->addElement('header', 'walletheader', $heading);
 
+        // Todo: Display enrolment duration info.
+
         $a = [
             'credit_cost'   => $costbefore,
             'user_balance'   => $balance,

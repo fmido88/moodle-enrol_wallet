@@ -83,7 +83,6 @@ class payment_info implements renderable, templatable {
      * @param \stdClass $instance the enrol wallet instance record.
      */
     public function __construct($instance) {
-        global $USER;
         $helper = new helper($instance);
 
         $this->instanceid = $instance->id;

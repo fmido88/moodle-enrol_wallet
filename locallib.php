@@ -137,8 +137,8 @@ function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) 
         $digits = $options->digits;
 
         $lastprogress = 0;
-        for ($i = 0; $i < $number; $i++) {
-            $progress = round($i / $number * 100);
+        while (count($ids) < $number) {
+            $progress = round(count($ids) / $number * 100);
             if ($progress > $lastprogress + 5) {
                 $trace->output('Generating coupons... ' . $progress . '%');
                 $lastprogress = $progress;
@@ -235,7 +235,6 @@ function enrol_wallet_handle_charger_form($data) {
  * @return bool
  */
 function enrol_wallet_display_transaction_results($params = []) {
-    global $OUTPUT;
     if (!has_capability('enrol/wallet:viewotherbalance', context_system::instance())) {
         return false;
     }
@@ -304,7 +303,7 @@ function enrol_wallet_display_transaction_results($params = []) {
  * @return string the redirect url.
  */
 function enrol_wallet_process_coupon_data($data) {
-    global $USER, $DB, $PAGE;
+    global $DB;
     $data = (array)$data;
 
     $cancel = $data['cancel'] ?? optional_param('cancel', false, PARAM_BOOL);
