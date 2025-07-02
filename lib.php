@@ -40,6 +40,7 @@ use enrol_wallet\coupons;
 use enrol_wallet\util\instance as helper;
 use enrol_wallet\util\balance_op;
 use enrol_wallet\util\balance;
+use enrol_wallet\util\options;
 use enrol_wallet\event\enrolpage_viewed;
 use enrol_wallet\output\payment_info;
 use enrol_wallet\restriction\info;
@@ -1159,94 +1160,6 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Return an array of valid options for the status.
-     *
-     * @return array
-     */
-    protected function get_status_options() {
-        $options = [
-                    ENROL_INSTANCE_ENABLED  => get_string('yes'),
-                    ENROL_INSTANCE_DISABLED => get_string('no'),
-                ];
-        return $options;
-    }
-
-    /**
-     * Return an array of valid options for the newenrols property.
-     *
-     * @return array
-     */
-    protected function get_newenrols_options() {
-        $options = [1 => get_string('yes'), 0 => get_string('no')];
-        return $options;
-    }
-
-    /**
-     * Return an array of valid options for the expirynotify property.
-     *
-     * @return array
-     */
-    protected function get_expirynotify_options() {
-        $options = [
-                    0 => get_string('no'),
-                    1 => get_string('expirynotifyenroller', 'core_enrol'),
-                    2 => get_string('expirynotifyall', 'core_enrol'),
-                ];
-        return $options;
-    }
-
-    /**
-     * Return an array of valid options for the longtimenosee property.
-     *
-     * @return array
-     */
-    public function get_longtimenosee_options() {
-        $options = [
-                    0              => get_string('never'),
-                    1800 * DAYSECS => get_string('numdays', '', 1800),
-                    1000 * DAYSECS => get_string('numdays', '', 1000),
-                    365 * DAYSECS  => get_string('numdays', '', 365),
-                    180 * DAYSECS  => get_string('numdays', '', 180),
-                    150 * DAYSECS  => get_string('numdays', '', 150),
-                    120 * DAYSECS  => get_string('numdays', '', 120),
-                    90 * DAYSECS   => get_string('numdays', '', 90),
-                    60 * DAYSECS   => get_string('numdays', '', 60),
-                    30 * DAYSECS   => get_string('numdays', '', 30),
-                    21 * DAYSECS   => get_string('numdays', '', 21),
-                    14 * DAYSECS   => get_string('numdays', '', 14),
-                    7 * DAYSECS    => get_string('numdays', '', 7),
-                ];
-        return $options;
-    }
-
-    /**
-     * Get all available courses for restriction by another course enrolment.
-     * @param int $courseid Current course id of exceptions.
-     * @return array<string>
-     */
-    public function get_courses_options($courseid) {
-        // Adding restriction upon another course enrolment.
-        // Prepare the course selector.
-        $courses = get_courses();
-        $options = [];
-        foreach ($courses as $course) {
-            // We don't check enrolment in home page.
-            if ($course->id == SITEID || $course->id == $courseid) {
-                continue;
-            }
-
-            $category = core_course_category::get($course->category, IGNORE_MISSING, true);
-            if (!$category) {
-                continue;
-            }
-            $catname = $category->get_nested_name(false, ':') . ': ';
-
-            $options[$course->id] = $catname . $course->fullname;
-        }
-        return $options;
-    }
-
-    /**
      * Adding another course restriction options to enrolment edit form.
      * @param array<string> $coursesoptions
      * @param \MoodleQuickForm $mform
@@ -1289,54 +1202,6 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->setType('customchar3', PARAM_TEXT);
             $mform->setConstant('customchar3', '');
         }
-    }
-    /**
-     * Return an array of valid send welcome email options.
-     * @return array<string>
-     */
-    protected function get_send_welcome_email_option() {
-        $options = [
-            ENROL_DO_NOT_SEND_EMAIL                 => get_string('no'),
-            ENROL_SEND_EMAIL_FROM_COURSE_CONTACT    => get_string('sendfromcoursecontact', 'enrol'),
-            ENROL_SEND_EMAIL_FROM_NOREPLY           => get_string('sendfromnoreply', 'enrol'),
-        ];
-
-        return $options;
-    }
-
-    /**
-     * Get availabe cohorts options for cohort restriction options.
-     * @param stdClass $instance
-     * @param context $context
-     * @return array<string>
-     */
-    protected function get_cohorts_options($instance, $context) {
-        global $CFG, $DB;
-        require_once($CFG->dirroot.'/cohort/lib.php');
-
-        $cohorts = [0 => get_string('no')];
-        $allcohorts = cohort_get_available_cohorts($context, 0, 0, 0);
-        if ($instance->customint5 && !isset($allcohorts[$instance->customint5])) {
-            $c = $DB->get_record('cohort',
-                                 ['id' => $instance->customint5],
-                                 'id, name, idnumber, contextid, visible',
-                                 IGNORE_MISSING);
-            if ($c) {
-                // Current cohort was not found because current user can not see it. Still keep it.
-                $allcohorts[$instance->customint5] = $c;
-            }
-        }
-        foreach ($allcohorts as $c) {
-            $cohorts[$c->id] = format_string($c->name, true, ['context' => context::instance_by_id($c->contextid)]);
-            if ($c->idnumber) {
-                $cohorts[$c->id] .= ' ['.s($c->idnumber).']';
-            }
-        }
-        if ($instance->customint5 && !isset($allcohorts[$instance->customint5])) {
-            // Somebody deleted a cohort, better keep the wrong value so that random ppl can not enrol.
-            $cohorts[$instance->customint5] = get_string('unknowncohort', 'cohort', $instance->customint5);
-        }
-        return $cohorts;
     }
 
     /**
@@ -1406,23 +1271,23 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         // Currency.
-        $supportedcurrencies = $this->get_possible_currencies($instance->customint1);
+        $supportedcurrencies = options::get_possible_currencies($instance->customint1);
         $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'), $supportedcurrencies);
         $mform->addHelpButton('currency', 'currency', 'enrol_wallet');
 
         // Instance status (Enabled or Disabled).
-        $options = $this->get_status_options();
+        $options = options::get_status_options();
         $mform->addElement('select', 'status', get_string('status', 'enrol_wallet'), $options);
         $mform->addHelpButton('status', 'status', 'enrol_wallet');
 
         // New enrolments option.
-        $options = $this->get_newenrols_options();
+        $options = options::get_newenrols_options();
         $mform->addElement('select', 'customint6', get_string('newenrols', 'enrol_wallet'), $options);
         $mform->addHelpButton('customint6', 'newenrols', 'enrol_wallet');
         $mform->disabledIf('customint6', 'status', 'eq', ENROL_INSTANCE_DISABLED);
 
         // Role.
-        $roles = $this->extend_assignable_roles($context, $instance->roleid);
+        $roles = options::extend_assignable_roles($context, $instance->roleid);
         $mform->addElement('select', 'roleid', get_string('role', 'enrol_wallet'), $roles);
 
         // Enrol period.
@@ -1431,7 +1296,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_wallet');
 
         // Expiry notification.
-        $options = $this->get_expirynotify_options();
+        $options = options::get_expirynotify_options();
         $mform->addElement('select', 'expirynotify', get_string('expirynotify', 'core_enrol'), $options);
         $mform->addHelpButton('expirynotify', 'expirynotify', 'core_enrol');
 
@@ -1454,7 +1319,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_wallet');
 
         // Unenrol inactive users.
-        $options = $this->get_longtimenosee_options();
+        $options = options::get_longtimenosee_options();
         $mform->addElement('select', 'customint2', get_string('longtimenosee', 'enrol_wallet'), $options);
         $mform->addHelpButton('customint2', 'longtimenosee', 'enrol_wallet');
 
@@ -1465,7 +1330,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $mform->addRule('customint3', get_string('invalidvalue', 'enrol_wallet'), 'numeric', null, 'client');
 
         // Send welcone email option.
-        $options = $this->get_send_welcome_email_option();
+        $options = options::get_send_welcome_email_option();
         $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
         $mform->addHelpButton('customint4', 'sendcoursewelcomemessage', 'enrol_wallet');
 
@@ -1498,7 +1363,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         $this->include_availability($instance, $mform, $context);
 
         // Cohort restriction.
-        $cohorts = $this->get_cohorts_options($instance, $context);
+        $cohorts = options::get_cohorts_options($instance, $context);
         if (count($cohorts) > 1) {
             $mform->addElement('select', 'customint5', get_string('cohortonly', 'enrol_wallet'), $cohorts);
             $mform->addHelpButton('customint5', 'cohortonly', 'enrol_wallet');
@@ -1509,7 +1374,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         // Course restriction.
-        $coursesoptions = $this->get_courses_options($instance->courseid);
+        $coursesoptions = options::get_courses_options($instance->courseid);
         $this->course_restriction_edit($coursesoptions, $mform, $instance);
 
         $offers = new enrol_wallet\util\offers($instance);
@@ -1750,15 +1615,15 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $context = context_course::instance($instance->courseid);
 
-        $validstatus        = array_keys($this->get_status_options());
-        $validnewenrols     = array_keys($this->get_newenrols_options());
-        $validroles         = array_keys($this->extend_assignable_roles($context, $instance->roleid));
-        $validexpirynotify  = array_keys($this->get_expirynotify_options());
-        $validlongtimenosee = array_keys($this->get_longtimenosee_options());
-        $validswep          = array_keys($this->get_send_welcome_email_option());
-        $cohorts            = $this->get_cohorts_options($instance, $context);
+        $validstatus        = array_keys(options::get_status_options());
+        $validnewenrols     = array_keys(options::get_newenrols_options());
+        $validroles         = array_keys(options::extend_assignable_roles($context, $instance->roleid));
+        $validexpirynotify  = array_keys(options::get_expirynotify_options());
+        $validlongtimenosee = array_keys(options::get_longtimenosee_options());
+        $validswep          = array_keys(options::get_send_welcome_email_option());
+        $cohorts            = options::get_cohorts_options($instance, $context);
         $validcohorts       = array_keys($cohorts);
-        $validcurrencies    = array_keys($this->get_possible_currencies($instance->customint1));
+        $validcurrencies    = array_keys(options::get_possible_currencies($instance->customint1));
         $tovalidate = [
             'enrolstartdate' => PARAM_INT,
             'enrolenddate'   => PARAM_INT,
@@ -1863,39 +1728,6 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Returns the list of currencies that the payment subsystem supports and therefore we can work with.
-     *
-     * @param int $account The payment account id if exist.
-     * @return array[currencycode => currencyname]
-     */
-    public function get_possible_currencies($account = null) {
-        $codes = [];
-        if (class_exists('\core_payment\helper')) {
-            $codes = \core_payment\helper::get_supported_currencies();
-        }
-
-        $currencies = [];
-        foreach ($codes as $c) {
-            $currencies[$c] = new lang_string($c, 'core_currencies');
-        }
-
-        uasort($currencies, function($a, $b) {
-            return strcmp($a, $b);
-        });
-
-        // Adding custom currency in case of there is no available payment gateway or customize the wallet.
-        if (empty($currencies) || (empty($account))) {
-            $customcurrency = $this->get_config('customcurrency') ?? get_string('MWC', 'enrol_wallet');
-            $cc = $this->get_config('customcurrencycode');
-            // Don't override standard currencies.
-            if (!array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MWC') {
-                $currencies[$cc] = $customcurrency;
-            }
-        }
-        return $currencies;
-    }
-
-    /**
      * Add new instance of enrol plugin.
      * @param object $course
      * @param array|null $fields instance fields
@@ -1980,26 +1812,6 @@ class enrol_wallet_plugin extends enrol_plugin {
             return false;
         }
         return $helper->get_course();
-    }
-
-    /**
-     * Gets a list of roles that this user can assign for the course as the default for wallet enrolment.
-     *
-     * @param context $context the context.
-     * @param integer $defaultrole the id of the role that is set as the default for wallet enrolment
-     * @return array index is the role id, value is the role name
-     */
-    public function extend_assignable_roles($context, $defaultrole) {
-        global $DB;
-
-        $roles = get_assignable_roles($context, ROLENAME_BOTH);
-        if (!isset($roles[$defaultrole])) {
-            if ($role = $DB->get_record('role', ['id' => $defaultrole])) {
-                $roles[$defaultrole] = role_get_name($role, $context, ROLENAME_BOTH);
-            }
-        }
-
-        return $roles;
     }
 
     /**

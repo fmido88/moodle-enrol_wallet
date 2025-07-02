@@ -26,6 +26,7 @@ defined('MOODLE_INTERNAL') || die();
 use enrol_wallet\util\balance;
 use enrol_wallet\coupons;
 use enrol_wallet\util\instance;
+use enrol_wallet\util\options;
 
 $context = context_system::instance();
 
@@ -101,11 +102,7 @@ if ($ADMIN->fulltree) {
 
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
     // it describes what should happened when users are not supposed to be enrolled any more.
-    $options = [
-        ENROL_EXT_REMOVED_KEEP           => get_string('extremovedkeep', 'enrol'),
-        ENROL_EXT_REMOVED_SUSPENDNOROLES => get_string('extremovedsuspendnoroles', 'enrol'),
-        ENROL_EXT_REMOVED_UNENROL        => get_string('extremovedunenrol', 'enrol'),
-    ];
+    $options = options::get_expire_actions_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/expiredaction',
         get_string('expiredaction', 'enrol_wallet'), get_string('expiredaction_help', 'enrol_wallet'),
         ENROL_EXT_REMOVED_KEEP, $options));
@@ -277,11 +274,7 @@ if ($ADMIN->fulltree) {
     }
 
 
-    $behaviors = [
-        instance::B_SEQ => get_string('discount_behavior_sequential', 'enrol_wallet'),
-        instance::B_SUM => get_string('discount_behavior_sum', 'enrol_wallet'),
-        instance::B_MAX => get_string('discount_behavior_max', 'enrol_wallet'),
-    ];
+    $behaviors = options::get_discount_behavior_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/discount_behavior',
                         get_string('discount_behavior', 'enrol_wallet'),
                         get_string('discount_behavior_desc', 'enrol_wallet'),
@@ -464,7 +457,7 @@ if ($ADMIN->fulltree) {
     }
 
     // Add default currency.
-    $supportedcurrencies = $walletplugin->get_possible_currencies(get_config('enrol_wallet', 'paymentaccount'));
+    $supportedcurrencies = options::get_possible_currencies(get_config('enrol_wallet', 'paymentaccount'));
     $settings->add(new admin_setting_configselect('enrol_wallet/currency', get_string('currency', 'enrol_wallet'),
                                             get_string('currency_help', 'enrol_wallet'), '', $supportedcurrencies));
 
@@ -479,10 +472,7 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('enrol_wallet/customcurrencycode', 'enrol_wallet/paymentaccount', 'neq', '0');
 
     // Is instance enabled.
-    $options = [
-                ENROL_INSTANCE_ENABLED  => get_string('yes'),
-                ENROL_INSTANCE_DISABLED => get_string('no'),
-            ];
+    $options = options::get_status_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/status',
         get_string('status', 'enrol_wallet'), get_string('status_desc', 'enrol_wallet'), ENROL_INSTANCE_ENABLED,
         $options));
@@ -507,29 +497,21 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configduration('enrol_wallet/enrolperiod',
         get_string('enrolperiod', 'enrol_wallet'), get_string('enrolperiod_desc', 'enrol_wallet'), 0));
     // Expiry notification.
-    $options = [
-        0 => get_string('no'),
-        1 => get_string('expirynotifyenroller', 'core_enrol'),
-        2 => get_string('expirynotifyall', 'core_enrol'),
-    ];
+    $options = options::get_expiry_notify_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/expirynotify',
         get_string('expirynotify', 'core_enrol'), get_string('expirynotify_help', 'core_enrol'), 0, $options));
     // Expiry threshold.
     $settings->add(new admin_setting_configduration('enrol_wallet/expirythreshold',
         get_string('expirythreshold', 'core_enrol'), get_string('expirythreshold_help', 'core_enrol'), 86400, 86400));
     // Un-enrol inactive duration.
-    $options = $walletplugin->get_longtimenosee_options();
+    $options = options::get_longtimenosee_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/longtimenosee',
         get_string('longtimenosee', 'enrol_wallet'), get_string('longtimenosee_help', 'enrol_wallet'), 0, $options));
     // Max enrolled users.
     $settings->add(new admin_setting_configtext('enrol_wallet/maxenrolled',
         get_string('maxenrolled', 'enrol_wallet'), get_string('maxenrolled_help', 'enrol_wallet'), 0, PARAM_INT));
     // Send welcome message.
-    $weloptions = [
-        ENROL_DO_NOT_SEND_EMAIL                 => get_string('no'),
-        ENROL_SEND_EMAIL_FROM_COURSE_CONTACT    => get_string('sendfromcoursecontact', 'enrol'),
-        ENROL_SEND_EMAIL_FROM_NOREPLY           => get_string('sendfromnoreply', 'enrol'),
-    ];
+    $weloptions = options::get_send_welcome_email_option();
     $settings->add(new admin_setting_configselect('enrol_wallet/sendcoursewelcomemessage',
             get_string('sendcoursewelcomemessage', 'enrol_wallet'),
             get_string('sendcoursewelcomemessage_help', 'enrol_wallet'),
