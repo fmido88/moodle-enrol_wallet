@@ -190,6 +190,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             } else {
                 $role = '';
             }
+
             $enrol = $this->get_name();
             $name = get_string('pluginname', 'enrol_' . $enrol) . $role;
 
@@ -199,9 +200,10 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $name .= "- {$cost} {$currency}";
             }
 
-        } else {
-            return format_string($instance->name);
+            return $name;
         }
+
+        return format_string($instance->name);
     }
 
     /**
