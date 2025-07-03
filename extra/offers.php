@@ -22,9 +22,8 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+// phpcs:disable moodle.Files.RequireLogin.Missing
 require_once('../../../config.php');
-
-require_login();
 
 $title = get_string('offers', 'enrol_wallet');
 
