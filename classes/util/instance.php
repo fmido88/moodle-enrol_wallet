@@ -33,43 +33,6 @@ use core_course_category;
 use enrol_wallet\coupons;
 use enrol_wallet_plugin as wallet;
 
-/*  A reference to remind me with the instance object.
-    id:              the instance id (int)
-    enrol:           wallet "fixed for each plugin" (string)
-    status:          is the instance enabled or disabled (int)
-    courseid:        the course id (int)
-    sortorder:       "Don't override" the order of this instance in the course (int)
-    name:            the name of the instance (string)
-    enrolperiod:     duration of enrolment (int)
-    enrolstartdate:  start date (int)
-    enrolenddate:    end date (int)
-    expirynotify:    Whom to notify about expiration? (int)
-    expirythreshold: When to send notification? (int)
-    notifyall:       if to notify enrolled and enroller or not, (overridden by expirynotify) (int) - bool
-    password:        "Not used"
-    cost:            The cost (float)
-    currency:        The currency (sting)
-    roleid:          the id of the role, by default student role (int)
-    customint1:      Payment Account id (int)
-    customint2:      long time no see (unenrol inactive after) (int)
-    customint3:      Max enrolled users (int)
-    customint4:      Send welcome email (int) - bool
-    customint5:      Cohort restriction id (int)
-    customint6:      Allow new enrol (int) - bool
-    customint7:      Min number or required courses (int)
-    customint8:      Enable Awards (int) - bool
-    customchar1:     "not used"
-    customchar2:     "not used"
-    customchar3:     ids of the courses required for enrol restriction (string) integers imploded by ','
-    customdec1:      condition for award (percentage) (int) 0 - 99
-    customdec2:      Award value per each raw mark above the condition (float)
-    customtext1:     Welcome email content (string)
-    customtext2:     restriction rules (JSON).
-    customtext3:     offers rules (JSON).
-    customtext4:     "not used"
-    timecreated:     the time at which the instance created (int)
-    timemodified:    the time at which the instance modified (int)
-    */
 /**
  * Helper class for wallet enrolment instance.
  * @package enrol_wallet
@@ -128,7 +91,7 @@ use enrol_wallet_plugin as wallet;
  * @property-read coupons $couponutil The coupon helper class object.
  * @property-read int $userid The id of the user we need to calculate the discount for.
  */
-class instance {
+class instance extends \stdClass {
     /**
      * Calculate the cost after discount sequentially.
      * @var int
@@ -347,7 +310,13 @@ class instance {
     public function get_course() {
         return get_course($this->courseid);
     }
-
+    /**
+     * Get course context object at which the instance belongs to.
+     * @return \core\context
+     */
+    public function get_course_context() {
+        return \context_course::instance($this->courseid);
+    }
     /**
      * Get course category object at which the instance belongs to.
      * @return core_course_category
