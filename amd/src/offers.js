@@ -22,6 +22,8 @@
  */
 
 import Ajax from 'core/ajax';
+import $ from 'jquery';
+
 let container;
 let courseid;
 let selector;
@@ -52,17 +54,13 @@ function addFragment(type) {
  * Add listeners to delete buttons.
  */
 function addDeleteButtonListener() {
-    for (let j = 1; j <= i; j++) {
-        var deletebutton = document.querySelector('[name=offer_delete_' + j + ']');
-        if (!deletebutton) {
-            continue;
-        }
-        deletebutton.onclick = (event) => {
-            let number = event.target.getAttribute('data-action-delete');
-            let set = document.getElementById('offer_group_' + number);
-            set.remove();
-        };
-    }
+    let buttons = $('[data-action="deleteoffer"]');
+    buttons.off('click');
+    buttons.on('click', function(event) {
+        let number = event.target.getAttribute('data-action-delete');
+        let set = document.getElementById('offer_group_' + number);
+        set.remove();
+    });
 }
 
 /**
@@ -87,8 +85,7 @@ export const init = (cid, inc = 0) => {
     i = inc;
     courseid = cid;
     container = document.getElementById('id_wallet_offerscontainer');
-    if (i > 0) {
-        addDeleteButtonListener();
-    }
+
+    addDeleteButtonListener();
     addSelectListener();
 };
