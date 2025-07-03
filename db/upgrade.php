@@ -29,7 +29,7 @@
  * @return bool
  */
 function xmldb_enrol_wallet_upgrade($oldversion) {
-    global $CFG, $DB;
+    global $DB;
 
     $dbman = $DB->get_manager();
 
@@ -494,7 +494,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2024062300, 'enrol', 'wallet');
     }
 
-    if ($oldversion < 2024100300) {
+    if ($oldversion < 2025070300) {
 
         // Define table enrol_wallet_overrides to be created.
         $table = new xmldb_table('enrol_wallet_overrides');
@@ -522,7 +522,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         }
 
         // Wallet savepoint reached.
-        upgrade_plugin_savepoint(true, 2024100300, 'enrol', 'wallet');
+        upgrade_plugin_savepoint(true, 2025070300, 'enrol', 'wallet');
     }
 
     return true;
