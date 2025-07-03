@@ -17,6 +17,8 @@
 namespace enrol_wallet\form;
 
 use enrol_wallet\util\form;
+use enrol_wallet\util\options;
+use enrol_wallet\util\instance;
 
 use moodleform;
 
@@ -42,7 +44,31 @@ class override extends moodleform {
         $data = $this->_customdata;
         $instanceid = $data['instanceid'];
 
+        $instance = new instance($instanceid);
+        $types = [
+            'user'   => get_string('user'),
+            'cohort' => get_string('cohort'),
+        ];
+        $mform->addElement('select', 'type', get_string('type'), $types);
+
+        $cohorts = options::get_cohorts_options($instance, $instance->get_course_context());
+        if (count($cohorts) > 1) {
+            $mform->addElement('select', 'type', get_string('type'), $types);
+
+            $cohortselect = $mform->addElement('select', 'cohorts', get_string('cohort'), $cohorts);
+            $cohortselect->setMultiple(true);
+        } else {
+            $mform->addElement('hidden', 'type');
+            $mform->setType('type', PARAM_ALPHA);
+            $mform->setConstant('type', 'user');
+
+            $mform->addElement('static', 'cohortid', get_string('nooverridescohorts', 'enrol_wallet'));
+        }
+
         form::add_user_auto_complete_selection($mform, 'users', multi: true);
+
+        $mform->hideIf('cohortid', 'type', 'neq', 'cohort');
+        $mform->hideIf('users', 'type', 'eq', 'cohort');
 
         $mform->addElement('hidden', 'instanceid');
         $mform->setType('instanceid', PARAM_INT);

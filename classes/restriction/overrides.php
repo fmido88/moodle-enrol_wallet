@@ -97,10 +97,10 @@ class overrides {
                 }
             }
             return $return;
-        } else {
-            $record = reset($records);
-            return json_decode($record->rules, true);
         }
+
+        $record = reset($records);
+        return json_decode($record->rules, true);
     }
 
     /**
@@ -108,9 +108,10 @@ class overrides {
      * @param int $instanceid
      * @param int $id user id or cohort id if cohort set to true.
      * @param bool $iscohort if this is a cohort overriding
+     * @param array $override the rules to override, default is ['restriction'].
      * @return bool
      */
-    public static function override_instance($instanceid, $id, $iscohort = false) {
+    public static function override_instance($instanceid, $id, $iscohort = false, $override = ['restriction']) {
         global $DB, $USER;
         $conditions = [
             'thing'   => 'enrol',
@@ -130,16 +131,21 @@ class overrides {
                 $rules = [];
             }
 
-            $rules['restriction'] = true;
+            foreach ($override as $rule) {
+                $rules[$rule] = true;
+            }
+
             $record->rules = json_encode($rules);
             $record->timemodified = time();
             $record->usermodified = $USER->id;
 
             return $DB->update_record(self::TABLE, $record);
         }
+
         $rules = [
             'restriction' => true,
         ];
+
         $record = $conditions + [
             'timecreated'  => time(),
             'timemodified' => time(),
