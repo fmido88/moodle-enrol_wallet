@@ -824,8 +824,8 @@ final class enrol_wallet_test extends \advanced_testcase {
         $msg = get_string('othercourserestriction', 'enrol_wallet', $a);
         $this->assertSame($msg, $walletplugin->can_self_enrol($instance9, true));
 
-        // NOTE Check the cohorts restrictions.
-
+        // Todo: Check the cohorts restrictions.
+        // Todo: Test restriction rules.
         // Non valid cost.
         $course10 = $this->getDataGenerator()->create_course();
         $instance10 = $DB->get_record('enrol', ['courseid' => $course10->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
