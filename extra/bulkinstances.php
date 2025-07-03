@@ -27,6 +27,7 @@ require_once($CFG->dirroot.'/course/lib.php');
 require_once($CFG->libdir.'/formslib.php');
 require_once(__DIR__.'/../lib.php');
 
+use enrol_wallet\util\options;
 // Adding some security.
 require_login();
 
@@ -93,7 +94,7 @@ if ($accounts) {
 $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
 
 $enrol = enrol_get_plugin('wallet');
-$supportedcurrencies = $enrol->get_possible_currencies();
+$supportedcurrencies = options::get_possible_currencies();
 $supportedcurrencies = [ '-1' => $nochange ] + $supportedcurrencies;
 $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'), $supportedcurrencies, ['optional' => true]);
 
@@ -114,7 +115,7 @@ $mform->addElement('select', 'customint6', get_string('newenrols', 'enrol_wallet
 $mform->addHelpButton('customint6', 'newenrols', 'enrol_wallet');
 $mform->disabledIf('customint6', 'status', 'eq', ENROL_INSTANCE_DISABLED);
 
-$roles = $enrol->extend_assignable_roles($frontpagectx, 5);
+$roles = options::extend_assignable_roles($frontpagectx, 5);
 $roles = [-1 => $nochange] + $roles;
 $mform->addElement('select', 'roleid', get_string('role', 'enrol_wallet'), $roles, ['optional' => true]);
 $mform->setDefault('roleid', -1);
@@ -123,12 +124,7 @@ $options = ['optional' => true, 'defaultunit' => 86400];
 $mform->addElement('duration', 'enrolperiod', get_string('enrolperiod', 'enrol_wallet'), $options);
 $mform->addHelpButton('enrolperiod', 'enrolperiod', 'enrol_wallet');
 
-$options = [
-            -1 => $nochange,
-            0  => get_string('no'),
-            1  => get_string('expirynotifyenroller', 'core_enrol'),
-            2  => get_string('expirynotifyall', 'core_enrol'),
-        ];
+$options = [-1 => $nochange] + options::get_expirynotify_options();
 $mform->addElement('select', 'expirynotify', get_string('expirynotify', 'core_enrol'), $options);
 $mform->addHelpButton('expirynotify', 'expirynotify', 'core_enrol');
 
@@ -148,7 +144,7 @@ $mform->addElement('date_time_selector', 'enrolenddate', get_string('enrolenddat
 $mform->setDefault('enrolenddate', 0);
 $mform->addHelpButton('enrolenddate', 'enrolenddate', 'enrol_wallet');
 
-$options = [-1 => $nochange] + $enrol->get_longtimenosee_options();
+$options = [-1 => $nochange] + options::get_longtimenosee_options();
 $mform->addElement('select', 'customint2', get_string('longtimenosee', 'enrol_wallet'), $options);
 $mform->addHelpButton('customint2', 'longtimenosee', 'enrol_wallet');
 
@@ -181,15 +177,10 @@ if (count($cohorts) > 1) {
 }
 
 // Add course restriction options.
-$coursesoptions = $enrol->get_courses_options(SITEID);
+$coursesoptions = options::get_courses_options(SITEID);
 $enrol->course_restriction_edit($coursesoptions, $mform);
 
-$options = [
-        -1                                   => $nochange,
-        ENROL_DO_NOT_SEND_EMAIL              => get_string('no'),
-        ENROL_SEND_EMAIL_FROM_COURSE_CONTACT => get_string('sendfromcoursecontact', 'enrol'),
-        ENROL_SEND_EMAIL_FROM_NOREPLY        => get_string('sendfromnoreply', 'enrol'),
-    ];
+$options = [-1 => $nochange] + options::get_send_welcome_email_option();
 $mform->addElement('select', 'customint4', get_string('sendcoursewelcomemessage', 'enrol_wallet'), $options);
 $mform->addHelpButton('customint4', 'sendcoursewelcomemessage', 'enrol_wallet');
 

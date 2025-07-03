@@ -25,6 +25,7 @@ namespace enrol_wallet;
 
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;
+use enrol_wallet\util\options;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -1036,8 +1037,8 @@ final class enrol_wallet_test extends \advanced_testcase {
         $data->customchar3 = implode(',', $courses);
         $wallet->update_instance($instance, $data);
 
-        $this->assertCount(7, $wallet->get_courses_options($course1->id));
-        $options = array_keys($wallet->get_courses_options($course1->id));
+        $this->assertCount(7, options::get_courses_options($course1->id));
+        $options = array_keys(options::get_courses_options($course1->id));
         $this->assertTrue(in_array($course2->id, $options));
         $this->assertTrue(in_array($course3->id, $options));
         $this->assertTrue(in_array($course4->id, $options));
