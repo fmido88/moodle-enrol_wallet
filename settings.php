@@ -497,7 +497,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configduration('enrol_wallet/enrolperiod',
         get_string('enrolperiod', 'enrol_wallet'), get_string('enrolperiod_desc', 'enrol_wallet'), 0));
     // Expiry notification.
-    $options = options::get_expiry_notify_options();
+    $options = options::get_expirynotify_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/expirynotify',
         get_string('expirynotify', 'core_enrol'), get_string('expirynotify_help', 'core_enrol'), 0, $options));
     // Expiry threshold.
