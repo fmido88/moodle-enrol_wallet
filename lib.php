@@ -190,10 +190,15 @@ class enrol_wallet_plugin extends enrol_plugin {
             } else {
                 $role = '';
             }
-            $cost = $instance->cost;
-            $currency = $instance->currency;
             $enrol = $this->get_name();
-            return get_string('pluginname', 'enrol_' . $enrol) . $role . '-' . $cost . ' ' . $currency;
+            $name = get_string('pluginname', 'enrol_' . $enrol) . $role;
+
+            if (isset($instance->cost) && is_numeric($instance->cost) && $instance->cost >= 0) {
+                $cost = $instance->cost;
+                $currency = $instance->currency ?? $this->get_config('currency') ?? '';
+                $name .='-' . $cost . ' ' . $currency;
+            }
+
         } else {
             return format_string($instance->name);
         }
