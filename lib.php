@@ -801,11 +801,10 @@ class enrol_wallet_plugin extends enrol_plugin {
             require_once("$CFG->dirroot/cohort/lib.php");
             if (!cohort_is_member($instance->customint5, $USER->id)) {
                 $cohort = $DB->get_record('cohort', ['id' => $instance->customint5]);
-                if (!$cohort) {
-                    return null;
+                if ($cohort) {
+                    $a = format_string($cohort->name, true, ['context' => context::instance_by_id($cohort->contextid)]);
+                    $return[] = markdown_to_html(get_string('cohortnonmemberinfo', 'enrol_wallet', $a));
                 }
-                $a = format_string($cohort->name, true, ['context' => context::instance_by_id($cohort->contextid)]);
-                $return[] = markdown_to_html(get_string('cohortnonmemberinfo', 'enrol_wallet', $a));
             }
         }
 
