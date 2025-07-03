@@ -563,6 +563,13 @@ class offers {
                     if ($key == 'type') {
                         continue;
                     }
+                    if ($type == self::PROFILE_FIELD && in_array($key, ['cf', 'sf'])) {
+                        if (empty($value)) {
+                            continue;
+                        }
+                        $value = $key . $value;
+                        $key = 'field';
+                    }
                     $mform->setDefault(self::fname($type, $key, $i), $value);
                 }
             }
@@ -656,7 +663,7 @@ class offers {
         $mform->addElement('text', $name, get_string('discount', 'enrol_wallet'));
         $mform->setType($name, PARAM_FLOAT);
 
-        $mform->addElement('button', 'offer_delete_'.$i, get_string('delete'), ['data-action-delete' => $i]);
+        $mform->addElement('button', 'offer_delete_'.$i, get_string('delete'), ['data-action-delete' => $i, 'data-action' => 'deleteoffer']);
         $mform->addElement('html', html_writer::end_div());
     }
 
@@ -668,10 +675,13 @@ class offers {
      */
     private static function fname($type, $key, $inc) {
         $name = "offer_$type";
+        if ($type == self::PROFILE_FIELD) {
+            
+        }
         if (!empty($key)) {
             $name .= "_$key";
         }
-        return $name."_$inc";
+        return "{$name}_{$inc}";
     }
 
     /**
@@ -828,10 +838,11 @@ class offers {
         $offers = self::get_offers_from_submitted_data($data);
 
         if ($isarray) {
-            $data = (array)$data;
             $data['customtext3'] = json_encode($offers);
+            unset($data['add_offer']);
         } else {
             $data->customtext3 = json_encode($offers);
+            unset($data->add_offer);
         }
     }
 
@@ -911,9 +922,15 @@ class offers {
      * @return array[\stdClass]
      */
     protected static function get_offers_from_submitted_data($data) {
-
         $data = (object)$data;
         $offers = [];
+        // Remove all keys not starting with 'offer_' because they may be belong to deleted offer.
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'offer_') === 0) {
+                unset($data->$key);
+            }
+        }
+
         foreach ($_POST as $key => $value) {
             if (isset($data->$key)) {
                 // Already included and cleaned from the submitted form data.
@@ -978,7 +995,7 @@ class offers {
             }
         }
 
-        return $offers;
+        return array_values($offers);
     }
 
     /**
