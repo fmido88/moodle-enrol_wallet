@@ -17,33 +17,35 @@
 namespace enrol_wallet\util;
 
 use enrol_wallet\category\operations;
-use enrol_wallet\notifications;
-use enrol_wallet\wordpress;
 use enrol_wallet\event\transactions_triggered;
+use enrol_wallet\notifications;
 use enrol_wallet\task\turn_non_refundable;
 use enrol_wallet\util\discount_rules as discounts;
+use enrol_wallet\wordpress;
 
 /**
- * Class balance_op
+ * Class balance_op.
  *
  * @package    enrol_wallet
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class balance_op extends balance {
-
     /**
-     * Debit operation
+     * Debit operation.
      */
     private const DEBIT = 'debit';
+
     /**
-     * Credit operation
+     * Credit operation.
      */
     private const CREDIT = 'credit';
+
     /**
      * The operation done manually by user.
      */
     public const USER = 'user';
+
     /**
      * The operation done for other reason.
      */
@@ -113,19 +115,23 @@ class balance_op extends balance {
      * The wallet has been charged by a coupon.
      */
     public const C_COUPON = 'coupon';
+
     /**
      * Credit happen after calculating the rest of the amount
      * granted due to conditional discount rules.
      */
     public const C_DISCOUNT = 'conditionaldiscount';
+
     /**
-     * Refund after un-enrol
+     * Refund after un-enrol.
      */
     public const C_UNENROL = 'unenrol';
+
     /**
      * Rollback in case of error in enrolment process.
      */
     public const C_ROLLBACK = 'rollback';
+
     /**
      * Transfered from another user.
      */
@@ -136,6 +142,7 @@ class balance_op extends balance {
      * @var float
      */
     private $amount;
+
     /**
      * The course id at which the operation done.
      * @var int
@@ -143,15 +150,17 @@ class balance_op extends balance {
     private $courseid;
 
     /**
-     * Helper calss
+     * Helper calss.
      * @var instance|cm|section
      */
     private $helper;
+
     /**
      * Transaction record id.
      * @var int
      */
     private $transactionid;
+
     /**
      * How much of the free balance has been deducted.
      * @var float
@@ -159,15 +168,16 @@ class balance_op extends balance {
     protected $freecut;
 
     /**
-     * Same as its parent constructor
+     * Same as its parent constructor.
      * @see enrol_wallet\util\balance::__construct
      * Just unset the category if not specified in the operation.
      *
-     * @param int $userid
+     * @param int        $userid
      * @param int|object $category
      */
     public function __construct($userid = 0, $category = 0) {
         parent::__construct($userid, $category);
+
         if (empty($category)) {
             $this->catid = 0;
             unset($this->catop);
@@ -180,20 +190,22 @@ class balance_op extends balance {
      * Which means that the balance could be negative, so before using this validate if the new balance
      * could be negative of not.
      *
-     * @param float $amount
+     * @param  float $amount
      * @return void
      */
     protected function cut_from_main($amount) {
-        $refundable = $this->details['mainrefundable'];
+        $refundable    = $this->details['mainrefundable'];
         $nonrefundable = $this->details['mainnonrefund'];
-        $free = $this->details['mainfree'] ?? 0;
+        $free          = $this->details['mainfree'] ?? 0;
+
         if ($refundable >= $amount) {
             $refundable -= $amount;
         } else {
-            $remain = $amount - $refundable;
+            $remain     = $amount - $refundable;
             $refundable = 0;
+
             if ($remain > $nonrefundable) {
-                $refundable = $nonrefundable - $remain;
+                $refundable    = $nonrefundable - $remain;
                 $nonrefundable = 0;
             } else {
                 $nonrefundable -= $remain;
@@ -204,9 +216,9 @@ class balance_op extends balance {
         }
 
         $this->details['mainrefundable'] = $refundable;
-        $this->details['mainnonrefund'] = $nonrefundable;
-        $this->details['mainbalance'] = $refundable + $nonrefundable;
-        $this->details['mainfree'] = $newfree ?? $free;
+        $this->details['mainnonrefund']  = $nonrefundable;
+        $this->details['mainbalance']    = $refundable + $nonrefundable;
+        $this->details['mainfree']       = $newfree ?? $free;
     }
 
     /**
@@ -214,15 +226,15 @@ class balance_op extends balance {
      * @param float $remain
      */
     private function total_cut($remain) {
-
         if (!empty($this->details['catbalance'])) {
             foreach ($this->details['catbalance'] as $id => $detail) {
                 $balance = $detail->balance ?? $detail->refundable + $detail->nonrefundable;
+
                 if (empty($balance)) {
                     continue;
                 }
-                $op = new operations($id, $this->userid);
-                $remain = $op->deduct($remain);
+                $op                          = new operations($id, $this->userid);
+                $remain                      = $op->deduct($remain);
                 $this->details['catbalance'] = $op->details;
                 $this->freecut += $op->get_free_cut();
                 $this->update();
@@ -232,16 +244,17 @@ class balance_op extends balance {
                 }
             }
         }
+
         if (!empty($remain)) {
             $this->cut_from_main($remain);
         }
-
     }
+
     /**
-     * Add an amount to the main balance
+     * Add an amount to the main balance.
      * @param float $amount
-     * @param bool $refundable
-     * @param bool $free
+     * @param bool  $refundable
+     * @param bool  $free
      */
     protected function add_to_main($amount, $refundable, $free = false) {
         if ($refundable) {
@@ -264,15 +277,15 @@ class balance_op extends balance {
      * balance_op::D_ENROL_COURSE --> course id
      * balance_op::D_ENROL_INSTANCE --> enrol wallet instance id
      * balance_op::D_CM_ACCESS --> course module id (cmid)
-     * balance_op::D_SECTION_ACCESS --> section id
+     * balance_op::D_SECTION_ACCESS --> section id.
      *
-     * @param float $amount the amount to be debit.
-     * @param string $for The reason that the amount has been debited, should be one of specific constants.
-     * @param int $thingid the id corresponding to the reason, if balance_op::USER it will be the user id and so on.
-     * @param string $desc extra description for the reason of the debit, not optional if the reason is OTHER
-     * @param bool $neg if the operation allows negative balance or not.
-     * @return bool true on success and false in failure.
+     * @param  float             $amount  the amount to be debit.
+     * @param  string            $for     The reason that the amount has been debited, should be one of specific constants.
+     * @param  int               $thingid the id corresponding to the reason, if balance_op::USER it will be the user id and so on.
+     * @param  string            $desc    extra description for the reason of the debit, not optional if the reason is OTHER
+     * @param  bool              $neg     if the operation allows negative balance or not.
      * @throws \moodle_exception
+     * @return bool              true on success and false in failure.
      */
     public function debit($amount, $for = self::USER, $thingid = 0, $desc = '', $neg = false) {
         global $DB, $USER;
@@ -297,17 +310,19 @@ class balance_op extends balance {
             $before = $this->get_main_balance();
 
             $this->reset();
-            $wordpress = new wordpress;
+            $wordpress = new wordpress();
 
             $response = $wordpress->debit($this->userid, $amount, $desc, $charger);
 
             if (!is_numeric($response)) {
                 debugging($response);
+
                 return false;
             }
 
-            $newbalance = $this->get_main_balance();
+            $newbalance   = $this->get_main_balance();
             $newnonrefund = $this->get_main_nonrefundable();
+
             // No debit occurs.
             if ($newbalance != $before - $amount) {
                 return false;
@@ -320,10 +335,12 @@ class balance_op extends balance {
             if ($newbalance < 0 && !$neg) {
                 // This is mean that value to debit is greater than the balance and the new balance is negative.
                 $a = ['amount' => $amount, 'before' => $before];
+
                 throw new \moodle_exception('negativebalance', 'enrol_wallet', '', $a);
             }
 
             $remain = $amount;
+
             if (!$this->catenabled) {
                 $this->total_cut($amount);
             } else if (!empty($this->catop)) {
@@ -334,7 +351,6 @@ class balance_op extends balance {
                 if (!empty($remain)) {
                     $this->cut_from_main($remain);
                 }
-
             } else {
                 $this->cut_from_main($amount);
             }
@@ -342,7 +358,7 @@ class balance_op extends balance {
             $this->update();
             $this->reset();
 
-            $newbalance = $this->get_valid_balance();
+            $newbalance   = $this->get_valid_balance();
             $newnonrefund = $this->get_valid_nonrefundable();
         }
 
@@ -367,73 +383,82 @@ class balance_op extends balance {
 
         $this->transactionid = $DB->insert_record('enrol_wallet_transactions', $recorddata);
 
-        (new notifications)->transaction_notify($recorddata);
+        (new notifications())->transaction_notify($recorddata);
 
         $this->trigger_transaction_event('debit', $charger, $description, false);
+
         return true;
     }
 
     /**
      * Get the description of the debit operation based on the reason.
      *
-     * @param string $for The reason for deduction {@see ::debit}
-     * @param int $thingid
-     * @param string $desc extra description
+     * @param  string $for     The reason for deduction {@see ::debit}
+     * @param  int    $thingid
+     * @param  string $desc    extra description
      * @return string
      */
     private function get_debit_description($for, $thingid, $desc) {
         global $DB, $USER;
 
         $a = ['amount' => $this->amount];
-        switch($for) {
+
+        switch ($for) {
             case self::USER:
-                $chargerid = !empty($thingid) ? $thingid : $USER->id;
-                $charger = \core_user::get_user($chargerid, '*', MUST_EXIST);
+                $chargerid    = !empty($thingid) ? $thingid : $USER->id;
+                $charger      = \core_user::get_user($chargerid, '*', MUST_EXIST);
                 $a['charger'] = fullname($charger);
-                $description = get_string('debitdesc_user', 'enrol_wallet', $a);
+                $description  = get_string('debitdesc_user', 'enrol_wallet', $a);
                 break;
+
             case self::D_ENROL_COURSE:
-                $this->courseid = $thingid;
-                $course = get_course($thingid);
+                $this->courseid  = $thingid;
+                $course          = get_course($thingid);
                 $a['coursename'] = $course->fullname;
-                $description = get_string('debitdesc_course', 'enrol_wallet', $a);
+                $description     = get_string('debitdesc_course', 'enrol_wallet', $a);
                 break;
+
             case self::D_ENROL_INSTANCE:
-                $helper = $this->helper ?? new instance($thingid, $this->userid);
-                $course = $helper->get_course();
-                $this->courseid = $course->id;
+                $helper          = $this->helper ?? new instance($thingid, $this->userid);
+                $course          = $helper->get_course();
+                $this->courseid  = $course->id;
                 $a['coursename'] = $course->fullname;
-                $a['instance'] = $helper->get_name();
-                $description = get_string('debitdesc_course', 'enrol_wallet', $a);
+                $a['instance']   = $helper->get_name();
+                $description     = get_string('debitdesc_course', 'enrol_wallet', $a);
                 break;
+
             case self::D_CM_ACCESS:
-                $helper = $this->helper ?? new cm($thingid, $this->userid);
-                $module = $helper->cm;
-                $course = $helper->get_course();
+                $helper         = $this->helper ?? new cm($thingid, $this->userid);
+                $module         = $helper->cm;
+                $course         = $helper->get_course();
                 $this->courseid = $course->id;
-                $name = $course->fullname;
+                $name           = $course->fullname;
                 $name .= ': ';
                 $name .= get_string('module', 'availability_wallet');
                 $name .= '(' . $module->name . ')';
                 $description = get_string('debitdesc', 'availability_wallet', $name);
                 break;
+
             case self::D_SECTION_ACCESS:
-                $helper = $this->helper ?? new section($thingid, $this->userid);
-                $section = $helper->section;
-                $course = $helper->get_course();
+                $helper         = $this->helper ?? new section($thingid, $this->userid);
+                $section        = $helper->section;
+                $course         = $helper->get_course();
                 $this->courseid = $course->id;
-                $name = $course->fullname;
+                $name           = $course->fullname;
                 $name .= ': ';
                 $name .= get_string('section');
                 $name .= (!empty($section->name)) ? "($section->name)" : "($section->section)";
                 $description = get_string('debitdesc', 'availability_wallet', $name);
                 break;
+
             case self::D_AUTH_FEE:
                 $desc = get_string('debitfee_desc', 'auth_wallet');
                 break;
+
             case self::D_AUTH_EXTRA_FEE:
                 $description = get_string('debitextrafee_desc', 'auth_wallet');
                 break;
+
             case self::OTHER:
             default:
                 $description = '';
@@ -442,11 +467,11 @@ class balance_op extends balance {
         if (empty($description) && !empty($desc)) {
             $description = $desc;
         } else if (!empty($desc)) {
-            $description .= ', '.$desc;
+            $description .= ', ' . $desc;
         } else if (empty($description)) {
             // Should not happen.
             $a['charger'] = fullname($USER);
-            $description = get_string('debitdesc_user', 'enrol_wallet', $a);
+            $description  = get_string('debitdesc_user', 'enrol_wallet', $a);
         }
 
         return $description;
@@ -455,12 +480,13 @@ class balance_op extends balance {
     /**
      * Add a certain amount to the wallet balance.
      *
-     * @param float $amount the amount to be added
-     * @param string $by the method by which the credit done, should be one of constants C_***, USER or OTHER
-     * @param int $thingid the userid in case that the operation done manually by a user or courseid in case of award or cashback
-     * @param string $desc description of the reason of credit.
-     * @param bool $refundable this amount is refundable or not.
-     * @param bool $trigger trigger the transaction event or not.
+     * @param  float  $amount     the amount to be added
+     * @param  string $by         the method by which the credit done, should be one of constants C_***, USER or OTHER
+     * @param  int    $thingid    the userid in case that the operation done manually
+     *                            by a user or courseid in case of award or cashback
+     * @param  string $desc       description of the reason of credit.
+     * @param  bool   $refundable this amount is refundable or not.
+     * @param  bool   $trigger    trigger the transaction event or not.
      * @return bool
      */
     public function credit($amount, $by = self::OTHER, $thingid = 0, $desc = '', $refundable = true, $trigger = true) {
@@ -493,26 +519,27 @@ class balance_op extends balance {
             $before = $this->get_main_balance();
             $this->reset();
 
-            $wordpress = new wordpress;
+            $wordpress    = new wordpress();
             $responsedata = $wordpress->credit($amount, $this->userid, $description, $charger);
 
             if (is_string($responsedata)) {
                 debugging($responsedata);
+
                 return false;
             }
-            $newbalance = $this->get_main_balance();
+            $newbalance   = $this->get_main_balance();
             $newnonrefund = $this->get_main_nonrefundable();
         } else if (!empty($this->catop) && $this->catenabled) {
             $before = $this->catop->get_balance();
             $this->catop->add($amount, $refundable, $this->is_free($by, $refundable));
             $this->update();
-            $newbalance = $this->catop->get_balance();
+            $newbalance   = $this->catop->get_balance();
             $newnonrefund = $this->catop->get_non_refundable_balance();
         } else {
             $before = $this->get_main_balance();
             $this->add_to_main($amount, $refundable, $this->is_free($by, $refundable));
             $this->update();
-            $newbalance = $this->get_main_balance();
+            $newbalance   = $this->get_main_balance();
             $newnonrefund = $this->get_main_nonrefundable();
         }
 
@@ -541,7 +568,8 @@ class balance_op extends balance {
             $this->queue_transaction_transformation();
         }
 
-        (new notifications)->transaction_notify($recorddata);
+        (new notifications())->transaction_notify($recorddata);
+
         if ($trigger) {
             $this->trigger_transaction_event(self::CREDIT, $charger, $description, $refundable);
         }
@@ -552,14 +580,15 @@ class balance_op extends balance {
     /**
      * Check if this type of credit transaction should be marked
      * as free credit.
-     * @param string $by
-     * @param bool $refundable
+     * @param  string $by
+     * @param  bool   $refundable
      * @return bool
      */
     private function is_free($by, $refundable) {
         if ($refundable) {
             return false;
         }
+
         switch ($by) {
             case self::USER:
             case self::C_PAYMENT:
@@ -568,6 +597,7 @@ class balance_op extends balance {
             case self::OTHER:
             case self::C_COUPON:
                 return false;
+
             case self::C_ROLLBACK:
             case self::C_DISCOUNT:
             case self::C_UNENROL:
@@ -576,33 +606,38 @@ class balance_op extends balance {
             case self::C_AWARD:
             case self::C_CASHBACK:
                 return true;
+
             default:
                 return false;
         }
     }
+
     /**
      * Get the discription of the credit transaction.
      *
-     * @param string $by
-     * @param int $thingid
-     * @param string $desc
+     * @param  string $by
+     * @param  int    $thingid
+     * @param  string $desc
      * @return string
      */
     private function get_credit_description($by, $thingid, $desc) {
         $description = $desc;
+
         switch ($by) {
             case self::C_CASHBACK:
-                $course = get_course($thingid);
+                $course         = get_course($thingid);
                 $this->courseid = $course->id;
-                $description = get_string('cashbackdesc', 'enrol_wallet', $course->fullname);
+                $description    = get_string('cashbackdesc', 'enrol_wallet', $course->fullname);
                 break;
+
             case self::C_ACCOUNT_GIFT:
-                $a = new \stdClass;
-                $a->userid = $this->userid;
-                $a->time = userdate(time());
-                $a->amount = $this->amount;
+                $a           = new \stdClass();
+                $a->userid   = $this->userid;
+                $a->time     = userdate(time());
+                $a->amount   = $this->amount;
                 $description = get_string('giftdesc', 'enrol_wallet', $a);
                 break;
+
             case self::C_DISCOUNT:
             case self::USER:
             case self::C_TRANSFER:
@@ -615,45 +650,52 @@ class balance_op extends balance {
             case self::C_VC:
             default:
         }
+
         return $description;
     }
 
     /**
      * Automatic set the category according to the reason of operation.
      *
-     * @param string $op credit or debit
-     * @param string $reason
-     * @param int $thingid
+     * @param  string $op      credit or debit
+     * @param  string $reason
+     * @param  int    $thingid
      * @return void
      */
     private function set_category($op, $reason, $thingid) {
         if ($this->source == self::WP || !empty($this->catop)) {
             return;
         }
+
         if (!empty($this->catop)) {
             return;
         }
 
         if ($op == self::DEBIT) {
-            switch($reason) {
+            switch ($reason) {
                 case self::D_ENROL_COURSE:
                     $this->courseid = $thingid;
-                    $category = get_course($thingid)->category;
+                    $category       = get_course($thingid)->category;
                     break;
+
                 case self::D_ENROL_INSTANCE:
                     $this->helper = new instance($thingid, $this->userid);
-                    $category = $this->helper->get_course_category();
+                    $category     = $this->helper->get_course_category();
                     break;
+
                 case self::D_CM_ACCESS:
                     $this->helper = new cm($thingid, $this->userid);
-                    $category = $this->helper->get_course_category();
+                    $category     = $this->helper->get_course_category();
                     break;
+
                 case self::D_SECTION_ACCESS:
                     $this->helper = new section($thingid, $this->userid);
-                    $category = $this->helper->get_course_category();
+                    $category     = $this->helper->get_course_category();
                     break;
+
                 default:
             }
+
             if (!empty($category)) {
                 $this->catid = (is_number($category)) ? $category : $category->id;
                 $this->catop = new operations($category, $this->userid);
@@ -662,53 +704,61 @@ class balance_op extends balance {
             if (!$this->catenabled) {
                 return;
             }
+
             switch ($reason) {
                 case self::C_AWARD:
                 case self::C_CASHBACK:
                     $this->courseid = $thingid;
-                    $this->catid = get_course($thingid)->category;
-                    $this->catop = new operations($this->catid, $this->userid);
+                    $this->catid    = get_course($thingid)->category;
+                    $this->catop    = new operations($this->catid, $this->userid);
                     break;
+
                 case self::C_UNENROL:
                 case self::C_ROLLBACK:
                     $this->helper = new instance($thingid, $this->userid);
-                    $category = $this->helper->get_course_category();
-                    $this->catid = $category->id;
-                    $this->catop = new operations($category, $this->userid);
+                    $category     = $this->helper->get_course_category();
+                    $this->catid  = $category->id;
+                    $this->catop  = new operations($category, $this->userid);
                     break;
+
                 case self::C_PAYMENT:
                     // Credit done by payment, Check for the category id from the item.
                     // The category could be directly specified in the record or could be extracted from..
                     // ...the enrolment instance.
                     global $DB;
-                    $item = $DB->get_record('enrol_wallet_items', ['id' => $thingid]);
+                    $item         = $DB->get_record('enrol_wallet_items', ['id' => $thingid]);
                     $this->userid = $item->userid;
+
                     if (!empty($item->category)) {
                         $this->catid = $item->category;
                         $this->catop = new operations($this->catid, $this->userid);
                     } else if (!empty($item->instanceid)) {
                         $this->helper = new instance($item->instanceid, $this->userid);
-                        $category = $this->helper->get_course_category();
-                        $this->catid = $category->id;
-                        $this->catop = new operations($category, $this->userid);
+                        $category     = $this->helper->get_course_category();
+                        $this->catid  = $category->id;
+                        $this->catop  = new operations($category, $this->userid);
                     }
                     break;
+
                 case self::C_COUPON:
                     // We need to check for the type of the coupon, only if it is category.
                     // No category coupons in wordpress.
                     if ($this->source == self::MOODLE) {
                         global $DB;
                         $record = $DB->get_record('enrol_wallet_coupons', ['id' => $thingid]);
+
                         if ($record && $record->type == 'category' && !empty($record->category)) {
                             $this->catid = $record->category;
                             $this->catop = new operations($this->catid, $this->userid);
                         }
                     }
                     break;
+
                 case self::USER:
                 case self::C_TRANSFER:
                     // The charger should specify the category id in the form.
                     break;
+
                 case self::C_VC:
                     // NOTE update the vc form to pass the category id.
                 case self::C_ACCOUNT_GIFT:
@@ -717,6 +767,7 @@ class balance_op extends balance {
                     // Do nothing.
             }
         }
+
         if (!empty($this->helper) && empty($this->courseid)) {
             $this->courseid = $this->helper->courseid;
         }
@@ -724,7 +775,7 @@ class balance_op extends balance {
 
     /**
      * Apply the conditional discount rule to credit the user with the rest amount.
-     * @param string $by The reason for credit.
+     * @param  string $by The reason for credit.
      * @return bool
      */
     private function apply_conditional_discount($by) {
@@ -738,11 +789,12 @@ class balance_op extends balance {
             self::C_UNENROL,
             self::C_TRANSFER,
         ];
+
         if (in_array($by, $forbidden)) {
             return true;
         }
 
-        $amount  = $this->amount;
+        $amount = $this->amount;
 
         list($rest, $condition) = discounts::get_the_rest($amount, $this->catid ?? 0);
 
@@ -751,26 +803,29 @@ class balance_op extends balance {
         }
 
         $desc = get_string('conditionaldiscount_desc', 'enrol_wallet', ['rest' => $rest, 'condition' => $condition]);
+
         // Credit the user with the rest amount.
         return $this->credit($rest, self::C_DISCOUNT, 0, $desc, false);
     }
 
     /**
      * Get how much amount has been cut from the free balance.
-     * @param bool $reset
+     * @param  bool  $reset
      * @return float
      */
     protected function get_free_cut($reset = true) {
         $return = $this->freecut;
+
         if ($reset) {
             $this->freecut = 0;
         }
+
         return $return;
     }
 
     /**
      * Apply cashback after course purchase.
-     * Called from enrol_self method
+     * Called from enrol_self method.
      * @return void
      */
     public function apply_cashback() {
@@ -791,8 +846,8 @@ class balance_op extends balance {
                 'userid'        => $this->userid,
                 'relateduserid' => $this->userid,
                 'other'         => [
-                        'amount'   => $value,
-                        'original' => $this->amount,
+                    'amount'   => $value,
+                    'original' => $this->amount,
                 ],
             ];
             $event = \enrol_wallet\event\cashback_applied::create($eventdata);
@@ -803,14 +858,13 @@ class balance_op extends balance {
     /**
      * Triggering transactions event.
      *
-     * @param string $type credit or debit
-     * @param int $charger id of the charger user
-     * @param string $desc reason of the transaction
-     * @param bool $refundable is the transaction is refundable
+     * @param  string $type       credit or debit
+     * @param  int    $charger    id of the charger user
+     * @param  string $desc       reason of the transaction
+     * @param  bool   $refundable is the transaction is refundable
      * @return void
      */
     private function trigger_transaction_event($type, $charger, $desc, $refundable) {
-
         if (empty($this->courseid)) {
             $context = \context_system::instance();
         } else {
@@ -818,18 +872,18 @@ class balance_op extends balance {
         }
 
         $eventarray = [
-                        'context'       => $context,
-                        'objectid'      => $this->transactionid,
-                        'userid'        => $charger,
-                        'relateduserid' => $this->userid,
-                        'other' => [
-                                    'type'       => $type,
-                                    'amount'     => $this->amount,
-                                    'refundable' => $refundable,
-                                    'freecut'    => $type === self::DEBIT ? $this->get_free_cut(false) : 0,
-                                    'desc'       => $desc,
-                                    ],
-                    ];
+            'context'       => $context,
+            'objectid'      => $this->transactionid,
+            'userid'        => $charger,
+            'relateduserid' => $this->userid,
+            'other'         => [
+                'type'       => $type,
+                'amount'     => $this->amount,
+                'refundable' => $refundable,
+                'freecut'    => $type === self::DEBIT ? $this->get_free_cut(false) : 0,
+                'desc'       => $desc,
+            ],
+        ];
 
         $event = transactions_triggered::create($eventarray);
         $event->trigger();
@@ -849,15 +903,15 @@ class balance_op extends balance {
 
         $runtime = time() + $period;
 
-        $task = new turn_non_refundable;
+        $task = new turn_non_refundable();
         $task->set_custom_data(
-                [
-                    'id'     => $this->transactionid,
-                    'userid' => $this->userid,
-                    'amount' => $this->amount,
-                    'catid'  => $this->catid ?? 0,
-                ]
-            );
+            [
+                'id'     => $this->transactionid,
+                'userid' => $this->userid,
+                'amount' => $this->amount,
+                'catid'  => $this->catid ?? 0,
+            ]
+        );
 
         $task->set_next_run_time($runtime);
 
@@ -872,6 +926,7 @@ class balance_op extends balance {
         if ($this->source == self::WP) {
             return;
         }
+
         if (!empty($this->catop)) {
             $transform = min($amount, $this->catop->get_refundable_balance());
             $this->catop->deduct($transform);
@@ -881,7 +936,6 @@ class balance_op extends balance {
             $this->catop->add($transform, false);
 
             $this->details['catbalance'] = $this->catop->details;
-
         } else {
             $transform = min($amount, $this->get_main_refundable());
             $this->cut_from_main($transform);
@@ -893,35 +947,38 @@ class balance_op extends balance {
 
     /**
      * Transfer balance to another user.
-     * @param \stdClass $data the data submited by the form.
-     * @param \enrol_wallet\form\transfer_form $mform
+     * @param  \stdClass                        $data  the data submited by the form.
+     * @param  \enrol_wallet\form\transfer_form $mform
      * @return string
      */
     public function transfer_to_other($data, $mform = null) {
         global $USER, $CFG;
 
         if (empty($mform)) {
-            $mform = new \enrol_wallet\form\transfer_form;
+            $mform = new \enrol_wallet\form\transfer_form();
         }
 
         $config = $mform->config;
+
         if (empty($config->transfer_enabled) || $this->userid != $USER->id) {
             throw new \moodle_exception('transfer_notenabled', 'enrol_wallet');
         }
 
         if (!$mform->get_data()) {
             $errors = $mform->validation((array)$data, []);
+
             if (!empty($errors)) {
                 return reset($errors);
             }
         }
 
-        $email    = $data->email;
-        $amount   = $data->amount;
-        $catid    = $data->category ?? 0;
+        $email  = $data->email;
+        $amount = $data->amount;
+        $catid  = $data->category ?? 0;
 
         if ($this->catid != $catid) {
             $this->catid = $catid;
+
             if (!empty($this->catid)) {
                 $this->catop = new operations($this->catid, $this->userid);
             } else {
@@ -932,9 +989,10 @@ class balance_op extends balance {
         $receiver = \core_user::get_user_by_email($email);
 
         list($debit, $credit) = $mform->get_debit_credit($amount);
-        $fee = abs($credit - $debit);
+        $fee                  = abs($credit - $debit);
 
         $unknownerror = get_string('error');
+
         // Debit the sender.
         if (!$this->debit($debit, self::USER, $receiver->id)) {
             return $unknownerror;
@@ -948,18 +1006,22 @@ class balance_op extends balance {
             'receiver' => fullname($receiver),
         ];
         $desc = get_string('transferop_desc', 'enrol_wallet', $a);
-        $op = new balance_op($receiver->id, $catid);
+        $op   = new self($receiver->id, $catid);
         $done = true;
+
         try {
             $done = $op->credit($credit, self::C_TRANSFER, $receiver->id, $desc, false);
         } catch (\moodle_exception $e) {
-            $done = false;
+            $done         = false;
             $unknownerror = $e->getMessage();
         }
+
         if (!$done) {
             $this->credit($debit, self::C_ROLLBACK);
+
             return $unknownerror;
         }
+
         return $desc;
     }
 
@@ -975,39 +1037,42 @@ class balance_op extends balance {
     /**
      * Create a balance operation class to obtain balance data and perform operations for a given user
      * by providing the enrol_wallet instance or its id.
-     * @param int|\stdClass $instance
-     * @param int $userid 0 means the current user.
+     * @param  int|\stdClass $instance
+     * @param  int           $userid   0 means the current user.
      * @return self
      */
     public static function create_from_instance($instance, $userid = 0) {
-        $util = new instance($instance, $userid);
+        $util     = new instance($instance, $userid);
         $category = $util->get_course_category();
+
         return new self($userid, $category);
     }
 
     /**
      * Create a balance operation class to obtain balance data and perform operations for a given user
      * by providing the course module record or its id.
-     * @param int|\stdClass $cm
-     * @param int $userid 0 means the current user.
+     * @param  int|\stdClass $cm
+     * @param  int           $userid 0 means the current user.
      * @return self
      */
     public static function create_from_cm($cm, $userid = 0) {
-        $util = new cm($cm, $userid);
+        $util     = new cm($cm, $userid);
         $category = $util->get_course_category();
+
         return new self($userid, $category);
     }
 
     /**
      * Create a balance operation class to obtain balance data and perform operations for a given user
      * by providing the course section record or its id.
-     * @param int|\stdClass $section
-     * @param int $userid 0 means the current user.
+     * @param  int|\stdClass $section
+     * @param  int           $userid  0 means the current user.
      * @return self
      */
     public static function create_from_section($section, $userid = 0) {
-        $util = new section($section, $userid);
+        $util     = new section($section, $userid);
         $category = $util->get_course_category();
+
         return new self($userid, $category);
     }
 }

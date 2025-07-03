@@ -32,6 +32,7 @@ require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 use core_course_category;
 use enrol_wallet\coupons;
 use enrol_wallet_plugin as wallet;
+
 /*  A reference to remind me with the instance object.
     id:              the instance id (int)
     enrol:           wallet "fixed for each plugin" (string)
@@ -234,7 +235,7 @@ class instance {
     /**
      * Magic getter for instance properties.
      *
-     * @param string $name The property name.
+     * @param  string     $name The property name.
      * @return mixed|null
      */
     public function __get($name) {
@@ -248,10 +249,12 @@ class instance {
 
         // If the property is not found in the instance object, try to get it from the field map.
         $fieldname = $this->get_instance_field_map($name);
+
         if ($fieldname && property_exists($this->instance, $fieldname)) {
             return $this->instance->$fieldname;
         }
         debugging('Invalid property: ' . $name . ' in instance helper class', DEBUG_ALL);
+
         return null;
     }
 
@@ -259,7 +262,7 @@ class instance {
      * Get the field map for the instance.
      * The map is used to get the field name from the instance object.
      *
-     * @param string|null $fieldname The field name to get the map for, if null returns the whole map.
+     * @param  string|null       $fieldname The field name to get the map for, if null returns the whole map.
      * @return array|string|null
      */
     protected function get_instance_field_map($fieldname = null) {
@@ -272,24 +275,28 @@ class instance {
             'customint6'  => 'allownewenrol', // Allow new enrol.
             'customint7'  => 'minrequiredcourses', // Min number or required courses.
             'customint8'  => 'enableawards', // Enable Awards.
-            'customchar1' => null, // "not used"
-            'customchar2' => null, // "not used"
-            'customchar3' => 'requiredcourses', // ids of the courses required for enrol restriction (string) integers imploded by ','.
-            'customdec1'  => 'awardcondition', // condition for award (percentage) (int) 0 - 99.
+            'customchar1' => null, // Not used...
+            'customchar2' => null, // Not used...
+            'customchar3' => 'requiredcourses', // Ids of the courses required for enrol
+                                                // restriction (string) integers imploded by ','.
+            'customdec1'  => 'awardcondition', // Condition for award (percentage) (int) 0 - 99.
             'customdec2'  => 'awardvalue', // Award value per each raw mark above the condition (float).
             'customtext1' => 'welcomemessage', // Welcome email content (string).
-            'customtext2' => 'restrictionrules', // restriction rules (JSON).
-            'customtext3' => 'offersrules', // offers rules (JSON).
-            'customtext4' => null, // "not used".
+            'customtext2' => 'restrictionrules', // Restriction rules (JSON).
+            'customtext3' => 'offersrules', // Offers rules (JSON).
+            'customtext4' => null, // Not used....
         ];
+
         if (empty($fieldname)) {
             return $map;
         }
+
         foreach ($map as $key => $value) {
             if ($value === $fieldname) {
                 return $key;
             }
         }
+
         return null;
     }
 

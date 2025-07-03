@@ -103,7 +103,7 @@ final class observer_test extends \advanced_testcase {
         // Let's start.
         $walletplugin->enrol_self($instance1, $user1);
         $this->getDataGenerator()->enrol_user($user2->id, $course1->id, 'student');
-        // Check the issue for full mark award;
+        // Check the issue for full mark award.
         $this->getDataGenerator()->enrol_user($user3->id, $course1->id, 'student');
 
         $balance = new balance($user1->id);

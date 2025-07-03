@@ -57,15 +57,15 @@ class cleanup_wallet_items extends \core\task\scheduled_task {
             'component' => 'enrol_wallet',
             'area' => 'wallettopup',
         ];
-        
+
         $sql = "SELECT it.*
                 FROM {enrol_wallet_items} it
-           LEFT JOIN {payments} p ON p.itemid = it.id 
+           LEFT JOIN {payments} p ON p.itemid = it.id
                 WHERE (it.timecreated IS NULL OR it.timecreated < :timetocheck)
                 AND (p.paymentarea IS NULL OR p.paymentarea = :area)
                 AND (p.component IS NULL OR p.component = :component)
                 AND p.id IS NULL";
-        
+
         $records = $DB->get_records_sql($sql, $params);
         mtrace(count($records)." records found to be deleted...");
 

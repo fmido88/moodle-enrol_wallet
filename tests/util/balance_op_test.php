@@ -1106,6 +1106,8 @@ final class balance_op_test extends \advanced_testcase {
 
     /**
      * Test if multiple transactions in one call will behave.
+     * @covers ::credit
+     * @covers ::debit
      * @return void
      */
     public function test_multiple_transactions(): void {

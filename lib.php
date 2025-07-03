@@ -196,7 +196,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             if (isset($instance->cost) && is_numeric($instance->cost) && $instance->cost >= 0) {
                 $cost = $instance->cost;
                 $currency = $instance->currency ?? $this->get_config('currency') ?? '';
-                $name .='-' . $cost . ' ' . $currency;
+                $name .= "- {$cost} {$currency}";
             }
 
         } else {
