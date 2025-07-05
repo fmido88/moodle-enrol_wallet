@@ -421,7 +421,6 @@ class enrol_wallet_plugin extends enrol_plugin {
         $op = new balance_op($user->id, $helper->get_course_category());
         // Get the final cost after discount (if there is no discount it return the full cost).
         $costafter = $helper->get_cost_after_discount();
-        $helper->reset_static_cache();
 
         $charge = $charge && ($costafter >= 0.01);
         if ($charge) {
@@ -447,7 +446,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             do {
                 $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend, null, true);
             } while (!$DB->record_exists('user_enrolments', $conditions));
-        } catch (\moodle_exception $e) {
+        } catch (\Throwable $e) {
             // Rollback the transaction in case of error.
             if ($charge) {
                 $op->credit($costafter, balance_op::C_ROLLBACK, $instance->id, 'Refund due to error', false, false);
@@ -462,6 +461,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         if ($couponutil = $helper->get_coupon_helper()) {
             $couponutil->mark_coupon_used();
         }
+
+        $helper->reset_static_cache();
 
         // Unset the session coupon to make sure not used again.
         // This is a double check, already included in mark_coupon_used().

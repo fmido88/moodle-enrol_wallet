@@ -23,6 +23,9 @@ use enrol_wallet\coupons;
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;
 use enrol_wallet_plugin;
+use context_course;
+use enrol_wallet\util\instance;
+
 /**
  * Tests for coupons operations
  *
@@ -520,15 +523,30 @@ final class coupons_test extends \advanced_testcase {
 
         $this->setUser($this->u2);
 
-        $coupons = new coupons('percent6');
+        $balanceop = new balance_op($this->u2->id);
+        $balanceop->credit(100);
+
+        $coupons = new coupons('percent6'); // 50% .
         $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
         $this->assertEquals(2, $coupons->get_total_use());
         $this->assertEquals(0, $coupons->get_user_use());
-        $coupons->mark_coupon_used();
+
+        // Check if discount coupons marked as used when the user get enrolled.
+        coupons::set_session_coupon('percent6');
+        $wallet = new enrol_wallet_plugin();
+        $instance = new instance($this->inst2);
+        $this->assertEquals(10, $instance->get_cost_after_discount());
+
+        $wallet->enrol_self($this->inst2, $this->u2);
+        $balance = new balance();
+        $this->assertEquals(90, $balance->get_total_balance());
+
         $coupons = new coupons('percent6');
         $this->assertEquals(3, $coupons->get_total_use());
         $this->assertEquals(1, $coupons->get_user_use());
         $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertTrue(is_enrolled(context_course::instance($this->inst2->courseid)));
+
         $coupons->mark_coupon_used();
         $coupons = new coupons('percent6');
         $this->assertEquals(4, $coupons->get_total_use());

@@ -150,7 +150,7 @@ class instance extends \stdClass {
      * The all discounts in this instance.
      * @var array
      */
-    private $discounts = [0];
+    private $discounts = [];
 
     /**
      * The behavior of discount calculation.
@@ -679,6 +679,12 @@ class instance extends \stdClass {
      * @return coupons|null
      */
     public function get_coupon_helper() {
+        if (isset($this->couponutil)) {
+            return $this->couponutil;
+        }
+
+        // Recheck the coupons helper class.
+        $this->get_coupon_discount();
         return $this->couponutil ?? null;
     }
 }
