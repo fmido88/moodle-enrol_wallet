@@ -23,7 +23,6 @@
  */
 use enrol_wallet\util\balance;
 use enrol_wallet\util\balance_op;
-use enrol_wallet\util\discount_rules;
 use enrol_wallet\coupons;
 
 /**
@@ -92,7 +91,7 @@ function enrol_wallet_get_random_coupon($length, $options) {
  * Generating coupons.
  *
  * @param object $options the options from coupon form.
- * @param progress_trace $trace
+ * @param ?progress_trace $trace
  * @return array|string array of coupon, or string of error.
  */
 function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) {
