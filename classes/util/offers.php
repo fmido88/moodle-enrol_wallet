@@ -171,9 +171,10 @@ class offers {
 
     /**
      * Return array of offers rules in a certain instance with description.
+     * @param bool $availableonly
      * @return array
      */
-    public function get_detailed_offers() {
+    public function get_detailed_offers($availableonly = false) {
         $descriptions = [];
 
         if (empty($this->offers)) {
@@ -185,6 +186,12 @@ class offers {
 
             switch ($offer->type) {
                 case self::TIME:
+                    if ($availableonly) {
+                        if (!$this->validate_time_offer($offer)) {
+                            continue 2;
+                        }
+                    }
+    
                     $a = [
                         'to'       => userdate($offer->to),
                         'from'     => userdate($offer->from),
@@ -200,11 +207,13 @@ class offers {
                     if (!$category) {
                         continue 2;
                     }
+
                     $a = [
                         'catname'  => $category->get_nested_name(),
                         'number'   => $offer->number ?? $offer->courses,
                         'discount' => $formatteddiscount,
                     ];
+
                     $descriptions[$key] = get_string('offers_nc_desc', 'enrol_wallet', $a);
                     break;
 
@@ -270,12 +279,13 @@ class offers {
 
     /**
      * Get a formatted description for this instance to be displayed.
+     * @param bool $availableonly
      * @return string
      */
-    public function format_offers_descriptions() {
+    public function format_offers_descriptions($availableonly = false) {
         global $OUTPUT;
         $output       = '';
-        $descriptions = $this->get_detailed_offers();
+        $descriptions = $this->get_detailed_offers($availableonly);
 
         if (empty($descriptions)) {
             return $output;
@@ -564,7 +574,7 @@ class offers {
      * @param  \stdClass $offer
      * @return bool
      */
-    private function validate_time_offer($offer) {
+    public function validate_time_offer($offer) {
         if (time() < $offer->to && time() > $offer->from) {
             return true;
         }
@@ -1156,7 +1166,16 @@ class offers {
             $zero  = is_number($course->cost) && $course->cost == 0;
             $class = new self($instance);
 
-            if (empty($class->get_raw_offers()) && !$zero) {
+            $rawoffers = (array)@$class->get_raw_offers();
+            foreach ($rawoffers as $k => $offer) {
+                if ($offer->type == self::TIME) {
+                    if (time() > $offer->to) { // Expired offer.
+                        unset($rawoffers[$k]);
+                    }
+                }
+            }
+
+            if (empty($rawoffers) && !$zero) {
                 continue;
             }
 
@@ -1167,7 +1186,7 @@ class offers {
                 $final[$course->id]->offers   = [];
                 unset($final[$course->id]->instanceid, $final[$course->id]->customtext3, $final[$course->id]->cost);
             }
-            $final[$course->id]->offers[$instanceid] = $class->format_offers_descriptions();
+            $final[$course->id]->offers[$instanceid] = $class->format_offers_descriptions(true);
         }
 
         return $final;
