@@ -38,7 +38,7 @@ require_once($CFG->dirroot.'/admin/tool/uploaduser/locallib.php');
  */
 class processor {
 
-    /** @var csv_import_reader */
+    /** @var \csv_import_reader */
     protected $cir;
 
     /** @var array CSV columns. */
