@@ -22,8 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 use enrol_wallet\util\balance;
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
+
 /**
  * To add the category and node information into the my profile page.
  * If is a regular user, it show the balance, refund policy and topping up options.
@@ -408,7 +407,7 @@ function enrol_wallet_post_set_password_requests($data, $user) {
  */
 function enrol_wallet_post_change_password_requests($data) {
     global $USER;
-    $user = $USER;
+    $user = fullclone($USER);
     $user->password = $data->newpassword1;
     return enrol_wallet_update_wordpress_user($user);
 }
@@ -419,7 +418,7 @@ function enrol_wallet_post_change_password_requests($data) {
  * @return void
  */
 function enrol_wallet_before_standard_top_of_body_html() {
-    global $USER, $PAGE;
+    global $PAGE;
     $showprice = (bool)get_config('enrol_wallet', 'showprice');
     if ($showprice) {
         $PAGE->requires->js_call_amd('enrol_wallet/overlyprice', 'init');
@@ -446,7 +445,6 @@ function enrol_wallet_before_standard_top_of_body_html() {
         \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
     }
 }
-
 
 /**
  * Callback to login the user to wordpress.
