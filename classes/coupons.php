@@ -328,6 +328,19 @@ class coupons {
     }
 
     /**
+     * Return a human readable name of the coupon type.
+     * @param int|string $type
+     */
+    public static function get_type_visible_name($type) {
+        if (in_array($type, self::TYPES) || array_key_exists($type, self::TYPES)) {
+            if (!is_number($type)) {
+                $type = array_flip(self::TYPES)[$type];
+            }
+            return self::get_coupons_options()[$type];
+        }
+        return null;
+    }
+    /**
      * Check if coupons is enabled on this site or not.
      * @return bool
      */
