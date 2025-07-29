@@ -421,7 +421,7 @@ if ($ADMIN->fulltree) {
                                             get_string('restrictionenabled_desc', 'enrol_wallet'),
                                             0));
     $pluginmanager = \core_plugin_manager::instance();
-    /** @var core\plugininfo\availability[] */
+
     $availabilities = $pluginmanager->get_enabled_plugins('availability');
     $options = [];
     foreach ($availabilities as $avplugin => $p) {
