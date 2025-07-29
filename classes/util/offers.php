@@ -191,7 +191,7 @@ class offers {
                             continue 2;
                         }
                     }
-    
+
                     $a = [
                         'to'       => userdate($offer->to),
                         'from'     => userdate($offer->from),
