@@ -421,10 +421,14 @@ if ($ADMIN->fulltree) {
                                             get_string('restrictionenabled_desc', 'enrol_wallet'),
                                             0));
     $pluginmanager = \core_plugin_manager::instance();
+    /** @var core\plugininfo\availability[] */
     $availabilities = $pluginmanager->get_enabled_plugins('availability');
     $options = [];
     foreach ($availabilities as $avplugin => $p) {
         if (in_array($avplugin, ['wallet', 'group', 'grouping', 'maxviews'])) {
+            continue;
+        }
+        if (empty($p->rootdir) || !check_dir_exists($p->rootdir, false, false)) {
             continue;
         }
         $options[$avplugin] = get_string('title', "availability_$avplugin");
