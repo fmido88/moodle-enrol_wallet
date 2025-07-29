@@ -39,7 +39,7 @@ class enrolpage_viewed extends \core\event\base {
      * Init method.
      */
     protected function init() {
-        $this->data['crud'] = 'c';
+        $this->data['crud'] = 'r';
         $this->data['edulevel'] = self::LEVEL_PARTICIPATING;
     }
 
