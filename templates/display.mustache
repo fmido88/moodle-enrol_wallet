@@ -52,18 +52,18 @@
     }
 
 }}
-<span class="hidden" data-uniqid="{{uniqid}}" data-identifier="uniqid"></span>
-<div style="text-align: center; padding-bottom: 0px;">
+<span class="hidden" data-uniqid="{{uniqid}}" data-identifier="{{uniqid}}"></span>
+<div class="text-center pb-0">
     {{# currentuser}}
     {{#walleturl}}
     <a href="{{walleturl}}">
     {{/walleturl}}
-        <h3 class="wallet-heading" style="text-align: center;"> {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
+        <h3 class="wallet-heading" > {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
     {{#walleturl}}
     </a>
     {{/walleturl}}
     {{/ currentuser}}
-    <div class="balance-card" style="text-align: center; direction: ltr;">
+    <div class="balance-card" style="direction: ltr;">
         {{# currentuser}}{{# str }} youhavebalance, enrol_wallet {{/ str }}{{/ currentuser}}<br>
         <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
         {{#currentuser}}{{# str }} inyourwallet, enrol_wallet {{/ str }} <br>{{/currentuser}}
@@ -84,18 +84,17 @@
             </div>
         {{/ catdetails }}
         </div>
-        {{# policy}}
-        <a href="#" id="enrol_wallet_transactions-policy-url-{{uniqid}}" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
-        <div id="enrol_wallet_transactions-policy-{{uniqid}}" class="transactions-policy" style="text-align: left; display:none;">{{{policy}}}</div>
-        {{/ policy}}
     </div>
-    <span class="transactions-url" style="text-align: center;">{{{transactions}}}</span><br>
-    {{# transfer}}
-    <span class="transfer-url" style="text-align: center;">{{{transfer}}}</span><br>
-    {{/ transfer}}
-    {{# referral}}
-    <span class="referral-url" style="text-align: center;">{{{referral}}}</span>
-    {{/ referral}}
+    <div>
+        {{> enrol_wallet/manualpolicy }}
+        <span class="transactions-url">{{{transactions}}}</span><br>
+        {{# transfer}}
+        <span class="transfer-url">{{{transfer}}}</span><br>
+        {{/ transfer}}
+        {{# referral}}
+        <span class="referral-url">{{{referral}}}</span>
+        {{/ referral}}
+    </div>
 </div>
 
 {{#js}}

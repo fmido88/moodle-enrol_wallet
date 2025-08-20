@@ -16,10 +16,9 @@
 
 namespace enrol_wallet\form;
 
-use enrol_wallet\util\form;
-use enrol_wallet\util\options;
-use enrol_wallet\util\instance;
-
+use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\utils\form;
+use enrol_wallet\local\utils\options;
 use moodleform;
 
 defined('MOODLE_INTERNAL') || die();

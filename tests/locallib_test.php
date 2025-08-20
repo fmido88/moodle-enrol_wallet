@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
 require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
-use enrol_wallet_plugin;
 
 /**
  * Wallet enrolment tests.

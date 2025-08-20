@@ -16,7 +16,7 @@
 
 namespace enrol_wallet\form;
 
-use enrol_wallet\util\balance;
+use enrol_wallet\local\wallet\balance;
 use core_course_category;
 use core_user;
 

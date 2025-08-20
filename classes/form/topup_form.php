@@ -24,13 +24,13 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\local\discounts\discount_rules;
+use enrol_wallet\local\utils\catoptions;
+use enrol_wallet\local\wallet\balance;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir.'/formslib.php');
-
-use enrol_wallet\category\options;
-use enrol_wallet\util\balance;
-use enrol_wallet\util\discount_rules;
 
 /**
  * The form that able the user to topup their wallet using payment gateways.
@@ -114,16 +114,16 @@ class topup_form extends \moodleform {
         if (!empty($enabled)) {
             $i = discount_rules::add_discounts_to_form($mform);
         }
-        $balance = new balance;
+        $balance = new balance();
 
         $catoptions = [];
         if ($balance->catenabled) {
             $categorytitle = get_string('category');
             if (empty($instance->id)) {
                 $catoptions[0] = get_string('site');
-                $catoptions = $catoptions + options::get_all_options_with_discount();
+                $catoptions = $catoptions + catoptions::get_all_options_with_discount();
             } else {
-                $helper = options::create_from_instance_id($instance->id);
+                $helper = catoptions::create_from_instance_id($instance->id);
                 $catoptions = $helper->get_local_options_with_discounts();
             }
         }

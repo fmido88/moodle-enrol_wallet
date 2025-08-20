@@ -18,7 +18,7 @@ namespace enrol_wallet;
 use core\hook\output\before_standard_top_of_body_html_generation;
 use core\hook\output\before_footer_html_generation;
 use core\hook\navigation\primary_extend;
-use pix_icon_fontawesome;
+use enrol_wallet\local\wallet\balance;
 
 /**
  * Class hooks_callbacks
@@ -67,7 +67,7 @@ class hooks_callbacks {
         // Check the conditions.
         $condition = get_config('enrol_wallet', 'noticecondition');
 
-        $op = new util\balance();
+        $op = new balance();
         $balance = $op->get_total_balance();
         if ($balance <= (int)$condition) {
             // Display the warning.

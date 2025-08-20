@@ -21,9 +21,12 @@
  * @copyright  2023 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op;
-use enrol_wallet\coupons;
+use enrol_wallet\form\applycoupon_form;
+use enrol_wallet\form\charger_form;
+use enrol_wallet\local\wallet\balance_op;
+use enrol_wallet\output\static_renderer;
+use enrol_wallet\output\topup_options;
+use enrol_wallet\output\wallet_balance;
 
 /**
  * Enable enrol Wallet plugin.
@@ -63,28 +66,7 @@ function enrol_wallet_enable_plugin() {
  * @return string the random coupon generated.
  */
 function enrol_wallet_get_random_coupon($length, $options) {
-    $randomcoupon = '';
-    $upper = $options['upper'];
-    $lower = $options['lower'];
-    $digits = $options['digits'];
-    $charset = '';
-    if ($upper) {
-        $charset .= 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    }
-    if ($lower) {
-        $charset .= 'abcdefghijklmnopqrstuvwxyz';
-    }
-    if ($digits) {
-        $charset .= '0123456789';
-    }
-
-    $count = strlen( $charset );
-
-    while ($length--) {
-        $randomcoupon .= $charset[mt_rand(0, $count - 1)];
-    }
-
-    return $randomcoupon;
+    return enrol_wallet\local\coupons\generator::generate_random_coupon($length, $options);
 }
 
 /**
@@ -95,90 +77,20 @@ function enrol_wallet_get_random_coupon($length, $options) {
  * @return array|string array of coupon, or string of error.
  */
 function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) {
-    global $DB;
-
-    if (empty($trace)) {
-        $trace = new null_progress_trace;
-    }
-
-    $number     = $options->number;
-    $maxusage   = $options->maxusage;
-    $maxperuser = $options->maxperuser;
-    $from       = $options->from;
-    $to         = $options->to;
-    $type       = $options->type;
-    $value      = $options->value ?? (($type == 'enrol') ? 0 : null);
-    $code       = $options->code;
-
-    $recorddata = (object)[
-        'type'        => $type,
-        'value'       => $value,
-        'category'    => $options->category ?? '',
-        'courses'     => $options->courses ?? '',
-        'maxusage'    => $maxusage,
-        'maxperuser'  => $maxperuser,
-        'validfrom'   => $from,
-        'validto'     => $to,
-        'timecreated' => $options->timecreated ?? time(),
-    ];
-
-    $ids = [];
-    if (!empty($code)) {
-        $recorddata->code = $code;
-
-        $ids[] = $DB->insert_record('enrol_wallet_coupons', $recorddata);
-        $trace->output('Single coupon created...');
-    } else {
-
-        $length = $options->length;
-        $lower  = $options->lower;
-        $upper  = $options->upper;
-        $digits = $options->digits;
-
-        $lastprogress = 0;
-        while (count($ids) < $number) {
-            $progress = round(count($ids) / $number * 100);
-            if ($progress > $lastprogress + 5) {
-                $trace->output('Generating coupons... ' . $progress . '%');
-                $lastprogress = $progress;
-            }
-
-            $gopt = [
-                'lower' => $lower,
-                'upper' => $upper,
-                'digits' => $digits,
-            ];
-            $recorddata->code = enrol_wallet_get_random_coupon($length, $gopt);
-            if (!$recorddata->code) {
-                return get_string('coupon_generator_error', 'enrol_wallet');
-            }
-            if ($DB->record_exists('enrol_wallet_coupons', ['code' => $recorddata->code])) {
-                continue;
-            }
-            $ids[] = $DB->insert_record('enrol_wallet_coupons', $recorddata);
-        }
-    }
-    return $ids;
+    return enrol_wallet\local\coupons\generator::create_coupons($options, $trace);
 }
 
 /**
  * Display the form for charging other users.
- * @return string
+ * @param bool $return
+ * @return string|void
  */
-function enrol_wallet_display_charger_form() {
-    global $CFG, $PAGE;
-    require_once($CFG->dirroot.'/enrol/wallet/classes/form/charger_form.php');
-    if (!has_capability('enrol/wallet:creditdebit', context_system::instance())) {
-        return '';
+function enrol_wallet_display_charger_form($return = true) {
+    $output = static_renderer::charger_form();
+    if ($return) {
+        return $output;
     }
-
-    $action = new moodle_url('/enrol/wallet/extra/charger.php', ['return' => $PAGE->url]);
-    $mform = new enrol_wallet\form\charger_form($action, null, 'get');
-    $result = optional_param('result', '', PARAM_RAW);
-
-    $output = $result;
-    $output .= $mform->render();
-    return $output;
+    echo $output;
 }
 
 /**
@@ -187,45 +99,8 @@ function enrol_wallet_display_charger_form() {
  * @return bool
  */
 function enrol_wallet_handle_charger_form($data) {
-    global $USER, $DB;
-    $data = (array)$data;
-    $op = $data['op'] ?? '';
-
-    if (!empty($op) && $op != 'result') {
-
-        $value  = $data['value'] ?? '';
-        $userid = $data['userlist'];
-        $catid  = $data['category'] ?? 0;
-
-        $charger = $USER->id;
-
-        $operations = new balance_op($userid, $catid);
-        $before = $operations->get_total_balance();
-        if ($op === 'credit') {
-
-            $desc = get_string('charger_credit_desc', 'enrol_wallet', fullname($USER));
-            // Process the transaction.
-            $operations->credit($value, $operations::USER, $charger, $desc);
-            $after = $operations->get_total_balance();
-
-        } else if ($op === 'debit') {
-            $neg = $data['neg'] ?? optional_param('neg', false, PARAM_BOOL);
-            // Process the payment.
-            $operations->debit($value, $operations::USER, $charger, '', $neg);
-            $after = $operations->get_total_balance();
-
-        }
-
-        $params = [
-            'before' => $before,
-            'after'  => ($op == 'balance') ? $before : $after,
-            'userid' => $userid,
-            'op'     => 'result',
-        ];
-
-        return enrol_wallet_display_transaction_results($params);
-    }
-    return false;
+    $form = new charger_form();
+    return $form->process_form_submission($data);
 }
 
 /**
@@ -234,66 +109,8 @@ function enrol_wallet_handle_charger_form($data) {
  * @return bool
  */
 function enrol_wallet_display_transaction_results($params = []) {
-    if (!has_capability('enrol/wallet:viewotherbalance', context_system::instance())) {
-        return false;
-    }
-
-    $result = $params['result'] ?? optional_param('result', false, PARAM_TEXT);
-    $before = $params['before'] ?? optional_param('before', '', PARAM_FLOAT);
-    $after  = $params['after'] ?? optional_param('after', '', PARAM_FLOAT);
-    $userid = $params['userid'] ?? optional_param('userid', '', PARAM_INT);
-    $err    = $params['err'] ?? optional_param('error', '', PARAM_TEXT);
-
-    $info = '';
-    if (!empty($err)) {
-
-        $info .= get_string('ch_result_error', 'enrol_wallet', $err);
-        $type = 'error';
-
-    } else {
-
-        $user = \core_user::get_user($userid);
-        $userfull = $user->firstname.' '.$user->lastname.' ('.$user->email.')';
-        // Display the result to the user.
-        $info .= get_string('ch_result_before', 'enrol_wallet', $before);
-        $type = 'success';
-        if (!empty($result) && is_numeric($result)) {
-            $success = true;
-        } else {
-            $success = false;
-            if (is_string($result)) {
-                $info .= $result;
-            }
-        }
-        $a = [
-            'userfull'     => $userfull,
-            'after'        => $after,
-            'after_before' => ($after - $before),
-            'before'       => $before,
-        ];
-        if ($after !== $before) {
-
-            if ($after !== '') {
-                $info .= get_string('ch_result_after', 'enrol_wallet', $after);
-            }
-            if ($after < 0) {
-                $info .= get_string('ch_result_negative', 'enrol_wallet');
-                $type = 'warning';
-            }
-
-            $info .= get_string('ch_result_info_charge', 'enrol_wallet', $a);
-
-        } else {
-
-            $info .= get_string('ch_result_info_balance', 'enrol_wallet', $a);
-            $type = $success ? 'info' : 'error';
-
-        }
-    }
-    // Display the results.
-    core\notification::add($info, $type);
-
-    return true;
+    $form = new charger_form();
+    return $form->notify_result($params);
 }
 
 /**
@@ -301,156 +118,17 @@ function enrol_wallet_display_transaction_results($params = []) {
  * @param object $data
  * @return string the redirect url.
  */
-function enrol_wallet_process_coupon_data($data) {
-    global $DB;
-    $data = (array)$data;
-
-    $cancel = $data['cancel'] ?? optional_param('cancel', false, PARAM_BOOL);
-    $url = $data['url'] ?? '';
-    if (empty($url)) {
-        $redirecturl = new moodle_url('/');
-    } else {
-        $redirecturl = new moodle_url($url);
-    }
-
-    if ($cancel) {
-        // Important to unset the session coupon.
-        coupons::unset_session_coupon();
-        $redirecturl->remove_params('coupon', 'submitcoupon');
-        redirect($redirecturl);
-    }
-
-    $couponutil = new coupons($data['coupon']);
-
-    if (!empty($data['instanceid'])) {
-        $area = $couponutil::AREA_ENROL;
-        $areaid = $data['instanceid'];
-    } else if (!empty($data['cmid'])) {
-        $area = $couponutil::AREA_CM;
-        $areaid = $data['cmid'];
-    } else if (!empty($data['sectionid'])) {
-        $area = $couponutil::AREA_SECTION;
-        $areaid = $data['sectionid'];
-    } else {
-        $area = $couponutil::AREA_TOPUP;
-        $areaid = 0;
-    }
-
-    $couponutil->validate_coupon($area, $areaid);
-    if ($error = $couponutil->has_error()) {
-        $msg = get_string('coupon_applyerror', 'enrol_wallet', $error ?? '');
-        $msgtype = 'error';
-        // This mean that the function return error.
-    } else {
-
-        $value = $couponutil->get_value();
-        $type = $couponutil->type;
-        switch($area) {
-            case coupons::AREA_ENROL:
-                $id = $DB->get_field('enrol', 'courseid', ['id' => $areaid, 'enrol' => 'wallet'], IGNORE_MISSING);
-                if (!empty($id)) {
-                    $redirecturl = new moodle_url('/enrol/index.php', ['id' => $id, 'coupon' => $couponutil->code]);
-                }
-                break;
-            case coupons::AREA_CM:
-            case coupons::AREA_SECTION:
-                if (!empty($url)) {
-                    $redirecturl = $url . '&' . http_build_query(['coupon' => $couponutil->code]);
-                }
-                break;
-            default:
-        }
-
-        $couponutil->apply_coupon($area, $areaid);
-        // Check the type to determine what to do.
-        if ($type == $couponutil::FIXED) {
-            // Apply the coupon code to add its value to the user's wallet and enrol if value is enough.
-            $currency = get_config('enrol_wallet', 'currency');
-            $a = [
-                'value'    => $value,
-                'currency' => $currency,
-            ];
-            $msg = get_string('coupon_applyfixed', 'enrol_wallet', $a);
-            $msgtype = 'success';
-
-        } else if ($type == $couponutil::DISCOUNT && $area == $couponutil::AREA_ENROL) {
-            // Percentage discount coupons applied in enrolment.
-            if (!empty($id)) {
-                $msg = get_string('coupon_applydiscount', 'enrol_wallet', $value);
-                $msgtype = 'success';
-            } else {
-                $msg = get_string('coupon_applynocourse', 'enrol_wallet');
-                $msgtype = 'error';
-            }
-
-        } else if ($type == $couponutil::DISCOUNT
-                    && in_array($area, [$couponutil::AREA_SECTION, $couponutil::AREA_CM])) {
-
-            // This is the case when the coupon applied by availability wallet.
-
-            $msg = get_string('coupon_applydiscount', 'enrol_wallet', $value);
-            $msgtype = 'success';
-
-        } else if ($type == $couponutil::CATEGORY) {
-            // This type of coupons is restricted to be used in certain categories.
-            $msg = get_string('coupon_categoryapplied', 'enrol_wallet');
-            $msgtype = 'success';
-
-        } else if ($type == $couponutil::AREA_ENROL) {
-            // Apply the coupon and enrol the user.
-            $msg = get_string('coupon_enrolapplied', 'enrol_wallet');
-            $msgtype = 'success';
-
-        } else {
-            $msg = get_string('invalidcoupon_operation', 'enrol_wallet');
-            $msgtype = 'error';
-        }
-    }
-    if ($msgtype === 'error') {
-        $redirecturl->param('error', $msg);
-    }
-    core\notification::add($msg, $msgtype);
-    return $redirecturl;
+function enrol_wallet_process_coupon_data($data = null) {
+    $form = new applycoupon_form();
+    return $form->process_coupon_data($data);
 }
 /**
  * Display links to generate and view coupons.
  * @return string
  */
 function enrol_wallet_display_coupon_urls() {
-    if (get_config('enrol_wallet', 'walletsource') != balance::MOODLE) {
-        return '';
-    }
-
-    if (!isloggedin() || isguestuser()) {
-        return '';
-    }
-
-    $context = context_system::instance();
-    $canviewcoupons = has_capability('enrol/wallet:viewcoupon', $context);
-    $cangeneratecoupon = has_capability('enrol/wallet:createcoupon', $context);
-    $caneditcoupon = has_capability('enrol/wallet:editcoupon', $context);
-    $render = '';
-    // Check if the user can view and generate coupons.
-    if ($canviewcoupons) {
-        $url = new moodle_url('/enrol/wallet/extra/coupontable.php');
-        $render .= html_writer::link($url, get_string('coupon_table', 'enrol_wallet')).'<br>';
-
-        $url = new moodle_url('/enrol/wallet/extra/couponusage.php');
-        $render .= html_writer::link($url, get_string('coupon_usage', 'enrol_wallet'));
-
-        if ($cangeneratecoupon) {
-            $url = new moodle_url('/enrol/wallet/extra/coupon.php');
-            $render .= '<br>' . html_writer::link($url, get_string('coupon_generation', 'enrol_wallet'));
-        }
-        if ($cangeneratecoupon && $caneditcoupon) {
-            $url = new moodle_url('/enrol/wallet/extra/couponupload.php');
-            $render .= '<br>' . html_writer::link($url, get_string('upload_coupons', 'enrol_wallet'));
-        }
-    }
-    return $render;
+    return static_renderer::coupons_urls();
 }
-
-
 
 /**
  * Return html string contains information about current user wallet balance.
@@ -458,12 +136,12 @@ function enrol_wallet_display_coupon_urls() {
  * @return bool|string
  */
 function enrol_wallet_display_current_user_balance($userid = 0) {
-    global $USER, $OUTPUT, $CFG, $PAGE;
+    global $PAGE;
     if (!isloggedin() || isguestuser()) {
         return '';
     }
 
-    $renderable = new \enrol_wallet\output\wallet_balance($userid);
+    $renderable = new wallet_balance($userid);
     $renderer = $PAGE->get_renderer('enrol_wallet');
     return $renderer->render($renderable);
 }
@@ -473,162 +151,12 @@ function enrol_wallet_display_current_user_balance($userid = 0) {
  * @return string
  */
 function enrol_wallet_display_topup_options() {
-    global $CFG, $OUTPUT, $PAGE;
-
-    require_once($CFG->dirroot.'/enrol/wallet/classes/form/topup_form.php');
-    require_once(__DIR__.'/lib.php');
-
-    $username = optional_param('s', '', PARAM_USERNAME);
-    if (!empty($username)) {
-        $user = get_complete_user_data('username', $username);
-    } else {
-        global $USER;
-        $user = $USER;
-    }
-
-    if (empty($user) || empty($user->id) || isguestuser($user)) {
-        return '';
-    }
-
-    // Get the default currency.
-    $currency = get_config('enrol_wallet', 'currency');
-    // Get the default payment account.
-    $account = get_config('enrol_wallet', 'paymentaccount');
-    // Get coupons settings.
-    $couponsetting = get_config('enrol_wallet', 'coupons');
-    // Set the data we want to send to forms.
-    $instance = new \stdClass;
-    $data = new \stdClass;
-
-    $instance->id         = 0;
-    $instance->courseid   = SITEID;
-    $instance->currency   = $currency;
-    $instance->customint1 = $account;
-
-    $data->instance = $instance;
-    $data->user     = $user;
-
-    $render = '';
-    // First check if payments is enabled.
-    if (enrol_wallet_is_valid_account($account)) {
-        // If the user don't have capability to charge others.
-        // Display options to charge with coupons or other payment methods.
-        $bundles = enrol_wallet\util\discount_rules::bundles_buttons();
-        if (!empty($bundles)) {
-            $render .= enrol_wallet_topup_option($bundles, get_string('bundle_value', 'enrol_wallet'));
-        }
-        $topupurl = new moodle_url('/enrol/wallet/extra/topup.php');
-        $topupform = new \enrol_wallet\form\topup_form($topupurl, $data);
-        $render .= enrol_wallet_topup_option($topupform->render(), get_string('topupbypayment', 'enrol_wallet'));
-    }
-
-    // Check if fixed coupons enabled.
-    $enabledcoupons = coupons::get_enabled();
-    $intersect = array_intersect($enabledcoupons, [coupons::ALL, coupons::FIXED, coupons::CATEGORY]);
-    if (!empty($intersect)) {
-        // Display the coupon form to enable user to topup wallet using fixed coupon.
-        require_once($CFG->dirroot.'/enrol/wallet/classes/form/applycoupon_form.php');
-        $couponaction = new moodle_url('/enrol/wallet/extra/coupon_action.php');
-        $couponform = new enrol_wallet\form\applycoupon_form($couponaction, $data);
-
-        if ($submitteddata = $couponform->get_data()) {
-            enrol_wallet_process_coupon_data($submitteddata);
-        }
-
-        $render .= enrol_wallet_topup_option($couponform->render(), get_string('topupbycoupon', 'enrol_wallet'));
-    }
-
-    // If plugin block_vc exist, add credit options by it.
-    if (file_exists("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php")
-            && (bool)get_config('block_vc', 'enablecredit')) {
-
-        require_once("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php");
-        $action = new moodle_url('/blocks/vc/credit.php');
-        $vcform = new \block_vc\form\vc_credit_form($action);
-
-        $render .= enrol_wallet_topup_option($vcform->render(), get_string('topupbyvc', 'enrol_wallet'));
-    }
-
-    // Display teller men (user with capabilities to credit and choosen in the settings to be displayed).
-    $tellermen = get_config('enrol_wallet', 'tellermen');
-    if (!empty($tellermen)) {
-        require_once($CFG->dirroot.'/user/lib.php');
-        $chargerids = explode(',', $tellermen);
-        $tm = $OUTPUT->box_start();
-        $tm .= $OUTPUT->heading(get_string('tellermen_display_guide', 'enrol_wallet'), 6);
-        $tm .= html_writer::start_tag('ul');
-        foreach ($chargerids as $tellerid) {
-            if (empty($tellerid)) {
-                continue;
-            }
-            $teller = core_user::get_user($tellerid);
-            if (!$teller || isguestuser($teller) || !core_user::is_real_user($tellerid)) {
-                continue;
-            }
-
-            $tellername = fullname($teller);
-            if (user_can_view_profile($teller)) {
-                $tellername = html_writer::link(new moodle_url('/user/view.php', ['id' => $tellerid]), $tellername);
-            }
-            $tm .= html_writer::tag('li', $tellername);
-        }
-        $tm .= html_writer::end_tag('ul');
-        $tm .= $OUTPUT->box_end();
-        $render .= enrol_wallet_topup_option($tm, get_string('topupbytellerman', 'enrol_wallet'));
-    }
-
-    // Display the manual refund policy.
-    $policy = get_config('enrol_wallet', 'refundpolicy');
-    if (!empty($policy) && !empty($render)) {
-        $id = random_int(1000, 9999); // So the JS codes not interfere.
-        // Policy Wrapper.
-        $warn = html_writer::start_div('alert alert-warning');
-        // Intro.
-        $warn .= html_writer::span(get_string('agreepolicy_intro', 'enrol_wallet'));
-
-        // Hidden policy until the user click the link.
-        $data = new stdClass;
-        $data->policy = $policy;
-        $data->id     = $id;
-        $data->topup  = true;
-        $warn .= $OUTPUT->render_from_template('enrol_wallet/manualpolicy', $data);
-
-        // Agree checkbox, the whole topping up options hidden until the user check the box.
-        $attributes = ['id' => 'wallet_topup_policy_confirm_'.$id];
-        $warn .= html_writer::checkbox('wallet_topup_policy_confirm_'.$id, '1', false,
-                                        get_string('agreepolicy_label', 'enrol_wallet'), $attributes);
-        $warn .= html_writer::end_div();
-
-        // All topping up options inside a box to control it using JS.
-        $attr = ['style' => 'display: none;'];
-        $box = $OUTPUT->box_start('enrol_wallet_topup_options generalbox', 'enrol_wallet_topup_box_'.$id, $attr);
-        $render = $warn . $box . $render;
-        $render .= $OUTPUT->box_end();
-    }
-
-    if (!empty($render)) {
-        return $OUTPUT->box($render, 'generalbox enrol_wallet_topup');
-    } else {
-        return '';
-    }
+    global $PAGE;
+    $topup = new topup_options();
+    $renderer = $PAGE->get_renderer('enrol_wallet');
+    return $renderer->render($topup);
 }
-/**
- * Add the top up option to accordion element.
- * @param string $content the content of accordion
- * @param string $label
- * @return string
- */
-function enrol_wallet_topup_option($content, $label) {
-    static $i = 0;
-    $chked = empty($i) ? 1 : null;
-    $out = html_writer::start_div('accordion');
-    $radio = html_writer::tag('input', '', ['type' => 'radio', 'name' => 'radio', 'id' => 'topup_radio_'.$i, 'checked' => $chked]);
-    $out .= html_writer::label("$label".$radio, 'topup_radio_'.$i, true, ['class' => 'accordion__title']);
-    $out .= html_writer::div($content, 'accordion__text');
-    $out .= html_writer::end_div();
-    $i++;
-    return $out;
-}
+
 /**
  * Check the payment account id if it is valid or not.
  *
@@ -656,7 +184,7 @@ function enrol_wallet_is_valid_account($accountid) {
  * @return bool
  */
 function enrol_wallet_is_borrow_eligible($userid = null) {
-    global $CFG, $USER, $DB;
+    global $USER, $DB;
     $enabled = get_config('enrol_wallet', 'borrowenable');
     $number = get_config('enrol_wallet', 'borrowtrans');
     $period = get_config('enrol_wallet', 'borrowperiod');
@@ -679,7 +207,7 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
         return false;
     }
 
-    $op = new enrol_wallet\util\balance_op($userid);
+    $op = new balance_op($userid);
     $balance = $op->get_main_balance();
 
     if ($balance < 0) {

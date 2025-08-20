@@ -60,8 +60,12 @@ class renderer extends plugin_renderer_base {
      * Render all topping up options.
      * @return string
      */
-    public function render_top_up_options() {
-        return '';
+    public function render_topup_options(topup_options $widget) {
+        if (!$widget->display) {
+            return '';
+        }
+        $data = $widget->export_for_template($this);
+        return $this->render_from_template('enrol_wallet/topup_options', $data);
     }
 
     /**

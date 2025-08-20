@@ -23,9 +23,9 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op;
-use enrol_wallet\util\options;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+use enrol_wallet\local\utils\options;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -857,7 +857,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertNotEmpty($editingteacherrole);
 
         // Enable wallet enrolment plugin and set to send email from course contact.
-        $walletplugin = enrol_get_plugin('wallet');
+        $walletplugin = enrol_wallet_plugin::get_plugin();
         $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->customint6 = 1;
         $instance1->customint4 = ENROL_SEND_EMAIL_FROM_COURSE_CONTACT;

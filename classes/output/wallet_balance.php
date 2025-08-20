@@ -23,10 +23,10 @@
  */
 namespace enrol_wallet\output;
 
+use enrol_wallet\local\wallet\balance;
 use renderable;
 use templatable;
 use renderer_base;
-use enrol_wallet\util\balance;
 use moodle_url;
 use html_writer;
 use core_course_category;

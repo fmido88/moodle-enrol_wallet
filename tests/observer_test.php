@@ -23,8 +23,9 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+use enrol_wallet_plugin;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -46,6 +47,9 @@ final class observer_test extends \advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         set_config('awardssite', 1, 'enrol_wallet');
+        /**
+         * @var enrol_wallet_plugin
+         */
         $walletplugin = enrol_get_plugin('wallet');
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;

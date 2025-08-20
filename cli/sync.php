@@ -69,7 +69,7 @@ if (empty($options['verbose'])) {
     $trace = new text_progress_trace();
 }
 
-$plugin = enrol_get_plugin('wallet');
+$plugin = enrol_wallet_plugin::get_plugin();
 
 $result = $plugin->sync($trace, null);
 $plugin->send_expiry_notifications($trace);

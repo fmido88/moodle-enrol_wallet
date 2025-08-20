@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace enrol_wallet;
-use enrol_wallet\util\balance;
+use enrol_wallet\local\wallet\balance;
 use curl;
 /**
  * The class containing  the function which handles wordpress requests.

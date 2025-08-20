@@ -23,7 +23,8 @@
 
 namespace enrol_wallet\form;
 
-use enrol_wallet\util\balance;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet_plugin;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -68,7 +69,7 @@ class enrol_form extends \moodleform {
         $mform = $this->_form;
         $costbefore = $instance->cost;
         $currency = $instance->currency;
-        $plugin = enrol_get_plugin('wallet');
+        $plugin = enrol_wallet_plugin::get_plugin();
 
         $costafter = $plugin->get_cost_after_discount($USER->id, $instance);
 

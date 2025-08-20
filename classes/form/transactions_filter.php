@@ -23,6 +23,8 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\local\utils\catoptions;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
@@ -81,7 +83,7 @@ class transactions_filter extends \moodleform {
         $mform->addElement('text', 'value', get_string('value', 'enrol_wallet'));
         $mform->setType('value', PARAM_FLOAT);
 
-        $catoptions = \enrol_wallet\category\options::get_all_categories_options();
+        $catoptions = catoptions::get_all_categories_options();
         $mform->addElement('select', 'category', get_string('category'), $catoptions);
 
         // Transaction per page.

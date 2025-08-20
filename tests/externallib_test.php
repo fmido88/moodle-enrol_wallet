@@ -16,7 +16,7 @@
 
 namespace enrol_wallet;
 
-use enrol_wallet_external;
+use enrol_wallet\external\enrol as enrol_wallet_external;
 use externallib_advanced_testcase;
 use enrol_wallet\transactions;
 

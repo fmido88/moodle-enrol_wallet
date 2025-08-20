@@ -24,14 +24,17 @@
 
 namespace enrol_wallet\form;
 
+use core\context\system;
+use enrol_wallet\local\wallet\balance_op;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
-use enrol_wallet\category\options;
-use enrol_wallet\util\balance;
-use enrol_wallet\util\discount_rules;
-use enrol_wallet\util\form;
+use enrol_wallet\local\utils\catoptions;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\discounts\discount_rules;
+use enrol_wallet\local\utils\form;
 
 /**
  * The form by which managers could charge others manually.
@@ -137,10 +140,10 @@ class charger_form extends \moodleform {
         $mform->setType('value', PARAM_FLOAT);
         $mform->hideIf('value', 'op', 'eq', 'balance');
 
-        $balance = new balance;
+        $balance = new balance();
         if ($balance->catenabled) {
             $categorytitle = get_string('category');
-            $catoptions = options::get_all_categories_options();
+            $catoptions = catoptions::get_all_categories_options();
             $mform->addElement('select', 'category', $categorytitle, $catoptions);
         } else {
             $mform->addElement('hidden', 'category');
@@ -222,7 +225,7 @@ class charger_form extends \moodleform {
             }
 
             if (empty($data['neg'])) {
-                $balance = new \enrol_wallet\util\balance($userid, $catid);
+                $balance = new balance($userid, $catid);
                 $before = $balance->get_valid_balance();
                 if ($op === 'debit' && $value > $before) {
                     // Cannot deduct more than the user's balance.
@@ -237,5 +240,118 @@ class charger_form extends \moodleform {
         }
 
         return $errors;
+    }
+
+    public function process_form_submission($data = null) {
+        global $USER, $DB;
+        if (!$data) {
+            $data = $this->get_data();
+        }
+
+        if (empty($data)) {
+            return null;
+        }
+
+        $data = (array)$data;
+        $op = $data['op'] ?? '';
+
+        if (!empty($op) && $op != 'result') {
+
+            $value  = $data['value'] ?? '';
+            $userid = $data['userlist'];
+            $catid  = $data['category'] ?? 0;
+
+            $charger = $USER->id;
+
+            $operations = new balance_op($userid, $catid);
+            $before = $operations->get_total_balance();
+            if ($op === 'credit') {
+
+                $desc = get_string('charger_credit_desc', 'enrol_wallet', fullname($USER));
+                // Process the transaction.
+                $operations->credit($value, $operations::USER, $charger, $desc);
+                $after = $operations->get_total_balance();
+
+            } else if ($op === 'debit') {
+                $neg = $data['neg'] ?? optional_param('neg', false, PARAM_BOOL);
+                // Process the payment.
+                $operations->debit($value, $operations::USER, $charger, '', $neg);
+                $after = $operations->get_total_balance();
+
+            }
+
+            $params = [
+                'before' => $before,
+                'after'  => ($op == 'balance') ? $before : $after,
+                'userid' => $userid,
+                'op'     => 'result',
+            ];
+
+            return $this->notify_result($params);
+        }
+        return false;
+    }
+
+    public function notify_result($params = []) {
+        if (!has_capability('enrol/wallet:viewotherbalance', system::instance())) {
+            return false;
+        }
+
+        $result = $params['result'] ?? optional_param('result', false, PARAM_TEXT);
+        $before = $params['before'] ?? optional_param('before', '', PARAM_FLOAT);
+        $after  = $params['after'] ?? optional_param('after', '', PARAM_FLOAT);
+        $userid = $params['userid'] ?? optional_param('userid', '', PARAM_INT);
+        $err    = $params['err'] ?? optional_param('error', '', PARAM_TEXT);
+
+        $info = '';
+        if (!empty($err)) {
+
+            $info .= get_string('ch_result_error', 'enrol_wallet', $err);
+            $type = 'error';
+
+        } else {
+
+            $user = \core_user::get_user($userid);
+            $userfull = $user->firstname.' '.$user->lastname.' ('.$user->email.')';
+            // Display the result to the user.
+            $info .= get_string('ch_result_before', 'enrol_wallet', $before);
+            $type = 'success';
+            if (!empty($result) && is_numeric($result)) {
+                $success = true;
+            } else {
+                $success = false;
+                if (is_string($result)) {
+                    $info .= $result;
+                }
+            }
+            $a = [
+                'userfull'     => $userfull,
+                'after'        => $after,
+                'after_before' => ($after - $before),
+                'before'       => $before,
+            ];
+            if ($after !== $before) {
+
+                if ($after !== '') {
+                    $info .= get_string('ch_result_after', 'enrol_wallet', $after);
+                }
+                if ($after < 0) {
+                    $info .= get_string('ch_result_negative', 'enrol_wallet');
+                    $type = 'warning';
+                }
+
+                $info .= get_string('ch_result_info_charge', 'enrol_wallet', $a);
+
+            } else {
+
+                $info .= get_string('ch_result_info_balance', 'enrol_wallet', $a);
+                $type = $success ? 'info' : 'error';
+
+            }
+        }
+        // Display the results.
+        \core\notification::add($info, $type);
+
+        return true;
     }
 }

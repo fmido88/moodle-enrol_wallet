@@ -16,12 +16,13 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\local\utils\catoptions;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir.'/formslib.php');
 
 use moodleform;
-use enrol_wallet\category\options;
 /**
  * Class conditional_discount
  *
@@ -40,7 +41,7 @@ class conditional_discount extends moodleform {
 
         $mform->addElement('header', 'conditionaldiscount', get_string('conditionaldiscount', 'enrol_wallet'));
 
-        $options = options::get_all_categories_options();
+        $options = catoptions::get_all_categories_options();
         $mform->addElement('select', 'category', get_string('category'), $options);
 
         $mform->addElement('text', 'cond', get_string('conditionaldiscount_condition', 'enrol_wallet'));

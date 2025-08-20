@@ -60,7 +60,7 @@ class transactions extends table_sql {
     /**
      * Creates a transaction table.
      *
-     * @param int $uniqueid all tables have to have a unique id.
+     * @param string $uniqueid all tables have to have a unique id.
      * @param stdClass|null $filterdata The data passed from the filtration form.
      */
     public function __construct($uniqueid, $filterdata = null) {

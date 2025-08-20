@@ -1,0 +1,49 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template enrol_wallet/topup-options-accordion
+
+    TODO describe template topup-options-accordion
+
+    Example context (json):
+    {
+    }
+}}
+<div class="accordion" id="topup-accordion-{{uniqid}}">
+    {{#items}}
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading-{{key}}-{{uniqid}}">
+        <button class="accordion-button"
+                type="button"
+                data-bs-toggle="collapse" data-toggle="collapse"
+                data-bs-target="#{{key}}-{{uniqid}}" data-target="#{{key}}-{{uniqid}}"
+                aria-expanded="{{#show}}ture{{/show}}{{^show}}false{{/show}}"
+                aria-controls="{{key}}-{{uniqid}}">
+            {{label}}
+        </button>
+        </h2>
+        <div id="{{key}}-{{uniqid}}"
+            class="accordion-collapse collapse {{#show}}show{{/show}}"
+            aria-labelledby="heading-{{key}}-{{uniqid}}"
+            data-bs-parent="#topup-accordion-{{uniqid}}" data-parent="#topup-accordion-{{uniqid}}">
+            <div class="accordion-body">
+                {{{content}}}
+            </div>
+        </div>
+    </div>
+    {{/items}}
+</div>

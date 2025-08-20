@@ -29,20 +29,19 @@
     }
 
 }}
-<div>
-    <div style="text-align: left; padding-bottom: 2px;">
-        {{# policy}}
-        <a href="#" id="enrol_wallet_transactions-policy-url-{{{id}}}" class="transactions-policy-url"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a><br>
-        {{/ policy}}
+{{# policy}}
+<div data-wallet-purpose="policy-container">
+    <div class="pb-1">
+        <a href="#" class="transactions-policy-url" data-wallet-action="toggle-policy"> {{# str }} refundpolicy, enrol_wallet {{/ str }}</a>
     </div>
-    <div id="enrol_wallet_transactions-policy-{{{id}}}" class="transactions-policy" style="display:none;">{{{policy}}}</div><br>
-    {{#topup}}
-        <h6 style="color:#9f0f0f;"> &#8595; {{# str }} manualrefundboxlabel, enrol_wallet {{/ str }}</h6>
-    {{/topup}}
+    <div data-wallet-role="policy" class="transactions-policy text-left" style="display:none;">{{{policy}}}</div>
 </div>
+{{/ policy}}
 
 {{#js}}
+{{#policy}}
     require(['enrol_wallet/expenders'], function(ex) {
-        ex.init('{{id}}');
+        ex.init('{{uniqid}}');
     });
+{{/policy}}
 {{/js}}

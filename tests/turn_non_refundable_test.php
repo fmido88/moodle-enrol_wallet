@@ -23,9 +23,9 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\task\turn_non_refundable;
-use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op;
 
 /**
  * Testing the adhoc task to transform certain amount to nonrefundable.

@@ -23,9 +23,9 @@
  */
 namespace enrol_wallet;
 
-use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op;
-use enrol_wallet\coupons;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+use enrol_wallet\local\coupons\coupons;
 
 /**
  * Functions to handle all wallet transactions and coupons operations.

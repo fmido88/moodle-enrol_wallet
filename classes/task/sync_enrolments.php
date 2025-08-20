@@ -24,6 +24,8 @@
 
 namespace enrol_wallet\task;
 
+use enrol_wallet_plugin;
+
 /**
  * Sync enrollments task.
  */
@@ -42,7 +44,7 @@ class sync_enrolments extends \core\task\scheduled_task {
      * Run task for syncing enrollments.
      */
     public function execute() {
-        $enrol = enrol_get_plugin('wallet');
+        $enrol = enrol_wallet_plugin::get_plugin();
         $trace = new \text_progress_trace();
         $enrol->sync($trace);
     }

@@ -21,51 +21,60 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+import $ from 'jquery';
+
 export const init = (uniqid) => {
+
     // Manual refund policy.
-    var enrolWalletPolicyUrl = document.getElementById('enrol_wallet_transactions-policy-url-' + uniqid);
-    var policy = document.getElementById('enrol_wallet_transactions-policy-' + uniqid);
-    if (enrolWalletPolicyUrl && policy) {
-        enrolWalletPolicyUrl.addEventListener("click", function() {
-            if (policy.style.display === "none") {
-                policy.style.display = "block";
-            } else {
-                policy.style.display = "none";
-            }
-        });
-    }
+    let policyContainer = $('[data-wallet-purpose="policy-container"]');
+    let policyLink = policyContainer.find('[data-wallet-action="toggle-policy"]');
+
+    // eslint-disable-next-line no-console
+    console.log(policyContainer, policyLink);
+    policyLink.off("click");
+    policyLink.on("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+
+        let policy = $(this).parent().siblings('[data-wallet-role="policy"]');
+
+        // eslint-disable-next-line no-console
+        console.log(policy);
+        policy.toggle();
+    });
 
     // More balance details.
-    var moreBalanceDetails = document.getElementById('more-details-' + uniqid);
-    var details = document.getElementById('balance-details-' + uniqid);
-    if (moreBalanceDetails && details) {
-        moreBalanceDetails.addEventListener("click", function() {
-            if (details.style.display === "none") {
-                details.style.display = "flex";
-            } else {
-                details.style.display = "none";
-            }
-        });
-    }
+    let moreBalanceDetails = $('#more-details-' + uniqid);
+    let details = $('#balance-details-' + uniqid);
+
+    moreBalanceDetails.off("click");
+    moreBalanceDetails.on("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        details.toggle();
+    });
 
     // Show top up options after confirm the agreement.
-    var walletPolicyAgreed = document.getElementById('wallet_topup_policy_confirm_' + uniqid);
-    var topUpBox = document.getElementById('enrol_wallet_topup_box_' + uniqid);
+    let walletPolicyAgreed = $('#wallet_topup_policy_confirm_' + uniqid);
+    let topUpBox = $('#enrol_wallet_topup_box_' + uniqid);
     if (walletPolicyAgreed && topUpBox) {
         // As the user may click the check box while the page not loaded yet.
         setTimeout(function() {
             showHideTopUp();
         });
 
-        walletPolicyAgreed.addEventListener('change', function() {
+        walletPolicyAgreed.off('change');
+        walletPolicyAgreed.on('change', function() {
             showHideTopUp();
         });
 
         const showHideTopUp = () => {
-            if (walletPolicyAgreed.checked == true) {
-                topUpBox.style.display = 'block';
+            if (walletPolicyAgreed.prop('checked')) {
+                topUpBox.show();
             } else {
-                topUpBox.style.display = 'none';
+                topUpBox.hide();
             }
         };
     }

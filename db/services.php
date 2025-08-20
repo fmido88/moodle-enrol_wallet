@@ -26,35 +26,31 @@ defined('MOODLE_INTERNAL') || die;
 
 $functions = [
     'enrol_wallet_get_instance_info' => [
-        'classname'   => 'enrol_wallet_external',
+        'classname'   => enrol_wallet\external\enrol::class,
         'methodname'  => 'get_instance_info',
-        'classpath'   => 'enrol/wallet/externallib.php',
         'description' => 'wallet enrolment instance information.',
         'type'        => 'read',
         'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
 
     'enrol_wallet_enrol_user' => [
-        'classname'   => 'enrol_wallet_external',
+        'classname'   => enrol_wallet\external\enrol::class,
         'methodname'  => 'enrol_user',
-        'classpath'   => 'enrol/wallet/externallib.php',
         'description' => 'wallet enrol the current user in the given course.',
         'type'        => 'write',
         'services'    => [MOODLE_OFFICIAL_MOBILE_SERVICE],
     ],
     'enrol_wallet_get_balance_details' => [
-        'classname'   => 'enrol_wallet\api\balance_op',
+        'classname'   => 'enrol_wallet\external\balance_op',
         'methodname'  => 'get_balance_details',
-        'classpath'   => 'enrol/wallet/classes/api/balance_op.php',
         'description' => 'Get the balance details for a certain user',
         'type'        => 'read',
         'services'    => [],
         'ajax'        => true,
     ],
     'enrol_wallet_get_offer_form_fragment' => [
-        'classname'   => 'enrol_wallet\api\offers_form',
+        'classname'   => 'enrol_wallet\external\offers_form',
         'methodname'  => 'get_form_fragment',
-        'classpath'   => 'enrol/wallet/classes/api/offers_form.php',
         'description' => 'Get a fragment of the offer form',
         'type'        => 'read',
         'services'    => [],

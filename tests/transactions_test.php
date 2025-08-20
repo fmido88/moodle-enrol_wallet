@@ -23,6 +23,8 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\coupons\coupons;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');

@@ -23,10 +23,10 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-use enrol_wallet\util\balance;
-use enrol_wallet\coupons;
-use enrol_wallet\util\instance;
-use enrol_wallet\util\options;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\coupons\coupons;
+use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\utils\options;
 
 $context = context_system::instance();
 
