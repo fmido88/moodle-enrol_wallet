@@ -46,11 +46,13 @@ class wallet_tabs implements renderable, templatable {
      * @var context
      */
     protected context $coursecontext;
+
     /**
      * The user id, usually the current user.
      * @var int
      */
     protected int $userid;
+
     /**
      * The main tabs to be rendered.
      * @var array
@@ -65,7 +67,7 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Prepare the wallet taps to be rendered.
-     * @param int $userid
+     * @param int      $userid
      * @param ?context $coursecontext
      */
     public function __construct($userid = 0, ?context $coursecontext = null) {
@@ -88,10 +90,18 @@ class wallet_tabs implements renderable, templatable {
         $this->get_tab_labels();
     }
 
+    /**
+     * Load available administration links according to capabilities.
+     * @return void
+     */
     protected function load_admin_tabs() {
         $this->adminlinks = static_renderer::get_admins_links($this->coursecontext);
     }
 
+    /**
+     * Get all tabs labels available.
+     * @return array
+     */
     protected function get_tab_labels() {
         if (isset($this->tabnames)) {
             return $this->tabnames;
@@ -115,37 +125,64 @@ class wallet_tabs implements renderable, templatable {
         if (empty($this->adminlinks)) {
             unset($this->tabnames['admin']);
         }
+
+        return $this->tabnames;
     }
 
+    /**
+     * Get wallet balance template data.
+     * @param  renderer_base   $output
+     * @return array|\stdClass
+     */
     public function export_balance(renderer_base $output) {
         $wallet = new wallet_balance($this->userid);
+
         return $wallet->export_for_template($output);
     }
 
+    /**
+     * Get admin links data.
+     * @param  renderer_base $output
+     * @return array
+     */
     public function export_admin($output = null) {
         return $this->adminlinks;
     }
 
+    /**
+     * Get topup options template data.
+     * @param  renderer_base $output
+     * @return array{display: bool, haswarn: bool, items: array, policy: mixed, topup: bool}|array{display: bool}
+     */
     public function export_topup(renderer_base $output) {
         $topup = new topup_options();
+
         return $topup->export_for_template($output);
     }
 
+    /**
+     * Render charger form.
+     * @return string
+     */
     public function render_charge() {
         return static_renderer::charger_form();
     }
 
+    /**
+     * Render transaction table part.
+     * @return string
+     */
     public function render_transactions() {
         global $PAGE;
         $url = clone $PAGE->url;
         $url->set_anchor('linktransactions');
 
         $transactionurl = new url('/enrol/wallet/extra/transaction.php');
-        $class = ['class' => 'btn btn-primary'];
+        $class          = ['class' => 'btn btn-primary'];
 
         $out = html_writer::link($transactionurl, get_string('transactions_details', 'enrol_wallet'), $class);
 
-        $table = new transactions("wallet-page-transactions-table", (object)['userid' => $this->userid]);
+        $table = new transactions('wallet-page-transactions-table', (object)['userid' => $this->userid]);
         $table->define_baseurl($url);
 
         ob_start();
@@ -155,31 +192,53 @@ class wallet_tabs implements renderable, templatable {
         return $out;
     }
 
+    /**
+     * Render referral page content.
+     * @return bool|string
+     */
     public function render_referral() {
-        if ((bool)get_config( 'enrol_wallet', 'referral_enabled')) {
+        if ((bool)get_config('enrol_wallet', 'referral_enabled')) {
             ob_start();
             pages::process_referral_page();
+
             return ob_get_clean();
         }
+
         return '';
     }
 
+    /**
+     * Render transfer balance to other form.
+     * @return bool|string
+     */
     public function render_transfer() {
         global $PAGE;
         $url = clone $PAGE->url;
-        $url->set_anchor("#linktransfer");
+        $url->set_anchor('#linktransfer');
 
         ob_start();
         pages::process_transfer_page($url);
+
         return ob_get_clean();
     }
 
+    /**
+     * Render the offers content.
+     * @return string
+     */
     public function render_offers() {
         return pages::get_offers_content();
     }
 
+    /**
+     * Export data for render.
+     * @param  renderer_base       $output
+     * @throws coding_exception
+     * @return array{pages: array}
+     */
     public function export_for_template(renderer_base $output) {
         $pages = [];
+
         foreach ($this->tabnames as $key => $label) {
             $page = [
                 'key'  => $key,
@@ -187,15 +246,18 @@ class wallet_tabs implements renderable, templatable {
             ];
             $exportmethod = "export_{$key}";
             $rendermethod = "render_{$key}";
+
             if (method_exists($this, $exportmethod)) {
                 $page["is{$key}"] = true;
-                $page["context"] = $this->$exportmethod($output);
+                $page['context']  = $this->$exportmethod($output);
+
                 if (empty($page['context'])) {
                     continue;
                 }
             } else if (method_exists($this, $rendermethod)) {
-                $page["prerendered"] = true;
-                $page["content"] = $this->$rendermethod();
+                $page['prerendered'] = true;
+                $page['content']     = $this->$rendermethod();
+
                 if (empty($page['content'])) {
                     continue;
                 }
@@ -204,6 +266,7 @@ class wallet_tabs implements renderable, templatable {
             }
             $pages[] = $page;
         }
+
         return ['pages' => $pages];
     }
 }

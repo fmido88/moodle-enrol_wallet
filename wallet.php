@@ -1,7 +1,4 @@
 <?php
-
-use enrol_wallet\output\pages;
-use enrol_wallet\output\wallet_tabs;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -24,6 +21,8 @@ use enrol_wallet\output\wallet_tabs;
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+use enrol_wallet\output\wallet_tabs;
 
 require_once('../../config.php');
 require_once("$CFG->dirroot/enrol/wallet/locallib.php");

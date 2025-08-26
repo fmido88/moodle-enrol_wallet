@@ -1,6 +1,4 @@
 <?php
-
-use enrol_wallet\local\wallet\balance;
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -24,8 +22,7 @@ use enrol_wallet\local\wallet\balance;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
+use enrol_wallet\local\wallet\balance;
 
 /**
  * To add the category and node information into the my profile page.

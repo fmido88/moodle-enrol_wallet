@@ -194,9 +194,9 @@ class catop extends cathelper {
      */
     public function add($amount, $refundable = true, $free = false): void {
         $catobj = (object)[
-            'refundable'    => $this->details[$this->catid]->refundable    ?? 0,
+            'refundable'    => $this->details[$this->catid]->refundable ?? 0,
             'nonrefundable' => $this->details[$this->catid]->nonrefundable ?? 0,
-            'free'          => $this->details[$this->catid]->free          ?? 0,
+            'free'          => $this->details[$this->catid]->free ?? 0,
         ];
         $catobj->balance = $this->details[$this->catid]->balance
                             ?? $catobj->refundable + $catobj->nonrefundable;
@@ -268,7 +268,7 @@ class catop extends cathelper {
             $remain = 0;
         } else {
             $nonrefundable = $nonrefundable - $amount + $refundable;
-            $newfree       = $free          - $amount + $refundable;
+            $newfree       = $free - $amount + $refundable;
 
             $this->nonrefundable -= $amount - $refundable;
 
@@ -297,36 +297,5 @@ class catop extends cathelper {
         ];
 
         return $remain;
-    }
-
-    /**
-     * Create category balance operations class from enrol wallet instance.
-     * @param  int|stdClass $instanceorid the enrol wallet instance of its id.
-     * @param  int          $userid       if 0 it will refer to the current user.
-     * @return operations
-     */
-    public static function create_from_instance($instanceorid, $userid = 0) {
-        $helper   = new helper($instanceorid, $userid);
-        $category = $helper->get_course_category();
-
-        return new static($category, $userid);
-    }
-
-    /**
-     * Create an instance of category balance operation from course object or its id.
-     * @param  int|stdClass $courseorid
-     * @param  int          $userid     if 0 it will set the current user.
-     * @return operations
-     */
-    public static function create_from_course($courseorid, $userid = 0) {
-        if (is_number($courseorid)) {
-            $course = get_course($courseorid);
-        } else if (is_object($courseorid)) {
-            $course = $courseorid;
-        } else {
-            throw new \moodle_exception('invalidcourseid');
-        }
-
-        return new static($course->category, $userid);
     }
 }

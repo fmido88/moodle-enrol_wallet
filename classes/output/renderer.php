@@ -58,6 +58,7 @@ class renderer extends plugin_renderer_base {
 
     /**
      * Render all topping up options.
+     * @param topup_options $widget
      * @return string
      */
     public function render_topup_options(topup_options $widget) {

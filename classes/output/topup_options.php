@@ -26,6 +26,8 @@ use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\local\discounts\discount_rules;
 use stdClass;
 
+defined('MOODLE_INTERNAL') || die();
+
 require_once($CFG->dirroot.'/enrol/wallet/classes/form/topup_form.php');
 require_once($CFG->dirroot.'/enrol/wallet/classes/form/applycoupon_form.php');
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
@@ -39,12 +41,27 @@ require_once($CFG->dirroot.'/user/lib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class topup_options implements templatable, renderable {
+    /**
+     * Plugin configuration.
+     * @var stdClass
+     */
     protected $config;
+    /**
+     * User object.
+     * @var stdClass
+     */
     public readonly stdClass $user;
+    /**
+     * If false don't display anything.
+     * @var bool
+     */
     public bool $display = true;
+    /**
+     * Prepare all available topup options for rendering.
+     * @return void
+     */
     public function __construct() {
         global $USER;
-
 
         if (isloggedin() && !isguestuser()) {
             $this->user = clone $USER;
@@ -63,6 +80,10 @@ class topup_options implements templatable, renderable {
         $this->config = get_config('enrol_wallet');
     }
 
+    /**
+     * Policy warning template context.
+     * @return array{haswarn: bool, policy: string, topup: bool}|array{haswarn: bool}
+     */
     public function export_policy_warn() {
         $policy = $this->config->refundpolicy;
         if (empty($policy)) {
@@ -72,10 +93,14 @@ class topup_options implements templatable, renderable {
         return [
             'haswarn' => true,
             'topup'   => true,
-            'policy'  => $policy,
+            'policy'  => format_text($policy),
         ];
     }
 
+    /**
+     * Get a fake instance for topup and coupon forms.
+     * @return stdClass
+     */
     protected function get_mocked_instance() {
         // Set the data we want to send to forms.
         $instance = new stdClass;
@@ -91,6 +116,11 @@ class topup_options implements templatable, renderable {
 
         return $data;
     }
+
+    /**
+     * Check if the payment account is a valid account.
+     * @return bool
+     */
     public function is_valid_account() {
         global $CFG;
         require_once("{$CFG->dirroot}/enrol/wallet/locallib.php");
@@ -104,6 +134,10 @@ class topup_options implements templatable, renderable {
         return $valid;
     }
 
+    /**
+     * Get fast topup bundles template context.
+     * @return array{content: string, key: string, label: string}|null
+     */
     public function get_bundles() {
         if (!$this->is_valid_account()) {
             return null;
@@ -120,6 +154,10 @@ class topup_options implements templatable, renderable {
         ];
     }
 
+    /**
+     * Get the topup form content and tab parameters.
+     * @return array{content: string, key: string, label: string}|null
+     */
     public function get_topup_form() {
         if (!$this->is_valid_account()) {
             return null;
@@ -137,6 +175,10 @@ class topup_options implements templatable, renderable {
         ];
     }
 
+    /**
+     * Get the coupons topup form.
+     * @return array{content: string, key: string, label: string}|null
+     */
     public function get_coupon_topup() {
         // Check if fixed coupons enabled.
         $enabledcoupons = coupons::get_enabled();
@@ -161,6 +203,11 @@ class topup_options implements templatable, renderable {
         ];
     }
 
+    /**
+     * Get VC charging form.
+     * Todo: Transfer the topup options to a hook.
+     * @return array{content: string, key: string, label: string}|null
+     */
     public function get_vc_credit_form() {
         global $CFG;
         // If plugin block_vc exist, add credit options by it.
@@ -180,6 +227,11 @@ class topup_options implements templatable, renderable {
         return null;
     }
 
+    /**
+     * Get teller men info.
+     * @param renderer_base $output
+     * @return array{content: bool|string, key: string, label: string}|null
+     */
     public function get_teller_men(renderer_base $output) {
         // Display teller men (user with capabilities to credit and chosen in the settings to be displayed).
         $tellermen = $this->config->tellermen;
@@ -216,6 +268,11 @@ class topup_options implements templatable, renderable {
         ];
     }
 
+    /**
+     * Summary of export_for_template
+     * @param renderer_base $output
+     * @return array{display: bool}|array{display: bool, items: array, haswarn: bool, policy: mixed, topup: bool}
+     */
     public function export_for_template(renderer_base $output) {
         if (!$this->display) {
             return ['display' => false];

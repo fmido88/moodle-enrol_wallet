@@ -16,14 +16,11 @@
 
 namespace enrol_wallet\external;
 
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once("$CFG->dirroot/enrol/wallet/externalclasses.php");
-use external_api;
-use external_function_parameters;
-use external_description;
-use external_single_structure;
-use external_value;
+use core_external\external_api;
+use core_external\external_function_parameters;
+use core_external\external_description;
+use core_external\external_single_structure;
+use core_external\external_value;
 /**
  * Class balance_op
  *
@@ -50,13 +47,17 @@ class balance_op extends external_api {
      */
     public static function get_balance_details($userid) {
         global $CFG, $PAGE;
+        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+
         $params = self::validate_parameters(self::get_balance_details_parameters(), ['userid' => $userid]);
         $userid = $params['userid'];
-        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+
         require_login();
         $context = \context_user::instance($userid);
-        require_capability('enrol/wallet:viewotherbalance', $context);
         $PAGE->set_context($context);
+
+        require_capability('enrol/wallet:viewotherbalance', $context);
+
         return ['details' => enrol_wallet_display_current_user_balance($userid)];
     }
 

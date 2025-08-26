@@ -26,6 +26,11 @@ use core\exception\moodle_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class negative_balance extends moodle_exception {
+    /**
+     * Negative balance exception.
+     * @param float $before The balance before the operation.
+     * @param float $amount The debit amount.
+     */
     public function __construct($before, $amount) {
         $a = ['amount' => $amount, 'before' => $before];
 

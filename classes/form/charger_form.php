@@ -26,6 +26,7 @@ namespace enrol_wallet\form;
 
 use core\context\system;
 use enrol_wallet\local\wallet\balance_op;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -242,6 +243,11 @@ class charger_form extends \moodleform {
         return $errors;
     }
 
+    /**
+     * Process the submission of the form.
+     * @param array|stdClass $data
+     * @return bool|null
+     */
     public function process_form_submission($data = null) {
         global $USER, $DB;
         if (!$data) {
@@ -289,10 +295,16 @@ class charger_form extends \moodleform {
 
             return $this->notify_result($params);
         }
+
         return false;
     }
 
-    public function notify_result($params = []) {
+    /**
+     * Add notifications about charge result.
+     * @param array $params
+     * @return bool
+     */
+    public function notify_result(array $params = []) {
         if (!has_capability('enrol/wallet:viewotherbalance', system::instance())) {
             return false;
         }

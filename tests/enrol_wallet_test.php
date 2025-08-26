@@ -1010,7 +1010,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     public function test_is_course_enrolment_restriction(): void {
         global $DB;
         $this->resetAfterTest();
-        $wallet = enrol_get_plugin('wallet');
+        $wallet = enrol_wallet_plugin::get_plugin();
 
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();

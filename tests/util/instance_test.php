@@ -16,13 +16,17 @@
 
 namespace enrol_wallet\util;
 
+use enrol_wallet\local\coupons\coupons;
+use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
 
 use enrol_wallet_plugin;
 
-use enrol_wallet\coupons;
 /**
  * Tests for Wallet enrolment
  *

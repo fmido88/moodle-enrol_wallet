@@ -688,7 +688,10 @@ class offers {
         $mform->addElement('text', 'offer_' . $type . '_discount_' . $i, get_string('discount', 'enrol_wallet'));
         $mform->setType('offer_' . $type . '_discount_' . $i, PARAM_FLOAT);
 
-        $mform->addElement('button', 'offer_delete_' . $i, get_string('delete'), ['data-action-delete' => $i]);
+        $mform->addElement('button', 'offer_delete_' . $i, get_string('delete'), [
+            'data-action-delete' => $i,
+            'data-action' => "deleteoffer",
+        ]);
         ob_start();
         $mform->display();
         $out = ob_get_clean();
@@ -766,8 +769,8 @@ class offers {
      * @return void
      */
     protected static function add_elements_for_time(&$mform, $i, $courseid) {
-        $mform->addElement('date_time_selector', 'offer_time_from_' . $i, get_string('from'));
-        $mform->addElement('date_time_selector', 'offer_time_to_' . $i, get_string('to'));
+        $mform->addElement('date_time_selector', 'offer_time_from_' . $i, get_string('fromdate'));
+        $mform->addElement('date_time_selector', 'offer_time_to_' . $i, get_string('todate'));
     }
 
     /**
@@ -1165,7 +1168,7 @@ class offers {
             $instance->customtext3 = $course->customtext3;
 
             $zero  = is_number($course->cost) && $course->cost == 0;
-            $class = new self($instance);
+            $class = new static($instance);
 
             $rawoffers = (array)@$class->get_raw_offers();
             foreach ($rawoffers as $k => $offer) {

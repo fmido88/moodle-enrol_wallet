@@ -26,7 +26,7 @@ defined('MOODLE_INTERNAL') || die;
 
 $functions = [
     'enrol_wallet_get_instance_info' => [
-        'classname'   => enrol_wallet\external\enrol::class,
+        'classname'   => "enrol_wallet\\external\\enrol",
         'methodname'  => 'get_instance_info',
         'description' => 'wallet enrolment instance information.',
         'type'        => 'read',
@@ -34,7 +34,7 @@ $functions = [
     ],
 
     'enrol_wallet_enrol_user' => [
-        'classname'   => enrol_wallet\external\enrol::class,
+        'classname'   => "enrol_wallet\\external\\enrol",
         'methodname'  => 'enrol_user',
         'description' => 'wallet enrol the current user in the given course.',
         'type'        => 'write',

@@ -24,6 +24,7 @@
 namespace enrol_wallet;
 
 use enrol_wallet\transactions;
+use enrol_wallet_plugin;
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
@@ -95,7 +96,7 @@ final class locallib_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course->id);
 
-        $wallet = enrol_get_plugin('wallet');
+        $wallet = enrol_wallet_plugin::get_plugin();
         // Update the instance such that the enrol duration is 2 hours.
         $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance->customint6 = 1;

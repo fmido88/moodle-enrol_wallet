@@ -47,10 +47,7 @@ final class observer_test extends \advanced_testcase {
         global $DB, $CFG;
         $this->resetAfterTest();
         set_config('awardssite', 1, 'enrol_wallet');
-        /**
-         * @var enrol_wallet_plugin
-         */
-        $walletplugin = enrol_get_plugin('wallet');
+        $walletplugin = enrol_wallet_plugin::get_plugin();
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;
         // Create user and check that there is no balance.

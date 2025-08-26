@@ -24,9 +24,8 @@
  */
 namespace enrol_wallet\util;
 
-use enrol_wallet\util\balance_op;
-use enrol_wallet\util\balance;
-use enrol_wallet\transactions;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
 
 /**
  * Tests for balance operations class.

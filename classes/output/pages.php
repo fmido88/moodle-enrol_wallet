@@ -288,9 +288,7 @@ class pages {
      */
     public static function get_offers_content() {
         global $DB, $PAGE, $OUTPUT;
-        /**
-         * @var \core_course_renderer
-         */
+
         $renderer = $PAGE->get_renderer('core', 'course');
 
         $courses = offers::get_courses_with_offers();

@@ -27,8 +27,20 @@ use null_progress_trace;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class generator {
+    /**
+     * Uppercase characters.
+     * @var string
+     */
     public const UPPERCASE_CHARSET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    /**
+     * Lower case characters.
+     * @var string
+     */
     public const LOWERCASE_CHARSET = 'abcdefghijklmnopqrstuvwxyz';
+    /**
+     * Digits characters.
+     * @var string
+     */
     public const NUMBERS_CHARSET = '0123456789';
     /**
      * Creating a random coupon according to the options and length provided.
@@ -52,7 +64,7 @@ class generator {
             $charset .= self::NUMBERS_CHARSET;
         }
 
-        $count = strlen( $charset );
+        $count = strlen($charset);
 
         while ($length--) {
             $randomcoupon .= $charset[mt_rand(0, $count - 1)];

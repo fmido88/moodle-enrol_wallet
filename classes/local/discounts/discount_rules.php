@@ -278,12 +278,14 @@ class discount_rules {
             }
             $maxcondition = $maxconditions[$catid] * 1.2;
             $data->data[$catid]->count++;
+
             $discounts[$id] = new \stdClass;
             $discounts[$id]->percent = (100 - ($record->cond / $maxcondition * 100)) - $prevwidth;
             $discounts[$id]->order = (int)round((float)$record->cond / $maxcondition * 10);
             $discounts[$id]->color = (int)round((1 - ((float)$record->cond / $maxcondition)) * 255);
             $discounts[$id]->condition = '> ' . format_float($record->cond, 2) . " $currency";
             $discounts[$id]->discount = format_float($record->percent, 2) . '%';
+
             $prevwidth = $discounts[$id]->percent;
         }
         $data->data[$catid]->discounts = array_values($discounts);

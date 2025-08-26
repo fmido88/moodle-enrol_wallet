@@ -629,7 +629,7 @@ class instance extends \stdClass {
         $discounts = [];
 
         foreach ($instances as $instance) {
-            $helper      = new self($instance);
+            $helper      = new static($instance);
             $discounts[] = $helper->get_rounded_discount();
         }
 

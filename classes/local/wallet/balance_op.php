@@ -174,7 +174,12 @@ class balance_op extends balance {
      */
     protected $freecut;
 
+    /**
+     * Save points to fallback to.
+     * @var array
+     */
     protected $savepoints = [];
+
     /**
      * Same as its parent constructor.
      * @see enrol_wallet\util\balance::__construct
@@ -792,7 +797,7 @@ class balance_op extends balance {
      * @return bool
      */
     private function apply_conditional_discount($by) {
-        global $DB, $USER;
+        global $DB;
         $forbidden = [
             self::C_ACCOUNT_GIFT,
             self::C_AWARD,
@@ -1048,47 +1053,9 @@ class balance_op extends balance {
     }
 
     /**
-     * Create a balance operation class to obtain balance data and perform operations for a given user
-     * by providing the enrol_wallet instance or its id.
-     * @param  int|\stdClass $instance
-     * @param  int           $userid   0 means the current user.
-     * @return self
+     * Create a savepoint to fallback to.
+     * @return void
      */
-    public static function create_from_instance($instance, $userid = 0) {
-        $util     = new instance($instance, $userid);
-        $category = $util->get_course_category();
-
-        return new self($userid, $category);
-    }
-
-    /**
-     * Create a balance operation class to obtain balance data and perform operations for a given user
-     * by providing the course module record or its id.
-     * @param  int|\stdClass $cm
-     * @param  int           $userid 0 means the current user.
-     * @return self
-     */
-    public static function create_from_cm($cm, $userid = 0) {
-        $util     = new cm($cm, $userid);
-        $category = $util->get_course_category();
-
-        return new self($userid, $category);
-    }
-
-    /**
-     * Create a balance operation class to obtain balance data and perform operations for a given user
-     * by providing the course section record or its id.
-     * @param  int|\stdClass $section
-     * @param  int           $userid  0 means the current user.
-     * @return self
-     */
-    public static function create_from_section($section, $userid = 0) {
-        $util     = new section($section, $userid);
-        $category = $util->get_course_category();
-
-        return new self($userid, $category);
-    }
-
     public function create_save_point(): void {
         $savepoint = new stdClass;
         $excluded = ['savepoints', 'userid', 'source', 'catid', 'catenabled', 'courseid', 'helper'];
@@ -1114,6 +1081,10 @@ class balance_op extends balance {
         array_push($this->savepoints, $savepoint);
     }
 
+    /**
+     * Fallback in case of failing in a process.
+     * @return void
+     */
     public function fallback() {
         $output = userdate(time());
         ob_start();

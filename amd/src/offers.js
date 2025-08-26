@@ -23,10 +23,11 @@
 
 import Ajax from 'core/ajax';
 import $ from 'jquery';
-
+/**
+ * @type {JQuery<HTMLElement>}
+ */
 let container;
 let courseid;
-let selector;
 let i = 0;
 
 /**
@@ -44,9 +45,8 @@ function addFragment(type) {
         }
     }]);
     request[0].done((data) => {
-        container.innerHTML = container.innerHTML + data.data;
+        container.append(data.data);
         addDeleteButtonListener();
-        addSelectListener();
     });
 }
 
@@ -57,8 +57,10 @@ function addDeleteButtonListener() {
     let buttons = $('[data-action="deleteoffer"]');
     buttons.off('click');
     buttons.on('click', function(event) {
-        let number = event.target.getAttribute('data-action-delete');
-        let set = document.getElementById('offer_group_' + number);
+        event.preventDefault();
+        event.stopPropagation();
+        let number = $(this).data('action-delete');
+        let set = $('#offer_group_' + number);
         set.remove();
     });
 }
@@ -67,13 +69,13 @@ function addDeleteButtonListener() {
  * Add listener to select element to add new offers.
  */
 function addSelectListener() {
-    let select = document.getElementsByName('add_offer');
-    selector = select[0];
-    selector.onchange = () => {
+    let select = $('select[name="add_offer"]');
+    select.on('change', function() {
         i++;
-        addFragment(selector.value);
-        selector.value = '';
-    };
+        let selector = $(this);
+        addFragment(selector.val());
+        selector.val('');
+    });
 }
 
 /**
@@ -84,7 +86,7 @@ function addSelectListener() {
 export const init = (cid, inc = 0) => {
     i = inc;
     courseid = cid;
-    container = document.getElementById('id_wallet_offerscontainer');
+    container = $('#id_wallet_offerscontainer');
 
     addDeleteButtonListener();
     addSelectListener();

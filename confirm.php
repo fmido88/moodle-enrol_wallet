@@ -27,8 +27,8 @@ define('NO_DEBUG_DISPLAY', true);
 require_once(__DIR__.'/../../config.php');
 require_once(__DIR__.'/lib.php');
 
-use enrol_wallet\util\instance;
-use enrol_wallet\util\balance;
+use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\wallet\balance;
 
 global $USER;
 
@@ -144,8 +144,9 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading(format_string($wallet->get_instance_name($instance), true, ['context' => $context]));
 
 $courserenderer = $PAGE->get_renderer('core', 'course');
-echo $courserenderer->course_info_box($course);
 
 echo $OUTPUT->confirm($confirmationmsg, $confirmbutton, $cancelbutton);
+
+echo $courserenderer->course_info_box($course);
 
 echo $OUTPUT->footer();

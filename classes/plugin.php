@@ -41,6 +41,7 @@ use enrol_wallet\deleteselectedusers_operation;
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @package enrol_wallet
+ * @copyright 2025 Mohammad Farouk <phun.for.physics@gmail.com>
  */
 class enrol_wallet_plugin extends enrol_plugin {
 
@@ -425,10 +426,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             // Deduct fees from user's account.
             if (!$op->debit($costafter, balance_op::D_ENROL_INSTANCE, $instance->id, '', $canborrow)) {
                 $op->fallback();
-                // $balanceafter = $op->get_valid_balance();
-                // if ($balancebefore != $balanceafter && ($difference = $balancebefore - $balanceafter) > 0) {
-                //     $op->credit($difference, balance_op::C_ROLLBACK, $instance->id, 'Refund due to error', false, false);
-                // }
+
                 throw new moodle_exception('cannotdeductbalance', 'enrol_wallet');
             }
         }

@@ -623,12 +623,12 @@ class balance {
      * by providing the enrol_wallet instance or its id.
      * @param int|\stdClass $instance
      * @param int $userid 0 means the current user.
-     * @return self
+     * @return static
      */
     public static function create_from_instance($instance, $userid = 0) {
         $util = new instance($instance, $userid);
         $category = $util->get_course_category();
-        return new self($userid, $category);
+        return new static($userid, $category);
     }
 
     /**
@@ -636,12 +636,12 @@ class balance {
      * by providing the course module record or its id.
      * @param int|\stdClass $cm
      * @param int $userid 0 means the current user.
-     * @return self
+     * @return static
      */
     public static function create_from_cm($cm, $userid = 0) {
         $util = new cm($cm, $userid);
         $category = $util->get_course_category();
-        return new self($userid, $category);
+        return new static($userid, $category);
     }
 
     /**
@@ -649,11 +649,11 @@ class balance {
      * by providing the section record or its id.
      * @param int|\stdClass $section
      * @param int $userid 0 means the current user.
-     * @return self
+     * @return static
      */
     public static function create_from_section($section, $userid = 0) {
         $util = new section($section, $userid);
         $category = $util->get_course_category();
-        return new self($userid, $category);
+        return new static($userid, $category);
     }
 }

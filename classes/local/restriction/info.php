@@ -24,8 +24,6 @@
 
 namespace enrol_wallet\local\restriction;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Class handles conditional availability information for a wallet enrol instance.
  *

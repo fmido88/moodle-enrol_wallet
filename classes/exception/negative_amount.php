@@ -26,10 +26,20 @@ use core\exception\moodle_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class negative_amount extends moodle_exception {
+    /**
+     * Check if an amount is negative (for debit or credit).
+     * @param float $amount
+     */
     public function __construct(float $amount) {
         parent::__construct('nonegativeallowed', 'enrol_wallet', '', $amount);
     }
 
+    /**
+     * Check an amount to be positive float and throw exception other wise.
+     * @param float $amount
+     * @throws static
+     * @return void
+     */
     public static function check(float $amount) {
         if ($amount < 0) {
             throw new static($amount);

@@ -18,16 +18,20 @@ namespace enrol_wallet\reportnuilder\local\filters;
 
 use core_reportbuilder\local\filters\course_selector;
 use core_reportbuilder\local\helpers\database;
+
 /**
- * Class coupons_course_selector
+ * Filter for coupons courses.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-
 class coupons_course_selector extends course_selector {
+    /**
+     * return the filter sql.
+     * @param array $values
+     * @return array<array|string> [$sql, $params]
+     */
     public function get_sql_filter(array $values): array {
         global $DB;
 

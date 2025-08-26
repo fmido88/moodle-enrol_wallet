@@ -24,8 +24,10 @@
 
 namespace enrol_wallet\form;
 
+use core\exception\moodle_exception;
 use core\url;
 use enrol_wallet\local\coupons\coupons;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -66,7 +68,7 @@ class applycoupon_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $USER, $PAGE;
+        global $PAGE;
         $mform = $this->_form;
         $instance = ((object)$this->_customdata)->instance;
         $url = ((object)$this->_customdata)->url ?? $instance->url ?? '';
@@ -197,6 +199,11 @@ class applycoupon_form extends \moodleform {
         return $errors;
     }
 
+    /**
+     * Process submitted coupon data.
+     * @param stdClass|array $data
+     * @return string|url
+     */
     public function process_coupon_data($data = null) {
         global $DB;
 
@@ -215,6 +222,10 @@ class applycoupon_form extends \moodleform {
             coupons::unset_session_coupon();
             $redirecturl->remove_params('coupon', 'submitcoupon');
             redirect($redirecturl);
+        }
+
+        if (empty($data['coupon'])) {
+            return null;
         }
 
         $couponutil = new coupons($data['coupon']);
@@ -276,6 +287,7 @@ class applycoupon_form extends \moodleform {
                     $msg = get_string('coupon_applydiscount', 'enrol_wallet', $value);
                     $msgtype = 'success';
                 } else {
+                    // Shouldn't happen.
                     $msg = get_string('coupon_applynocourse', 'enrol_wallet');
                     $msgtype = 'error';
                 }
@@ -297,10 +309,6 @@ class applycoupon_form extends \moodleform {
                 // Apply the coupon and enrol the user.
                 $msg = get_string('coupon_enrolapplied', 'enrol_wallet');
                 $msgtype = 'success';
-
-            } else {
-                $msg = get_string('invalidcoupon_operation', 'enrol_wallet');
-                $msgtype = 'error';
             }
         }
 

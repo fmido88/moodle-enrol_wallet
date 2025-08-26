@@ -176,18 +176,23 @@ class category {
     /**
      * Create category balance operations class from enrol wallet instance
      * @param int|\stdClass $instanceorid the enrol wallet instance of its id.
-     * @return self
+     * @param int $userid
+     * @return static
      */
-    public static function create_from_instance($instanceorid) {
-        $helper = new instance($instanceorid);
+    public static function create_from_instance($instanceorid, $userid = 0) {
+        $helper = new instance($instanceorid, $userid);
         $category = $helper->get_course_category();
-        return new self($category);
+        if (static::class == self::class) {
+            return new static($category);
+        }
+
+        return new static($category, $userid);
     }
 
     /**
      * Create an instance of category balance operation from course object or its id.
      * @param int|\stdClass $courseorid
-     * @return self
+     * @return static
      */
     public static function create_from_course($courseorid) {
         if (is_number($courseorid)) {
@@ -197,6 +202,6 @@ class category {
         } else {
             throw new \moodle_exception('invalidcourseid');
         }
-        return new self($course->category);
+        return new static($course->category);
     }
 }

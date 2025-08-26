@@ -22,21 +22,28 @@ use core_reportbuilder\system_report;
 use enrol_wallet\reportnuilder\local\entities\coupon;
 
 /**
- * Class coupons
+ * Class coupons.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class coupons extends system_report {
+    /**
+     * Validates access to view this report.
+     * @return bool
+     */
     protected function can_view(): bool {
         return has_capability('enrol/wallet:viewcoupon', system::instance());
     }
 
+    /**
+     * Initialise report.
+     * @return void
+     */
     protected function initialise(): void {
         $couponsentity = (new coupon())
-                         ->set_entity_name('coupon')
-                         ->set_entity_title(new lang_string('coupons', 'enrol_wallet'));
-
+            ->set_entity_name('coupon')
+            ->set_entity_title(new lang_string('coupons', 'enrol_wallet'));
     }
 }

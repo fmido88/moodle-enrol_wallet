@@ -25,7 +25,7 @@ use enrol_wallet\form\charger_form;
 use enrol_wallet\local\wallet\balance;
 
 /**
- * Class static_renderer
+ * Render parts statically.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -51,6 +51,11 @@ class static_renderer {
         return $output;
     }
 
+    /**
+     * Coupons urls.
+     * @param bool $array if set to true will return array of urls with labels.
+     * @return array{label: string, url: url[]}|string
+     */
     public static function coupons_urls($array = false) {
         if (get_config('enrol_wallet', 'walletsource') != balance::MOODLE) {
             return $array ? [] : '';
@@ -103,7 +108,13 @@ class static_renderer {
         return implode("<br>", $out);
     }
 
+    /**
+     * Wallet administration links.
+     * @param ?context $coursecontext
+     * @return array{adminlinks: array{url: url, label: string}, isadmintabs: bool}
+     */
     public static function get_admins_links(?context $coursecontext = null) {
+        // phpcs:disable moodle.PHP.ForbiddenGlobalUse.BadGlobal
         global $PAGE;
         $context = system::instance();
 
@@ -114,7 +125,7 @@ class static_renderer {
                 $coursecontext = course::instance(SITEID);
             }
         }
-
+        // phpcs:enable moodle.PHP.ForbiddenGlobalUse.BadGlobal
         $links = [];
         if (has_capability('moodle/site:config', $context)) {
             $links[] = [
@@ -132,7 +143,6 @@ class static_renderer {
 
         $links = array_merge($links, self::coupons_urls(true));
 
-
         if (has_capability('enrol/wallet:bulkedit', $context)) {
             $links[] = [
                 'url' => new url('/enrol/wallet/extra/bulkedit.php'),
@@ -141,13 +151,13 @@ class static_renderer {
 
             $links[] = [
                 'url'   => new url('/enrol/wallet/extra/bulkinstances.php'),
-                'label' =>get_string('walletbulk', 'enrol_wallet'),
+                'label' => get_string('walletbulk', 'enrol_wallet'),
             ];
         }
 
         return [
             'adminlinks'   => $links,
-            'isadmintabs'  => true,
+            'isadmintabs'  => !empty($links),
         ];
     }
 }

@@ -20,22 +20,33 @@ use core\output\pix_icon;
 use core\url;
 use core_course_category;
 use core_reportbuilder\local\entities\base;
-use core_reportbuilder\local\report\{column, filter, action};
-use core_reportbuilder\local\filters\{date, select, text, autocomplete, number, user, category, course_selector};
-use core_reportbuilder\local\helpers\{format};
+use core_reportbuilder\local\filters\category;
+use core_reportbuilder\local\filters\date;
+use core_reportbuilder\local\filters\number;
+use core_reportbuilder\local\filters\select;
+use core_reportbuilder\local\filters\text;
+use core_reportbuilder\local\helpers\format;
+use core_reportbuilder\local\report\action;
+use core_reportbuilder\local\report\column;
+use core_reportbuilder\local\report\filter;
 use enrol_wallet\local\coupons\coupons as couponshelper;
 use enrol_wallet\reportnuilder\local\filters\coupons_course_selector;
 use lang_string;
 
 /**
- * Class coupon.
+ * Coupons entities for report.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class coupon extends base {
+    /**
+     * Cache courses data.
+     * @var array
+     */
     protected static $courses = [];
+
     /**
      * Entity title.
      * @return \core\lang_string
@@ -59,19 +70,16 @@ class coupon extends base {
      * @return coupon
      */
     public function initialise(): self {
-
         $columns = $this->get_all_columns();
+
         foreach ($columns as $column) {
             $this->add_column($column);
         }
 
         $filters = $this->get_all_filters();
+
         foreach ($filters as $filter) {
             $this->add_filter($filter);
-        }
-
-        $actions = $this->get_all_actions();
-        foreach ($actions as $action) {
         }
 
         return $this;
@@ -86,7 +94,7 @@ class coupon extends base {
         $canviewcode  = has_capability('enrol/wallet:viewcoupon', \context_system::instance());
         $couponsalias = $this->get_table_alias('enrol_wallet_coupon');
 
-        $columns[]    = (new column(
+        $columns[] = (new column(
             'id',
             new lang_string('coupon_id', 'enrol_wallet'),
             $this->get_entity_name()
@@ -123,7 +131,7 @@ class coupon extends base {
         ->set_type(column::TYPE_TEXT)
         ->add_field("{$couponsalias}.type")
         ->set_is_sortable(true)
-        ->set_callback(function($type) {
+        ->set_callback(function ($type) {
             return couponshelper::get_type_visible_name($type);
         });
 
@@ -144,12 +152,13 @@ class coupon extends base {
         ->set_type(column::TYPE_INTEGER)
         ->add_field("{$couponsalias}.category")
         ->set_is_sortable(false)
-        ->set_callback(function($catid) {
+        ->set_callback(function ($catid) {
             if (empty($catid)) {
                 return '';
             }
 
             $category = core_course_category::get($catid, IGNORE_MISSING, true);
+
             if (!$category) {
                 return get_string('deleted') . " ($catid)";
             }
@@ -165,13 +174,15 @@ class coupon extends base {
         ->set_type(column::TYPE_LONGTEXT)
         ->add_field("{$couponsalias}.courses")
         ->set_is_sortable(false)
-        ->set_callback(function($courses) {
+        ->set_callback(function ($courses) {
             global $DB;
             $courses = array_filter(array_map('trim', explode(',', $courses)));
-            $list = [];
+            $list    = [];
+
             foreach ($courses as $courseid) {
                 if (!isset(self::$courses[$courseid])) {
                     $course = $DB->get_record('course', ['id' => $courseid], 'id,shortname,fullname');
+
                     if ($course) {
                         self::$courses[$courseid] = format_string($course->fullname);
                     } else {
@@ -180,6 +191,7 @@ class coupon extends base {
                 }
                 $list[] = self::$courses[$courseid];
             }
+
             return implode('<br>', $list);
         });
 
@@ -191,10 +203,11 @@ class coupon extends base {
         ->set_type(column::TYPE_INTEGER)
         ->add_field("{$couponsalias}.maxusage")
         ->set_is_sortable(true)
-        ->set_callback(function($maxusage) {
+        ->set_callback(function ($maxusage) {
             if ($maxusage == 0) {
                 return new lang_string('unlimited', 'enrol_wallet');
             }
+
             return $maxusage;
         });
 
@@ -206,10 +219,11 @@ class coupon extends base {
         ->set_type(column::TYPE_INTEGER)
         ->add_field("{$couponsalias}.maxperuser")
         ->set_is_sortable(true)
-        ->set_callback(function($maxperuser) {
+        ->set_callback(function ($maxperuser) {
             if ($maxperuser == 0) {
                 return new lang_string('maxavailable', 'enrol_wallet');
             }
+
             return $maxperuser;
         });
 
@@ -230,10 +244,11 @@ class coupon extends base {
         ->set_type(column::TYPE_TIMESTAMP)
         ->add_field("{$couponsalias}.validfrom")
         ->set_is_sortable(true)
-        ->set_callback(function($validfrom, $row) {
+        ->set_callback(function ($validfrom, $row) {
             if ($validfrom == 0) {
                 return new lang_string('never');
             }
+
             return format::userdate($validfrom, $row);
         });
 
@@ -245,10 +260,11 @@ class coupon extends base {
         ->set_type(column::TYPE_TIMESTAMP)
         ->add_field("{$couponsalias}.validto")
         ->set_is_sortable(true)
-        ->set_callback(function($validto, $row) {
+        ->set_callback(function ($validto, $row) {
             if ($validto == 0) {
                 return new lang_string('never');
             }
+
             return format::userdate($validto, $row);
         });
 
@@ -260,10 +276,11 @@ class coupon extends base {
         ->set_type(column::TYPE_TIMESTAMP)
         ->add_field("{$couponsalias}.lastuse")
         ->set_is_sortable(true)
-        ->set_callback(function($lastuse, $row) {
+        ->set_callback(function ($lastuse, $row) {
             if ($lastuse == 0) {
                 return new lang_string('never');
             }
+
             return format::userdate($lastuse, $row);
         });
 
@@ -274,16 +291,20 @@ class coupon extends base {
         ))->add_joins($this->get_joins())
         ->set_type(column::TYPE_TIMESTAMP)
         ->set_is_sortable(true)
-        ->set_callback(function($timecreated, $row) {
+        ->set_callback(function ($timecreated, $row) {
             return format::userdate($timecreated, $row);
         });
 
         return $columns;
     }
 
+    /**
+     * Get all available filters.
+     * @return array<filter>
+     */
     protected function get_all_filters() {
         $filters = [];
-        $calias = $this->get_table_alias('enrol_wallet_coupons');
+        $calias  = $this->get_table_alias('enrol_wallet_coupons');
 
         $filters[] = new filter(
             text::class,
@@ -392,8 +413,12 @@ class coupon extends base {
         return $filters;
     }
 
-    protected function add_all_actions() {
-        $actions = [];
+    /**
+     * Get all available action for this entity.
+     * @return action[]
+     */
+    public function get_all_actions() {
+        $actions   = [];
         $actions[] = new action(
             url: new url('/enrol/wallet/extra/couponedit.php', ['id' => ':id']),
             icon: new pix_icon('i/edit', get_string('edit')),
