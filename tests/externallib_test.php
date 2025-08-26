@@ -124,8 +124,7 @@ final class externallib_test extends externallib_advanced_testcase {
      * @covers ::enrol_user()
      */
     public function test_enrol_user(): void {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
+        global $DB;
 
         $this->resetAfterTest(true);
 
