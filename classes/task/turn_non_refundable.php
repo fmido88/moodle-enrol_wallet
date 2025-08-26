@@ -24,8 +24,8 @@
 
 namespace enrol_wallet\task;
 
-use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op as op;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op as op;
 
 /**
  * Send expiry notifications task.

@@ -25,7 +25,7 @@
 
 namespace enrol_wallet\payment;
 
-use enrol_wallet\util\balance_op as op;
+use enrol_wallet\local\wallet\balance_op as op;
 
 /**
  * Payment subsystem callback implementation for enrol_wallet.

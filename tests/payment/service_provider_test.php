@@ -23,9 +23,9 @@
  */
 
 namespace enrol_wallet\payment;
-use enrol_wallet\util\balance;
-use enrol_wallet\util\balance_op;
-use enrol_wallet\util\instance;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+
 /**
  * Unit tests for the enrol_wallet's payment subsystem callback implementation.
  *

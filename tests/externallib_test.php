@@ -16,6 +16,7 @@
 
 namespace enrol_wallet;
 
+use core_external\external_api;
 use enrol_wallet\external\enrol as enrol_wallet_external;
 use externallib_advanced_testcase;
 use enrol_wallet\transactions;
@@ -39,8 +40,7 @@ final class externallib_test extends externallib_advanced_testcase {
      * @covers ::get_instance_info()
      */
     public function test_get_instance_info(): void {
-        global $DB, $CFG;
-        require_once($CFG->dirroot . '/enrol/wallet/externallib.php');
+        global $DB;
 
         $this->resetAfterTest(true);
 
@@ -76,7 +76,7 @@ final class externallib_test extends externallib_advanced_testcase {
 
         $this->setAdminUser();
         $instanceinfo1 = enrol_wallet_external::get_instance_info($instanceid1);
-        $instanceinfo1 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo1);
+        $instanceinfo1 = external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo1);
 
         $this->assertEquals($instanceid1, $instanceinfo1['id']);
         $this->assertEquals($course->id, $instanceinfo1['courseid']);
@@ -86,7 +86,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $this->assertEquals(\enrol_wallet_plugin::INSUFFICIENT_BALANCE, $instanceinfo1['status']);
 
         $instanceinfo2 = enrol_wallet_external::get_instance_info($instanceid2);
-        $instanceinfo2 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
+        $instanceinfo2 = external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
         $this->assertEquals($instanceid2, $instanceinfo2['id']);
         $this->assertEquals($course->id, $instanceinfo2['courseid']);
         $this->assertEquals('wallet', $instanceinfo2['type']);
@@ -108,14 +108,14 @@ final class externallib_test extends externallib_advanced_testcase {
         update_course($course);
         // Can enrol in instance 1 but not in 2.
         $instanceinfo1 = enrol_wallet_external::get_instance_info($instanceid1);
-        $instanceinfo1 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo1);
+        $instanceinfo1 = external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo1);
         $this->assertTrue($instanceinfo1['status']);
 
         // Enable the instance.
         $instance2 = $DB->get_record('enrol', ['id' => $instanceid2], '*', MUST_EXIST);
         $walletplugin->update_status($instance2, ENROL_INSTANCE_ENABLED);
         $instanceinfo2 = enrol_wallet_external::get_instance_info($instanceid2);
-        $instanceinfo2 = \external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
+        $instanceinfo2 = external_api::clean_returnvalue(enrol_wallet_external::get_instance_info_returns(), $instanceinfo2);
         $this->assertEquals(\enrol_wallet_plugin::INSUFFICIENT_BALANCE, $instanceinfo2['status']);
     }
 
@@ -165,7 +165,7 @@ final class externallib_test extends externallib_advanced_testcase {
 
         // Self enrol me.
         $result = enrol_wallet_external::enrol_user($course1->id);
-        $result = \external_api::clean_returnvalue(enrol_wallet_external::enrol_user_returns(), $result);
+        $result = external_api::clean_returnvalue(enrol_wallet_external::enrol_user_returns(), $result);
 
         $this->assertTrue($result['status']);
         $this->assertEquals(1, $DB->count_records('user_enrolments', ['enrolid' => $instance1->id]));
@@ -185,7 +185,7 @@ final class externallib_test extends externallib_advanced_testcase {
 
         // Try insufficient balance.
         $result = enrol_wallet_external::enrol_user($course2->id);
-        $result = \external_api::clean_returnvalue(enrol_wallet_external::enrol_user_returns(), $result);
+        $result = external_api::clean_returnvalue(enrol_wallet_external::enrol_user_returns(), $result);
         $this->assertFalse($result['status']);
         $this->assertCount(1, $result['warnings']);
         $this->assertEquals('1', $result['warnings'][0]['warningcode']);
