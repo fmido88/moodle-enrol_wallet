@@ -143,10 +143,10 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
 
-        if ($dbman->table_exists($table)) {
-            $dbman->drop_table($table);
+        if (!$dbman->table_exists($table)) {
+            $dbman->create_table($table);
         }
-        $dbman->create_table($table);
+
         // ...enrol_wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2023071512, 'enrol', 'wallet');
     }
@@ -166,6 +166,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         }
         upgrade_plugin_savepoint(true, 2023071707, 'enrol', 'wallet');
     }
+
     if ($oldversion < 2023072509) {
         $table = new xmldb_table('enrol_wallet_referral');
         $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, true);
