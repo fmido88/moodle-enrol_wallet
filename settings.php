@@ -543,5 +543,13 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('enrol_wallet/awardcreteria', 'enrol_wallet/awardssite');
     $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awardssite');
 }
+
+// Adding enrolpage_viewed analytis page
+$ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrolwalletanalytics',
+    get_string('enrolpage_analytics', 'enrol_wallet'),
+    new moodle_url('/enrol/wallet/extra/analytics.php'),
+    'moodle/site:config'
+));
+
 // Include extra pages.
 require_once('extrasettings.php');
