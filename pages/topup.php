@@ -21,6 +21,7 @@
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\payment;
 use enrol_wallet\local\utils\timedate;
@@ -49,8 +50,9 @@ $urlparams = [
 
 $baseurl = pages::TOPUP->url($urlparams);
 
+$config = config::make();
 // Check the conditional discount.
-$enabled   = get_config('enrol_wallet', 'conditionaldiscount_apply');
+$enabled   = $config->conditionaldiscount_apply;
 $discount  = 0;
 
 if (!empty($enabled)) {
@@ -117,7 +119,7 @@ $a = (object) [
     'currency' => $currency,
 ];
 
-$policy = get_config('enrol_wallet', 'refundpolicy');
+$policy = $config->refundpolicy;
 if (!empty($policy)) {
     $a->policy = $policy;
 }

@@ -19,6 +19,7 @@ namespace enrol_wallet\output;
 use core\output\named_templatable;
 use core\output\renderable;
 use core_course_category;
+use enrol_wallet\local\config;
 use enrol_wallet\local\discounts\discount_rules as rules;
 use stdClass;
 
@@ -54,7 +55,7 @@ class discount_line implements renderable, named_templatable {
      * @return void
      */
     public function __construct(int $catid = 0) {
-        $enabled = (bool)get_config('enrol_wallet', 'conditionaldiscount_apply');
+        $enabled = (bool)config::make()->conditionaldiscount_apply;
 
         if (!$enabled) {
             $this->hasbundles = false;
@@ -101,7 +102,7 @@ class discount_line implements renderable, named_templatable {
 
         $maxconditions = $this->get_maximum_conditions();
 
-        $currency = get_config('enrol_wallet', 'currency');
+        $currency = config::make()->currency;
 
         $data      = [];
         $discounts = [];

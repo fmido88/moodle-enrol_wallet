@@ -16,6 +16,7 @@
 
 namespace enrol_wallet\local\wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\catop as operations;
 use enrol_wallet\wordpress;
@@ -100,7 +101,8 @@ class balance {
     public function __construct($userid = 0, $category = 0) {
         global $COURSE, $USER;
 
-        $source = get_config('enrol_wallet', 'walletsource');
+        $config = config::make();
+        $source = $config->walletsource;
         if ($source === false) {
             $source = self::MOODLE;
         }
@@ -113,7 +115,7 @@ class balance {
             $this->userid = $USER->id;
         }
 
-        $this->catenabled = (bool)get_config('enrol_wallet', 'catbalance') && ($this->source == self::MOODLE);
+        $this->catenabled = (bool)$config->catbalance && ($this->source == self::MOODLE);
         if ($this->catenabled) {
             if (empty($category)) {
                 $category = $COURSE->category ?? 0;

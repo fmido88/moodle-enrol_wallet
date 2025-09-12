@@ -18,6 +18,7 @@ namespace enrol_wallet\local\utils;
 
 use context;
 use core_course_category;
+use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
 use stdClass;
 use lang_string;
@@ -188,8 +189,9 @@ class options {
 
         // Adding custom currency in case of there is no available payment gateway or customize the wallet.
         if (empty($currencies) || (empty($account))) {
-            $customcurrency = get_config('enrol_wallet', 'customcurrency') ?? get_string('MWC', 'enrol_wallet');
-            $cc = get_config('enrol_wallet', 'customcurrencycode');
+            $config = config::make();
+            $customcurrency = $config->customcurrency ?? get_string('MWC', 'enrol_wallet');
+            $cc = $config->customcurrencycode;
             // Don't override standard currencies.
             if (!array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MWC') {
                 $currencies[$cc] = $customcurrency;

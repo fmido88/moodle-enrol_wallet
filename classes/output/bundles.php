@@ -20,6 +20,7 @@ use core\output\renderable;
 use core\output\single_button;
 use core\output\templatable;
 use core_course_category;
+use enrol_wallet\local\config;
 use enrol_wallet\local\discounts\discount_rules;
 use enrol_wallet\local\urls\pages;
 use renderer_base;
@@ -48,13 +49,15 @@ class bundles implements renderable, templatable {
 
         $desc = !empty($record->bundledesc) ? format_text($record->bundledesc, $record->descformat) : '';
 
+        $config = config::make();
+
         $data = new \stdClass;
         $data->category = $record->category ?? 0;
         $data->value = $before;
         $data->instanceid = 0;
         $data->courseid = SITEID;
-        $data->account = get_config('enrol_wallet', 'account');
-        $data->currency = get_config('enrol_wallet', 'currency');
+        $data->account = $config->account;
+        $data->currency = $config->currency;
 
         $topupurl = pages::TOPUP->url((array)$data);
 

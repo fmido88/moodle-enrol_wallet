@@ -16,6 +16,7 @@
 
 namespace enrol_wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
@@ -648,7 +649,7 @@ final class coupons_test extends \advanced_testcase {
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
         $this->assertNotTrue($validation);
 
-        set_config('catbalance', 0, 'enrol_wallet');
+        config::make()->catbalance = 0;
         $coupons = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
         $this->assertNotTrue($validation);
@@ -1105,6 +1106,7 @@ final class coupons_test extends \advanced_testcase {
         if (is_array($value)) {
             $value = implode(',', $value);
         }
-        set_config('coupons', $value, 'enrol_wallet');
+ 
+        config::make()->coupons = $value;
     }
 }

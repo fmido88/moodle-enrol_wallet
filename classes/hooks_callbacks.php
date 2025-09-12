@@ -19,6 +19,7 @@ use core\hook\output\before_standard_top_of_body_html_generation;
 use core\hook\output\before_footer_html_generation;
 use core\hook\navigation\primary_extend;
 use core\output\pix_icon;
+use enrol_wallet\local\config;
 use enrol_wallet\local\discounts\offers;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\wallet\balance;
@@ -43,7 +44,7 @@ class hooks_callbacks {
             return;
         }
 
-        $showprice = (bool)get_config('enrol_wallet', 'showprice');
+        $showprice = (bool)config::make()->showprice;
         if ($showprice) {
             $page = $hook->renderer->get_page();
             $page->requires->js_call_amd('enrol_wallet/overlyprice', 'init');
@@ -62,17 +63,20 @@ class hooks_callbacks {
             return;
         }
 
+        $config = config::make();
+
         // Check if notice is enabled.
-        $notice = get_config('enrol_wallet', 'lowbalancenotice');
+        $notice = $config->lowbalancenotice;
         if (empty($notice)) {
             return;
         }
 
         // Check the conditions.
-        $condition = get_config('enrol_wallet', 'noticecondition');
+        $condition = $config->noticecondition;
 
         $op = new balance();
         $balance = $op->get_total_balance();
+        // Todo: only notify limited times per session.
         if ($balance <= (int)$condition) {
             // Display the warning.
             \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
@@ -99,7 +103,7 @@ class hooks_callbacks {
      * @return void
      */
     public static function add_my_wallet(primary_extend $hook) {
-        $enabled = (bool)get_config('enrol_wallet', 'mywalletnav');
+        $enabled = (bool)config::make()->mywalletnav;
         if (empty($enabled)) {
             return;
         }
@@ -118,7 +122,7 @@ class hooks_callbacks {
      * @return void
      */
     public static function add_offers(primary_extend $hook) {
-        $enabled = (bool)get_config('enrol_wallet', 'offers_nav');
+        $enabled = (bool)config::make()->offers_nav;
         if (empty($enabled)) {
             return;
         }

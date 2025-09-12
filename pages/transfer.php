@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 
 require_once(__DIR__.'/../../../config.php');
@@ -33,7 +34,7 @@ require_login();
 require_capability('enrol/wallet:transfer', $context);
 
 // Check if transfer isn't enabled in this website.
-$transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+$transferenabled = config::make()->transfer_enabled;
 if (empty($transferenabled)) {
     redirect(new moodle_url('/'), get_string('transfer_notenabled', 'enrol_wallet'), null, 'error');
 }

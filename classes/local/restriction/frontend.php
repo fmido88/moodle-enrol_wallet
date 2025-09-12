@@ -24,6 +24,8 @@
 
 namespace enrol_wallet\local\restriction;
 
+use enrol_wallet\local\config;
+
 /**
  * Front-end class.
  *
@@ -54,7 +56,7 @@ class frontend extends \core_availability\frontend {
         $enabled = $pluginmanager->get_enabled_plugins('availability');
         $componentparams = new \stdClass();
 
-        $allowed = explode(',', get_config('enrol_wallet', 'availability_plugins'));
+        $allowed = explode(',', config::make()->availability_plugins);
         foreach ($enabled as $plugin => $info) {
             if (!in_array($plugin, $allowed)) {
                 continue;

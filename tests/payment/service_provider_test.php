@@ -23,6 +23,7 @@
  */
 
 namespace enrol_wallet\payment;
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 
@@ -90,7 +91,7 @@ final class service_provider_test extends \advanced_testcase {
         $generator = $this->getDataGenerator();
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
         $user = $generator->create_user();
-        set_config('paymentaccount', $account->get('id'), 'enrol_wallet');
+        config::make()->paymentaccount = $account->get('id');
         // Set a fake item form payment.
         $id = $DB->insert_record('enrol_wallet_items', ['cost' => 250, 'currency' => 'USD', 'userid' => $user->id]);
 
@@ -159,7 +160,7 @@ final class service_provider_test extends \advanced_testcase {
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
         $user = $generator->create_user();
 
-        set_config('paymentaccount', $account->get('id'), 'enrol_wallet');
+        config::make()->paymentaccount = $account->get('id');
         // Set a fake item form payment.
         $id = $DB->insert_record('enrol_wallet_items', ['cost' => 250, 'currency' => 'USD', 'userid' => $user->id]);
 
@@ -314,7 +315,7 @@ final class service_provider_test extends \advanced_testcase {
         $account = $generator->get_plugin_generator('core_payment')->create_payment_account(['gateways' => 'paypal']);
         $user = $generator->create_user();
 
-        set_config('paymentaccount', $account->get('id'), 'enrol_wallet');
+        config::make()->paymentaccount = $account->get('id');
         // Set a fake item form payment.
         $id = $DB->insert_record('enrol_wallet_items', ['cost' => 250, 'currency' => 'USD', 'userid' => $user->id]);
 

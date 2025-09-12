@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\task\turn_non_refundable;
@@ -48,7 +49,7 @@ final class turn_non_refundable_test extends \advanced_testcase {
 
         $cat1 = $this->getDataGenerator()->create_category();
 
-        $period = get_config('enrol_wallet', 'refundperiod');
+        $period = config::make()->refundperiod;
         $this->assertEquals(14 * DAYSECS, $period);
 
         // Site balance.

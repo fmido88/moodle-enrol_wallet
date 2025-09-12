@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
@@ -45,10 +46,14 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->resetAfterTest();
 
         $this->assertTrue(enrol_is_enabled('wallet'));
+
         $plugin = enrol_get_plugin('wallet');
+
+        $config = config::make();
+
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
-        $this->assertEquals(1, get_config('enrol_wallet', 'defaultenrol'));
-        $this->assertEquals(ENROL_EXT_REMOVED_KEEP, get_config('enrol_wallet', 'expiredaction'));
+        $this->assertEquals(1, $config->defaultenrol);
+        $this->assertEquals(ENROL_EXT_REMOVED_KEEP, $config->expiredaction);
     }
 
     /**
@@ -207,7 +212,8 @@ final class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $walletplugin = new enrol_wallet_plugin;
+        $walletplugin = enrol_wallet_plugin::get_plugin();
+        $config = config::make();
         $this->assertNotEmpty($walletplugin);
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
@@ -282,7 +288,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(10, $DB->count_records('user_enrolments'));
         $this->assertEquals(10, $DB->count_records('role_assignments'));
 
-        $walletplugin->set_config('expiredaction', ENROL_EXT_REMOVED_SUSPENDNOROLES);
+        $config->expiredaction = ENROL_EXT_REMOVED_SUSPENDNOROLES;
         $walletplugin->sync($trace, $course2->id);
         $this->assertEquals(10, $DB->count_records('user_enrolments'));
         $this->assertEquals(10, $DB->count_records('role_assignments'));
@@ -309,7 +315,7 @@ final class enrol_wallet_test extends \advanced_testcase {
                                                                         'roleid' => $studentrole->id,
                                                                     ]));
 
-        $walletplugin->set_config('expiredaction', ENROL_EXT_REMOVED_UNENROL);
+        $config->expiredaction = ENROL_EXT_REMOVED_UNENROL;
 
         role_assign($studentrole->id, $user3->id, $context1->id);
         role_assign($studentrole->id, $user2->id, $context3->id);
@@ -340,14 +346,17 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         $walletplugin = enrol_get_plugin('wallet');
         $manualplugin = enrol_get_plugin('manual');
+
         $now = timedate::time();
         $admin = get_admin();
+
+        $config = config::make();
 
         $trace = new \null_progress_trace();
 
         // Note: hopefully nobody executes the unit tests the last second before midnight...
-        $walletplugin->set_config('expirynotifylast', $now - 60 * 60 * 24);
-        $walletplugin->set_config('expirynotifyhour', 0);
+        $config->expirynotifylast = $now - 60 * 60 * 24;
+        $config->expirynotifyhour = 0;
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
@@ -503,13 +512,13 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(0, $sink->count());
 
         // Use invalid notification hour to verify that before the hour the notifications are not sent.
-        $walletplugin->set_config('expirynotifylast', timedate::time() - DAYSECS);
-        $walletplugin->set_config('expirynotifyhour', '24');
+        $config->expirynotifylast = timedate::time() - DAYSECS;
+        $config->expirynotifyhour = 24;
 
         $walletplugin->send_expiry_notifications($trace);
         $this->assertEquals(0, $sink->count());
 
-        $walletplugin->set_config('expirynotifyhour', '0');
+        $config->expirynotifyhour = 0;
         $walletplugin->send_expiry_notifications($trace);
         $this->assertEquals(6, $sink->count());
     }
@@ -942,7 +951,9 @@ final class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         self::resetAfterTest(true);
 
-        $wallet = new enrol_wallet_plugin;
+        $wallet = enrol_wallet_plugin::get_plugin();
+        $config = config::make();
+
         $user1 = $this->getDataGenerator()->create_user();
         $op = new balance_op($user1->id);
         $op->credit(250);
@@ -981,8 +992,8 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(0, $balance->get_cat_balance($course1->category));
 
         // Now testing the functionality of cashbackprogram.
-        $wallet->set_config('cashback', 1);
-        $wallet->set_config('cashbackpercent', 20);
+        $config->cashback = 1;
+        $config->cashbackpercent = 20;
         $user3 = $this->getDataGenerator()->create_user();
         $op = new balance_op($user3->id);
         $op->credit(250);
@@ -1187,7 +1198,9 @@ final class enrol_wallet_test extends \advanced_testcase {
         $op = new balance_op($user->id);
         $op->credit(100);
 
-        $wallet = new enrol_wallet_plugin;
+        $wallet = enrol_wallet_plugin::get_plugin();
+        $config = config::make();
+
         // Update the instance such that the enrol duration is 2 hours.
         $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance->customint6 = 1;
@@ -1197,8 +1210,8 @@ final class enrol_wallet_test extends \advanced_testcase {
         $wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
 
         // Enable refunding.
-        set_config('unenrolrefund', 1, 'enrol_wallet');
-        $wallet = new enrol_wallet_plugin;
+        $config->unenrolrefund = 1;
+
         // Enrol the user and check the balance.
         $this->setUser($user);
         $wallet->enrol_self($instance);
@@ -1217,8 +1230,8 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(100, $balance); // This assertion sometime fails and on re-run it passes?
 
         $this->setAdminUser();
-        set_config('unenrolrefund', 0, 'enrol_wallet');
-        $wallet = new enrol_wallet_plugin;
+        $config->unenrolrefund = 0;
+
         // Repeat but disable refunding.
         $this->setUser($user);
         $wallet->enrol_self($instance);
@@ -1236,9 +1249,8 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         // Enable refunding with duration limit.
         $this->setAdminUser();
-        set_config('unenrolrefund', 1, 'enrol_wallet');
-        set_config('unenrolrefundperiod', HOURSECS, 'enrol_wallet');
-        $wallet = new enrol_wallet_plugin;
+        $config->unenrolrefund = 1;
+        $config->unenrolrefundperiod = HOURSECS;
 
         $this->setUser($user);
         $wallet->enrol_self($instance);
@@ -1281,7 +1293,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         $this->setAdminUser();
         // Set to 10%.
-        set_config('unenrolrefundfee', 10, 'enrol_wallet');
+        $config->unenrolrefundfee = 10;
         $wallet = new enrol_wallet_plugin;
 
         $this->setUser($user);
@@ -1316,6 +1328,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $op->credit(100);
 
         $wallet = new enrol_wallet_plugin;
+        $config = config::make();
         // Update the instance such that the enrol duration is 2 hours.
         $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $data = new \stdClass;
@@ -1333,7 +1346,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         // Enable unconditionaly.
         $this->setAdminUser();
-        set_config('unenrolselfenabled', 1, 'enrol_wallet');
+        $config->unenrolselfenabled = 1;
 
         $wallet = new enrol_wallet_plugin;
         $this->setUser($user);
@@ -1341,8 +1354,8 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         // Set conditions.
         $this->setAdminUser();
-        set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
-        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
+        $config->unenrollimitafter = 2 * HOURSECS;
+        $config->unenrollimitbefor = 2 * HOURSECS;
 
         $wallet = new enrol_wallet_plugin;
         // First condition limit after enrol start time by 2 hours.
@@ -1367,8 +1380,8 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         // Remove the second condition.
         $this->setAdminUser();
-        set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
-        set_config('unenrollimitbefor', 0, 'enrol_wallet');
+        $config->unenrollimitafter = 2 * HOURSECS;
+        $config->unenrollimitbefor = 0;
 
         $wallet = enrol_wallet_plugin::get_plugin();
         $now = timedate::time();
@@ -1391,8 +1404,8 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         // Remove the first condition only.
         $this->setAdminUser();
-        set_config('unenrollimitafter', 0, 'enrol_wallet');
-        set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
+        $config->unenrollimitafter = 0;
+        $config->unenrollimitbefor = 2 * HOURSECS;
 
         $wallet = enrol_wallet_plugin::get_plugin();
         $now = timedate::time();

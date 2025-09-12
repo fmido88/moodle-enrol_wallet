@@ -455,21 +455,20 @@ if ($ADMIN->fulltree) {
         get_string('defaultenrol', 'enrol'), get_string('defaultenrol_desc', 'enrol'), 1));
 
     // Adding default payment account.
-    if (class_exists('\core_payment\helper')) {
-        $accounts = \core_payment\helper::get_payment_accounts_menu($context);
-        if (empty($accounts)) {
-            $alert = html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning');
-            $settings->add(new admin_setting_configempty('enrol_wallet/emptypaymentaccount', '', $alert));
-            $accounts = [0 => get_string('noaccount', 'enrol_wallet')];
-        } else {
-            $accounts = [0 => get_string('noaccount', 'enrol_wallet')] + $accounts;
-        }
-        $settings->add(new admin_setting_configselect('enrol_wallet/paymentaccount', get_string('paymentaccount', 'payment'),
-                                                            get_string('paymentaccount_help', 'enrol_wallet'), 0, $accounts));
+    $accounts = \core_payment\helper::get_payment_accounts_menu($context);
+    if (empty($accounts)) {
+        $alert = html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning');
+        $settings->add(new admin_setting_configempty('enrol_wallet/emptypaymentaccount', '', $alert));
+        $accounts = [0 => get_string('noaccount', 'enrol_wallet')];
+    } else {
+        $accounts = [0 => get_string('noaccount', 'enrol_wallet')] + $accounts;
     }
+    $paymentaccount = new admin_setting_configselect('enrol_wallet/paymentaccount', get_string('paymentaccount', 'payment'),
+                                                        get_string('paymentaccount_help', 'enrol_wallet'), 0, $accounts);
+    $settings->add($paymentaccount);
 
     // Add default currency.
-    $supportedcurrencies = options::get_possible_currencies(get_config('enrol_wallet', 'paymentaccount'));
+    $supportedcurrencies = options::get_possible_currencies($paymentaccount->get_setting());
     $settings->add(new admin_setting_configselect('enrol_wallet/currency', get_string('currency', 'enrol_wallet'),
                                             get_string('currency_help', 'enrol_wallet'), '', $supportedcurrencies));
 

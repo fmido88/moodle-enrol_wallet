@@ -24,6 +24,7 @@
  */
 namespace enrol_wallet\util;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
@@ -43,7 +44,7 @@ final class balance_op_test extends \advanced_testcase {
      * @return void
      */
     public function test_conditional_discount_charging(): void {
-        global $DB;
+        global $DB, $USER;
         $this->resetAfterTest();
 
         $user1 = $this->getDataGenerator()->create_user();
@@ -55,9 +56,9 @@ final class balance_op_test extends \advanced_testcase {
         $cat1 = $this->getDataGenerator()->create_category();
 
         $this->setAdminUser();
-        global $USER;
+
         $now = timedate::time();
-        set_config('conditionaldiscount_apply', 1, 'enrol_wallet');
+        config::make()->conditionaldiscount_apply = 1;
         $params = [
             'cond' => 400,
             'percent' => 15,
@@ -386,7 +387,8 @@ final class balance_op_test extends \advanced_testcase {
         $cat1 = $gen->create_category();
         $cat2 = $gen->create_category();
 
-        set_config('catbalance', 0, 'enrol_wallet');
+        config::make()->catbalance = 0;
+
         $op = new balance_op($user1->id);
         $op->credit(100);
         $this->assertEquals(100, $op->get_main_balance());
@@ -643,7 +645,9 @@ final class balance_op_test extends \advanced_testcase {
     public function test_debit_nocat(): void {
         global $DB;
         $this->resetAfterTest();
-        set_config('catbalance', 0, 'enrol_wallet');
+
+        config::make()->catbalance = 0;
+
         $gen = $this->getDataGenerator();
         $user1 = $gen->create_user();
         $user2 = $gen->create_user();
@@ -981,7 +985,7 @@ final class balance_op_test extends \advanced_testcase {
 
         $cat1 = $gen->create_category();
 
-        $enabled = get_config('enrol_wallet', 'transfer_enabled');
+        $enabled = config::make()->transfer_enabled;
         $this->assertEmpty($enabled);
 
         $this->setUser($user1);
@@ -998,7 +1002,9 @@ final class balance_op_test extends \advanced_testcase {
         }
         $this->assertNotEmpty($error);
         unset($error);
-        set_config('transfer_enabled', 1, 'enrol_wallet');
+
+        $config = config::make();
+        $config->transfer_enabled = 1;
 
         $error = $op->transfer_to_other($data);
 
@@ -1015,15 +1021,15 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(50, $balance->get_main_balance());
         $this->assertEquals(50, $balance->get_main_nonrefundable());
 
-        set_config('mintransfer', 20, 'enrol_wallet');
+        $config->mintransfer = 20;
 
         $data->amount = 15;
         $op = new balance_op;
         $msg = $op->transfer_to_other($data);
         $this->assertStringContainsString('The minimum transfer amount is', $msg);
 
-        set_config('transferpercent', 20, 'enrol_wallet');
-        set_config('transferfee_from', 'sender', 'enrol_wallet');
+        $config->transferpercent = 20;
+        $config->transferfee_from = 'sender';
 
         $data->amount = 50;
         $op = new balance_op;
@@ -1042,7 +1048,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(100, $balance->get_total_nonrefundable());
         $this->assertEquals(0, $balance->get_total_refundable());
 
-        set_config('transferfee_from', 'receiver', 'enrol_wallet');
+        $config->transferfee_from = 'receiver';
 
         $op = new balance_op;
         $op->transfer_to_other($data);
@@ -1059,7 +1065,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->reset_balance($user1->id);
         $this->reset_balance($user2->id);
 
-        set_config('transferpercent', 0, 'enrol_wallet');
+        $config->transferpercent = 0;
 
         $op = new balance_op($user1->id, $cat1->id);
         $op->credit(500);

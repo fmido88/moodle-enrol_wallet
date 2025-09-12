@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\urls\reports;
 
@@ -36,7 +37,7 @@ $capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
 $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
 $capcouponedit   = has_capability('enrol/wallet:editcoupon', $context);
 
-$ismoodle = (get_config('enrol_wallet', 'walletsource') == enrol_wallet\local\wallet\balance::MOODLE);
+$ismoodle = config::make()->walletsource == enrol_wallet\local\wallet\balance::MOODLE;
 // Adding these pages for only users with required capability.
 // These aren't appear to user's with capabilities, Only admins!.
 // That is because enrolment plugins not loading the settings unless the user has the capability moodle/site:config.

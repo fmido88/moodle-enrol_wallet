@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\transactions;
 use enrol_wallet_plugin;
@@ -46,10 +47,11 @@ final class locallib_test extends \advanced_testcase {
      * @return void
      */
     public function test_enrol_wallet_is_borrow_eligible(): void {
-        global $CFG, $DB;
+        global $DB;
         $this->resetAfterTest();
-        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+
         $now = timedate::time();
+        $config = config::make();
         // Eligibal user.
         $user1 = $this->getDataGenerator()->create_user(['firstaccess' => $now - 70 * DAYSECS]);
         // No borrow for new users.
@@ -61,8 +63,8 @@ final class locallib_test extends \advanced_testcase {
 
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
 
-        set_config('borrowtrans', 3, 'enrol_wallet');
-        set_config('borrowperiod', 15 * DAYSECS, 'enrol_wallet');
+        $config->borrowtrans = 3;
+        $config->borrowperiod = 15 * DAYSECS;
         transactions::payment_topup(20, $user1->id);
         transactions::payment_topup(20, $user1->id);
         transactions::payment_topup(20, $user1->id);
@@ -89,7 +91,7 @@ final class locallib_test extends \advanced_testcase {
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user3));
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user4));
 
-        set_config('borrowenable', 1, 'enrol_wallet');
+        $config->borrowenable = 1;
         // Enable Borrwing.
         $this->assertTrue(enrol_wallet_is_borrow_eligible($user1));
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));

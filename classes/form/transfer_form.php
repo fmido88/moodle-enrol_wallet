@@ -16,6 +16,7 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 use core_course_category;
 use core_user;
@@ -58,15 +59,16 @@ class transfer_form extends \moodleform {
     protected function definition() {
         global $CFG, $USER;
 
-        $transferenabled = (bool)get_config('enrol_wallet', 'transfer_enabled');
+        $config = config::instance();
+        $transferenabled = (bool)$config->transfer_enabled;
         if (empty($transferenabled)) {
             return;
         }
         $this->config = (object)[
             'transfer_enabled' => $transferenabled,
-            'transferpercent'  => (float)get_config('enrol_wallet', 'transferpercent'),
-            'transferfee_from' => get_config('enrol_wallet', 'transferfee_from'),
-            'mintransfer'      => (float)get_config('enrol_wallet', 'mintransfer'),
+            'transferpercent'  => (float)$config->transferpercent,
+            'transferfee_from' => $config->transferfee_from,
+            'mintransfer'      => (float)$config->mintransfer,
         ];
 
         $isparent = false;
@@ -80,7 +82,7 @@ class transfer_form extends \moodleform {
 
         $this->balance = new balance();
         $total = $this->balance->get_total_balance();
-        $currency = get_config('enrol_wallet', 'currency');
+        $currency = $config->currency;
 
         $mform->addElement('header', 'transferformhead', get_string('transfer', 'enrol_wallet'));
 

@@ -25,6 +25,7 @@
 namespace enrol_wallet\local\coupons;
 
 use context_module;
+use enrol_wallet\local\config;
 use enrol_wallet\local\entities\category as cat_helper;
 use enrol_wallet\local\entities\cm;
 use enrol_wallet\local\entities\instance;
@@ -197,7 +198,7 @@ class coupons {
      */
     public function __construct($code, $userid = 0) {
         global $USER;
-        $this->source = get_config('enrol_wallet', 'walletsource');
+        $this->source = config::instance()->walletsource;
         $this->code   = $code;
 
         if (empty($userid)) {
@@ -328,7 +329,7 @@ class coupons {
      * @return array
      */
     public static function get_enabled() {
-        $config = get_config('enrol_wallet', 'coupons');
+        $config = config::instance()->coupons;
 
         if (empty($config)) {
             return [self::NOCOUPONS];
@@ -349,7 +350,7 @@ class coupons {
     public static function get_enabled_options() {
         $options = [];
 
-        if (!$config = get_config('enrol_wallet', 'coupons')) {
+        if (!$config = config::instance()->coupons) {
             return $options;
         }
         $enabled = explode(',', $config);
@@ -579,7 +580,7 @@ class coupons {
         if (!$this->type == self::CATEGORY) {
             return;
         }
-        $catenabled = (bool)get_config('enrol_wallet', 'catbalance') && $this->source == balance::MOODLE;
+        $catenabled = (bool)config::instance()->catbalance && $this->source == balance::MOODLE;
 
         if (empty($this->category) || (!$catenabled && $this->area == self::AREA_TOPUP)) {
             $this->error = get_string('coupon_applynothere_category', 'enrol_wallet');

@@ -25,6 +25,7 @@
 
 namespace enrol_wallet\payment;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance_op as op;
 
 /**
@@ -80,7 +81,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
                 $account = $DB->get_field('enrol', 'customint1', ['id' => $item->instanceid]);
             } else {
                 // In this case we get the default settings.
-                $account = get_config('enrol_wallet', 'paymentaccount');
+                $account = config::make()->paymentaccount;
             }
         }
 

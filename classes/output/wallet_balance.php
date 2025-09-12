@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet\output;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\urls\reports;
 use enrol_wallet\local\wallet\balance;
@@ -89,10 +90,12 @@ class wallet_balance implements renderable, templatable {
         $helper = new balance($this->userid);
         // Get the user balance.
         $details = $helper->get_balance_details();
-        // Get the default currency.
-        $currency = get_config('enrol_wallet', 'currency');
 
-        $policy = get_config('enrol_wallet', 'refundpolicy');
+        $config = config::make();
+        // Get the default currency.
+        $currency = $config->currency;
+
+        $policy = $config->refundpolicy;
         // Prepare transaction URL to display.
         $params = [];
         if (!$this->currentuser) {
@@ -103,13 +106,13 @@ class wallet_balance implements renderable, templatable {
         $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));
         if ($this->currentuser && !AJAX_SCRIPT) {
             // Transfer link.
-            $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
+            $transferenabled = $config->transfer_enabled;
             $transferurl = pages::TRANSFER->url();
             $transfer = html_writer::link($transferurl, get_string('transfer', 'enrol_wallet'));
 
             if (!$this->isparent) {
                 // Referral link.
-                $refenabled = get_config('enrol_wallet', 'referral_enabled');
+                $refenabled = $config->referral_enabled;
                 $referralurl = pages::REFERRAL->url();
                 $referral = html_writer::link($referralurl, get_string('referral_program', 'enrol_wallet'));
             }

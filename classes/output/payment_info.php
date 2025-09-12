@@ -24,6 +24,7 @@
 namespace enrol_wallet\output;
 
 use core\context;
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\payment;
 use enrol_wallet\local\utils\timedate;
 use renderable;
@@ -102,7 +103,7 @@ class payment_info implements renderable, templatable {
         $this->userbalance    = $balance->get_valid_balance();
         $this->course         = $helper->get_course();
         $this->context        = $helper->get_course_context();
-        $this->walletcurrency = get_config('enrol_wallet', 'currency');
+        $this->walletcurrency = config::make()->currency;
         $this->accountid      = (int)$instance->customint1;
     }
 

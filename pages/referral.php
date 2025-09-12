@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 require_once('../../../config.php');
 
@@ -36,7 +37,7 @@ if ($isparent) {
     redirect(new moodle_url('/'), get_string('referral_noparents', 'enrol_wallet'));
 }
 
-if (empty(get_config('enrol_wallet', 'referral_enabled'))) {
+if (empty(config::make()->referral_enabled)) {
     redirect(new moodle_url('/'), get_string('referral_not_enabled', 'enrol_wallet'));
 }
 

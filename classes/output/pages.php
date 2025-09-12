@@ -16,11 +16,6 @@
 
 namespace enrol_wallet\output;
 
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once($CFG->libdir.'/tablelib.php');
-require_once($CFG->libdir.'/formslib.php');
-
 use moodle_url;
 use html_table;
 use html_writer;
@@ -33,6 +28,14 @@ use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\local\discounts\discount_rules;
 use enrol_wallet\local\discounts\offers;
+use enrol_wallet\local\config;
+
+defined('MOODLE_INTERNAL') || die();
+global $CFG;
+require_once($CFG->libdir.'/tablelib.php');
+require_once($CFG->libdir.'/formslib.php');
+
+
 
 /**
  * Class pages
@@ -48,7 +51,7 @@ class pages {
      */
     public static function process_referral_page($userid = 0) {
         global $DB, $USER, $CFG, $OUTPUT, $SITE;
-        if (!(bool)get_config('enrol_wallet', 'referral_enabled')) {
+        if (!(bool)config::make()->referral_enabled) {
             echo get_string('referral_not_enabled', 'enrol_wallet');
             return;
         }
@@ -71,8 +74,9 @@ class pages {
             return;
         }
 
-        $amount = get_config('enrol_wallet', 'referral_amount');
-        $maxref = get_config('enrol_wallet', 'referral_max');
+        $config = config::make();
+        $amount = $config->referral_amount;
+        $maxref = $config->referral_max;
 
         // If the referral code not exist for this user, create a new one.
         $exist = $DB->get_record('enrol_wallet_referral', ['userid' => $user->id]);
@@ -257,7 +261,7 @@ class pages {
      * @return void
      */
     public static function process_transfer_page($url) {
-        if (!(bool)get_config('enrol_wallet', 'transfer_enabled')) {
+        if (!(bool)config::make()->transfer_enabled) {
             return;
         }
 
@@ -338,7 +342,7 @@ class pages {
             $out .= "<hr/>";
         }
 
-        $config = get_config('enrol_wallet');
+        $config = config::make();
         if (!empty($config->cashback)) {
             $cashbackvalue = (float)$config->cashbackpercent;
             if ($cashbackvalue > 0 && $cashbackvalue <= 100) {

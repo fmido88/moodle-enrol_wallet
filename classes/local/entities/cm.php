@@ -24,6 +24,7 @@
 
 namespace enrol_wallet\local\entities;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use core_course_category;
 
@@ -170,7 +171,7 @@ class cm {
         }
 
         // Check if the discount according to custom profile field in enabled.
-        if (!$fieldid = get_config('enrol_wallet', 'discount_field')) {
+        if (!$fieldid = config::instance()->discount_field) {
             return $this->costafter;
         }
         // Check the data in the discount field.

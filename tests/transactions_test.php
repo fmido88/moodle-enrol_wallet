@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 
 defined('MOODLE_INTERNAL') || die();
@@ -70,6 +71,8 @@ final class transactions_test extends \advanced_testcase {
 
         $this->assertTrue(enrol_is_enabled('wallet'));
         $plugin = enrol_get_plugin('wallet');
+        $config = config::make();
+
         $this->assertInstanceOf('enrol_wallet_plugin', $plugin);
 
         $user = $this->getDataGenerator()->create_user(['firstname' => 'Mo', 'lastname' => 'Farouk']);
@@ -123,7 +126,7 @@ final class transactions_test extends \advanced_testcase {
         $this->assertEquals(50, $norefund);
 
         // Check disable refund will make all values nonrefundable.
-        set_config('enablerefund', 0, 'enrol_wallet');
+        $config->enablerefund = 0;
         $user3 = $this->getDataGenerator()->create_user();
         $this->transactions->payment_topup(100, $user3->id);
         $balance = $this->transactions->get_user_balance($user3->id);
@@ -132,7 +135,7 @@ final class transactions_test extends \advanced_testcase {
         $this->assertEquals(100, $norefund);
 
         // Testing that debit process will deduct from the refundable credit first.
-        set_config('enablerefund', 1, 'enrol_wallet');
+        $config->enablerefund = 1;
         $user4 = $this->getDataGenerator()->create_user();
         $this->transactions->payment_topup(100, $user4->id);
         $this->transactions->payment_topup(100, $user4->id, '', '', false);
@@ -168,7 +171,7 @@ final class transactions_test extends \advanced_testcase {
         $this->preventResetByRollback(); // Messaging does not like transactions...
 
         $user = $this->getDataGenerator()->create_user();
-        set_config('coupons', \enrol_wallet_plugin::WALLET_COUPONSALL, 'enrol_wallet');
+        config::make()->coupons = \enrol_wallet_plugin::WALLET_COUPONSALL;
         $coupon = [
             'code' => 'test1',
             'type' => 'fixed',

@@ -26,6 +26,7 @@
 
 namespace enrol_wallet\local\discounts;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
 use stdClass;
@@ -322,7 +323,7 @@ class offers {
             $discounts[] = (float)$obj->discount;
         }
 
-        $behavior = (int)get_config('enrol_wallet', 'discount_behavior');
+        $behavior = (int)config::instance()->discount_behavior;
 
         if ($behavior === instance::B_MAX) {
             return max($discounts);

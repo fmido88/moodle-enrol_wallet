@@ -19,6 +19,7 @@ namespace enrol_wallet\local\wallet;
 use enrol_wallet\exception\debit_exception;
 use enrol_wallet\exception\negative_amount;
 use enrol_wallet\exception\negative_balance;
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\catop;
 use enrol_wallet\event\transactions_triggered;
@@ -538,7 +539,7 @@ class balance_op extends balance {
         $description = $this->get_credit_description($by, $thingid, $desc);
 
         // Turn all credit operations to nonrefundable if refund settings not enabled.
-        $refundenabled = get_config('enrol_wallet', 'enablerefund');
+        $refundenabled = config::make()->enablerefund;
 
         if (empty($refundenabled)) {
             $refundable = false;
@@ -865,10 +866,11 @@ class balance_op extends balance {
      */
     public function apply_cashback() {
         // Now apply the cashback if enabled.
-        $cashbackenabled = get_config('enrol_wallet', 'cashback');
+        $config = config::make();
+        $cashbackenabled = $config->cashback;
 
         if ($cashbackenabled) {
-            $percent = get_config('enrol_wallet', 'cashbackpercent');
+            $percent = $config->cashbackpercent;
 
             $value = $this->amount * $percent / 100;
             $this->credit($value, self::C_CASHBACK, $this->courseid, '', false, false);
@@ -930,7 +932,7 @@ class balance_op extends balance {
      * @return void
      */
     private function queue_transaction_transformation() {
-        $period = get_config('enrol_wallet', 'refundperiod');
+        $period = config::make()->refundperiod;
 
         if (empty($period)) {
             return;

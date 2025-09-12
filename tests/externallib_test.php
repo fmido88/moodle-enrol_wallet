@@ -18,6 +18,7 @@ namespace enrol_wallet;
 
 use core_external\external_api;
 use enrol_wallet\external\enrol as enrol_wallet_external;
+use enrol_wallet\local\config;
 use externallib_advanced_testcase;
 use enrol_wallet\transactions;
 
@@ -48,7 +49,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $walletplugin = enrol_get_plugin('wallet');
         $this->assertNotEmpty($walletplugin);
         // In this test we will add instances manually.
-        $walletplugin->set_config('defaultenrol', 0);
+        config::make()->defaultenrol = 0;
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
@@ -134,7 +135,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $walletplugin = enrol_get_plugin('wallet');
 
         // In this test we will add instances manually.
-        $walletplugin->set_config('defaultenrol', 0);
+        config::make()->defaultenrol = 0;
 
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();

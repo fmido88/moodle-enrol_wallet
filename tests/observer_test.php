@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet_plugin;
@@ -46,7 +47,7 @@ final class observer_test extends \advanced_testcase {
     public function test_wallet_completion_awards(): void {
         global $DB, $CFG;
         $this->resetAfterTest();
-        set_config('awardssite', 1, 'enrol_wallet');
+        config::make()->awardssite = 1;
         $walletplugin = enrol_wallet_plugin::get_plugin();
         // Enable completion before creating modules, otherwise the completion data is not written in DB.
         $CFG->enablecompletion = true;
@@ -207,16 +208,15 @@ final class observer_test extends \advanced_testcase {
     public function test_wallet_gifting_new_user(): void {
         $this->resetAfterTest();
 
-        $walletplugin = enrol_get_plugin('wallet');
-
+        $config = config::make();
         // Create user and check that there is no balance.
         $user1 = $this->getDataGenerator()->create_user();
         $balance = new balance($user1->id);
         $this->assertEquals(0, $balance->get_total_balance());
 
         // Enable gifting.
-        $walletplugin->set_config('newusergift', 1);
-        $walletplugin->set_config('newusergiftvalue', 20);
+        $config->newusergift = 1;
+        $config->newusergiftvalue = 20;
 
         // Create another user.
         $user2 = $this->getDataGenerator()->create_user();
@@ -242,9 +242,10 @@ final class observer_test extends \advanced_testcase {
         require_once("$CFG->dirroot/user/editlib.php");
         require_once("$CFG->dirroot/login/signup_form.php");
 
+        $config = config::make();
         // Enable referrals.
-        set_config('referral_enabled', 1, 'enrol_wallet');
-        set_config('referral_amount', 50, 'enrol_wallet');
+        $config->referral_enabled = 1;
+        $config->referral_amount = 50;
         $CFG->registerauth = 'email';
 
         // Create the first user.
@@ -317,7 +318,7 @@ final class observer_test extends \advanced_testcase {
         $this->assertEquals(0, $balance2);
 
         // Add manual enrolment to the list.
-        set_config('referral_plugins', 'wallet,manual', 'enrol_wallet');
+        $config->referral_plugins = 'wallet,manual';
 
         $course2 = $this->getDataGenerator()->create_course();
         $this->getDataGenerator()->enrol_user($user2->id, $course2->id);
@@ -365,7 +366,7 @@ final class observer_test extends \advanced_testcase {
         $sink->close();
 
         // Set max referrals to 1 and check validation.
-        set_config('referral_max', 1, 'enrol_wallet');
+        $config->referral_max = 1;
 
         $this->setUser(null);
         $user3 = [

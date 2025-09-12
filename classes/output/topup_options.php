@@ -21,6 +21,7 @@ use core\output\renderable;
 use core\output\renderer_base;
 use core\url;
 use core_user;
+use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\local\discounts\discount_rules;
@@ -42,11 +43,6 @@ require_once($CFG->dirroot.'/user/lib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class topup_options implements templatable, renderable {
-    /**
-     * Plugin configuration.
-     * @var stdClass
-     */
-    protected $config;
     /**
      * User object.
      * @var stdClass
@@ -78,22 +74,6 @@ class topup_options implements templatable, renderable {
             $this->display = false;
             return;
         }
-
-        $this->config = new stdClass();
-    }
-
-    /**
-     * Plugin configuration.
-     * @param string $name
-     * @return mixed
-     */
-    protected function config($name) {
-        if (isset($this->config->{$name})) {
-            return $this->config->{$name};
-        }
-
-        $this->config->{$name} = get_config('enrol_wallet', $name);
-        return $this->config->{$name};
     }
 
     /**
@@ -101,7 +81,7 @@ class topup_options implements templatable, renderable {
      * @return array{haswarn: bool, policy: string, topup: bool}|array{haswarn: bool}
      */
     public function export_policy_warn() {
-        $policy = $this->config('refundpolicy');
+        $policy = config::make()->refundpolicy;
         if (empty($policy)) {
             return ['haswarn' => false];
         }
@@ -122,10 +102,11 @@ class topup_options implements templatable, renderable {
         $instance = new stdClass;
         $data = new stdClass;
 
+        $config = config::make();
         $instance->id         = 0;
         $instance->courseid   = SITEID;
-        $instance->currency   = $this->config('currency');
-        $instance->customint1 = $this->config('paymentaccount');
+        $instance->currency   = $config->currency;
+        $instance->customint1 = $config->paymentaccount;
 
         $data->instance = $instance;
         $data->user     = $this->user;
@@ -236,7 +217,7 @@ class topup_options implements templatable, renderable {
      */
     public function get_teller_men(renderer_base $output) {
         // Display teller men (user with capabilities to credit and chosen in the settings to be displayed).
-        $tellermen = $this->config('tellermen');
+        $tellermen = config::make()->tellermen;
         if (empty($tellermen)) {
             return null;
         }

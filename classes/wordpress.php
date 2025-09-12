@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace enrol_wallet;
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 use curl;
 /**
@@ -44,7 +45,7 @@ class wordpress {
         global $CFG;
         require_once($CFG->libdir .'/filelib.php');
 
-        $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $wordpressurl = config::make()->wordpress_url;
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
         if (empty($wordpressurl)) {
             return;
@@ -86,7 +87,7 @@ class wordpress {
      * @return string
      */
     public static function encrypt_data($data) {
-        $key = get_config('enrol_wallet', 'wordpress_secretkey');
+        $key = config::make()->wordpress_secretkey;
         $data['sk'] = $key;
         $token = http_build_query( $data, 'flags_' );
 
@@ -281,9 +282,10 @@ class wordpress {
      * @param string $redirect redirection url after login or logout from wordpress website
      */
     public function login_logout_user_to_wordpress($userid, $method, $redirect) {
-        $walletsource = get_config('enrol_wallet', 'walletsource');
-        $allowed = get_config('enrol_wallet', 'wordpressloggins');
-        $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $config = config::make();
+        $walletsource = $config->walletsource;
+        $allowed = $config->wordpressloggins;
+        $wordpressurl = $config->wordpress_url;
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
 
         $user = \core_user::get_user($userid);

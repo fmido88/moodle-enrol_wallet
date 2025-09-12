@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\output\helper;
 
@@ -117,14 +118,16 @@ $a = [
     'policy'   => '',
 ];
 
+$config = config::make();
+
 // Display refund policy if enabled.
-$refund = get_config('enrol_wallet', 'unenrolrefund');
-$policy = get_config('enrol_wallet', 'unenrolrefundpolicy');
+$refund = $config->unenrolrefund;
+$policy = $config->unenrolrefundpolicy;
 if (!empty($refund) && !empty($policy)) {
-    $period = get_config('enrol_wallet', 'unenrolrefundperiod');
+    $period = $config->unenrolrefundperiod;
     $period = (!empty($period)) ? $period / DAYSECS : '('.get_string('unlimited').')';
 
-    $fee = get_config('enrol_wallet', 'unenrolrefundfee');
+    $fee = $config->unenrolrefundfee;
     $fee = !(empty($fee)) ? $fee : 0;
 
     $policy = str_replace('{fee}', $fee, $policy);

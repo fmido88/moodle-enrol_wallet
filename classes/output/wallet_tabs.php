@@ -24,6 +24,7 @@ use core\output\html_writer;
 use core\output\renderable;
 use core\output\renderer_base;
 use core\output\templatable;
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\reports;
 use enrol_wallet\table\transactions;
 
@@ -199,7 +200,7 @@ class wallet_tabs implements renderable, templatable {
      * @return bool|string
      */
     public function render_referral($ignore = null) {
-        if ((bool)get_config('enrol_wallet', 'referral_enabled')) {
+        if ((bool)config::make()->referral_enabled) {
             ob_start();
             pages::process_referral_page();
 

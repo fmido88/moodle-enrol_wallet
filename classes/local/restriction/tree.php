@@ -17,6 +17,7 @@
 namespace enrol_wallet\local\restriction;
 
 use core_availability\result;
+use enrol_wallet\local\config;
 
 /**
  * Class that holds a tree of availability conditions.
@@ -119,7 +120,7 @@ class tree extends \core_availability\tree {
         $failedchildren = [];
         $totallyhide = !$this->show;
         $decoded = json_decode($this->instance->customtext2);
-        $enabled = get_config('enrol_wallet', 'availability_plugins');
+        $enabled = config::make()->availability_plugins;
         $enabled = explode(',', $enabled);
         $additional = '';
         foreach ($this->children as $index => $child) {

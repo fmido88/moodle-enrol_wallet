@@ -24,6 +24,8 @@
 
 namespace enrol_wallet\local\entities;
 
+use enrol_wallet\local\config;
+
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
@@ -191,7 +193,7 @@ class instance extends \stdClass {
             $this->userid = $userid;
         }
 
-        $this->behavior = (int)get_config('enrol_wallet', 'discount_behavior');
+        $this->behavior = (int)config::make()->discount_behavior;
         $this->calculate_cost_after_discount();
         $this->set_static_cache();
     }
@@ -393,10 +395,11 @@ class instance extends \stdClass {
         $discount   = 0;
 
         if ($ue = $DB->get_record('user_enrolments', ['enrolid' => $instanceid, 'userid' => $userid])) {
-            if (!empty($ue->timeend) && get_config('enrol_wallet', 'repurchase')) {
-                if ($first = get_config('enrol_wallet', 'repurchase_firstdis')) {
+            $config = config::make();
+            if (!empty($ue->timeend) && $config->repurchase) {
+                if ($first = $config->repurchase_firstdis) {
                     $discount   = min($first / 100, 1);
-                    $second     = get_config('enrol_wallet', 'repurchase_seconddis');
+                    $second     = $config->repurchase_seconddis;
                     $timepassed = $ue->timemodified > $ue->timecreated + $ue->timeend - $ue->timestart;
 
                     if ($second && $ue->modifierid == $userid && $timepassed) {
@@ -443,7 +446,7 @@ class instance extends \stdClass {
         $discount = 0;
 
         // Check if the discount according to custom profile field in enabled.
-        if (!$fieldid = get_config('enrol_wallet', 'discount_field')) {
+        if (!$fieldid = config::make()->discount_field) {
             return $discount;
         }
 

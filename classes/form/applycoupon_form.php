@@ -26,6 +26,7 @@ namespace enrol_wallet\form;
 
 use core\exception\moodle_exception;
 use core\url;
+use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use stdClass;
 
@@ -273,7 +274,7 @@ class applycoupon_form extends \moodleform {
             // Check the type to determine what to do.
             if ($type == coupons::FIXED) {
                 // Apply the coupon code to add its value to the user's wallet and enrol if value is enough.
-                $currency = get_config('enrol_wallet', 'currency');
+                $currency = config::instance()->currency;
                 $a = [
                     'value'    => $value,
                     'currency' => $currency,

@@ -16,6 +16,7 @@
 
 namespace enrol_wallet\util;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
@@ -67,13 +68,14 @@ final class instance_test extends \advanced_testcase {
         ];
         $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
 
-        $walletplugin->set_config('discount_field', $fieldid);
+        $config = config::make();
+        $config->discount_field = $fieldid;
         $op = new balance_op($user1->id);
         $op->credit(150);
         $userfielddata = (object)[
-            'userid' => $user1->id,
+            'userid'  => $user1->id,
             'fieldid' => $fieldid,
-            'data' => 'free',
+            'data'    => 'free',
         ];
         $userdataid = $DB->insert_record('user_info_data', $userfielddata);
         $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, true);
@@ -94,7 +96,7 @@ final class instance_test extends \advanced_testcase {
 
         // Create percent discount coupon.
         $all = implode(',', coupons::TYPES);
-        set_config('coupons', $all, 'enrol_wallet');
+        $config->coupons = $all;
         $coupon = [
             'code'     => 'test1',
             'type'     => 'percent',
@@ -106,19 +108,19 @@ final class instance_test extends \advanced_testcase {
         $this->assertEquals('test1', coupons::check_discount_coupon());
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(100, $costafter);
-        set_config('coupons', coupons::DISCOUNT, 'enrol_wallet');
+        $config->coupons = coupons::DISCOUNT;
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(100, $costafter);
-        set_config('coupons', coupons::FIXED .',' . coupons::ENROL, 'enrol_wallet');
+        $config->coupons = coupons::FIXED . ',' . coupons::ENROL;
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
-        set_config('coupons', coupons::NOCOUPONS, 'enrol_wallet');
+        $config->coupons = coupons::NOCOUPONS;
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
         coupons::unset_session_coupon();
 
         // Create a fixed & category coupons and check that there is no discount.
-        set_config('coupons', enrol_wallet_plugin::WALLET_COUPONSALL, 'enrol_wallet');
+        $config->coupons = enrol_wallet_plugin::WALLET_COUPONSALL;
         $coupon = [
             'code' => 'test2',
             'type' => 'fixed',
@@ -150,7 +152,8 @@ final class instance_test extends \advanced_testcase {
     public function test_repurchase_discount_and_function(): void {
         global $DB;
         $this->resetAfterTest();
-        $wallet = new enrol_wallet_plugin;
+        $wallet = enrol_wallet_plugin::get_plugin();
+        $config = config::make();
         // Now lets check the discount for repurchace.
         $course2 = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course2->id);
@@ -189,18 +192,18 @@ final class instance_test extends \advanced_testcase {
         $this->assertEquals(100, $inst->get_cost_after_discount(true));
 
         // Enable the repurchase.
-        set_config('repurchase', 1, 'enrol_wallet');
+        $config->repurchase = 1;
         $wallet = new enrol_wallet_plugin;
         $this->assertTrue($wallet->can_self_enrol($instance));
         $this->assertEquals(100, $inst->get_cost_after_discount(true));
 
         // Set first discount.
-        set_config('repurchase_firstdis', 40, 'enrol_wallet');
+        $config->repurchase_firstdis = 40;
         $this->assertTrue($wallet->can_self_enrol($instance));
         $this->assertEquals(60, $inst->get_cost_after_discount(true));
 
         // Make sure it is not affected by second discount option.
-        set_config('repurchase_seconddis', 60, 'enrol_wallet');
+        $config->repurchase_seconddis = 60;
         $wallet = new enrol_wallet_plugin;
 
         $this->assertEquals(60, $inst->get_cost_after_discount(true));

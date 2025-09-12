@@ -22,6 +22,7 @@ use core\context\system;
 use core\output\html_writer;
 use core\url;
 use enrol_wallet\form\charger_form;
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\urls\reports;
 use enrol_wallet\local\wallet\balance;
@@ -59,7 +60,7 @@ class static_renderer {
      * @return array{label: string, url: url[]}|string
      */
     public static function coupons_urls($array = false) {
-        if (get_config('enrol_wallet', 'walletsource') != balance::MOODLE) {
+        if (config::make()->walletsource != balance::MOODLE) {
             return $array ? [] : '';
         }
 

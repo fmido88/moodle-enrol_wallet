@@ -24,6 +24,7 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\discounts\discount_rules;
 use enrol_wallet\local\utils\catoptions;
 use enrol_wallet\local\wallet\balance;
@@ -110,7 +111,7 @@ class topup_form extends \moodleform {
 
         $mform = $this->_form;
         // Check the conditional discount.
-        $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+        $enabled = config::instance()->conditionaldiscount_apply;
         if (!empty($enabled)) {
             $i = discount_rules::add_discounts_to_form($mform);
         }

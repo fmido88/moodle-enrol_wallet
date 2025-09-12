@@ -28,6 +28,7 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\metadata\collection;
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 
 /**
@@ -102,7 +103,7 @@ class provider implements
             'usermodified' => "privacy:metadata:enrol_wallet_cond_discount:usermodified",
         ], "privacy:metadata:enrol_wallet_cond_discount");
 
-        $source = get_config('enrol_wallet', 'walletsource');
+        $source = config::make()->walletsource;
         if ($source == balance::WP) {
             $collection->add_external_location_link('wordpress', [
                 'userid'   => "privacy:metadata:wordpress:userid",

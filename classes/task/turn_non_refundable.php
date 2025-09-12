@@ -24,6 +24,7 @@
 
 namespace enrol_wallet\task;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op as op;
@@ -127,7 +128,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
             $norefund = $balancehelper->get_valid_nonrefundable() - $mainnorefund;
         }
 
-        $period = get_config('enrol_wallet', 'refundperiod');
+        $period = config::make()->refundperiod;
 
         if ($norefund >= $balance) {
             $output = 'Non refundable amount grater than or equal user\'s balance'."\n";
@@ -195,7 +196,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $norefund = $op->get_valid_nonrefundable();
 
         // If refunding is disable, transform all balance to non-refundable.
-        $refundenabled = get_config('enrol_wallet', 'enablerefund');
+        $refundenabled = config::make()->enablerefund;
         if (empty($refundenabled)) {
             $transform = $balance;
             $trace->output('Refunding is disabled in this website, all of user\'s balance will transform...'."\n");

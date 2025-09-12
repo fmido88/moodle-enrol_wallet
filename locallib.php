@@ -23,6 +23,7 @@
  */
 use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\form\charger_form;
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\output\static_renderer;
@@ -185,9 +186,11 @@ function enrol_wallet_is_valid_account($accountid) {
  */
 function enrol_wallet_is_borrow_eligible($userid = null) {
     global $USER, $DB;
-    $enabled = get_config('enrol_wallet', 'borrowenable');
-    $number = get_config('enrol_wallet', 'borrowtrans');
-    $period = get_config('enrol_wallet', 'borrowperiod');
+    $config = config::make();
+
+    $enabled = $config->borrowenable;
+    $number  = $config->borrowtrans;
+    $period  = $config->borrowperiod;
 
     if (empty($enabled)) {
         return false;

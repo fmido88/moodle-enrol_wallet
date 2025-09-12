@@ -25,6 +25,7 @@
 namespace enrol_wallet\local\discounts;
 
 use core_course_category;
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\output\discount_line;
@@ -68,7 +69,7 @@ class discount_rules {
      * @return array[\stdClass]
      */
     public static function get_all_available_discount_rules() {
-        $enabled = (bool)get_config('enrol_wallet', 'conditionaldiscount_apply');
+        $enabled = (bool)config::instance()->conditionaldiscount_apply;
         if (!$enabled) {
             return [];
         }
@@ -141,7 +142,7 @@ class discount_rules {
      */
     public static function get_the_rest($amount, $catid = 0) {
         global $DB;
-        $enabled = get_config('enrol_wallet', 'conditionaldiscount_apply');
+        $enabled = config::instance()->conditionaldiscount_apply;
         $percentdiscount = 0;
         if (!empty($enabled)) {
             $records = self::get_current_discount_rules($catid);

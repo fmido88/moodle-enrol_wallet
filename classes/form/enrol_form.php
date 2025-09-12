@@ -23,6 +23,7 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet_plugin;
 
@@ -103,14 +104,15 @@ class enrol_form extends \moodleform {
             }
         }
 
+        $config = config::instance();
         // Display refund policy if enabled.
-        $refund = get_config('enrol_wallet', 'unenrolrefund');
-        $policy = get_config('enrol_wallet', 'unenrolrefundpolicy');
+        $refund = $config->unenrolrefund;
+        $policy = $config->unenrolrefundpolicy;
         if (!empty($refund) && !empty($policy)) {
-            $period = get_config('enrol_wallet', 'unenrolrefundperiod');
+            $period = $config->unenrolrefundperiod;
             $period = (!empty($period)) ? $period / DAYSECS : '('.get_string('unlimited').')';
 
-            $fee = get_config('enrol_wallet', 'unenrolrefundfee');
+            $fee = $config->unenrolrefundfee;
             $fee = !(empty($fee)) ? $fee : 0;
 
             $policy = str_replace('{fee}', $fee, $policy);

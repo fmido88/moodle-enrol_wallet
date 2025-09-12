@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance_op;
@@ -47,7 +48,7 @@ class observer {
      */
     public static function wallet_completion_awards(\core\event\course_completed $event) {
         global $CFG, $DB;
-        $siteaward = get_config('enrol_wallet', 'awardssite');
+        $siteaward = config::make()->awardssite;
         if (empty($siteaward)) {
             return;
         }
@@ -156,11 +157,12 @@ class observer {
     public static function wallet_gifting_new_user(\core\event\user_created $event) {
         $userid = $event->relateduserid;
 
+        $config = config::make();
         // First check if we gifting new users.
-        $giftenabled = get_config('enrol_wallet', 'newusergift');
+        $giftenabled = $config->newusergift;
         if (!empty($giftenabled)) {
             $time   = $event->timecreated;
-            $giftvalue = get_config('enrol_wallet', 'newusergiftvalue');
+            $giftvalue = $config->newusergiftvalue;
             $balanceop = new balance_op($userid);
             $balance = $balanceop->get_main_balance();
             if (!is_numeric($balance) || $balance == 0) {
@@ -206,21 +208,25 @@ class observer {
      * @return void
      */
     public static function release_referral_gift(\core\event\user_enrolment_created $event) {
+        global $DB;
+
         $courseid = $event->courseid;
         $enrolmethod = $event->other['enrol'];
         $userid = $event->relateduserid;
 
-        $plugins = explode(',', get_config('enrol_wallet', 'referral_plugins'));
-        if (empty($plugins) || !in_array($enrolmethod, $plugins, true)) {
-            return;
-        }
+        $config = config::make();
+        // Check if referral system is enabled.
 
-        $enabled = get_config('enrol_wallet', 'referral_enabled');
+        $enabled = $config->referral_enabled;
         if (!$enabled) {
             return;
         }
 
-        global $DB;
+        $plugins = explode(',', $config->referral_plugins);
+        if (empty($plugins) || !in_array($enrolmethod, $plugins, true)) {
+            return;
+        }
+
         $referred = \core_user::get_user($userid, 'username,firstname');
 
         $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $referred->username]);
@@ -257,7 +263,8 @@ class observer {
     public static function login_to_wordpress(\core\event\user_loggedin $event) {
         global $SESSION;
         $userid = $event->userid;
-        $walletsource = get_config('enrol_wallet', 'walletsource');
+        $config = config::make();
+        $walletsource = $config->walletsource;
         if ($walletsource != balance::WP) {
             return;
         }
@@ -274,9 +281,9 @@ class observer {
             return;
         }
 
-        $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $wordpressurl = $config->wordpress_url;
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
-        $allowed      = get_config('enrol_wallet', 'wordpressloggins');
+        $allowed      = $config->wordpressloggins;
         if (empty($allowed) || empty($wordpressurl)) {
             return;
         }
@@ -304,14 +311,15 @@ class observer {
      */
     public static function logout_from_wordpress(\core\event\user_loggedout $event) {
         global  $redirect;
-        $walletsource = get_config('enrol_wallet', 'walletsource');
+        $config = config::make();
+        $walletsource = $config->walletsource;
         if ($walletsource != balance::WP) {
             return;
         }
 
-        $wordpressurl = get_config('enrol_wallet', 'wordpress_url');
+        $wordpressurl = $config->wordpress_url;
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
-        $allowed = get_config('enrol_wallet', 'wordpressloggins');
+        $allowed = $config->wordpressloggins;
         if (empty($allowed) || empty($wordpressurl)) {
             return;
         }

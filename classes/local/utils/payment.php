@@ -21,6 +21,7 @@ use core\url;
 use core_payment\account;
 use core_payment\helper;
 use core_plugin_manager;
+use enrol_wallet\local\config;
 
 /**
  * Class payment
@@ -157,8 +158,9 @@ class payment {
      * @return bool
      */
     public static function is_topup_available(): bool {
-        $currency = get_config('enrol_wallet', 'currency');
-        $accountid = get_config('enrol_wallet', 'paymentaccount');
+        $config = config::make();
+        $currency = $config->currency;
+        $accountid = $config->paymentaccount;
         return self::is_valid_currency($currency) && self::is_valid_account($accountid);
     }
 }

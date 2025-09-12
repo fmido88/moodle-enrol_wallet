@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\urls\reports;
@@ -146,7 +147,8 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
     $hassiteconfig   = has_capability('moodle/site:config', $context);
 
     $any = ($captransactions || $capcredit || $capbulkedit || $capcouponview || $capcouponcreate);
-    $ismoodle = (get_config('enrol_wallet', 'walletsource') == balance::MOODLE);
+    $config = config::make();
+    $ismoodle = $config->walletsource == balance::MOODLE;
 
     if ($hassiteconfig && $any) {
 
@@ -257,7 +259,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
         }
     }
 
-    if ((bool)get_config('enrol_wallet', 'frontpageoffers')) {
+    if ((bool)$config->frontpageoffers) {
         // Add offers node.
         $offers = get_string('offers', 'enrol_wallet');
         $node = navigation_node::create(
@@ -278,8 +280,9 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
  * @return void
  */
 function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
-    $refenabled = get_config('enrol_wallet', 'referral_enabled');
-    $maxref     = get_config('enrol_wallet', 'referral_max');
+    $config = config::make();
+    $refenabled = $config->referral_enabled;
+    $maxref     = $config->referral_max;
     if (!$refenabled) {
         return;
     }
@@ -318,8 +321,11 @@ function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
  * @return array<string>
  */
 function enrol_wallet_validate_extend_signup_form($data) {
-    $refenabled = get_config('enrol_wallet', 'referral_enabled');
-    $maxref     = get_config('enrol_wallet', 'referral_max');
+    $config = config::make();
+
+    $refenabled = $config->referral_enabled;
+    $maxref     = $config->referral_max;
+
     $errors = [];
     if (!$refenabled || empty($data['refcode']) || empty($maxref)) {
         return $errors;
@@ -344,7 +350,7 @@ function enrol_wallet_validate_extend_signup_form($data) {
  */
 function enrol_wallet_update_wordpress_user($user) {
     // Check the wallet source first.
-    $source = get_config('enrol_wallet', 'walletsource');
+    $source = config::make()->walletsource;
     if ($source == balance::WP) {
         // Create or update corresponding user in wordpress.
         $wordpress = new \enrol_wallet\wordpress;
@@ -357,11 +363,12 @@ function enrol_wallet_update_wordpress_user($user) {
  * @return void
  */
 function enrol_wallet_post_signup_requests($user) {
+    $config = config::make();
 
     // Referral program.
-    $refenabled = get_config('enrol_wallet', 'referral_enabled');
-    $maxref     = get_config('enrol_wallet', 'referral_max');
-    $amount     = get_config('enrol_wallet', 'referral_amount');
+    $refenabled = $config->referral_enabled;
+    $maxref     = $config->referral_max;
+    $amount     = $config->referral_amount;
 
     // Check the referral code.
     if (!empty($user->refcode) && $refenabled && !empty($amount)) {
@@ -429,7 +436,8 @@ function enrol_wallet_post_change_password_requests($data) {
  */
 function enrol_wallet_before_standard_top_of_body_html() {
     global $PAGE;
-    $showprice = (bool)get_config('enrol_wallet', 'showprice');
+    $config = config::make();
+    $showprice = (bool)$config->showprice;
     if ($showprice) {
         $PAGE->requires->js_call_amd('enrol_wallet/overlyprice', 'init');
     }
@@ -440,13 +448,13 @@ function enrol_wallet_before_standard_top_of_body_html() {
     }
 
     // Check if notice is enabled.
-    $notice = get_config('enrol_wallet', 'lowbalancenotice');
+    $notice = $config->lowbalancenotice;
     if (empty($notice)) {
         return;
     }
 
     // Check the conditions.
-    $condition = get_config('enrol_wallet', 'noticecondition');
+    $condition = $config->noticecondition;
 
     $op = new balance();
     $balance = $op->get_total_balance();
@@ -466,10 +474,12 @@ function enrol_wallet_after_require_login() {
     if (isguestuser() || empty($USER->id)) {
         return;
     }
-    $source = get_config('enrol_wallet', 'walletsource');
+
+    $source = config::make()->walletsource;
     if ($source != balance::WP) {
         return;
     }
+
     // Prevent multiple calls.
     $done = get_user_preferences('enrol_wallet_wploggedin', false, $USER);
     if ($done) {
