@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use core_admin\admin\admin_setting_template_render;
+use enrol_wallet\admin\admin_setting_wp_notice;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\instance;
@@ -85,9 +85,7 @@ if ($ADMIN->fulltree) {
                                                 $sources);
     $settings->add($sourcesetting);
 
-    $notice = new admin_setting_template_render('enrol_wallet/wp_notice',
-                                                'enrol_wallet/wp_notice',
-                                                ['hidden' => $sourcesetting->get_setting() == balance::MOODLE]);
+    $notice = new admin_setting_wp_notice($sourcesetting->get_setting() == balance::MOODLE);
 
     $settings->add($notice);
 
