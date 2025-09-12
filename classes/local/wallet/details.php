@@ -119,39 +119,55 @@ class details {
             case 'mainrefundable':
             case 'refund':
                 return $this->refundable;
+
             case 'mainnonrefundable':
             case 'mainnonrefund':
             case 'norefund':
                 return $this->nonrefundable;
+
             case 'mainbalance':
             case 'balance':
                 return  $this->refundable + $this->nonrefundable;
+
             case 'mainfree':
             case 'main_free':
             case 'free':
                 return $this->freegift;
+
             case 'total':
+            case 'totalbalance':
+            case 'total_balance':
                 return $this->calculate('balance', true);
+
             case 'total_nonrefundable':
             case 'totalnonrefundable':
                 return $this->calculate('nonrefundable', true);
+
             case 'total_refundable':
             case 'totalrefundable':
                 return $this->calculate('refundable', true);
+
             case 'total_free':
             case 'totalfree':
                 return $this->calculate('free', true);
+
             case 'valid':
+            case 'validbalance':
+            case 'valid_balance':
                 return $this->calculate('balance', false);
+
             case 'valid_nonrefundable':
             case 'validnonrefundable':
                 return $this->calculate('nonrefundable', false);
+
             case 'valid_refundable':
             case 'validrefundable':
                 return $this->calculate('refundable', false);
+
             case 'valid_free':
             case 'validfree':
                 return $this->calculate('free', false);
+
             default:
                 throw new coding_exception("The property $name not exists in the class " . self::class);
         }
@@ -163,28 +179,43 @@ class details {
      */
     public function __isset($name) {
         switch ($name) {
-            case 'free':
             case 'mainrefundable':
             case 'refund':
+
             case 'mainnonrefundable':
             case 'mainnonrefund':
             case 'norefund':
-            case 'balance':
+
             case 'mainbalance':
+            case 'balance':
+
             case 'mainfree':
             case 'main_free':
+            case 'free':
+
             case 'total':
+            case 'totalbalance':
+            case 'total_balance':
+
             case 'total_nonrefundable':
             case 'totalnonrefundable':
+
             case 'total_refundable':
             case 'totalrefundable':
+
             case 'total_free':
             case 'totalfree':
+
             case 'valid':
+            case 'validbalance':
+            case 'valid_balance':
+
             case 'valid_nonrefundable':
             case 'validnonrefundable':
+
             case 'valid_refundable':
             case 'validrefundable':
+
             case 'valid_free':
             case 'validfree':
                 return true;

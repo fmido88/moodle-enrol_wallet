@@ -111,8 +111,8 @@
     z-index: 1;
 }
 .enrol-wallet-ribbon .bundle-inner .price {
-    color: #ffffff;
-    text-shadow: 1px 1px #000000, -1px -1px #000, -1px 1px #000, 1px -1px #000;
+    color: #fff;
+    text-shadow: 1px 1px #000, -1px -1px #000, -1px 1px #000, 1px -1px #000;
 }
 .enrol-wallet-ribbon span.ribbon {
     width: 40%;
@@ -136,6 +136,7 @@
     -webkit-transform: rotate(315deg);
     -ms-transform: rotate(315deg);
 }
+
 @media (min-width: 768px) {
 
     #page-enrol-wallet-confirm #region-main .generalbox:first-of-type {
