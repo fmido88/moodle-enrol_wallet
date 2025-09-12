@@ -22,6 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\urls\manage;
+use enrol_wallet\local\urls\reports;
+
 defined('MOODLE_INTERNAL') || die();
 
 $context = context_system::instance();
@@ -48,7 +51,7 @@ if ($capcouponcreate && $ismoodle) {
     // Adding page to generate coupons.
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_coupongenerate',
                                                 get_string('coupon_generation', 'enrol_wallet'),
-                                                new moodle_url('/enrol/wallet/extra/coupon.php'),
+                                                manage::GENERATE_COUPON->url(),
                                                 'enrol/wallet:createcoupon',
                                                 false,
                                                 $context));
@@ -58,7 +61,7 @@ if ($capcouponcreate && $capcouponedit && $ismoodle) {
     // Adding page to upload coupons.
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_uploadcoupons',
                                                 get_string('upload_coupons', 'enrol_wallet'),
-                                                new moodle_url('/enrol/wallet/extra/couponupload.php'),
+                                                manage::UPLOAD_COUPONS->url(),
                                                 'enrol/wallet:createcoupon',
                                                 false,
                                                 $context));
@@ -68,14 +71,14 @@ if ($capcouponview && $ismoodle) {
     // Adding page to view coupons.
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_coupontable',
                                                 get_string('coupon_table', 'enrol_wallet'),
-                                                new moodle_url('/enrol/wallet/extra/coupontable.php'),
+                                                reports::COUPONS->url(),
                                                 'enrol/wallet:viewcoupon',
                                                 false,
                                                 $context));
     // Adding page to view coupons usage.
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_couponusage',
                                                 get_string('coupon_usage', 'enrol_wallet'),
-                                                new moodle_url('/enrol/wallet/extra/couponusage.php'),
+                                                reports::COUPONS_USAGE->url(),
                                                 'enrol/wallet:viewcoupon',
                                                 false,
                                                 $context));
@@ -85,7 +88,7 @@ if ($capcredit) {
     // Adding page to charge wallets of other users.
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_charging',
                                                 get_string('chargingoptions', 'enrol_wallet'),
-                                                new moodle_url('/enrol/wallet/extra/charger.php'),
+                                                manage::CHARGE->url(),
                                                 'enrol/wallet:creditdebit',
                                                 false,
                                                 $context));
@@ -93,7 +96,7 @@ if ($capcredit) {
 
 if ($captransactions) {
     // Adding page to show user's transactions.
-    $url = new moodle_url('/enrol/wallet/extra/transaction.php');
+    $url = reports::TRANSACTIONS->url();
     $pagename = get_string('transactions', 'enrol_wallet');
     $page = new admin_externalpage('wallettransactions', $pagename, $url, 'enrol/wallet:transaction', false, $context);
     $ADMIN->add('enrol_wallet_settings', $page);
@@ -105,7 +108,7 @@ if ($capbulkedit) {
 
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_bulkedit',
                                                                 $bulkeditor,
-                                                                new moodle_url('/enrol/wallet/extra/bulkedit.php'),
+                                                                manage::BULKENROLMENTS->url(),
                                                                 "enrol/wallet:bulkedit",
                                                                 false,
                                                                 $context));
@@ -114,7 +117,7 @@ if ($capbulkedit) {
     $walletbulk = get_string('walletbulk', 'enrol_wallet');
     $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_bulkedit',
                                                                 $walletbulk,
-                                                                new moodle_url('/enrol/wallet/extra/bulkinstances.php'),
+                                                                manage::BULKINSTANCES->url(),
                                                                 "enrol/wallet:bulkedit",
                                                                 false,
                                                                 $context));

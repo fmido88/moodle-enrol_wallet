@@ -29,11 +29,11 @@
         "balance": 50,
         "currency": "EGP",
         "main" : "20",
-        "transaction": "<a href='https://your-moodle.com/enrol/wallet/extra/transactions.php'>Wallet transactions</a>",
+        "transaction": "<a href='https://your-moodle.com/enrol/wallet/reports/transactions.php'>Wallet transactions</a>",
         "norefund": 30,
         "policy": "something",
-        "transfer": "<a href='https://your-moodle.com/enrol/wallet/extra/transfer.php'>transfer</a>",
-        "referral": "<a href='https://your-moodle.com/enrol/wallet/extra/referral.php'>referral</a>",
+        "transfer": "<a href='https://your-moodle.com/enrol/wallet/pages/transfer.php'>transfer</a>",
+        "referral": "<a href='https://your-moodle.com/enrol/wallet/pages/referral.php'>referral</a>",
         "currentuser": true,
         "catdetails": [
             {
@@ -77,9 +77,9 @@
             <div class="enrol-wallet-cat-balance">
                 <h5>{{ name }}</h5>
                 <ul style="text-align: left;">
-                    <li><strong>Total: {{total}}</strong></li>
-                    <li>Refundable: {{refundable}}</li>
-                    <li>Non-refundable: {{nonrefundable}}</li>
+                    <li><strong>{{#str}}total, enrol_wallet{{/str}}: {{total}}</strong></li>
+                    <li>{{#str}}refundable, enrol_wallet{{/str}}: {{refundable}}</li>
+                    <li>{{#str}}nonrefundable, enrol_wallet{{/str}}: {{nonrefundable}}</li>
                 </ul>
             </div>
         {{/ catdetails }}

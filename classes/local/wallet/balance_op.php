@@ -16,8 +16,10 @@
 
 namespace enrol_wallet\local\wallet;
 
+use enrol_wallet\exception\debit_exception;
 use enrol_wallet\exception\negative_amount;
 use enrol_wallet\exception\negative_balance;
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\catop;
 use enrol_wallet\event\transactions_triggered;
 use enrol_wallet\notifications;
@@ -29,6 +31,7 @@ use enrol_wallet\local\entities\cm;
 
 use enrol_wallet\wordpress;
 use stdClass;
+use Throwable;
 
 /**
  * Class balance_op.
@@ -176,7 +179,7 @@ class balance_op extends balance {
 
     /**
      * Save points to fallback to.
-     * @var array
+     * @var static[]
      */
     protected $savepoints = [];
 
@@ -207,9 +210,9 @@ class balance_op extends balance {
      * @return void
      */
     protected function cut_from_main($amount) {
-        $refundable    = $this->details['mainrefundable'];
-        $nonrefundable = $this->details['mainnonrefund'];
-        $free          = $this->details['mainfree'] ?? 0;
+        $refundable    = $this->details->refundable;
+        $nonrefundable = $this->details->nonrefundable;
+        $free          = $this->details->freegift;
 
         if ($refundable >= $amount) {
             $refundable -= $amount;
@@ -228,10 +231,10 @@ class balance_op extends balance {
             $this->freecut += $free - $newfree;
         }
 
-        $this->details['mainrefundable'] = $refundable;
-        $this->details['mainnonrefund']  = $nonrefundable;
-        $this->details['mainbalance']    = $refundable + $nonrefundable;
-        $this->details['mainfree']       = $newfree ?? $free;
+        $this->details->refundable    = $refundable;
+        $this->details->nonrefundable = $nonrefundable;
+        $this->details->freegift      = $newfree ?? $free;
+        $this->update(false);
     }
 
     /**
@@ -239,20 +242,21 @@ class balance_op extends balance {
      * @param float $remain
      */
     private function total_cut($remain) {
-        if (!empty($this->details['catbalance'])) {
-            foreach ($this->details['catbalance'] as $id => $detail) {
-                $balance = $detail->balance ?? $detail->refundable + $detail->nonrefundable;
+        if (!empty($this->details->catbalance)) {
+            foreach ($this->details->catbalance as $id => $detail) {
+                $balance = $detail->balance;
 
                 if (empty($balance)) {
                     continue;
                 }
 
-                $op     = new catop($id, $this->userid);
+                $op     = new catop($id, $this->details);
                 $remain = $op->deduct($remain);
 
-                $this->details['catbalance'] = $op->details;
+                $this->details->catbalance = $op->details;
                 $this->freecut += $op->get_free_cut();
-                $this->update();
+
+                $this->update(false);
 
                 if ($remain == 0) {
                     break;
@@ -273,14 +277,13 @@ class balance_op extends balance {
      */
     protected function add_to_main($amount, $refundable, $free = false) {
         if ($refundable) {
-            $this->details['mainrefundable'] += $amount;
+            $this->details->refundable += $amount;
         } else {
             if ($free) {
-                $this->details['mainfree'] += $amount;
+                $this->details->freegift += $amount;
             }
-            $this->details['mainnonrefund'] += $amount;
+            $this->details->nonrefundable += $amount;
         }
-        $this->details['mainbalance'] += $amount;
     }
 
     /**
@@ -306,7 +309,8 @@ class balance_op extends balance {
         global $DB, $USER;
 
         negative_amount::check($amount);
-        $this->create_save_point();
+        $cloned = $this->create_save_point();
+
         if ($for == self::USER) {
             $charger = !empty($thingid) ? $thingid : $USER->id;
         } else {
@@ -360,34 +364,43 @@ class balance_op extends balance {
                 $this->total_cut($amount);
             } else if (!empty($this->catop)) {
                 $remain = $this->catop->deduct($amount);
+
                 negative_amount::check($remain);
+
                 $this->freecut += $this->catop->get_free_cut();
-                $this->details['catbalance'] = $this->catop->details;
+                $this->details->catbalance = $this->catop->details;
 
                 if (!empty($remain)) {
                     negative_amount::check($amount);
                     $this->cut_from_main($remain);
                 }
+
             } else {
                 $this->cut_from_main($amount);
             }
 
-            $this->update();
-            $this->reset();
+            $this->update(false);
 
             $newbalance   = $this->get_valid_balance();
             $newnonrefund = $this->get_valid_nonrefundable();
         }
 
-        // No debit occurs.
-        if (round($newbalance, 2) != round($before - $amount, 2)) {
-            $this->fallback();
-            throw new \moodle_exception('Error while debiting');
+        $testfallback = false;
+        if (PHPUNIT_TEST && defined('ENROL_WALLET_TESTFALLBACK')) {
+            $testfallback = true;
         }
+
+        // No debit occurs.
+        if ($testfallback || (round($newbalance, 2) !== round($before - $amount, 2))) {
+            $exception = new debit_exception($amount, $before, $newbalance);
+            $this->fallback($exception, $cloned);
+        }
+
+        $this->update();
 
         $recorddata = [
             'userid'      => $this->userid,
-            'type'        => 'debit',
+            'type'        => self::DEBIT,
             'amount'      => $amount,
             'balbefore'   => $before,
             'balance'     => $newbalance,
@@ -396,12 +409,12 @@ class balance_op extends balance {
             'opby'        => $for,
             'thingid'     => $thingid,
             'descripe'    => $description,
-            'timecreated' => time(),
+            'timecreated' => timedate::time(),
         ];
 
         $this->transactionid = $DB->insert_record('enrol_wallet_transactions', $recorddata);
 
-        (new notifications())->transaction_notify($recorddata);
+        notifications::transaction_notify($recorddata);
 
         $this->trigger_transaction_event('debit', $charger, $description, false);
 
@@ -516,9 +529,7 @@ class balance_op extends balance {
             $charger = $this->userid;
         }
 
-        if (!is_numeric($amount) || $amount < 0) {
-            return false;
-        }
+        negative_amount::check($amount);
 
         $this->amount = $amount;
 
@@ -550,13 +561,13 @@ class balance_op extends balance {
         } else if (!empty($this->catop) && $this->catenabled) {
             $before = $this->catop->get_balance();
             $this->catop->add($amount, $refundable, $this->is_free($by, $refundable));
-            $this->update();
+            $this->update(false);
             $newbalance   = $this->catop->get_balance();
             $newnonrefund = $this->catop->get_non_refundable_balance();
         } else {
             $before = $this->get_main_balance();
             $this->add_to_main($amount, $refundable, $this->is_free($by, $refundable));
-            $this->update();
+            $this->update(false);
             $newbalance   = $this->get_main_balance();
             $newnonrefund = $this->get_main_nonrefundable();
         }
@@ -566,9 +577,11 @@ class balance_op extends balance {
             return false;
         }
 
+        $this->update();
+
         $recorddata = [
             'userid'      => $this->userid,
-            'type'        => 'credit',
+            'type'        => self::CREDIT,
             'amount'      => $amount,
             'balbefore'   => $before,
             'balance'     => $newbalance,
@@ -577,7 +590,7 @@ class balance_op extends balance {
             'opby'        => $by,
             'thingid'     => $thingid,
             'descripe'    => $description,
-            'timecreated' => time(),
+            'timecreated' => timedate::time(),
         ];
 
         $this->transactionid = $DB->insert_record('enrol_wallet_transactions', $recorddata);
@@ -586,7 +599,7 @@ class balance_op extends balance {
             $this->queue_transaction_transformation();
         }
 
-        (new notifications())->transaction_notify($recorddata);
+        notifications::transaction_notify($recorddata);
 
         if ($trigger) {
             $this->trigger_transaction_event(self::CREDIT, $charger, $description, $refundable);
@@ -651,7 +664,7 @@ class balance_op extends balance {
             case self::C_ACCOUNT_GIFT:
                 $a           = new \stdClass();
                 $a->userid   = $this->userid;
-                $a->time     = userdate(time());
+                $a->time     = userdate(timedate::time());
                 $a->amount   = $this->amount;
                 $description = get_string('giftdesc', 'enrol_wallet', $a);
                 break;
@@ -716,7 +729,7 @@ class balance_op extends balance {
 
             if (!empty($category)) {
                 $this->catid = (is_number($category)) ? $category : $category->id;
-                $this->catop = new catop($category, $this->userid);
+                $this->catop = new catop($category, $this->details);
             }
         } else if ($op == self::CREDIT) {
             if (!$this->catenabled) {
@@ -728,7 +741,7 @@ class balance_op extends balance {
                 case self::C_CASHBACK:
                     $this->courseid = $thingid;
                     $this->catid    = get_course($thingid)->category;
-                    $this->catop    = new catop($this->catid, $this->userid);
+                    $this->catop    = new catop($this->catid, $this->details);
                     break;
 
                 case self::C_UNENROL:
@@ -736,7 +749,7 @@ class balance_op extends balance {
                     $this->helper = new instance($thingid, $this->userid);
                     $category     = $this->helper->get_course_category();
                     $this->catid  = $category->id;
-                    $this->catop  = new catop($category, $this->userid);
+                    $this->catop  = new catop($category, $this->details);
                     break;
 
                 case self::C_PAYMENT:
@@ -749,12 +762,12 @@ class balance_op extends balance {
 
                     if (!empty($item->category)) {
                         $this->catid = $item->category;
-                        $this->catop = new catop($this->catid, $this->userid);
+                        $this->catop = new catop($this->catid, $this->details);
                     } else if (!empty($item->instanceid)) {
                         $this->helper = new instance($item->instanceid, $this->userid);
                         $category     = $this->helper->get_course_category();
                         $this->catid  = $category->id;
-                        $this->catop  = new catop($category, $this->userid);
+                        $this->catop  = new catop($category, $this->details);
                     }
                     break;
 
@@ -767,7 +780,7 @@ class balance_op extends balance {
 
                         if ($record && $record->type == 'category' && !empty($record->category)) {
                             $this->catid = $record->category;
-                            $this->catop = new catop($this->catid, $this->userid);
+                            $this->catop = new catop($this->catid, $this->details);
                         }
                     }
                     break;
@@ -788,6 +801,10 @@ class balance_op extends balance {
 
         if (!empty($this->helper) && empty($this->courseid)) {
             $this->courseid = $this->helper->courseid;
+        }
+
+        if (!empty($this->catop)) {
+            $this->details->catids = $this->catop->get_catids();
         }
     }
 
@@ -919,7 +936,7 @@ class balance_op extends balance {
             return;
         }
 
-        $runtime = time() + $period;
+        $runtime = timedate::time() + $period;
 
         $task = new turn_non_refundable();
         $task->set_custom_data(
@@ -949,15 +966,15 @@ class balance_op extends balance {
             $transform = min($amount, $this->catop->get_refundable_balance());
             $this->catop->deduct($transform);
 
-            $this->update();
+            $this->update(false);
 
             $this->catop->add($transform, false);
 
-            $this->details['catbalance'] = $this->catop->details;
+            $this->details->catbalance = $this->catop->details;
         } else {
             $transform = min($amount, $this->get_main_refundable());
             $this->cut_from_main($transform);
-            $this->update();
+            $this->update(false);
             $this->add_to_main($transform, false);
         }
         $this->update();
@@ -998,7 +1015,7 @@ class balance_op extends balance {
             $this->catid = $catid;
 
             if (!empty($this->catid)) {
-                $this->catop = new catop($this->catid, $this->userid);
+                $this->catop = new catop($this->catid, $this->details);
             } else {
                 unset($this->catop);
             }
@@ -1054,63 +1071,30 @@ class balance_op extends balance {
 
     /**
      * Create a savepoint to fallback to.
-     * @return void
+     * @return static a cloned instance.
      */
-    public function create_save_point(): void {
-        $savepoint = new stdClass;
-        $excluded = ['savepoints', 'userid', 'source', 'catid', 'catenabled', 'courseid', 'helper'];
-        foreach ($this as $property => $value) {
-            if (in_array($property, $excluded)) {
-                continue;
-            }
+    public function create_save_point(): static {
+        $cloned = clone $this;
 
-            if (isset($value) && property_exists($this, $property)) {
-                $savepoint->$property = $value;
-            }
-        }
-        if (isset($this->catop)) {
-            $catop = new stdClass;
-            foreach ($this->catop as $property => $value) {
-                if (isset($value) && property_exists($this->catop, $property)) {
-                    $catop->$property = $value;
-                }
-            }
-            $savepoint->catop = $catop;
-        }
+        array_push($this->savepoints, $cloned);
 
-        array_push($this->savepoints, $savepoint);
+        return clone $this;
     }
 
     /**
-     * Fallback in case of failing in a process.
-     * @return void
+     * Fallbback in case of transaction fail.
+     * @param Throwable $e
+     * @param self|null $cloned
+     * @return never
      */
-    public function fallback() {
-        $output = userdate(time());
-        ob_start();
-        var_dump($this);
-        $output .= "\n" . ob_get_clean();
-        $log = fopen(__DIR__. '/error.log', 'a');
-        fwrite($log, $output);
+    public function fallback(Throwable $e, ?self $cloned = null): never {
 
-        fclose($log);
-        if (count($this->savepoints) < 1) {
-            return;
+        if ($cloned === null) {
+            $cloned = array_shift($this->savepoints);
         }
-        $last = array_pop($this->savepoints);
-        foreach ($last as $property => $value) {
-            if (property_exists($this, $property) && $property !== 'catop') {
-                $this->$property = $value;
-            }
-        }
-        if (isset($last->catop)) {
-            foreach ($last->catop as $property => $value) {
-                if (property_exists($this->catop, $property)) {
-                    $this->catop->$property = $value;
-                }
-            }
-        }
-        $this->update();
-        $this->reset();
+
+        $cloned->update();
+
+        throw $e;
     }
 }

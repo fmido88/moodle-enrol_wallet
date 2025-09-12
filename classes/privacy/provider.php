@@ -28,7 +28,7 @@ use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\userlist;
 use core_privacy\local\metadata\collection;
-use enrol_wallet\util\balance;
+use enrol_wallet\local\wallet\balance;
 
 /**
  * Privacy Subsystem for enrol_wallet implementing null_provider.

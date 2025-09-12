@@ -58,11 +58,7 @@ class transactions_filter extends \moodleform {
                 'noselectionstring' => get_string('allusers', 'enrol_wallet'),
             ];
 
-            if (class_exists('core_user/fields')) {
-                $options['userfields'] = implode(',', \core_user\fields::get_identity_fields($context, true));
-            } else {
-                $options['userfields'] = implode(',', enrol_wallet_get_identity_fields($context, true));
-            }
+            $options['userfields'] = implode(',', \core_user\fields::get_identity_fields($context, true));
 
             $mform->addElement('autocomplete', 'userid', get_string('selectusers', 'enrol_manual'), [], $options);
         }

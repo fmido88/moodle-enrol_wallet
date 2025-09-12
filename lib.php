@@ -22,7 +22,15 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\urls\manage;
+use enrol_wallet\local\urls\pages;
+use enrol_wallet\local\urls\reports;
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
+use enrol_wallet\output\helper;
+use enrol_wallet\output\static_renderer;
+use enrol_wallet\output\topup_options;
+use enrol_wallet\output\wallet_balance;
 
 /**
  * To add the category and node information into the my profile page.
@@ -73,7 +81,8 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
 
     if (!$cancredit || !$iscurrentuser) {
         // First node for displaying the balance information.
-        $render1 = enrol_wallet_display_current_user_balance($user->id);
+        $renderer = helper::get_wallet_renderer();
+        $render1 = $renderer->render(new wallet_balance($user->id));
         $node1 = new core_user\output\myprofile\node('walletcreditdisplay',
                                                     'walletcreditnode',
                                                     '',
@@ -86,7 +95,7 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
 
         // Second node to display the topping up options.
         if ($iscurrentuser) {
-            $render2 = enrol_wallet_display_topup_options();
+            $render2 = $renderer->render(new topup_options());
 
             $node2 = new core_user\output\myprofile\node('walletcreditdisplay',
                                                         'wallettopupnode',
@@ -102,9 +111,9 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
     } else {
         // Node 3 to display charger form and coupon view and generation pages links.
         $render3 = '';
-        $form = enrol_wallet_display_charger_form();
+        $form = static_renderer::charger_form();
         $render3 .= $OUTPUT->box($form);
-        $render3 .= enrol_wallet_display_coupon_urls();
+        $render3 .= static_renderer::coupons_urls();
         $node3 = new core_user\output\myprofile\node('walletcreditdisplay',
                                                     'walletchargingnode',
                                                     '',
@@ -157,7 +166,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Adding page to charge wallets of other users.
             $node = navigation_node::create(
                 get_string('chargingoptions', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/charger.php'),
+                manage::CHARGE->url(),
                 navigation_node::TYPE_CUSTOM,
                 'enrol_wallet_charging',
                 'enrol_wallet_charging'
@@ -171,7 +180,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Adding page to charge wallets of other users.
             $node = navigation_node::create(
                 get_string('transactions', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/transaction.php'),
+                reports::TRANSACTIONS->url(),
                 navigation_node::TYPE_CUSTOM,
                 'wallettransactions',
                 'wallettransactions'
@@ -183,7 +192,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Adding page to generate coupons.
             $node = navigation_node::create(
                 get_string('coupon_generation', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/coupon.php'),
+                manage::GENERATE_COUPON->url(),
                 navigation_node::TYPE_CUSTOM,
                 'enrol_wallet_coupongenerate',
                 'enrol_wallet_coupongenerate'
@@ -195,7 +204,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Adding page to generate coupons.
             $node = navigation_node::create(
                 get_string('upload_coupons', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/couponupload.php'),
+                manage::UPLOAD_COUPONS->url(),
                 navigation_node::TYPE_CUSTOM,
                 'enrol_wallet_upload_coupons',
                 'enrol_wallet_upload_coupons'
@@ -207,7 +216,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Adding page to view coupons.
             $node = navigation_node::create(
                 get_string('coupon_table', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/coupontable.php'),
+                reports::COUPONS->url(),
                 navigation_node::TYPE_CUSTOM,
                 'enrol_wallet_coupontable',
                 'enrol_wallet_coupontable'
@@ -217,7 +226,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Adding page to view coupons.
             $node = navigation_node::create(
                 get_string('coupon_usage', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/couponusage.php'),
+                reports::COUPONS_USAGE->url(),
                 navigation_node::TYPE_CUSTOM,
                 'enrol_wallet_coupon_usage',
                 'enrol_wallet_coupon_usage'
@@ -229,7 +238,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Bulk edit enrollments.
             $node = navigation_node::create(
                 get_string('bulkeditor', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/bulkedit.php'),
+                manage::BULKENROLMENTS->url(),
                 navigation_node::TYPE_CUSTOM,
                 'enrol_bulkedit',
                 'enrol_bulkedit'
@@ -239,10 +248,10 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             // Bulk edit wallet instances.
             $node = navigation_node::create(
                 get_string('walletbulk', 'enrol_wallet'),
-                new moodle_url('/enrol/wallet/extra/bulkinstances.php'),
+                manage::BULKINSTANCES->url(),
                 navigation_node::TYPE_CUSTOM,
                 'enrol_wallet_bulkedit',
-                'enrol_wallet_bulkedit'
+                'enrol_wallet_bulkedit',
             );
             $parentnode->add_node($node);
         }
@@ -253,7 +262,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
         $offers = get_string('offers', 'enrol_wallet');
         $node = navigation_node::create(
             $offers,
-            new moodle_url('/enrol/wallet/extra/offers.php'),
+            pages::OFFERS->url(),
             navigation_node::TYPE_CUSTOM,
             $offers,
             'enrol-wallet-offers',
@@ -380,7 +389,7 @@ function enrol_wallet_post_signup_requests($user) {
                 'referrer'    => $refrecord->userid,
                 'referred'    => $user->username,
                 'amount'      => $amount,
-                'timecreated' => time(),
+                'timecreated' => timedate::time(),
             ];
             $DB->insert_record('enrol_wallet_hold_gift', $hold);
         }

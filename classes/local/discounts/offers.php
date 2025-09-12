@@ -27,6 +27,7 @@
 namespace enrol_wallet\local\discounts;
 
 use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\utils\timedate;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
@@ -576,7 +577,8 @@ class offers {
      * @return bool
      */
     public function validate_time_offer($offer) {
-        if (time() < $offer->to && time() > $offer->from) {
+        $now = timedate::time();
+        if ($now < $offer->to && $now > $offer->from) {
             return true;
         }
 
@@ -955,7 +957,7 @@ class offers {
 
             switch ($type) {
                 case self::TIME:
-                    if ($offer->to < time() - DAYSECS) {
+                    if ($offer->to < timedate::time() - DAYSECS) {
                         $errors[self::fname($type, 'to', $i)] = get_string('offers_error_timeto', 'enrol_wallet');
                     }
 
@@ -1140,8 +1142,8 @@ class offers {
                 ORDER BY c.timecreated DESC";
         $params = [
             'stat'   => ENROL_INSTANCE_ENABLED,
-            'time1'  => time(),
-            'time2'  => time(),
+            'time1'  => timedate::time(),
+            'time2'  => timedate::time(),
             'wallet' => 'wallet',
         ];
 
@@ -1173,7 +1175,7 @@ class offers {
             $rawoffers = (array)@$class->get_raw_offers();
             foreach ($rawoffers as $k => $offer) {
                 if ($offer->type == self::TIME) {
-                    if (time() > $offer->to) { // Expired offer.
+                    if (timedate::time() > $offer->to) { // Expired offer.
                         unset($rawoffers[$k]);
                     }
                 }

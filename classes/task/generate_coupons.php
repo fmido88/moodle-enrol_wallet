@@ -16,6 +16,8 @@
 
 namespace enrol_wallet\task;
 
+use enrol_wallet\local\coupons\generator;
+
 /**
  * Class generate_coupons
  *
@@ -40,7 +42,7 @@ class generate_coupons extends \core\task\adhoc_task {
         $trace->output('Starting task...');
         $trace->output('Data: ' . $this->get_custom_data_as_string());
 
-        $ids = enrol_wallet_generate_coupons($options, $trace);
+        $ids = generator::create_coupons($options, $trace);
         $trace->output('Finished generating coupons with codes: ' . implode(',', $ids));
     }
 }

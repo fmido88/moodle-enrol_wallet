@@ -48,6 +48,14 @@ $functions = [
         'services'    => [],
         'ajax'        => true,
     ],
+    'enrol_wallet_get_user_balance' => [
+        'classname'   => 'enrol_wallet\external\balance_op',
+        'methodname'  => 'get_balance',
+        'description' => 'Get the balance data for a certain user',
+        'type'        => 'read',
+        'services'    => [],
+        'ajax'        => true,
+    ],
     'enrol_wallet_get_offer_form_fragment' => [
         'classname'   => 'enrol_wallet\external\offers_form',
         'methodname'  => 'get_form_fragment',

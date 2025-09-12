@@ -125,7 +125,7 @@ class catoptions {
      */
     public function has_discount() {
         global $DB;
-        $now = time();
+        $now = timedate::time();
         $params = [
             'time1' => $now,
             'time2' => $now,
@@ -151,7 +151,7 @@ class catoptions {
      */
     public function get_local_options_with_discounts() {
         global $DB;
-        $now = time();
+        $now = timedate::time();
         $params = [
             'time1' => $now,
             'time2' => $now,
@@ -194,7 +194,7 @@ class catoptions {
      */
     public static function get_all_options_with_discount() {
         global $DB;
-        $now = time();
+        $now = timedate::time();
         $params = [
             'time1' => $now,
             'time2' => $now,

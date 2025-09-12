@@ -70,12 +70,7 @@ class form {
             $options['id'] = $elementid;
         }
 
-        if (class_exists('core_user\fields')) {
-            $options['userfields'] = implode(',', \core_user\fields::get_identity_fields($context, true));
-        } else {
-            require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
-            $options['userfields'] = implode(',', enrol_wallet_get_identity_fields($context, true));
-        }
+        $options['userfields'] = implode(',', \core_user\fields::get_identity_fields($context, true));
 
         $mform->addElement('autocomplete', $elementname, $visiblename, [], $options);
     }

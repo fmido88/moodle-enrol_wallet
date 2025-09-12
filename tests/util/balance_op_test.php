@@ -24,6 +24,7 @@
  */
 namespace enrol_wallet\util;
 
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 
@@ -55,7 +56,7 @@ final class balance_op_test extends \advanced_testcase {
 
         $this->setAdminUser();
         global $USER;
-        $now = time();
+        $now = timedate::time();
         set_config('conditionaldiscount_apply', 1, 'enrol_wallet');
         $params = [
             'cond' => 400,
@@ -1091,8 +1092,8 @@ final class balance_op_test extends \advanced_testcase {
         $op = new balance_op($userid);
         $op->debit($op->get_valid_balance(), $op::OTHER);
         $details = $op->get_balance_details();
-        if (!empty($details['catbalance'])) {
-            $ids = array_keys($details['catbalance']);
+        if (!empty($details->catbalance)) {
+            $ids = array_keys($details->catbalance);
             foreach ($ids as $catid) {
                 $op = new balance_op($userid, $catid);
                 $op->debit($op->get_valid_balance(), $op::OTHER);

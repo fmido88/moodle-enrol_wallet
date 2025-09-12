@@ -253,7 +253,7 @@ class pages {
 
     /**
      * Out the content of transfer page.
-     * @param moodle_url|string $url
+     * @param moodle_url|string $url The return page url usually current page url.
      * @return void
      */
     public static function process_transfer_page($url) {
@@ -287,9 +287,9 @@ class pages {
      * @return string
      */
     public static function get_offers_content() {
-        global $DB, $PAGE, $OUTPUT;
+        global $DB, $OUTPUT;
 
-        $renderer = $PAGE->get_renderer('core', 'course');
+        $renderer = helper::get_course_renderer();
 
         $courses = offers::get_courses_with_offers();
 
@@ -350,7 +350,7 @@ class pages {
 
         if (!empty($config->referral_enabled) && (float)$config->referral_amount > 0) {
             $out .= $OUTPUT->heading(get_string('referral_program', 'enrol_wallet'));
-            $url = new moodle_url('/enrol/wallet/extra/referral.php');
+            $url = \enrol_wallet\local\urls\pages::REFERRAL->url();
             $text = get_string('clickhere');
             $link = html_writer::link($url, $text);
             $out .= $OUTPUT->box(get_string('referral_site_desc', 'enrol_wallet') . $link);

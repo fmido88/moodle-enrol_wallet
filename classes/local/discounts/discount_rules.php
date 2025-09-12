@@ -25,6 +25,10 @@
 namespace enrol_wallet\local\discounts;
 
 use core_course_category;
+use enrol_wallet\local\urls\pages;
+use enrol_wallet\local\utils\timedate;
+use enrol_wallet\output\discount_line;
+use enrol_wallet\output\helper;
 
 /**
  * Helper class for wallet enrolment discount rules
@@ -39,7 +43,7 @@ class discount_rules {
      */
     public static function get_current_discount_rules($catid = 0) {
         global $DB;
-        $now = time();
+        $now = timedate::time();
         $params = [
             'time1' => $now,
             'time2' => $now,
@@ -70,7 +74,7 @@ class discount_rules {
         }
         global $DB;
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
-        $params = ['time1' => time(), 'time2' => time()];
+        $params = ['time1' => timedate::time(), 'time2' => timedate::time()];
 
         return $DB->get_records_select('enrol_wallet_cond_discount', $select, $params, 'category ASC, cond DESC, percent DESC');
     }
@@ -110,7 +114,7 @@ class discount_rules {
         $select = '';
         $params = [];
         if ($current) {
-            $now = time();
+            $now = timedate::time();
             $params = [
                 'time1' => $now,
                 'time2' => $now,
@@ -205,7 +209,7 @@ class discount_rules {
      * @param int $catid
      * @return float
      */
-    private static function get_applied_discount($amount, $catid) {
+    public static function get_applied_discount($amount, $catid) {
         $discount = 0;
         $records = self::get_current_discount_rules($catid);
         foreach ($records as $record) {
@@ -221,84 +225,17 @@ class discount_rules {
      * in specific category
      * @return string
      */
-    public static function get_the_discount_line($catid = 0) {
-        $enabled = (bool)get_config('enrol_wallet', 'conditionaldiscount_apply');
-        if (!$enabled) {
-            return '';
-        }
-
-        if ($catid < 0) {
-            $records = self::get_all_available_discount_rules();
-        } else {
-            $records = self::get_current_discount_rules($catid);
-        }
-
-        if (empty($records)) {
-            return '';
-        }
-
-        global $OUTPUT;
-
-        $currency = get_config('enrol_wallet', 'currency');
-        $data = new \stdClass;
-        $data->data = [];
-        $maxconditions = [];
-        foreach ($records as $record) {
-            if ($record->cond > ($maxconditions[$record->category ?? 0] ?? 0)) {
-                $maxconditions[$record->category] = $record->cond;
-            }
-        }
-
-        $discounts = [];
-        $catid = -1;
-        foreach ($records as $id => $record) {
-            if ($catid != $record->category) {
-                if (isset($data->data[$catid])) {
-                    $data->data[$catid]->discounts = array_values($discounts);
-                    $discounts = [];
-                }
-                $catid = $record->category;
-                $data->data[$catid] = new \stdClass;
-                $data->data[$catid]->catid = $catid;
-                $data->data[$catid]->count = 0;
-
-                if (empty($catid)) {
-                    $name = get_string('site');
-                } else {
-                    $category = core_course_category::get($catid, IGNORE_MISSING);
-                    if ($category) {
-                        $name = $category->get_nested_name(false);
-                    } else {
-                        // Don't display hidden or deleted categories.
-                        continue;
-                    }
-                }
-                $data->data[$catid]->heading = $OUTPUT->heading($name, 4);
-                $prevwidth = 0;
-            }
-            $maxcondition = $maxconditions[$catid] * 1.2;
-            $data->data[$catid]->count++;
-
-            $discounts[$id] = new \stdClass;
-            $discounts[$id]->percent = (100 - ($record->cond / $maxcondition * 100)) - $prevwidth;
-            $discounts[$id]->order = (int)round((float)$record->cond / $maxcondition * 10);
-            $discounts[$id]->color = (int)round((1 - ((float)$record->cond / $maxcondition)) * 255);
-            $discounts[$id]->condition = '> ' . format_float($record->cond, 2) . " $currency";
-            $discounts[$id]->discount = format_float($record->percent, 2) . '%';
-
-            $prevwidth = $discounts[$id]->percent;
-        }
-        $data->data[$catid]->discounts = array_values($discounts);
-        $data->data = array_values($data->data);
-        return $OUTPUT->render_from_template('enrol_wallet/discount-line', $data);
+    public static function get_the_discount_line($catid = 0): string {
+        return helper::get_wallet_renderer()->render(new discount_line($catid));
     }
 
     /**
      * Get the conditional discount records with bundles.
      * @return array
      */
-    private static function get_bundles_records() {
-        global $DB;$now = time();
+    public static function get_bundles_records(): array {
+        global $DB;
+        $now = timedate::time();
         $params = [
             'time1' => $now,
             'time2' => $now,
@@ -306,66 +243,5 @@ class discount_rules {
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         $select .= ' AND bundle IS NOT NULL';
         return $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
-    }
-
-    /**
-     * Return a single bundle top up button.
-     * @param \stdClass $record
-     * @return string
-     */
-    private static function format_single_bundle_button($record) {
-        global $OUTPUT;
-
-        $before = $record->bundle;
-        $discount = self::get_applied_discount($before, $record->category ?? 0);
-        $after = self::get_the_before($before, $record->category ?? 0, $discount);
-        $desc = !empty($record->bundledesc) ? format_text($record->bundledesc, $record->descformat) : '';
-        $data = new \stdClass;
-        $data->category = $record->category ?? 0;
-        $data->value = $before;
-        $data->instanceid = 0;
-        $data->courseid = SITEID;
-        $data->account = get_config('enrol_wallet', 'account');
-        $data->currency = get_config('enrol_wallet', 'currency');
-        $topupurl = new \moodle_url('/enrol/wallet/extra/topup.php', (array)$data);
-
-        $context = [
-            'discount'    => format_float($discount, 2, true, true),
-            'after'       => $after,
-            'before'      => $before,
-            'description' => $desc,
-            'currency'    => $data->currency,
-        ];
-        if (empty($data->category)) {
-            $context['category'] = get_string('site');
-        } else {
-            $category = core_course_category::get($data->category, IGNORE_MISSING);
-            if (!$category) {
-                return '';
-            }
-            $context['category'] = $category->get_nested_name();
-        }
-        $button = new \single_button($topupurl, '');
-        $buttoncontext = (array)$button->export_for_template($OUTPUT);
-        $context = $context + $buttoncontext;
-        return $OUTPUT->render_from_template('enrol_wallet/single-bundle', $context);
-    }
-
-    /**
-     * Render all bundle buttons available for topping up.
-     * @return string
-     */
-    public static function bundles_buttons() {
-        $out = '';
-        $records = self::get_bundles_records();
-        if (empty($records)) {
-            return $out;
-        }
-        $out .= \html_writer::start_div('enrol-wallet-bundles');
-        foreach ($records as $record) {
-            $out .= self::format_single_bundle_button($record);
-        }
-        $out .= \html_writer::end_div();
-        return $out;
     }
 }

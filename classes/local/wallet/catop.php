@@ -24,16 +24,25 @@
 
 namespace enrol_wallet\local\wallet;
 
+use core_course_category;
 use enrol_wallet\exception\negative_amount;
-use enrol_wallet\local\entities\category as cathelper;
-use enrol_wallet\local\entities\instance as helper;
-use enrol_wallet\local\wallet\catop as operations;
-use stdClass;
 
 /**
  * Functions to handle category balance and operations.
  */
-class catop extends cathelper {
+class catop {
+    /**
+     * Category id.
+     * @var int
+     */
+    protected int $catid;
+
+    /**
+     * Parent categories ids including this one.
+     * @var int[]
+     */
+    protected array $parents = [];
+
     /**
      * @var int
      */
@@ -59,7 +68,7 @@ class catop extends cathelper {
 
     /**
      * The details array.
-     * @var array[object]
+     * @var catdetails[]
      */
     public $details;
 
@@ -79,35 +88,48 @@ class catop extends cathelper {
      * Create a category operation object which will store the balance data.
      *
      * @param object|int $categoryorid the category or its id.
-     * @param object|int $userorid     The user or userid, leave it empty mean the current user.
+     * @param details    $details
      */
-    public function __construct($categoryorid, $userorid = 0) {
-        parent::__construct($categoryorid);
+    public function __construct(int|object $categoryorid, details $details) {
+        if (is_object($categoryorid)) {
+            $this->catid = $categoryorid->id;
 
-        if (empty($userorid)) {
-            global $USER;
-            $this->userid = $USER->id;
-        } else if (is_number($userorid)) {
-            $this->userid = $userorid;
-        } else if (is_object($userorid)) {
-            $this->userid = $userorid->id;
+            if ($categoryorid instanceof core_course_category) {
+                $category = $categoryorid;
+            }
+        } else {
+            $this->catid = $categoryorid;
         }
 
-        if (empty($this->category) || empty($this->userid)) {
+        if (!isset($category)) {
+            $category = core_course_category::get($this->catid);
+        }
+
+        $this->parents = $category->get_parents();
+        // Include the catid with the parents array for easy search.
+        $this->parents[$this->catid] = $this->catid;
+
+        if (empty($this->catid)) {
             throw new \moodle_exception('error');
         }
 
-        $balancehelper = new balance($this->userid, -1);
-        $this->details = $balancehelper->get_balance_details()['catbalance'] ?? [];
-        unset($balancehelper);
+        $this->details = $details->catbalance;
 
         $this->compute_cat_balance();
     }
 
     /**
+     * Return categories ids (this category id and parents).
+     * @return int[]
+     */
+    public function get_catids(): array {
+        return $this->parents;
+    }
+
+    /**
      * Compute the category balance for the required user.
      */
-    private function compute_cat_balance() {
+    public function compute_cat_balance() {
         $details = $this->details;
 
         $ids     = array_keys($details);
@@ -193,13 +215,7 @@ class catop extends cathelper {
      * @param bool  $free       If this amount is due to a free gift or so.
      */
     public function add($amount, $refundable = true, $free = false): void {
-        $catobj = (object)[
-            'refundable'    => $this->details[$this->catid]->refundable ?? 0,
-            'nonrefundable' => $this->details[$this->catid]->nonrefundable ?? 0,
-            'free'          => $this->details[$this->catid]->free ?? 0,
-        ];
-        $catobj->balance = $this->details[$this->catid]->balance
-                            ?? $catobj->refundable + $catobj->nonrefundable;
+        $catobj = $this->details[$this->catid] ?? new catdetails(0, 0, 0);
 
         if ($refundable) {
             $this->refundable   += $amount;
@@ -213,8 +229,7 @@ class catop extends cathelper {
                 $catobj->free += $amount;
             }
         }
-        $this->balance   += $amount;
-        $catobj->balance += $amount;
+        $this->balance += $amount;
 
         $this->details[$this->catid] = $catobj;
     }
@@ -228,9 +243,6 @@ class catop extends cathelper {
     public function deduct($amount): float {
         negative_amount::check($amount);
         $parents = $this->parents;
-        usort($parents, function ($a, $b) {
-            return $a <=> $b;
-        });
 
         $remain = $amount;
 
@@ -253,6 +265,7 @@ class catop extends cathelper {
      */
     private function single_cut($amount, $id): float {
         negative_amount::check($amount);
+
         if (!isset($this->details[$id])) {
             return $amount;
         }
@@ -260,10 +273,10 @@ class catop extends cathelper {
         $refundable    = $this->details[$id]->refundable;
         $nonrefundable = $this->details[$id]->nonrefundable;
 
-        $free = $this->details[$id]->free ?? 0;
+        $free = $this->details[$id]->free;
 
         if ($refundable >= $amount) {
-            $refundable -= $amount;
+            $refundable       -= $amount;
             $this->refundable -= $amount;
             $remain = 0;
         } else {
@@ -289,12 +302,7 @@ class catop extends cathelper {
             $this->freecut += $freecut;
         }
 
-        $this->details[$id] = (object)[
-            'refundable'    => $refundable,
-            'nonrefundable' => $nonrefundable,
-            'free'          => $newfree ?? $free,
-            'balance'       => $refundable + $nonrefundable,
-        ];
+        $this->details[$id] = new catdetails($refundable, $nonrefundable, $newfree ?? $free ?? 0);
 
         return $remain;
     }

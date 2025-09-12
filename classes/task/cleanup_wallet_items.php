@@ -24,6 +24,8 @@
 
 namespace enrol_wallet\task;
 
+use enrol_wallet\local\utils\timedate;
+
 /**
  * Sync enrollments task.
  */
@@ -53,7 +55,7 @@ class cleanup_wallet_items extends \core\task\scheduled_task {
         }
 
         $params = [
-            'timetocheck' => time() - 5 * DAYSECS,
+            'timetocheck' => timedate::time() - 5 * DAYSECS,
             'component' => 'enrol_wallet',
             'area' => 'wallettopup',
         ];

@@ -16,6 +16,8 @@
 
 namespace enrol_wallet\local\restriction;
 
+use enrol_wallet\local\utils\timedate;
+
 /**
  * Class overrides
  *
@@ -136,7 +138,7 @@ class overrides {
             }
 
             $record->rules = json_encode($rules);
-            $record->timemodified = time();
+            $record->timemodified = timedate::time();
             $record->usermodified = $USER->id;
 
             return $DB->update_record(self::TABLE, $record);
@@ -147,8 +149,8 @@ class overrides {
         ];
 
         $record = $conditions + [
-            'timecreated'  => time(),
-            'timemodified' => time(),
+            'timecreated'  => timedate::time(),
+            'timemodified' => timedate::time(),
             'usermodified' => $USER->id,
             'rules'        => json_encode($rules),
         ];

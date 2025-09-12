@@ -23,7 +23,11 @@
  */
 namespace enrol_wallet\output;
 
+use core\context;
+use enrol_wallet\local\utils\payment;
+use enrol_wallet\local\utils\timedate;
 use renderable;
+use stdClass;
 use templatable;
 use renderer_base;
 use enrol_wallet\local\entities\instance as helper;
@@ -60,22 +64,27 @@ class payment_info implements renderable, templatable {
      * The course object
      * @var \stdClass
      */
-    protected $course;
+    protected stdClass $course;
     /**
      * The context
      * @var \context_course
      */
-    protected $context;
+    protected context $context;
     /**
      * The currency of the wallet.
      * @var string
      */
-    protected $walletcurrency;
+    protected string $walletcurrency;
     /**
      * The instance id.
      * @var int
      */
-    protected $instanceid;
+    protected int $instanceid;
+    /**
+     * Payment account id.
+     * @var int
+     */
+    protected int $accountid;
 
     /**
      * Used to calculate and prepare the payment region for enrol wallet
@@ -83,24 +92,25 @@ class payment_info implements renderable, templatable {
      * @param \stdClass $instance the enrol wallet instance record.
      */
     public function __construct($instance) {
-        $helper = new helper($instance);
-
-        $this->instanceid = $instance->id;
-        $this->cost = $instance->cost;
-        $this->currency = $instance->currency;
-        $this->costafter = $helper->get_cost_after_discount();
+        $helper  = new helper($instance);
         $balance = balance::create_from_instance($instance);
-        $this->userbalance = $balance->get_valid_balance();
-        $this->course = $helper->get_course();
-        $this->context = context_course::instance($this->course->id);
+
+        $this->instanceid     = $instance->id;
+        $this->cost           = $instance->cost;
+        $this->currency       = $instance->currency;
+        $this->costafter      = $helper->get_cost_after_discount();
+        $this->userbalance    = $balance->get_valid_balance();
+        $this->course         = $helper->get_course();
+        $this->context        = $helper->get_course_context();
         $this->walletcurrency = get_config('enrol_wallet', 'currency');
+        $this->accountid      = (int)$instance->customint1;
     }
 
     /**
      * Get the cost after paying some from the wallet.
      * @return float
      */
-    private function get_cost() {
+    private function get_cost(): float {
         if ($this->walletcurrency == $this->currency) {
             return $this->costafter - $this->userbalance;
         }
@@ -111,7 +121,7 @@ class payment_info implements renderable, templatable {
      * Check if the balance in the wallet is enough and no eed for payment.
      * @return bool
      */
-    private function has_enough() {
+    private function has_enough(): bool {
         if ($this->walletcurrency == $this->currency && $this->userbalance >= $this->costafter) {
             return true;
         }
@@ -132,12 +142,16 @@ class payment_info implements renderable, templatable {
         if ($this->has_enough()) {
             return [];
         }
+
+        if (!payment::is_valid_account($this->accountid)) {
+            return [];
+        }
+
         $cost = $this->get_cost();
 
         if ($cost < 0.01) { // No cost.
             return ['nocost' => '<p>'.get_string('nocost', 'enrol_wallet').'</p>'];
         }
-        require_once(__DIR__.'/../payment/service_provider.php');
 
         $payrecord = [
             'cost'        => $cost,
@@ -146,7 +160,7 @@ class payment_info implements renderable, templatable {
             'instanceid'  => $this->instanceid,
         ];
         if (!$id = $DB->get_field('enrol_wallet_items', 'id', $payrecord, IGNORE_MULTIPLE)) {
-            $payrecord['timecreated'] = time();
+            $payrecord['timecreated'] = timedate::time();
             $id = $DB->insert_record('enrol_wallet_items', $payrecord);
         }
 

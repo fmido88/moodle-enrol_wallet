@@ -84,10 +84,10 @@
 .enrol-wallet-bundle-button {
     padding: 0;
     height: 100%;
-    background: linear-gradient(153deg, rgba(255, 203, 203, 1) 5%, rgba(254, 255, 119, 1) 43%, rgba(190, 186, 255, 1) 100%);
+    background: linear-gradient(153deg, rgb(255 255 255) 5%, rgb(196 185 201) 43%, rgb(255 255 255) 100%);
 }
 .enrol-wallet-bundle-button:hover {
-    background: linear-gradient(333deg, rgba(255, 203, 203, 1) 5%, rgba(254, 255, 119, 1) 43%, rgba(190, 186, 255, 1) 100%);
+    background: linear-gradient(207deg, rgb(255 255 255) 5%, rgb(196 185 201) 43%, rgb(255 255 255) 100%);
 }
 .enrol-wallet-bundles {
     display: flex;
@@ -102,7 +102,6 @@
     position: relative;
     overflow: hidden;
     height: 100%;
-    border: dashed 3px #cb3737;
     border-radius: inherit;
 }
 .enrol-wallet-ribbon .bundle-inner {
@@ -112,25 +111,31 @@
     z-index: 1;
 }
 .enrol-wallet-ribbon .bundle-inner .price {
-    color: #c70000;
-    text-shadow: 1px 1px #8c9500, -1px -1px #000, -1px 1px #000, 1px -1px #000;
+    color: #ffffff;
+    text-shadow: 1px 1px #000000, -1px -1px #000, -1px 1px #000, 1px -1px #000;
 }
 .enrol-wallet-ribbon span.ribbon {
     width: 40%;
     height: min-content;
     top: 5%;
-    right: -13%;
     position: absolute;
     display: block;
     background: #cb3737;
     font-size: 140%;
     color: #fff;
     text-align: center;
+    right: -13%;
+}
+[dir='ltr'] .enrol-wallet-ribbon span.ribbon {
     transform: rotate(45deg);
     -webkit-transform: rotate(45deg);
     -ms-transform: rotate(45deg);
 }
-
+[dir='rtl'] .enrol-wallet-ribbon span.ribbon {
+    transform: rotate(315deg);
+    -webkit-transform: rotate(315deg);
+    -ms-transform: rotate(315deg);
+}
 @media (min-width: 768px) {
 
     #page-enrol-wallet-confirm #region-main .generalbox:first-of-type {

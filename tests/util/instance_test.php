@@ -18,6 +18,7 @@ namespace enrol_wallet\util;
 
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 
@@ -167,17 +168,18 @@ final class instance_test extends \advanced_testcase {
 
         $wallet->enrol_self($instance, $user);
         $record = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $user->id]);
-        $record->timemodified = time() - 10 * DAYSECS;
-        $record->timecreated = time() - 10 * DAYSECS;
+        $record->timemodified = timedate::time() - 10 * DAYSECS;
+        $record->timecreated = timedate::time() - 10 * DAYSECS;
         $DB->update_record('user_enrolments', $record);
 
         $op = new balance_op($user->id);
         $this->assertTrue(is_enrolled($context, $user));
         $this->assertEquals(350, $op->get_total_balance());
 
+        $now = timedate::time();
         // The enrolment expired.
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 5 * DAYSECS, time() - 3 * DAYSECS);
-        $DB->update_record('user_enrolments', (object)['id' => $record->id, 'timemodified' => time() - 5 * DAYSECS]);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 5 * DAYSECS, $now - 3 * DAYSECS);
+        $DB->update_record('user_enrolments', (object)['id' => $record->id, 'timemodified' => $now - 5 * DAYSECS]);
 
         $this->assertFalse(is_enrolled($context, $user, '', true));
         // Check the cost again.
@@ -211,10 +213,11 @@ final class instance_test extends \advanced_testcase {
         $balance = balance::create_from_instance($instance, $user->id);
         $this->assertEquals(290, $balance->get_valid_balance());
 
+        $now = timedate::time();
         // Expire the user enrolment.
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 2 * DAYSECS, time() - 2 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 2 * DAYSECS, $now - 2 * HOURSECS);
         $record = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $user->id]);
-        $DB->update_record('user_enrolments', (object)['id' => $record->id, 'timemodified' => time() - 2 * DAYSECS]);
+        $DB->update_record('user_enrolments', (object)['id' => $record->id, 'timemodified' => $now - 2 * DAYSECS]);
 
         $this->assertFalse(is_enrolled($context, $user, '', true));
         $this->assertEquals(40, $inst->get_cost_after_discount(true));

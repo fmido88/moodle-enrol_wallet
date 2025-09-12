@@ -24,6 +24,8 @@
 
 namespace enrol_wallet\local\restriction;
 
+use enrol_wallet\local\utils\timedate;
+
 /**
  * Class handles conditional availability information for a wallet enrol instance.
  *
@@ -97,7 +99,7 @@ class info extends \core_availability\info {
         $instance = new \stdClass();
         $instance->id = $this->instance->id;
         $instance->customtext2 = $availability;
-        $instance->timemodified = time();
+        $instance->timemodified = timedate::time();
         $DB->update_record('enrol', $instance);
     }
 

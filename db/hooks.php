@@ -36,6 +36,6 @@ $callbacks = [
     ],
     [
         'hook' => core\hook\navigation\primary_extend::class,
-        'callback' => [enrol_wallet\hooks_callbacks::class, 'add_offers'],
+        'callback' => [enrol_wallet\hooks_callbacks::class, 'primary_navigation_tabs'],
     ],
 ];

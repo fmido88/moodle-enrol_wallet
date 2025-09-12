@@ -24,6 +24,7 @@
 
 namespace enrol_wallet\local\entities;
 
+use core_course_list_element;
 use enrol_wallet\local\coupons\coupons;
 use core_course_category;
 
@@ -121,6 +122,25 @@ class section {
         return null;
     }
 
+    /**
+     * Get the visible name of the section.
+     * @return string
+     */
+    public function get_name() {
+        global $CFG;
+
+        if (!empty($this->section->name)) {
+            return format_string($this->section->name);
+        }
+
+        $course = new core_course_list_element($this->get_course());
+        $coursename = $course->get_formatted_fullname();
+        require_once("{$CFG->dirroot}/course/lib.php");
+
+        $sectionname = get_section_name($this->section->course, $this->section->section);
+
+        return "$sectionname ($coursename)";
+    }
     /**
      * Get course category object at which the instance belongs to.
      * @return core_course_category|null

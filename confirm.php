@@ -22,6 +22,9 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\urls\pages;
+use enrol_wallet\output\helper;
+
 define('NO_DEBUG_DISPLAY', true);
 
 require_once(__DIR__.'/../../config.php');
@@ -44,7 +47,7 @@ $params = [
     'id'       => $courseid,
 ];
 
-$pageurl = new moodle_url('/enrol/wallet/confirm.php', $params);
+$pageurl = pages::CONFIRM_ENROL->url($params);
 $courseurl = new moodle_url('/course/view.php', ['id' => $courseid]);
 
 $context = context_course::instance($courseid);
@@ -143,7 +146,7 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->heading(format_string($wallet->get_instance_name($instance), true, ['context' => $context]));
 
-$courserenderer = $PAGE->get_renderer('core', 'course');
+$courserenderer = helper::get_course_renderer();
 
 echo $OUTPUT->confirm($confirmationmsg, $confirmbutton, $cancelbutton);
 

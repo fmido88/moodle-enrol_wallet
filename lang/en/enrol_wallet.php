@@ -227,6 +227,12 @@ $string['coupon_usage'] = 'Coupons usage history';
 $string['coupon_usetimes'] = 'Used times';
 $string['coupon_value'] = 'Coupon value';
 $string['coupon_value_help'] = 'Value of the coupon, fixed or percentage discounted value.';
+$string['couponarea'] = 'Coupon usage area';
+$string['couponarea_cm'] = 'For course module access';
+$string['couponarea_enrol'] = 'For enrollment';
+$string['couponarea_section'] = 'For course section access';
+$string['couponarea_topup'] = 'For topup the wallet';
+$string['couponid'] = 'id';
 $string['coupons'] = 'Coupons';
 $string['coupons_category_error'] = 'Must select category';
 $string['coupons_courseserror'] = 'Must select at least one course.';
@@ -254,6 +260,7 @@ $string['couponsdiscount'] = 'Discount coupons only';
 $string['couponsfixed'] = 'Fixed amount coupons only';
 $string['couponstype'] = 'Allow coupons';
 $string['couponstype_help'] = 'Choose either to disable coupons, allow certain type or allow all.';
+$string['couponusagetime'] = 'Used time';
 $string['courses_options'] = 'Courses';
 $string['courses_options_help'] = 'Choose the courses to direct enrol the user using these coupons.';
 $string['coursesrestriction'] = 'Another course restriction';
@@ -398,6 +405,7 @@ $string['lowerletters'] = 'lower case';
 
 $string['mainbalance'] = 'Main balance: ';
 $string['manualrefundboxlabel'] = 'Check the following box to display the top up options.';
+$string['maxavailable'] = 'Max available limit';
 $string['maxenrolled'] = 'Max enrolled users';
 $string['maxenrolled_help'] = 'Specifies the maximum number of users that can enrol. 0 means no limit.';
 $string['maxenrolledreached'] = 'Maximum number of users allowed to enrol was already reached.';
@@ -441,6 +449,7 @@ $string['nocoupons'] = 'Disable coupons';
 $string['nodiscountstoshow'] = 'No discounts to show.';
 $string['nonrefundable'] = 'Nonrefundable';
 $string['nonrefundable_transform_desc'] = 'Transform the transaction to non refundable due to expiring of refund period.';
+$string['nooverridescohorts'] = 'No override cohorts';
 $string['noreferraldata'] = 'No Past Referrals.';
 $string['not_set'] = 'Not set';
 $string['notequal'] = 'Not Equal to';
@@ -595,6 +604,7 @@ $string['referral_topup'] = 'Due to referral for user: {$a}.';
 $string['referral_url'] = 'Referral URL';
 $string['referral_url_help'] = 'Send this url to your friend to signup in this website and get a referral gift with the following amount in your wallet.';
 $string['referral_user'] = 'Referrals';
+$string['refundable'] = 'Refundable';
 $string['refundperiod'] = 'Refunding grace period';
 $string['refundperiod_desc'] = 'The time after which user\'s cannot refunded for what they pay to top-up their wallets. 0 mean refund any time.';
 $string['refundpolicy'] = 'Manual Refund Policy';
@@ -661,6 +671,7 @@ $string['topupoffers_desc'] = 'By topping up your wallet by one or greater than 
 $string['topuppayment_desc'] = 'Topping up the wallet by payment of {$a} using payment gateway.';
 $string['topupvalue'] = 'TopUp value';
 $string['topupvalue_help'] = 'Value to topup your wallet by using payment methods';
+$string['total'] = 'Total';
 $string['transaction_perpage'] = 'Transactions per page';
 $string['transaction_type'] = 'Type of transaction';
 $string['transactions'] = 'Wallet transactions';
@@ -714,6 +725,7 @@ $string['unenrolselfenabled'] = 'Enable self un-enrol';
 $string['unenrolselfenabled_desc'] = 'If enable, then users are allowed to un-enrol themselves from the course.';
 $string['unenroluser'] = 'Do you really want to un-enrol "{$a->user}" from course "{$a->course}"?';
 $string['unenrolusers'] = 'Un-enrol users';
+$string['unlimited'] = 'Unlimited';
 $string['upload_coupons'] = 'Upload coupons';
 $string['upload_coupons_help'] = 'Upload coupons in a csv file to bulk add or edit wallet coupons, the csv file should contain two primary columns:<br>
 \'code\': The code of the coupon to be added or updated.<br>
@@ -740,7 +752,7 @@ $string['validfrom'] = 'Valid from';
 $string['validto'] = 'Valid to';
 $string['value'] = 'Amount per transaction';
 
-
+$string['wallet'] = 'Wallet';
 $string['wallet:bulkedit'] = 'Bulk edit the enrollments in all courses';
 $string['wallet:config'] = 'Configure wallet enrol instances';
 $string['wallet:createcoupon'] = 'Creating wallet coupons';
@@ -778,3 +790,12 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
+
+$string['wordpress_notice'] = 'Support ended notice:';
+$string['wordpress_notice_desc'] = 'The wordpress MooWallet plugin and all functionalities regarding connections between moodle and wordpress is no longer supported by this plugin and it is prefered to select moodle as a source for the wallet.';
+
+$string['generalenrolsetting'] = 'General plugin settings.';
+$string['mywalletnav'] = 'Show my wallet in nav bar.';
+$string['mywalletnav_desc'] = 'Set to true to display my wallet (link to wallet page) in primary navigation bar.';
+
+

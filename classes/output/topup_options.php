@@ -24,17 +24,18 @@ use core_user;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\local\discounts\discount_rules;
+use enrol_wallet\local\urls\actions;
+use enrol_wallet\local\urls\pages;
+use enrol_wallet\local\utils\payment;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/enrol/wallet/classes/form/topup_form.php');
-require_once($CFG->dirroot.'/enrol/wallet/classes/form/applycoupon_form.php');
 require_once($CFG->dirroot.'/enrol/wallet/lib.php');
 require_once($CFG->dirroot.'/user/lib.php');
 
 /**
- * Class topup_options
+ * Prepare all topup options for output.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -66,6 +67,7 @@ class topup_options implements templatable, renderable {
         if (isloggedin() && !isguestuser()) {
             $this->user = clone $USER;
         } else if ($username = optional_param('s', null, PARAM_USERNAME)) {
+            // Only used in auth_wallet.
             $user = get_complete_user_data('username', $username);
             if ($user) {
                 $this->user = $user;
@@ -77,7 +79,21 @@ class topup_options implements templatable, renderable {
             return;
         }
 
-        $this->config = get_config('enrol_wallet');
+        $this->config = new stdClass();
+    }
+
+    /**
+     * Plugin configuration.
+     * @param string $name
+     * @return mixed
+     */
+    protected function config($name) {
+        if (isset($this->config->{$name})) {
+            return $this->config->{$name};
+        }
+
+        $this->config->{$name} = get_config('enrol_wallet', $name);
+        return $this->config->{$name};
     }
 
     /**
@@ -85,7 +101,7 @@ class topup_options implements templatable, renderable {
      * @return array{haswarn: bool, policy: string, topup: bool}|array{haswarn: bool}
      */
     public function export_policy_warn() {
-        $policy = $this->config->refundpolicy;
+        $policy = $this->config('refundpolicy');
         if (empty($policy)) {
             return ['haswarn' => false];
         }
@@ -108,8 +124,8 @@ class topup_options implements templatable, renderable {
 
         $instance->id         = 0;
         $instance->courseid   = SITEID;
-        $instance->currency   = $this->config->currency;
-        $instance->customint1 = $this->config->paymentaccount;
+        $instance->currency   = $this->config('currency');
+        $instance->customint1 = $this->config('paymentaccount');
 
         $data->instance = $instance;
         $data->user     = $this->user;
@@ -118,39 +134,25 @@ class topup_options implements templatable, renderable {
     }
 
     /**
-     * Check if the payment account is a valid account.
-     * @return bool
-     */
-    public function is_valid_account() {
-        global $CFG;
-        require_once("{$CFG->dirroot}/enrol/wallet/locallib.php");
-
-        static $valid;
-        if (isset($valid)) {
-            return $valid;
-        }
-
-        $valid = enrol_wallet_is_valid_account($this->config->paymentaccount);
-        return $valid;
-    }
-
-    /**
      * Get fast topup bundles template context.
      * @return array{content: string, key: string, label: string}|null
      */
     public function get_bundles() {
-        if (!$this->is_valid_account()) {
+        if (!payment::is_topup_available()) {
             return null;
         }
 
-        $bundles = discount_rules::bundles_buttons();
-        if (empty($bundles)) {
+        $bundles = new bundles();
+        $renderer = helper::get_wallet_renderer();
+        $out = $renderer->render($bundles);
+        if (empty(trim($out ?? ''))) {
             return null;
         }
+
         return [
-            'content' => $bundles,
+            'content' => $out,
             'label'   => get_string('bundle_value', 'enrol_wallet'),
-            'key'     => 'bundels',
+            'key'     => 'bundles',
         ];
     }
 
@@ -159,13 +161,13 @@ class topup_options implements templatable, renderable {
      * @return array{content: string, key: string, label: string}|null
      */
     public function get_topup_form() {
-        if (!$this->is_valid_account()) {
+        if (!payment::is_topup_available()) {
             return null;
         }
 
         $data = $this->get_mocked_instance();
 
-        $topupurl = new url('/enrol/wallet/extra/topup.php');
+        $topupurl = pages::TOPUP->url();
         $topupform = new \enrol_wallet\form\topup_form($topupurl, $data);
 
         return [
@@ -189,7 +191,7 @@ class topup_options implements templatable, renderable {
 
         $data = $this->get_mocked_instance();
         // Display the coupon form to enable user to topup wallet using fixed coupon.
-        $couponaction = new url('/enrol/wallet/extra/coupon_action.php');
+        $couponaction = actions::APPLY_COUPON->url();
         $couponform = new applycoupon_form($couponaction, $data);
 
         if ($submitteddata = $couponform->get_data()) {
@@ -234,7 +236,7 @@ class topup_options implements templatable, renderable {
      */
     public function get_teller_men(renderer_base $output) {
         // Display teller men (user with capabilities to credit and chosen in the settings to be displayed).
-        $tellermen = $this->config->tellermen;
+        $tellermen = $this->config('tellermen');
         if (empty($tellermen)) {
             return null;
         }

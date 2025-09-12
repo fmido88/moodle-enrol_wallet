@@ -32,11 +32,11 @@ use plugin_renderer_base;
 class renderer extends plugin_renderer_base {
     /**
      * Render payment info and payment button for an instance.
-     * @param payment_info $page
+     * @param payment_info $widget
      * @return string
      */
-    public function render_payment_info(payment_info $page) {
-        $data = (object)$page->export_for_template($this);
+    public function render_payment_info(payment_info $widget) {
+        $data = (object)$widget->export_for_template($this);
         if (empty($data)) {
             return '';
         } else if (isset($data->nocost)) {
@@ -48,11 +48,11 @@ class renderer extends plugin_renderer_base {
 
     /**
      * Render the balance details for a certain user.
-     * @param wallet_balance $page
+     * @param wallet_balance $widget
      * @return string
      */
-    public function render_wallet_balance(wallet_balance $page) {
-        $data = (object)$page->export_for_template($this);
+    public function render_wallet_balance(wallet_balance $widget) {
+        $data = (object)$widget->export_for_template($this);
         return $this->render_from_template('enrol_wallet/display', $data);
     }
 
@@ -67,17 +67,5 @@ class renderer extends plugin_renderer_base {
         }
         $data = $widget->export_for_template($this);
         return $this->render_from_template('enrol_wallet/topup_options', $data);
-    }
-
-    /**
-     * Conditional discounts
-     * @param int $categoryid
-     * @return string
-     */
-    public function get_conditional_discounts($categoryid = 0) {
-        global $DB;
-        $output = '';
-
-        return $output;
     }
 }

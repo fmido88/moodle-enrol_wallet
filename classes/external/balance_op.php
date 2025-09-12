@@ -21,6 +21,9 @@ use core_external\external_function_parameters;
 use core_external\external_description;
 use core_external\external_single_structure;
 use core_external\external_value;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\output\helper;
+use enrol_wallet\output\wallet_balance;
 /**
  * Class balance_op
  *
@@ -46,8 +49,7 @@ class balance_op extends external_api {
      * @return array
      */
     public static function get_balance_details($userid) {
-        global $CFG, $PAGE;
-        require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+        global $PAGE;
 
         $params = self::validate_parameters(self::get_balance_details_parameters(), ['userid' => $userid]);
         $userid = $params['userid'];
@@ -58,7 +60,9 @@ class balance_op extends external_api {
 
         require_capability('enrol/wallet:viewotherbalance', $context);
 
-        return ['details' => enrol_wallet_display_current_user_balance($userid)];
+        $renderable = new wallet_balance($userid);
+        $renderer = helper::get_wallet_renderer($PAGE);
+        return ['details' => $renderer->render($renderable)];
     }
 
     /**
@@ -69,6 +73,89 @@ class balance_op extends external_api {
     public static function get_balance_details_returns() {
         return new external_single_structure([
             'details' => new external_value(PARAM_RAW, 'Balance details'),
+        ]);
+    }
+
+    /**
+     * Parameters for get_balance
+     * @return external_function_parameters
+     */
+    public static function get_balance_parameters(): external_function_parameters {
+        return new external_function_parameters([
+            'userid' => new external_value(PARAM_INT, 'The userid', VALUE_DEFAULT, 0),
+            'catid'  => new external_value(PARAM_INT, 'The category that the payment belongs to.', VALUE_DEFAULT, 0),
+        ]);
+    }
+
+    /**
+     * Get the balance details for the certain user.
+     * @param mixed $userid
+     * @param mixed $catid
+     * @return array{
+     *               main:               float,
+     *               mainfree:           float,
+     *               mainnonrefundable:  float,
+     *               mainrefundable:     float,
+     *               total:              float,
+     *               totalfree:          float,
+     *               totalnonrefundable: float,
+     *               totalrefundable:    float,
+     *               valid:              float,
+     *               validfree:          float,
+     *               validnonrefundable: float
+     * }
+     */
+    public static function get_balance($userid, $catid = 0): array {
+        global $USER;
+        if (empty($userid)) {
+            $userid = $USER->id;
+        }
+
+        [
+            'userid' => $userid,
+            'catid'  => $catid,
+        ] = self::validate_parameters(self::get_balance_parameters(), compact('userid', 'catid'));
+
+        if (!empty($catid)) {
+            $context = \core\context\coursecat::instance($catid);
+        } else {
+            $context = \core\context\user::instance($userid);
+        }
+        self::validate_context($context);
+
+        $balance = new balance($userid, $catid);
+        return [
+            'total'              => $balance->get_total_balance(),
+            'totalfree'          => $balance->get_total_free(),
+            'totalrefundable'    => $balance->get_total_refundable(),
+            'totalnonrefundable' => $balance->get_total_nonrefundable(),
+            'main'               => $balance->get_main_balance(),
+            'mainrefundable'     => $balance->get_main_refundable(),
+            'mainnonrefundable'  => $balance->get_main_nonrefundable(),
+            'mainfree'           => $balance->get_main_free(),
+            'valid'              => $balance->get_valid_balance(),
+            'validfree'          => $balance->get_valid_free(),
+            'validnonrefundable' => $balance->get_valid_nonrefundable(),
+        ];
+    }
+
+    /**
+     * Return values of get_balance
+     * @return external_single_structure
+     */
+    public static function get_balance_returns(): external_single_structure {
+        return new external_single_structure([
+            'total'              => new external_value(PARAM_FLOAT, 'Total balance.'),
+            'totalfree'          => new external_value(PARAM_FLOAT, 'Total free points.'),
+            'totalrefundable'    => new external_value(PARAM_FLOAT, 'Total refundable balance.'),
+            'totalnonrefundable' => new external_value(PARAM_FLOAT, 'Total nonrefundable balance.'),
+            'main'               => new external_value(PARAM_FLOAT, 'Main balance.'),
+            'mainrefundable'     => new external_value(PARAM_FLOAT, 'Main refundable balance.'),
+            'mainnonrefundable'  => new external_value(PARAM_FLOAT, 'Main nonrefundable balance.'),
+            'mainfree'           => new external_value(PARAM_FLOAT, 'Main free points.'),
+            'valid'              => new external_value(PARAM_FLOAT, 'Valid balance'),
+            'validfree'          => new external_value(PARAM_FLOAT, 'Valid free points'),
+            'validnonrefundable' => new external_value(PARAM_FLOAT, 'Valid nonrefundable'),
         ]);
     }
 }

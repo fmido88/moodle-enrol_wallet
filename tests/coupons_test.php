@@ -18,6 +18,7 @@ namespace enrol_wallet;
 
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 
@@ -876,7 +877,7 @@ final class coupons_test extends \advanced_testcase {
 
         // Created coupons in the database.
         $records = [];
-        $now = time();
+        $now = timedate::time();
         $expired = $now - 2 * DAYSECS;
         $notav = $now + 2 * DAYSECS;
         // Fixed coupons.

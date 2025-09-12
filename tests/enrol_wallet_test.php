@@ -23,14 +23,10 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\local\utils\options;
-
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
 use enrol_wallet_plugin;
 
 /**
@@ -84,7 +80,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
 
-        $now = time();
+        $now = timedate::time();
 
         $trace = new \progress_trace_buffer(new \text_progress_trace(), false);
 
@@ -216,7 +212,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
 
-        $now = time();
+        $now = timedate::time();
 
         $trace = new \null_progress_trace();
 
@@ -344,7 +340,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         $walletplugin = enrol_get_plugin('wallet');
         $manualplugin = enrol_get_plugin('manual');
-        $now = time();
+        $now = timedate::time();
         $admin = get_admin();
 
         $trace = new \null_progress_trace();
@@ -507,7 +503,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(0, $sink->count());
 
         // Use invalid notification hour to verify that before the hour the notifications are not sent.
-        $walletplugin->set_config('expirynotifylast', time() - DAYSECS);
+        $walletplugin->set_config('expirynotifylast', timedate::time() - DAYSECS);
         $walletplugin->set_config('expirynotifyhour', '24');
 
         $walletplugin->send_expiry_notifications($trace);
@@ -605,7 +601,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         // Enrol start date is in future.
         $instance7 = $DB->get_record('enrol', ['courseid' => $course6->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance7->customint6 = 1;
-        $instance7->enrolstartdate = time() + 60;
+        $instance7->enrolstartdate = timedate::time() + 60;
         $instance7->cost = 250;
         $DB->update_record('enrol', $instance7);
         $walletplugin->update_status($instance7, ENROL_INSTANCE_ENABLED);
@@ -613,7 +609,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         // Enrol start date is in past.
         $instance8 = $DB->get_record('enrol', ['courseid' => $course7->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance8->customint6 = 1;
-        $instance8->enrolstartdate = time() - 60;
+        $instance8->enrolstartdate = timedate::time() - 60;
         $instance8->cost = 250;
         $DB->update_record('enrol', $instance8);
         $walletplugin->update_status($instance8, ENROL_INSTANCE_ENABLED);
@@ -621,7 +617,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         // Enrol end date is in future.
         $instance9 = $DB->get_record('enrol', ['courseid' => $course8->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance9->customint6 = 1;
-        $instance9->enrolenddate = time() + 60;
+        $instance9->enrolenddate = timedate::time() + 60;
         $instance9->cost = 250;
         $DB->update_record('enrol', $instance9);
         $walletplugin->update_status($instance9, ENROL_INSTANCE_ENABLED);
@@ -629,7 +625,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         // Enrol end date is in past.
         $instance10 = $DB->get_record('enrol', ['courseid' => $course9->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance10->customint6 = 1;
-        $instance10->enrolenddate = time() - 60;
+        $instance10->enrolenddate = timedate::time() - 60;
         $instance10->cost = 250;
         $DB->update_record('enrol', $instance10);
         $walletplugin->update_status($instance10, ENROL_INSTANCE_ENABLED);
@@ -767,7 +763,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $instance4 = $DB->get_record('enrol', ['courseid' => $course4->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance4->customint6 = 1;
         $instance4->cost = 50;
-        $instance4->enrolstartdate = time() + 3 * DAYSECS;
+        $instance4->enrolstartdate = timedate::time() + 3 * DAYSECS;
         $DB->update_record('enrol', $instance4);
         $walletplugin->update_status($instance4, ENROL_INSTANCE_ENABLED);
         $msg = get_string('canntenrolearly', 'enrol_wallet', userdate($instance4->enrolstartdate));
@@ -778,7 +774,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $instance5 = $DB->get_record('enrol', ['courseid' => $course5->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance5->customint6 = 1;
         $instance5->cost = 50;
-        $instance5->enrolenddate = time() - 3 * DAYSECS;
+        $instance5->enrolenddate = timedate::time() - 3 * DAYSECS;
         $DB->update_record('enrol', $instance5);
         $walletplugin->update_status($instance5, ENROL_INSTANCE_ENABLED);
         $msg = get_string('canntenrollate', 'enrol_wallet', userdate($instance5->enrolenddate));
@@ -1154,7 +1150,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertFalse($walletplugin->hide_due_cheaper_instance($instance2));
 
         // Cheaper but cannot enrol late.
-        $data2['enrolenddate'] = time() - 3 * DAYSECS;
+        $data2['enrolenddate'] = timedate::time() - 3 * DAYSECS;
         $walletplugin->update_instance($instance2, (object) $data2);
 
         $this->setUser($user1);
@@ -1263,7 +1259,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         $this->setAdminUser();
         // The user remaind in the course more than the grace period.
-        $wallet->update_user_enrol($instance, $user->id, true, time() - 3 * HOURSECS, time() + DAYSECS);
+        $wallet->update_user_enrol($instance, $user->id, true, timedate::time() - 3 * HOURSECS, timedate::time() + DAYSECS);
 
         $this->setUser($user);
         $this->assertTrue(is_enrolled($context));
@@ -1352,19 +1348,20 @@ final class enrol_wallet_test extends \advanced_testcase {
         // First condition limit after enrol start time by 2 hours.
         // Second condition limit is before the enrol end time by 2 hours.
         // Can unenrol before the first condition.
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
+        $now = timedate::time();
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 1 * HOURSECS, $now + 9 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
         // Cannot unenrol after the first condition and before the second.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 6 * HOURSECS, $now + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         // Can unenrol after the second condition.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 9 * HOURSECS, $now + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
@@ -1373,21 +1370,22 @@ final class enrol_wallet_test extends \advanced_testcase {
         set_config('unenrollimitafter', 2 * HOURSECS, 'enrol_wallet');
         set_config('unenrollimitbefor', 0, 'enrol_wallet');
 
-        $wallet = new enrol_wallet_plugin;
+        $wallet = enrol_wallet_plugin::get_plugin();
+        $now = timedate::time();
         // Can unenrol before the first condition.
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 1 * HOURSECS, $now + 9 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
         // Cannot unenrol after.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 6 * HOURSECS, $now + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         // Cannot unenrol too.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 9 * HOURSECS, $now + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
@@ -1396,21 +1394,22 @@ final class enrol_wallet_test extends \advanced_testcase {
         set_config('unenrollimitafter', 0, 'enrol_wallet');
         set_config('unenrollimitbefor', 2 * HOURSECS, 'enrol_wallet');
 
-        $wallet = new enrol_wallet_plugin;
+        $wallet = enrol_wallet_plugin::get_plugin();
+        $now = timedate::time();
         // Cannot unenrol before.
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 1 * HOURSECS, time() + 9 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 1 * HOURSECS, $now + 9 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         // Still cannot unenrol.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 6 * HOURSECS, time() + 4 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 6 * HOURSECS, $now + 4 * HOURSECS);
         $this->setUser($user);
         $this->assertEmpty($wallet->get_unenrolself_link($instance));
 
         // Can unenrol after the second condition.
         $this->setAdminUser();
-        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, time() - 9 * HOURSECS, time() + 1 * HOURSECS);
+        $wallet->update_user_enrol($instance, $user->id, ENROL_USER_ACTIVE, $now - 9 * HOURSECS, $now + 1 * HOURSECS);
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
     }

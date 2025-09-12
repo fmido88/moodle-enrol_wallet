@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\transactions;
 use enrol_wallet_plugin;
 defined('MOODLE_INTERNAL') || die();
@@ -48,14 +49,15 @@ final class locallib_test extends \advanced_testcase {
         global $CFG, $DB;
         $this->resetAfterTest();
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+        $now = timedate::time();
         // Eligibal user.
-        $user1 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
+        $user1 = $this->getDataGenerator()->create_user(['firstaccess' => $now - 70 * DAYSECS]);
         // No borrow for new users.
-        $user2 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 10 * DAYSECS]);
+        $user2 = $this->getDataGenerator()->create_user(['firstaccess' => $now - 10 * DAYSECS]);
         // No enough transactions.
-        $user3 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
+        $user3 = $this->getDataGenerator()->create_user(['firstaccess' => $now - 70 * DAYSECS]);
         // Old transactions.
-        $user4 = $this->getDataGenerator()->create_user(['firstaccess' => time() - 70 * DAYSECS]);
+        $user4 = $this->getDataGenerator()->create_user(['firstaccess' => $now - 70 * DAYSECS]);
 
         $this->assertFalse(enrol_wallet_is_borrow_eligible($user2));
 
@@ -73,7 +75,8 @@ final class locallib_test extends \advanced_testcase {
         transactions::payment_topup(20, $user3->id);
         transactions::debit($user3->id, 10);
 
-        $transaction = ['userid' => $user4->id, 'amount' => 20, 'type' => 'credit', 'timecreated' => time() - 20 * DAYSECS];
+        $now = timedate::time();
+        $transaction = ['userid' => $user4->id, 'amount' => 20, 'type' => 'credit', 'timecreated' => $now - 20 * DAYSECS];
         $transaction['balance'] = 20;
         $DB->insert_record('enrol_wallet_transactions', (object)$transaction, false, true);
         $transaction['balance'] = 40;

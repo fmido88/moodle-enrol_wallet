@@ -16,6 +16,7 @@
 
 namespace enrol_wallet\local\coupons;
 
+use enrol_wallet\local\utils\timedate;
 use progress_trace;
 use null_progress_trace;
 
@@ -105,7 +106,7 @@ class generator {
             'maxperuser'  => $maxperuser,
             'validfrom'   => $from,
             'validto'     => $to,
-            'timecreated' => $options->timecreated ?? time(),
+            'timecreated' => $options->timecreated ?? timedate::time(),
         ];
 
         $ids = [];

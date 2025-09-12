@@ -23,6 +23,8 @@
  */
 namespace enrol_wallet\output;
 
+use enrol_wallet\local\urls\pages;
+use enrol_wallet\local\urls\reports;
 use enrol_wallet\local\wallet\balance;
 use renderable;
 use templatable;
@@ -97,24 +99,24 @@ class wallet_balance implements renderable, templatable {
             $params['userid'] = $this->userid;
         }
 
-        $transactionsurl = new moodle_url('/enrol/wallet/extra/transaction.php', $params);
+        $transactionsurl = reports::TRANSACTIONS->url($params);
         $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));
         if ($this->currentuser && !AJAX_SCRIPT) {
             // Transfer link.
             $transferenabled = get_config('enrol_wallet', 'transfer_enabled');
-            $transferurl = new moodle_url('/enrol/wallet/extra/transfer.php');
+            $transferurl = pages::TRANSFER->url();
             $transfer = html_writer::link($transferurl, get_string('transfer', 'enrol_wallet'));
 
             if (!$this->isparent) {
                 // Referral link.
                 $refenabled = get_config('enrol_wallet', 'referral_enabled');
-                $referralurl = new moodle_url('/enrol/wallet/extra/referral.php');
+                $referralurl = pages::REFERRAL->url();
                 $referral = html_writer::link($referralurl, get_string('referral_program', 'enrol_wallet'));
             }
         }
 
         $balancedetails = [];
-        foreach ($details['catbalance'] as $id => $obj) {
+        foreach ($details->catbalance as $id => $obj) {
             $category = core_course_category::get($id, IGNORE_MISSING, true);
 
             $balancedetails[$id] = new stdClass;
@@ -124,28 +126,33 @@ class wallet_balance implements renderable, templatable {
                 $balancedetails[$id]->name = $category->get_nested_name(false);
             }
 
-            $balancedetails[$id]->refundable = number_format($obj->refundable ?? 0, 2);
-            $balancedetails[$id]->nonrefundable = number_format($obj->nonrefundable ?? 0, 2);
-            $total = $obj->balance ?? (float)(($obj->refundable ?? 0) + ($obj->nonrefundable ?? 0));
-            $balancedetails[$id]->total = number_format($total, 2);
+            $balancedetails[$id]->refundable = format_float($obj->refundable, 2);
+            $balancedetails[$id]->nonrefundable = format_float($obj->nonrefundable, 2);
+            $balancedetails[$id]->total = format_float($obj->balance, 2);
         }
 
         $balancedetails = !(empty($balancedetails)) ? array_values($balancedetails) : false;
 
         $tempctx = new stdClass;
-        $tempctx->main         = number_format($helper->get_main_refundable(), 2);
-        $tempctx->norefund     = number_format($helper->get_main_nonrefundable(), 2);
-        $tempctx->balance      = number_format($helper->get_total_balance(), 2);
+        $tempctx->main         = format_float($helper->get_main_refundable(), 2);
+        $tempctx->norefund     = format_float($helper->get_main_nonrefundable(), 2);
+        $tempctx->balance      = format_float($helper->get_total_balance(), 2);
         $tempctx->hasdetails   = !empty($balancedetails);
         $tempctx->catdetails   = $balancedetails;
         $tempctx->currency     = $currency;
 
         if (!AJAX_SCRIPT) {
+            $currenturl = $output->get_page()->url;
+            $walleturl = pages::WALLET->url();
+            if (!$walleturl->compare($currenturl, URL_MATCH_BASE)) {
+                $walleturl->set_anchor('linkbalance');
+                $tempctx->walleturl = $walleturl->out(false);
+            }
+
             $tempctx->transactions = $transactions;
             $tempctx->transfer     = !empty($transferenabled) ? $transfer : false;
             $tempctx->referral     = !empty($refenabled) ? $referral : false;
             $tempctx->policy       = !empty($policy) ? $policy : false;
-            $tempctx->walleturl    = (new moodle_url('/enrol/wallet/wallet.php#linkbalance'))->out();
         }
 
         $tempctx->currentuser = $this->currentuser;

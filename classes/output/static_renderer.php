@@ -22,6 +22,8 @@ use core\context\system;
 use core\output\html_writer;
 use core\url;
 use enrol_wallet\form\charger_form;
+use enrol_wallet\local\urls\manage;
+use enrol_wallet\local\urls\reports;
 use enrol_wallet\local\wallet\balance;
 
 /**
@@ -41,7 +43,7 @@ class static_renderer {
             return '';
         }
 
-        $action = new url('/enrol/wallet/extra/charger.php', ['return' => qualified_me()]);
+        $action = manage::CHARGE->url(['return' => qualified_me()]);
         $mform = new charger_form($action, null, 'get');
         $result = optional_param('result', '', PARAM_RAW);
 
@@ -73,25 +75,25 @@ class static_renderer {
         // Check if the user can view and generate coupons.
         if ($canviewcoupons) {
             $out[] = [
-                'url'   => new url('/enrol/wallet/extra/coupontable.php'),
+                'url'   => reports::COUPONS->out(),
                 'label' => get_string('coupon_table', 'enrol_wallet'),
             ];
 
             $out[] = [
-                'url'   => new url('/enrol/wallet/extra/couponusage.php'),
+                'url'   => reports::COUPONS_USAGE->out(),
                 'label' => get_string('coupon_usage', 'enrol_wallet'),
             ];
 
             if ($cangeneratecoupon) {
                 $out[] = [
-                    'url' => new url('/enrol/wallet/extra/coupon.php'),
+                    'url' => manage::GENERATE_COUPON->out(),
                     'label' => get_string('coupon_generation', 'enrol_wallet'),
                 ];
             }
 
             if ($cangeneratecoupon && $caneditcoupon) {
                 $out[] = [
-                    'url' => new url('/enrol/wallet/extra/couponupload.php'),
+                    'url' => manage::UPLOAD_COUPONS->out(),
                     'label' => get_string('upload_coupons', 'enrol_wallet'),
                 ];
             }
@@ -136,7 +138,7 @@ class static_renderer {
 
         if (has_all_capabilities(['enrol/wallet:config', 'enrol/wallet:manage'] , $context)) {
             $links[] = [
-                'url'   => new url('/enrol/wallet/extra/conditionaldiscount.php'),
+                'url'   => manage::CONDITIONAL_DISCOUNT->url(),
                 'label' => get_string('conditionaldiscount_link_desc', 'enrol_wallet'),
             ];
         }
@@ -145,12 +147,12 @@ class static_renderer {
 
         if (has_capability('enrol/wallet:bulkedit', $context)) {
             $links[] = [
-                'url' => new url('/enrol/wallet/extra/bulkedit.php'),
+                'url' => manage::BULKENROLMENTS->url(),
                 'label' => get_string('bulkeditor', 'enrol_wallet'),
             ];
 
             $links[] = [
-                'url'   => new url('/enrol/wallet/extra/bulkinstances.php'),
+                'url'   => manage::BULKINSTANCES->url(),
                 'label' => get_string('walletbulk', 'enrol_wallet'),
             ];
         }

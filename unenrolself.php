@@ -23,7 +23,8 @@
  */
 
 require('../../config.php');
-global $PAGE, $USER, $DB;
+
+use enrol_wallet\local\urls\actions;
 
 $enrolid = required_param('enrolid', PARAM_INT);
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
@@ -46,7 +47,7 @@ if (empty($plugin->get_unenrolself_link($instance))) {
     redirect(new moodle_url('/course/view.php', ['id' => $course->id]), $msg);
 }
 
-$PAGE->set_url('/enrol/wallet/unenrolself.php', ['enrolid' => $instance->id]);
+actions::UNENROL_SELF->set_page_url_to_me(['enrolid' => $instance->id]);
 $PAGE->set_title($plugin->get_instance_name($instance));
 
 if ($confirm && confirm_sesskey()) {
@@ -56,8 +57,11 @@ if ($confirm && confirm_sesskey()) {
 }
 
 echo $OUTPUT->header();
+
 $yesurl = new moodle_url($PAGE->url, ['confirm' => 1, 'sesskey' => sesskey()]);
 $nourl = new moodle_url('/course/view.php', ['id' => $course->id]);
 $message = get_string('unenrolselfconfirm', 'enrol_wallet', format_string($course->fullname));
+
 echo $OUTPUT->confirm($message, $yesurl, $nourl);
+
 echo $OUTPUT->footer();

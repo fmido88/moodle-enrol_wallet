@@ -18,7 +18,11 @@ namespace enrol_wallet;
 use core\hook\output\before_standard_top_of_body_html_generation;
 use core\hook\output\before_footer_html_generation;
 use core\hook\navigation\primary_extend;
+use core\output\pix_icon;
+use enrol_wallet\local\discounts\offers;
+use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\wallet\balance;
+use navigation_node;
 
 /**
  * Class hooks_callbacks
@@ -76,26 +80,54 @@ class hooks_callbacks {
     }
 
     /**
+     * Hook callback to extend primary navigation tabs.
+     *
+     * @param primary_extend $hook
+     * @return void
+     */
+    public static function primary_navigation_tabs(primary_extend $hook) {
+        if (during_initial_install()) {
+            return;
+        }
+        self::add_my_wallet($hook);
+        self::add_offers($hook);
+    }
+
+    /**
+     * Add my wallet to primary navigation.
+     * @param primary_extend $hook
+     * @return void
+     */
+    public static function add_my_wallet(primary_extend $hook) {
+        $enabled = (bool)get_config('enrol_wallet', 'mywalletnav');
+        if (empty($enabled)) {
+            return;
+        }
+
+        $alt = get_string('mywallet', 'enrol_wallet');
+        $pix = new pix_icon('wallet', $alt, 'enrol_wallet');
+        $url = pages::WALLET->url();
+
+        $primaryview = $hook->get_primaryview();
+        $primaryview->add($alt, $url, navigation_node::TYPE_CUSTOM, null, null, $pix);
+    }
+    /**
      * Add offers to primary navigation.
      *
      * @param \core\hook\navigation\primary_extend $hook
      * @return void
      */
     public static function add_offers(primary_extend $hook) {
-        if (during_initial_install()) {
-            return;
-        }
-
         $enabled = (bool)get_config('enrol_wallet', 'offers_nav');
         if (empty($enabled)) {
             return;
         }
 
         $alt = get_string('offers', 'enrol_wallet');
-        $pix = new \pix_icon('i/offer', $alt, 'enrol_wallet');
-        $url = new \moodle_url('/enrol/wallet/extra/offers.php');
+        $pix = new pix_icon('offer', $alt, 'enrol_wallet');
+        $url = pages::OFFERS->url();
 
         $primaryview = $hook->get_primaryview();
-        $primaryview->add($alt, $url, \navigation_node::TYPE_CUSTOM, null, null, $pix);
+        $primaryview->add($alt, $url, navigation_node::TYPE_CUSTOM, null, null, $pix);
     }
 }

@@ -22,13 +22,19 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+use core_admin\admin\admin_setting_template_render;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\options;
+use enrol_wallet\local\urls\actions;
+use enrol_wallet\local\urls\manage;
+
+defined('MOODLE_INTERNAL') || die();
 
 $context = context_system::instance();
+
+$settings = new admin_settingpage('enrol_wallet', get_string('pluginname', 'enrol_wallet'));
 
 if ($ADMIN->fulltree) {
     global $DB;
@@ -49,7 +55,7 @@ if ($ADMIN->fulltree) {
             $countenrol += $DB->count_records('user_enrolments', ['enrolid' => $credit->id]);
         }
         if (!empty($countenrol + $countcredit)) {
-            $turl = new moodle_url('/enrol/wallet/extra/credit_transformation.php');
+            $turl = actions::TRANSFORM_ENROL_CREDIT->url();
 
             $a = [
                 'enrol' => $countenrol,
@@ -65,19 +71,29 @@ if ($ADMIN->fulltree) {
         }
     }
 
-    // General settings.
-    $settings->add(new admin_setting_heading('enrol_wallet_settings', '',
-                        get_string('pluginname_desc', 'enrol_wallet')));
+    // Wallet source settings.
+    $settings->add(new admin_setting_heading('enrol_wallet_walletsource', get_string('walletsource', 'enrol_wallet'), ''));
     // Adding choice between using wordpress (woowallet) of internal moodle wallet.
     $sources = [
         balance::WP     => get_string('sourcewordpress', 'enrol_wallet'),
         balance::MOODLE => get_string('sourcemoodle', 'enrol_wallet'),
     ];
-    $settings->add(new admin_setting_configselect('enrol_wallet/walletsource',
+    $sourcesetting = new admin_setting_configselect('enrol_wallet/walletsource',
                                                 get_string('walletsource', 'enrol_wallet'),
                                                 get_string('walletsource_help', 'enrol_wallet'),
                                                 balance::MOODLE,
-                                                $sources));
+                                                $sources);
+    $settings->add($sourcesetting);
+
+    $notice = new admin_setting_template_render('enrol_wallet/wp_notice',
+                                                'enrol_wallet/wp_notice',
+                                                ['hidden' => $sourcesetting->get_setting() == balance::MOODLE]);
+
+    $settings->add($notice);
+
+    $settings->hide_if('enrol_wallet/wp_notice', 'enrol_wallet/walletsource',
+                                                'eq', balance::MOODLE);
+
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/wordpressloggins',
                                                 get_string('wordpressloggins', 'enrol_wallet'),
                                                 get_string('wordpressloggins_desc', 'enrol_wallet'),
@@ -100,6 +116,13 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('enrol_wallet/wordpress_secretkey', 'enrol_wallet/walletsource',
                                                 'eq', balance::MOODLE);
 
+    // General plugin settings.
+    $settings->add(new admin_setting_heading('enrol_wallet_generalenrolsetting', get_string('generalenrolsetting', 'enrol_wallet'), ''));
+
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/mywalletnav',
+                                                    get_string('mywalletnav', 'enrol_wallet'),
+                                                    get_string('mywalletnav_desc', 'enrol_wallet'),
+                                                    '0'));
     // Note: let's reuse the ext sync constants and strings here, internally it is very similar,
     // it describes what should happened when users are not supposed to be enrolled any more.
     $options = options::get_expire_actions_options();
@@ -117,11 +140,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('enrol_wallet/allowmultipleinstances',
                         get_string('allowmultiple', 'enrol_wallet'),
                         get_string('allowmultiple_help', 'enrol_wallet'), 1, PARAM_INT));
-    // Enable or disable awards across the whole site.
-    $settings->add(new admin_setting_configcheckbox('enrol_wallet/awardssite',
-                        get_string('awardssite', 'enrol_wallet'),
-                        get_string('awardssite_help', 'enrol_wallet'),
-                        1));
+
     // Enable or disable unenrol self.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/unenrolselfenabled',
                         get_string('unenrolselfenabled', 'enrol_wallet'),
@@ -256,23 +275,11 @@ if ($ADMIN->fulltree) {
                                             get_string('frontpageoffers', 'enrol_wallet'),
                                             get_string('frontpageoffers_desc', 'enrol_wallet'), 0));
 
-    if ((int)$CFG->branch < 404) {
-        if ($PAGE->has_set_url()) {
-            $return = $PAGE->url->out();
-        } else {
-            $return = (new moodle_url('/admin/settings.php', ['section' => 'enrolsettingswallet']))->out();
-        }
-        $url = new moodle_url('/enrol/wallet/extra/offers_nav.php', ['return' => $return]);
-        $button = html_writer::link($url, get_string('offersnav', 'enrol_wallet'), ['class' => 'btn btn-secondary']);
-        $settings->add(new admin_setting_description('enrol_wallet/offers_nav',
-                                                    get_string('offersnav_desc', 'enrol_wallet'), $button));
-    } else {
-        $settings->add(new admin_setting_configcheckbox('enrol_wallet/offers_nav',
-                                                        get_string('offersnav', 'enrol_wallet'),
-                                                        get_string('offersnav', 'enrol_wallet'),
-                                                        '0'));
-    }
 
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/offers_nav',
+                                                    get_string('offersnav', 'enrol_wallet'),
+                                                    get_string('offersnav', 'enrol_wallet'),
+                                                    '0'));
 
     $behaviors = options::get_discount_behavior_options();
     $settings->add(new admin_setting_configselect('enrol_wallet/discount_behavior',
@@ -305,7 +312,7 @@ if ($ADMIN->fulltree) {
                         get_string('conditionaldiscount_apply', 'enrol_wallet'),
                         get_string('conditionaldiscount_apply_help', 'enrol_wallet'), 0));
     // Link to conditional discount page.
-    $discountspage = new moodle_url('/enrol/wallet/extra/conditionaldiscount.php');
+    $discountspage = manage::CONDITIONAL_DISCOUNT->url();
     $conditionaldiscount = html_writer::link($discountspage, get_string('conditionaldiscount_link_desc', 'enrol_wallet'));
     $settings->add(new admin_setting_description('conditionaldiscount',
                         get_string('conditionaldiscount', 'enrol_wallet'), $conditionaldiscount));
@@ -433,11 +440,14 @@ if ($ADMIN->fulltree) {
         }
         $options[$avplugin] = get_string('title', "availability_$avplugin");
     }
-    $settings->add(new admin_setting_configmultiselect('enrol_wallet/availability_plugins',
+
+    if (!empty($options)) {
+        $settings->add(new admin_setting_configmultiselect('enrol_wallet/availability_plugins',
                                             get_string('availability_plugins', 'enrol_wallet'),
                                             get_string('availability_plugins_desc', 'enrol_wallet'),
                                             [],
                                             $options));
+    }
 
     // Enrol instance defaults.
     $settings->add(new admin_setting_heading('enrol_wallet_defaults',
@@ -522,7 +532,12 @@ if ($ADMIN->fulltree) {
             ENROL_SEND_EMAIL_FROM_COURSE_CONTACT,
             $weloptions));
     // Adding default settings for awards program.
-    // Enable awards.
+    // Enable or disable awards across the whole site.
+    $settings->add(new admin_setting_configcheckbox('enrol_wallet/awardssite',
+                        get_string('awardssite', 'enrol_wallet'),
+                        get_string('awardssite_help', 'enrol_wallet'),
+                        1));
+    // Enable awards by default for instances.
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/awards',
                                                     get_string('awards', 'enrol_wallet'),
                                                     get_string('awards_help', 'enrol_wallet'),
@@ -542,6 +557,8 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('enrol_wallet/awards', 'enrol_wallet/awardssite');
     $settings->hide_if('enrol_wallet/awardcreteria', 'enrol_wallet/awardssite');
     $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awardssite');
+    $settings->hide_if('enrol_wallet/awardcreteria', 'enrol_wallet/awards');
+    $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awards');    
 }
 // Include extra pages.
 require_once('extrasettings.php');

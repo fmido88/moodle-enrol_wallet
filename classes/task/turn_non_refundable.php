@@ -24,6 +24,7 @@
 
 namespace enrol_wallet\task;
 
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op as op;
 
@@ -142,7 +143,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $params = [
             'userid'    => $userid,
             'type'      => 'debit',
-            'checktime' => time() - $period,
+            'checktime' => timedate::time() - $period,
         ];
         if (!empty($this->catid)) {
             $where .= " AND category = :catid";
@@ -210,7 +211,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
             'norefund'    => min($norefund + $transform, $balance),
             'category'    => $this->catid,
             'descripe'    => get_string('nonrefundable_transform_desc', 'enrol_wallet'),
-            'timecreated' => time(),
+            'timecreated' => timedate::time(),
         ];
         $DB->insert_record('enrol_wallet_transactions', $recorddata);
 

@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\notifications;
 
 /**
@@ -53,7 +54,7 @@ final class notifications_test extends \advanced_testcase {
             'balbefore' => 200,
             'balance' => 350,
             'descripe' => '',
-            'timecreated' => time(),
+            'timecreated' => timedate::time(),
         ];
         $sink = $this->redirectMessages();
         notifications::transaction_notify($data);

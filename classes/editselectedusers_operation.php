@@ -24,6 +24,8 @@
 
 namespace enrol_wallet;
 
+use enrol_wallet\local\utils\timedate;
+
 /**
  * A bulk operation for the wallet enrolment plugin to edit selected users.
  *
@@ -116,7 +118,7 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
 
         // Update the time modified.
         $updatesql[] = 'timemodified = :timemodified';
-        $params['timemodified'] = time();
+        $params['timemodified'] = timedate::time();
 
         // Build the SQL statement.
         $updatesql = join(', ', $updatesql);

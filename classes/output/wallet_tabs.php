@@ -24,7 +24,7 @@ use core\output\html_writer;
 use core\output\renderable;
 use core\output\renderer_base;
 use core\output\templatable;
-use core\url;
+use enrol_wallet\local\urls\reports;
 use enrol_wallet\table\transactions;
 
 /**
@@ -162,22 +162,23 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Render charger form.
+     * @param null|renderer_base $ignore
      * @return string
      */
-    public function render_charge() {
+    public function render_charge($ignore = null) {
         return static_renderer::charger_form();
     }
 
     /**
      * Render transaction table part.
+     * @param renderer_base $output
      * @return string
      */
-    public function render_transactions() {
-        global $PAGE;
-        $url = clone $PAGE->url;
+    public function render_transactions(renderer_base $output) {
+        $url = clone $output->get_page()->url;
         $url->set_anchor('linktransactions');
 
-        $transactionurl = new url('/enrol/wallet/extra/transaction.php');
+        $transactionurl = reports::TRANSACTIONS->url();
         $class          = ['class' => 'btn btn-primary'];
 
         $out = html_writer::link($transactionurl, get_string('transactions_details', 'enrol_wallet'), $class);
@@ -194,9 +195,10 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Render referral page content.
+     * @param null|renderer_base $ignore
      * @return bool|string
      */
-    public function render_referral() {
+    public function render_referral($ignore = null) {
         if ((bool)get_config('enrol_wallet', 'referral_enabled')) {
             ob_start();
             pages::process_referral_page();
@@ -209,12 +211,12 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Render transfer balance to other form.
+     * @param renderer_base $output
      * @return bool|string
      */
-    public function render_transfer() {
-        global $PAGE;
-        $url = clone $PAGE->url;
-        $url->set_anchor('#linktransfer');
+    public function render_transfer(renderer_base $output) {
+        $url = clone $output->get_page()->url;
+        $url->set_anchor('linktransfer');
 
         ob_start();
         pages::process_transfer_page($url);
@@ -224,9 +226,10 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Render the offers content.
+     * @param null|renderer_base $ignore
      * @return string
      */
-    public function render_offers() {
+    public function render_offers($ignore = null) {
         return pages::get_offers_content();
     }
 
@@ -256,7 +259,7 @@ class wallet_tabs implements renderable, templatable {
                 }
             } else if (method_exists($this, $rendermethod)) {
                 $page['prerendered'] = true;
-                $page['content']     = $this->$rendermethod();
+                $page['content']     = $this->$rendermethod($output);
 
                 if (empty($page['content'])) {
                     continue;

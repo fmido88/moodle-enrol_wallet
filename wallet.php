@@ -15,13 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * TODO describe file wallet
+ * Home page for wallet where all functionalities accessible here.
  *
  * @package    enrol_wallet
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\local\urls\pages;
+use enrol_wallet\output\helper;
 use enrol_wallet\output\wallet_tabs;
 
 require_once('../../config.php');
@@ -31,17 +33,22 @@ require_login(null, false);
 
 $context = context_system::instance();
 
-$url = new moodle_url('/enrol/wallet/wallet.php');
+$url = pages::WALLET->url();
+$url->set_anchor("linkbalance");
+
 $PAGE->set_url($url);
 $PAGE->set_context($context);
 
-$PAGE->set_heading($SITE->fullname);
+$title = get_string('wallet', 'enrol_wallet');
+
+$PAGE->set_heading($title);
+$PAGE->set_title("{$SITE->fullname} | $title");
 $PAGE->set_pagelayout('frontpage');
 $PAGE->set_secondary_navigation(true, true);
 
 $tabs = new wallet_tabs();
 
-$renderer = $PAGE->get_renderer('enrol_wallet');
+$renderer = helper::get_wallet_renderer();
 
 echo $OUTPUT->header();
 

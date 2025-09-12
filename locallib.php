@@ -23,11 +23,13 @@
  */
 use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\form\charger_form;
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\output\static_renderer;
 use enrol_wallet\output\topup_options;
 use enrol_wallet\output\wallet_balance;
 
+defined('MOODLE_INTERNAL') || die();
 /**
  * Enable enrol Wallet plugin.
  * @return void
@@ -65,6 +67,7 @@ function enrol_wallet_enable_plugin() {
  * @param array $options characters options
  * @return string the random coupon generated.
  */
+#[Deprecated('This function is deprecated, please use coupons generator class')]
 function enrol_wallet_get_random_coupon($length, $options) {
     return enrol_wallet\local\coupons\generator::generate_random_coupon($length, $options);
 }
@@ -76,6 +79,7 @@ function enrol_wallet_get_random_coupon($length, $options) {
  * @param ?progress_trace $trace
  * @return array|string array of coupon, or string of error.
  */
+#[Deprecated('This function is deprecated, please use coupons generator class')]
 function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) {
     return enrol_wallet\local\coupons\generator::create_coupons($options, $trace);
 }
@@ -85,6 +89,7 @@ function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) 
  * @param bool $return
  * @return string|void
  */
+#[Deprecated('Use static_renderer class instead')]
 function enrol_wallet_display_charger_form($return = true) {
     $output = static_renderer::charger_form();
     if ($return) {
@@ -98,6 +103,7 @@ function enrol_wallet_display_charger_form($return = true) {
  * @param object $data
  * @return bool
  */
+#[Deprecated()]
 function enrol_wallet_handle_charger_form($data) {
     $form = new charger_form();
     return $form->process_form_submission($data);
@@ -108,6 +114,7 @@ function enrol_wallet_handle_charger_form($data) {
  * @param array $params parameters from the charging form results.
  * @return bool
  */
+#[Deprecated()]
 function enrol_wallet_display_transaction_results($params = []) {
     $form = new charger_form();
     return $form->notify_result($params);
@@ -118,6 +125,7 @@ function enrol_wallet_display_transaction_results($params = []) {
  * @param object $data
  * @return string the redirect url.
  */
+#[Deprecated()]
 function enrol_wallet_process_coupon_data($data = null) {
     $form = new applycoupon_form();
     return $form->process_coupon_data($data);
@@ -126,6 +134,7 @@ function enrol_wallet_process_coupon_data($data = null) {
  * Display links to generate and view coupons.
  * @return string
  */
+#[Deprecated()]
 function enrol_wallet_display_coupon_urls() {
     return static_renderer::coupons_urls();
 }
@@ -135,6 +144,7 @@ function enrol_wallet_display_coupon_urls() {
  * @param int $userid the user id, if not defined the id of current user used.
  * @return bool|string
  */
+#[Deprecated]
 function enrol_wallet_display_current_user_balance($userid = 0) {
     global $PAGE;
     if (!isloggedin() || isguestuser()) {
@@ -163,19 +173,9 @@ function enrol_wallet_display_topup_options() {
  * @param int $accountid
  * @return bool
  */
+#[Deprecated()]
 function enrol_wallet_is_valid_account($accountid) {
-    if (empty($accountid) || !is_number($accountid) || $accountid < 0) {
-        return false;
-    }
-    if (!class_exists('\core_payment\account')) {
-        return false;
-    }
-    $account = new \core_payment\account($accountid);
-    if (!$account->is_available() || !$account->is_valid()) {
-        return false;
-    }
-
-    return true;
+    return enrol_wallet\local\utils\payment::is_valid_account($accountid);
 }
 
 /**
@@ -203,7 +203,7 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
         $user = \core_user::get_user($userid);
     }
 
-    if ($user->firstaccess > time() - 60 * DAYSECS) {
+    if ($user->firstaccess > timedate::time() - 60 * DAYSECS) {
         return false;
     }
 
@@ -215,7 +215,7 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
     }
 
     $params = [
-        'period' => time() - $period,
+        'period' => timedate::time() - $period,
         'type' => 'credit',
         'userid' => $userid,
     ];
@@ -227,71 +227,4 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
     }
 
     return false;
-}
-
-/**
- * For versions lower than 3.11 the class core_user/fields not exists
- * so we use this.
- * Copied from core_user/fields::get_identity
- * @param context $context
- * @param bool $allowcustom
- * @return array
- */
-function enrol_wallet_get_identity_fields($context, $allowcustom = true) {
-    global $CFG;
-
-    // Only users with permission get the extra fields.
-    if ($context && !has_capability('moodle/site:viewuseridentity', $context)) {
-        return [];
-    }
-
-    // Split showuseridentity on comma (filter needed in case the showuseridentity is empty).
-    $extra = array_filter(explode(',', $CFG->showuseridentity));
-
-    // If there are any custom fields, remove them if necessary (either if allowcustom is false,
-    // or if the user doesn't have access to see them).
-    foreach ($extra as $key => $field) {
-        if (preg_match('~^profile_field_(.*)$~', $field, $matches)) {
-            $allowed = false;
-            if ($allowcustom) {
-                require_once($CFG->dirroot . '/user/profile/lib.php');
-
-                // Ensure the field exists (it may have been deleted since user identity was configured).
-                $field = profile_get_custom_field_data_by_shortname($matches[1], false);
-                if ($field !== null) {
-                    $fieldinstance = profile_get_user_field($field->datatype, $field->id, 0, $field);
-                    $allowed = $fieldinstance->is_visible($context);
-                }
-            }
-            if (!$allowed) {
-                unset($extra[$key]);
-            }
-        }
-    }
-
-    // For standard user fields, access is controlled by the hiddenuserfields option and
-    // some different capabilities. Check and remove these if the user can't access them.
-    $hiddenfields = array_filter(explode(',', $CFG->hiddenuserfields));
-    $hiddenidentifiers = array_intersect($extra, $hiddenfields);
-
-    if ($hiddenidentifiers) {
-        if (!$context) {
-            $canviewhiddenuserfields = true;
-        } else if ($context->get_course_context(false)) {
-            // We are somewhere inside a course.
-            $canviewhiddenuserfields = has_capability('moodle/course:viewhiddenuserfields', $context);
-        } else {
-            // We are not inside a course.
-            $canviewhiddenuserfields = has_capability('moodle/user:viewhiddendetails', $context);
-        }
-
-        if (!$canviewhiddenuserfields) {
-            // Remove hidden identifiers from the list.
-            $extra = array_diff($extra, $hiddenidentifiers);
-        }
-    }
-
-    // Re-index the entries and return.
-    $extra = array_values($extra);
-    return array_map([core_text::class, 'strtolower'], $extra);
 }

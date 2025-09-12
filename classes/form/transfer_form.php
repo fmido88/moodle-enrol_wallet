@@ -93,9 +93,9 @@ class transfer_form extends \moodleform {
             $mform->addElement('static', 'mainbalance', get_string('mainbalance', 'enrol_wallet'), $mainbalance);
 
             $details = $this->balance->get_balance_details();
-            if (!empty($details['catbalance'])) {
+            if (!empty($details->catbalance)) {
                 $options = [0 => get_string('site')];
-                foreach ($details['catbalance'] as $id => $obj) {
+                foreach ($details->catbalance as $id => $obj) {
                     $category = core_course_category::get($id, IGNORE_MISSING, true);
                     if (!empty($category)) {
                         $name = $category->get_nested_name(false);

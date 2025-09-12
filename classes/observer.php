@@ -23,6 +23,8 @@
  */
 namespace enrol_wallet;
 
+use enrol_wallet\local\urls\actions;
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\local\wallet\balance;
 
@@ -126,7 +128,7 @@ class observer {
             'maxgrade' => $maxgrade,
             'percent'  => $percentage,
             'amount'   => $award,
-            'timecreated' => time(),
+            'timecreated' => timedate::time(),
         ];
         $id = $DB->insert_record('enrol_wallet_awards', $data);
 
@@ -239,7 +241,7 @@ class observer {
         $op->credit($hold->amount, $op::C_REFERRAL, $userid, $refdesc, false);
 
         // Updating the hold_gift record.
-        $hold->timemodified = time();
+        $hold->timemodified = timedate::time();
         $hold->released = 1;
         $hold->courseid = $courseid;
         $DB->update_record('enrol_wallet_hold_gift', $hold);
@@ -290,7 +292,7 @@ class observer {
         $params['action'] = 'login';
 
         // Using the observer to set redirect page so the operation done on foreground client side.
-        $SESSION->wantsurl = (new \moodle_url('/enrol/wallet/wplogin.php', $params))->out(false);
+        $SESSION->wantsurl = actions::WP_LOGIN->out();
     }
 
     /**
@@ -331,7 +333,7 @@ class observer {
         $params['action'] = 'logout';
 
         // Using the observer to set redirect page so the operation done on foreground client side.
-        $redirect = new \moodle_url('/enrol/wallet/wplogin.php', $params);
+        $redirect = actions::WP_LOGIN->url($params);
     }
 }
 
