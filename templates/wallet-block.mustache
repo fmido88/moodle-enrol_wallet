@@ -26,19 +26,21 @@
 
 {{>enrol_wallet/display}}
 
-{{#cancredit}}
-    {{{chargerform}}}
-    <hr>
-    <ul class="list-unstyled">
-        {{#couponsurls}}
-            <li>
-                <a href="{{{url}}}">{{label}}</a>
-            </li>
-        {{/couponsurls}}
-    <ul>
-{{/cancredit}}
-{{^cancredit}}
-    {{#topupoptions}}
-        {{> enrol_wallet/topup_options}}
-    {{/topupoptions}}
-{{/cancredit}}
+{{^hideforms}}
+    {{#cancredit}}
+        {{{chargerform}}}
+        <hr>
+        <ul class="list-unstyled">
+            {{#couponsurls}}
+                <li>
+                    <a href="{{{url}}}">{{label}}</a>
+                </li>
+            {{/couponsurls}}
+        <ul>
+    {{/cancredit}}
+    {{^cancredit}}
+        {{#topupoptions}}
+            {{> enrol_wallet/topup_options}}
+        {{/topupoptions}}
+    {{/cancredit}}
+{{/hideforms}}

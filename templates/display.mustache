@@ -53,48 +53,73 @@
 
 }}
 <span class="hidden" data-uniqid="{{uniqid}}" data-identifier="{{uniqid}}"></span>
+
 <div class="text-center pb-0">
     {{# currentuser}}
-    {{#walleturl}}
-    <a href="{{walleturl}}">
-    {{/walleturl}}
-        <h3 class="wallet-heading" > {{# str }} mywallet, enrol_wallet {{/ str }} </h3>
-    {{#walleturl}}
-    </a>
-    {{/walleturl}}
+        {{#walleturl}}
+            <a href="{{walleturl}}">
+        {{/walleturl}}
+                <h3 class="wallet-heading" >
+                    {{#str}} mywallet, enrol_wallet {{/str}}
+                </h3>
+        {{#walleturl}}
+            </a>
+        {{/walleturl}}
     {{/ currentuser}}
     <div class="balance-card" style="direction: ltr;">
-        {{# currentuser}}{{# str }} youhavebalance, enrol_wallet {{/ str }}{{/ currentuser}}<br>
-        <strong><span class="wallet-ballance" style="font-size: x-large;">{{balance}} {{currency}}</span></strong><br>
-        {{#currentuser}}{{# str }} inyourwallet, enrol_wallet {{/ str }} <br>{{/currentuser}}
-        <span class="wallet-ballance">{{# str }} mainbalance, enrol_wallet {{/ str }} {{main}} {{currency}}</span><br>
-        <span class="wallet-ballance">{{# str }} notrefund, enrol_wallet {{/ str }} {{norefund}} {{currency}}</span><br>
-        {{# hasdetails}}
-        <a href="#" id="more-details-{{uniqid}}"> More Details </a><br>
-        {{/ hasdetails}}
+        {{#currentuser}}
+            {{#str}} youhavebalance, enrol_wallet {{/str}}
+        {{/currentuser}}
+        <br>
+        <strong>
+            <span class="wallet-ballance" style="font-size: x-large;">
+                {{balance}} {{currency}}
+            </span>
+        </strong>
+        <br>
+        {{#currentuser}}
+            {{#str}} inyourwallet, enrol_wallet {{/str}}
+            <br>
+        {{/currentuser}}
+        <span class="wallet-ballance">
+            {{#str}} mainbalance, enrol_wallet {{/str}} {{main}} {{currency}}
+        </span>
+        <br>
+        <span class="wallet-ballance">
+            {{#str}} notrefund, enrol_wallet {{/str}} {{norefund}} {{currency}}
+        </span>
+        <br>
+        {{#hasdetails}}
+            <a href="#" id="more-details-{{uniqid}}"> More Details </a>
+            <br>
+        {{/hasdetails}}
         <div id="balance-details-{{uniqid}}" style="display:none;" class="enrol-wallet-balance-details">
-        {{# catdetails }}
-            <div class="enrol-wallet-cat-balance">
-                <h5>{{ name }}</h5>
-                <ul style="text-align: left;">
-                    <li><strong>{{#str}}total, enrol_wallet{{/str}}: {{total}}</strong></li>
-                    <li>{{#str}}refundable, enrol_wallet{{/str}}: {{refundable}}</li>
-                    <li>{{#str}}nonrefundable, enrol_wallet{{/str}}: {{nonrefundable}}</li>
-                </ul>
-            </div>
-        {{/ catdetails }}
+            {{#catdetails}}
+                <div class="enrol-wallet-cat-balance">
+                    <h5>{{ name }}</h5>
+                    <ul style="text-align: left;">
+                        <li><strong>{{#str}}total, enrol_wallet{{/str}}: {{total}}</strong></li>
+                        <li>{{#str}}refundable, enrol_wallet{{/str}}: {{refundable}}</li>
+                        <li>{{#str}}nonrefundable, enrol_wallet{{/str}}: {{nonrefundable}}</li>
+                    </ul>
+                </div>
+            {{/catdetails}}
         </div>
     </div>
-    <div>
-        {{> enrol_wallet/manualpolicy }}
-        <span class="transactions-url">{{{transactions}}}</span><br>
-        {{# transfer}}
-        <span class="transfer-url">{{{transfer}}}</span><br>
-        {{/ transfer}}
-        {{# referral}}
-        <span class="referral-url">{{{referral}}}</span>
-        {{/ referral}}
-    </div>
+    {{^hideurls}}
+        <div>
+            {{> enrol_wallet/manualpolicy }}
+            <span class="transactions-url">{{{transactions}}}</span>
+            <br>
+            {{#transfer}}
+                <span class="transfer-url">{{{transfer}}}</span>
+                <br>
+            {{/transfer}}
+            {{#referral}}
+                <span class="referral-url">{{{referral}}}</span>
+            {{/referral}}
+        </div>
+    {{/hideurls}}
 </div>
 
 {{#js}}
