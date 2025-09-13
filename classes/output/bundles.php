@@ -56,7 +56,7 @@ class bundles implements renderable, templatable {
         $data->value = $before;
         $data->instanceid = 0;
         $data->courseid = SITEID;
-        $data->account = $config->account;
+        $data->account = $config->paymentaccount;
         $data->currency = $config->currency;
 
         $topupurl = pages::TOPUP->url((array)$data);
