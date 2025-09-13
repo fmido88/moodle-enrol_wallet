@@ -144,7 +144,7 @@ class topup_form extends \moodleform {
             $mform->addElement('hidden', 'category');
             $mform->setType('category', PARAM_INT);
             if (!empty($catoptions)) {
-                $mform->setDefault('category', array_key_first($catoptions));
+                $mform->setDefault('category', reset($catoptions));
             } else {
                 $mform->setDefault('category', 0);
             }
