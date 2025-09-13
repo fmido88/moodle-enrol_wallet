@@ -29,9 +29,7 @@ class admin_setting_wp_notice extends admin_setting {
     /**
      * Constructor.
      *
-     * @param string $name The name of the setting.
-     * @param string $templatename The name of the template to render.
-     * @param array|\stdClass $context The context to pass to the template.
+     * @param bool $hidden True if initially hidden.
      */
     public function __construct(
         /** @var bool Initially hide the settings. */

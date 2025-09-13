@@ -125,6 +125,7 @@ class payment {
     /**
      * Check if the currency is a valid currency and not a custom currency.
      * @param string $currency
+     * @param bool $sensitive case sensitive check
      * @return bool
      */
     public static function is_valid_currency($currency, $sensitive = true): bool {
