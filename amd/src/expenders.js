@@ -29,8 +29,6 @@ export const init = (uniqid) => {
     let policyContainer = $('[data-wallet-purpose="policy-container"]');
     let policyLink = policyContainer.find('[data-wallet-action="toggle-policy"]');
 
-    // eslint-disable-next-line no-console
-    console.log(policyContainer, policyLink);
     policyLink.off("click");
     policyLink.on("click", function(e) {
         e.preventDefault();
@@ -39,8 +37,6 @@ export const init = (uniqid) => {
 
         let policy = $(this).parent().siblings('[data-wallet-role="policy"]');
 
-        // eslint-disable-next-line no-console
-        console.log(policy);
         policy.toggle();
     });
 
