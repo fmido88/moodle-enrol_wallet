@@ -61,7 +61,7 @@ class payment {
     ): array {
 
         if ($successurl === null) {
-            helper::get_success_url('enrol_wallet', $paymentarea, $itemid);
+            $successurl = helper::get_success_url('enrol_wallet', $paymentarea, $itemid);
         }
 
         return [
