@@ -39,20 +39,20 @@ export const init = (formid, formType) => {
      * calculate the actual charge value and display it.
      */
     function calculateCharge() {
-        var value = parseFloat(valueInput.value);
-        var op = opInput.value;
-        var cat = parseInt(categoryInput.value);
+        const value = parseFloat(valueInput.value ?? 0);
+        const op = opInput.value;
+        const cat = parseInt(categoryInput.value);
 
-        var maxDiscount = 0;
-        var calculatedValue = value;
-        for (var i = 0; i < rules.length; i++) {
-            var category = rules[i].category;
+        let maxDiscount = 0;
+        let calculatedValue = value;
+        for (let i = 0; i < rules.length; i++) {
+            const category = rules[i].category;
             if (category !== cat) {
                 continue;
             }
-            var discount = rules[i].discount;
-            var condition = rules[i].condition;
-            var valueBefore = value + (value * discount / (1 - discount));
+            const discount = rules[i].discount;
+            const condition = rules[i].condition;
+            const valueBefore = value + (value * discount / (1 - discount));
 
             if (valueBefore >= condition && discount > maxDiscount) {
                 maxDiscount = discount;
@@ -73,18 +73,10 @@ export const init = (formid, formType) => {
      * Add listeners for the inputs of charger form.
      */
     function addListenersChargerForm() {
-        valueInput.addEventListener('change', () => {
-            calculateCharge();
-        });
-        valueInput.addEventListener('keyup', () => {
-            calculateCharge();
-        });
-        opInput.addEventListener('change', () => {
-            calculateCharge();
-        });
-        categoryInput.addEventListener('change', () => {
-            calculateCharge();
-        });
+        valueInput.addEventListener('change', calculateCharge);
+        valueInput.addEventListener('keyup', calculateCharge);
+        opInput.addEventListener('change', calculateCharge);
+        categoryInput.addEventListener('change', calculateCharge);
     }
 
     /**
@@ -103,23 +95,24 @@ export const init = (formid, formType) => {
      * Calculate the value after discount and put it in the discounted input.
      */
     function calculateAfter() {
-        var value = parseFloat(valueInput.value);
-        var cat = parseInt(categoryInput.value);
-        var maxDiscount = 0;
-        for (var i = 0; i < rules.length; i++) {
-            var category = rules[i].category;
+        const value = parseFloat(valueInput.value ?? 0);
+        const cat = parseInt(categoryInput.value);
+
+        let maxDiscount = 0;
+        for (let i = 0; i < rules.length; i++) {
+            const category = rules[i].category;
             if (category !== cat) {
                 continue;
             }
-            var discount = rules[i].discount;
-            var condition = rules[i].condition;
+            const discount = rules[i].discount;
+            const condition = rules[i].condition;
 
             if (value >= condition && discount > maxDiscount) {
                 maxDiscount = discount;
             }
         }
 
-        var calculatedValue = value - (value * maxDiscount);
+        let calculatedValue = value - (value * maxDiscount);
         valueAfterInput.value = calculatedValue;
     }
 
@@ -127,26 +120,28 @@ export const init = (formid, formType) => {
      * Calculate the value before the discount and put it in the value input.
      */
     function calculateBefore() {
-        var value = parseFloat(valueAfterInput.value);
-        var cat = parseInt(categoryInput.value);
-        var maxDiscount = 0;
-        for (var i = 0; i < rules.length; i++) {
-            var category = rules[i].category;
+        const value = parseFloat(valueAfterInput.value);
+        const cat = parseInt(categoryInput.value);
+
+        let maxDiscount = 0;
+        for (let i = 0; i < rules.length; i++) {
+            const category = rules[i].category;
             if (category !== cat) {
                 continue;
             }
-            var discount = rules[i].discount;
-            var condition = rules[i].condition;
+            const discount = rules[i].discount;
+            const condition = rules[i].condition;
 
-            var valueBefore = value / (1 - discount);
+            const valueBefore = value / (1 - discount);
             if (valueBefore >= condition && discount > maxDiscount) {
                 maxDiscount = discount;
             }
         }
 
-        var realValueBefore = value / (1 - maxDiscount);
+        let realValueBefore = value / (1 - maxDiscount);
         valueInput.value = realValueBefore;
     }
+
     /**
      * Hide discount rule for non-selected category.
      */
@@ -167,6 +162,7 @@ export const init = (formid, formType) => {
             }
         }
     }
+
     /**
      * Adding event listeners to the top up form.
      */
@@ -204,7 +200,9 @@ export const init = (formid, formType) => {
         object.category = parseInt(object.category);
         rules.push(object);
     }
+
     hideElse();
+
     if (formType == 'charge') {
         proceedChargerForm();
     } else {
