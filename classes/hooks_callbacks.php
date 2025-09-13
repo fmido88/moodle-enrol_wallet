@@ -20,7 +20,6 @@ use core\hook\output\before_footer_html_generation;
 use core\hook\navigation\primary_extend;
 use core\output\pix_icon;
 use enrol_wallet\local\config;
-use enrol_wallet\local\discounts\offers;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\wallet\balance;
 use navigation_node;
@@ -40,7 +39,7 @@ class hooks_callbacks {
      * @return void
      */
     public static function show_price(before_footer_html_generation $hook) {
-        if (during_initial_install()) {
+        if (self::shouldnt(false)) {
             return;
         }
 
@@ -59,7 +58,7 @@ class hooks_callbacks {
      */
     public static function low_balance_warning(before_standard_top_of_body_html_generation $hook) {
         // Don't display notice for guests or logged out.
-        if (!isloggedin() || isguestuser() || during_initial_install()) {
+        if (self::shouldnt()) {
             return;
         }
 
@@ -90,9 +89,6 @@ class hooks_callbacks {
      * @return void
      */
     public static function primary_navigation_tabs(primary_extend $hook) {
-        if (during_initial_install()) {
-            return;
-        }
         self::add_my_wallet($hook);
         self::add_offers($hook);
     }
@@ -103,6 +99,10 @@ class hooks_callbacks {
      * @return void
      */
     public static function add_my_wallet(primary_extend $hook) {
+        if (self::shouldnt(true)) {
+            return;
+        }
+
         $enabled = (bool)config::make()->mywalletnav;
         if (empty($enabled)) {
             return;
@@ -122,6 +122,10 @@ class hooks_callbacks {
      * @return void
      */
     public static function add_offers(primary_extend $hook) {
+        if (self::shouldnt(false)) {
+            return;
+        }
+
         $enabled = (bool)config::make()->offers_nav;
         if (empty($enabled)) {
             return;
@@ -133,5 +137,19 @@ class hooks_callbacks {
 
         $primaryview = $hook->get_primaryview();
         $primaryview->add($alt, $url, navigation_node::TYPE_CUSTOM, null, null, $pix);
+    }
+
+    /**
+     * Shouldn't process the callback?
+     * @param bool $logincheck should be logged in too.
+     * @return bool
+     */
+    protected static function shouldnt($logincheck = true): bool {
+        global $CFG;
+        $shouldnt = during_initial_install() || isset($CFG->upgraderunning);
+        if ($logincheck) {
+            $shouldnt = $shouldnt || !isloggedin() || isguestuser();
+        }
+        return $shouldnt;
     }
 }
