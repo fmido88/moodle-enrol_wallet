@@ -34,7 +34,14 @@ defined('MOODLE_INTERNAL') || die();
 
 $context = context_system::instance();
 
-$settings = new admin_settingpage('enrol_wallet', get_string('pluginname', 'enrol_wallet'));
+// Redefine settings for better autocorrect.
+$settings = new admin_settingpage(
+    $plugininfo->get_settings_section_name(),
+    $plugininfo->displayname,
+    'moodle/site:config',
+    $plugininfo->is_enabled() === false
+);
+
 
 if ($ADMIN->fulltree) {
     $walletplugin = new enrol_wallet_plugin;
