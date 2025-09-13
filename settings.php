@@ -115,7 +115,8 @@ if ($ADMIN->fulltree) {
                                                 'eq', balance::MOODLE);
 
     // General plugin settings.
-    $settings->add(new admin_setting_heading('enrol_wallet_generalenrolsetting', get_string('generalenrolsetting', 'enrol_wallet'), ''));
+    $settings->add(new admin_setting_heading('enrol_wallet_generalenrolsetting',
+                                             get_string('generalenrolsetting', 'enrol_wallet'), ''));
 
     $settings->add(new admin_setting_configcheckbox('enrol_wallet/mywalletnav',
                                                     get_string('mywalletnav', 'enrol_wallet'),
@@ -555,7 +556,7 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('enrol_wallet/awardcreteria', 'enrol_wallet/awardssite');
     $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awardssite');
     $settings->hide_if('enrol_wallet/awardcreteria', 'enrol_wallet/awards');
-    $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awards');    
+    $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awards');
 }
 // Include extra pages.
 require_once('extrasettings.php');

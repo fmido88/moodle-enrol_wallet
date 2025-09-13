@@ -378,6 +378,7 @@ $string['frontpageoffers'] = 'Offers page link in frontpage navigation';
 $string['frontpageoffers_desc'] = 'Add a link to offers page in front page navigation';
 
 
+$string['generalenrolsetting'] = 'General plugin settings.';
 $string['giftdesc'] = 'New user with id {$a->userid} at {$a->time} had a gift of amount {$a->amount} on his wallet.';
 $string['giftvalue'] = 'New users gift value';
 $string['giftvalue_help'] = 'The value which will be added to new users wallet.';
@@ -432,6 +433,8 @@ $string['mintransfer_config'] = 'Minimum allowed transfer';
 $string['mintransfer_config_desc'] = 'Minimum allowed transfer amount, users cannot transfer balance to each others less than this amount.';
 $string['mustselectchar'] = 'Must select at least one character type.';
 $string['mywallet'] = 'My Wallet';
+$string['mywalletnav'] = 'Show my wallet in nav bar.';
+$string['mywalletnav_desc'] = 'Set to true to display my wallet (link to wallet page) in primary navigation bar.';
 
 
 $string['negativebalance'] = 'Balance cannot be negative. Trying to deduct {$a->amount} from a balance of {$a->before}';
@@ -752,6 +755,7 @@ $string['validfrom'] = 'Valid from';
 $string['validto'] = 'Valid to';
 $string['value'] = 'Amount per transaction';
 
+
 $string['wallet'] = 'Wallet';
 $string['wallet:bulkedit'] = 'Bulk edit the enrollments in all courses';
 $string['wallet:config'] = 'Configure wallet enrol instances';
@@ -780,6 +784,8 @@ $string['welcometocoursetext'] = 'Welcome to {$a->coursename}!
 If you have not done so already, you should edit your profile page so that we can learn more about you:
 
 {$a->profileurl}';
+$string['wordpress_notice'] = 'Support ended notice:';
+$string['wordpress_notice_desc'] = 'The wordpress MooWallet plugin and all functionalities regarding connections between moodle and wordpress is no longer supported by this plugin and it is prefered to select moodle as a source for the wallet.';
 $string['wordpress_secretkey'] = 'Secret Key';
 $string['wordpress_secretkey_help'] = 'Admin must add any value here and the same value in moo-wallet setting in wordpress site.';
 $string['wordpressloggins'] = 'Login/logout user from wordpress';
@@ -790,12 +796,3 @@ $string['wrongemailformat'] = 'Wrong Email format.';
 
 
 $string['youhavebalance'] = 'You have balance:';
-
-$string['wordpress_notice'] = 'Support ended notice:';
-$string['wordpress_notice_desc'] = 'The wordpress MooWallet plugin and all functionalities regarding connections between moodle and wordpress is no longer supported by this plugin and it is prefered to select moodle as a source for the wallet.';
-
-$string['generalenrolsetting'] = 'General plugin settings.';
-$string['mywalletnav'] = 'Show my wallet in nav bar.';
-$string['mywalletnav_desc'] = 'Set to true to display my wallet (link to wallet page) in primary navigation bar.';
-
-

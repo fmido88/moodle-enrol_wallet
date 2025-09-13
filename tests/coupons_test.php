@@ -16,21 +16,17 @@
 
 namespace enrol_wallet;
 
+use context_course;
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
-
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once("$CFG->dirroot/enrol/wallet/lib.php");
 use enrol_wallet_plugin;
-use context_course;
 
 /**
- * Tests for coupons operations
+ * Tests for coupons operations.
  *
  * @package    enrol_wallet
  * @category   test
@@ -38,22 +34,24 @@ use context_course;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class coupons_test extends \advanced_testcase {
-
     /**
      * Category 1.
      * @var object
      */
     private $cat1;
+
     /**
      * Category 2.
      * @var object
      */
     private $cat2;
+
     /**
      * Category 3.
      * @var object
      */
     private $cat3;
+
     /**
      * Category 4.
      * @var object
@@ -61,68 +59,79 @@ final class coupons_test extends \advanced_testcase {
     private $cat4;
 
     /**
-     * Course 1
+     * Course 1.
      * @var \stdClass
      */
     private $c1;
+
     /**
-     * Course 1
+     * Course 1.
      * @var \stdClass
      */
     private $c2;
+
     /**
-     * Course 2
+     * Course 2.
      * @var \stdClass
      */
     private $c3;
+
     /**
-     * Course 4
+     * Course 4.
      * @var \stdClass
      */
     private $c4;
+
     /**
-     * Course 5
+     * Course 5.
      * @var \stdClass
      */
     private $c5;
+
     /**
-     * Course 6
+     * Course 6.
      * @var \stdClass
      */
     private $c6;
+
     /**
-     * Course 7
+     * Course 7.
      * @var \stdClass
      */
     private $c7;
 
     /**
-     * User 1
+     * User 1.
      * @var \stdClass
      */
     private $u1;
+
     /**
-     * User 2
+     * User 2.
      * @var \stdClass
      */
     private $u2;
+
     /**
-     * User 3
+     * User 3.
      * @var \stdClass
      */
     private $u3;
+
     /**
-     * User 4
+     * User 4.
      * @var \stdClass
      */
     private $u4;
+
     /**
-     * User 4
+     * User 4.
      * @var \stdClass
      */
     private $u5;
+
     /**
-     * User 6
+     * User 6.
      * @var \stdClass
      */
     private $u6;
@@ -132,31 +141,37 @@ final class coupons_test extends \advanced_testcase {
      * @var \stdClass
      */
     private $inst1;
+
     /**
      * Enrol wallet instance 2.
      * @var \stdClass
      */
     private $inst2;
+
     /**
      * Enrol wallet instance 3.
      * @var \stdClass
      */
     private $inst3;
+
     /**
      * Enrol wallet instance 4.
      * @var \stdClass
      */
     private $inst4;
+
     /**
      * Enrol wallet instance 5.
      * @var \stdClass
      */
     private $inst5;
+
     /**
      * Enrol wallet instance 6.
      * @var \stdClass
      */
     private $inst6;
+
     /**
      * Enrol wallet instance 7.
      * @var \stdClass
@@ -164,17 +179,19 @@ final class coupons_test extends \advanced_testcase {
     private $inst7;
 
     /**
-     * Course section 1
+     * Course section 1.
      * @var \stdClass
      */
     private $sec1;
+
     /**
-     * Course section 2
+     * Course section 2.
      * @var \stdClass
      */
     private $sec2;
+
     /**
-     * Course section 3
+     * Course section 3.
      * @var \stdClass
      */
     private $sec3;
@@ -184,21 +201,25 @@ final class coupons_test extends \advanced_testcase {
      * @var \stdClass
      */
     private $cm1;
+
     /**
      * Course module 2.
      * @var \stdClass
      */
     private $cm2;
+
     /**
      * Course module 3.
      * @var \stdClass
      */
     private $cm3;
+
     /**
      * Course module 4.
      * @var \stdClass
      */
     private $cm4;
+
     /**
      * Course module 5.
      * @var \stdClass
@@ -206,18 +227,19 @@ final class coupons_test extends \advanced_testcase {
     private $cm5;
 
     /**
-     * Data Generator
+     * Data Generator.
      * @var \testing_data_generator
      */
     private $gen;
+
     /**
-     * Plugin
+     * Plugin.
      * @var enrol_wallet_plugin
      */
     private $wallet;
 
     /**
-     * Test if a certain type of coupons are enabled
+     * Test if a certain type of coupons are enabled.
      * @covers ::is_enabled_type
      */
     public function test_is_enabled_type(): void {
@@ -257,6 +279,7 @@ final class coupons_test extends \advanced_testcase {
         $coupons = new coupons('fixed1');
         $this->assertTrue($coupons->is_enabled_type());
     }
+
     /**
      * Test if coupons are enabled in this site.
      * @covers ::is_enabled()
@@ -276,8 +299,9 @@ final class coupons_test extends \advanced_testcase {
         $this->set_config('');
         $this->assertFalse(coupons::is_enabled());
     }
+
     /**
-     * Test validation for fixed coupons
+     * Test validation for fixed coupons.
      * @covers ::validate_coupon()
      */
     public function test_validate_fixed_coupon(): void {
@@ -351,38 +375,38 @@ final class coupons_test extends \advanced_testcase {
     }
 
     /**
-     * Test validation for enrol coupons
+     * Test validation for enrol coupons.
      * @covers ::validate_coupon
      */
     public function test_validate_enrol_coupon(): void {
         $this->setUser($this->u1);
         $this->set_config([coupons::ENROL]);
-        $coupons = new coupons('enrol1');
+        $coupons    = new coupons('enrol1');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
         $this->assertTrue($validation);
 
-        $coupons = new coupons('enrol1');
+        $coupons    = new coupons('enrol1');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst5->id);
         $this->assertNotTrue($validation, $validation);
 
-        $coupons = new coupons('enrol3');
+        $coupons    = new coupons('enrol3');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst5->id);
         $this->assertTrue($validation);
 
-        $coupons = new coupons('enrol1');
+        $coupons    = new coupons('enrol1');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
         $this->assertTrue($validation);
 
         // Invalid areas.
-        $coupons = new coupons('enrol1');
+        $coupons    = new coupons('enrol1');
         $validation = $coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id);
         $this->assertNotTrue($validation, $validation);
 
-        $coupons = new coupons('enrol1');
+        $coupons    = new coupons('enrol1');
         $validation = $coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id);
         $this->assertNotTrue($validation, $validation);
 
-        $coupons = new coupons('enrol1');
+        $coupons    = new coupons('enrol1');
         $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
         $this->assertNotTrue($validation, $validation);
 
@@ -419,7 +443,7 @@ final class coupons_test extends \advanced_testcase {
         $coupons->mark_coupon_used();
         $this->assertEquals(2, $coupons->get_total_use());
         $this->assertEquals(2, $coupons->get_user_use());
-        $coupons = new coupons('enrol6');
+        $coupons    = new coupons('enrol6');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id);
         $this->assertNotTrue($validation);
         $coupons = new coupons('enrol6');
@@ -467,6 +491,7 @@ final class coupons_test extends \advanced_testcase {
         $coupons = new coupons('enrol8');
         $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
     }
+
     /**
      * Validation for discount coupons.
      * @covers ::validate_coupon()
@@ -536,7 +561,7 @@ final class coupons_test extends \advanced_testcase {
 
         // Check if discount coupons marked as used when the user get enrolled.
         coupons::set_session_coupon('percent6');
-        $wallet = new enrol_wallet_plugin();
+        $wallet   = new enrol_wallet_plugin();
         $instance = new instance($this->inst2);
         $this->assertEquals(10, $instance->get_cost_after_discount());
 
@@ -591,76 +616,76 @@ final class coupons_test extends \advanced_testcase {
     }
 
     /**
-     * Validate category coupons
+     * Validate category coupons.
      * @covers ::validate_coupons()
      */
     public function test_validate_category_coupon(): void {
         $this->set_config(coupons::CATEGORY);
         // Not logged in.
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
         $this->assertNotTrue($validation);
 
         // Logged in used in the same category (valid).
         $this->setUser($this->u1->id);
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
         $this->assertTrue($validation);
 
         // Used in a child category (valid).
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
         $this->assertTrue($validation);
 
         // Used in parent category (not valid).
-        $coupons = new coupons('category2');
+        $coupons    = new coupons('category2');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
         $this->assertNotTrue($validation);
 
         // Used in the same category (valid).
-        $coupons = new coupons('category2');
+        $coupons    = new coupons('category2');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
         $this->assertTrue($validation);
 
         // Valid for other areas.
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
         $this->assertTrue($validation);
 
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id);
         $this->assertTrue($validation);
 
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id);
         $this->assertTrue($validation);
 
         // Different category sections and cms.
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_SECTION, $this->sec3->id);
         $this->assertNotTrue($validation);
 
-        $coupons = new coupons('category1');
+        $coupons    = new coupons('category1');
         $validation = $coupons->validate_coupon(coupons::AREA_CM, $this->cm3->id);
         $this->assertNotTrue($validation);
 
         // Invalid record.
-        $coupons = new coupons('category3');
+        $coupons    = new coupons('category3');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
         $this->assertNotTrue($validation);
 
         config::make()->catbalance = 0;
-        $coupons = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
+        $coupons                   = new coupons('category1');
+        $validation                = $coupons->validate_coupon(coupons::AREA_TOPUP);
         $this->assertNotTrue($validation);
 
-        $coupons = new coupons('category2');
+        $coupons    = new coupons('category2');
         $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
         $this->assertTrue($validation);
     }
 
     /**
-     * Test applying fixed coupon
+     * Test applying fixed coupon.
      * @covers ::apply_coupon()
      */
     public function test_apply_fixed_coupon(): void {
@@ -719,7 +744,7 @@ final class coupons_test extends \advanced_testcase {
         // User with partial credit.
         $this->setUser($this->u6);
         $coupons = new coupons('fixed1');
-        $op = new balance_op($this->u6->id);
+        $op      = new balance_op($this->u6->id);
         $op->credit(40);
         $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst6->id);
         $balance = balance::create_from_instance($this->inst6->id);
@@ -730,7 +755,7 @@ final class coupons_test extends \advanced_testcase {
     }
 
     /**
-     * Test applying category coupon
+     * Test applying category coupon.
      * @covers ::apply_coupon()
      */
     public function test_apply_category_coupon(): void {
@@ -770,7 +795,7 @@ final class coupons_test extends \advanced_testcase {
     }
 
     /**
-     * Test applying enrol coupons
+     * Test applying enrol coupons.
      * @covers ::apply_coupon
      */
     public function test_apply_enrol_coupon(): void {
@@ -800,87 +825,103 @@ final class coupons_test extends \advanced_testcase {
         $balance = new balance($this->u1->id);
         $this->assertEquals(0, $balance->get_total_balance());
     }
+
     /**
      * Generate a number of coupons of different data, types and restrictions
      * to be tested.
      */
     protected function setUp(): void {
+        global $DB;
+
         parent::setUp();
-        global $DB, $CFG;
-        require_once($CFG->dirroot."/enrol/wallet/locallib.php");
+
         $this->resetAfterTest();
-        $this->gen = $this->getDataGenerator();
-        $this->wallet = new enrol_wallet_plugin;
+        $this->gen    = $this->getDataGenerator();
+        $this->wallet = new enrol_wallet_plugin();
+
         // Create users.
         for ($i = 1; $i <= 6; $i++) {
-            $var = 'u' . $i;
+            $var        = 'u' . $i;
             $this->$var = $this->gen->create_user();
         }
+
         // Create Categoies.
         for ($i = 1; $i <= 4; $i++) {
-            $var = 'cat' . $i;
+            $var    = 'cat' . $i;
             $record = [];
+
             if ($i == 4) {
                 $record['parent'] = $this->cat1->id;
             }
             $this->$var = $this->gen->create_category($record);
         }
+
         // Create courses.
         for ($i = 1; $i <= 7; $i++) {
-            $record = new \stdClass;
-            $var = 'c' . $i;
+            $record = new \stdClass();
+            $var    = 'c' . $i;
+
             switch ($i) {
                 case 1:
                 case 2:
                     $record->category = $this->cat1->id;
                     break;
+
                 case 3:
                 case 4:
                     $record->category = $this->cat2->id;
                     break;
+
                 case 5:
                 case 6:
                     $record->category = $this->cat3->id;
                     break;
+
                 case 7:
                     $record->category = $this->cat4->id;
                     break;
+
                 default:
             }
             $this->$var = $this->gen->create_course($record);
 
             // Update the enrolment instances for each course.
             $instance = $DB->get_record('enrol', ['courseid' => $this->$var->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-            $instance->status = ENROL_INSTANCE_ENABLED;
-            $instance->customint6 = 1;
-            $instance->cost = 10 * $i;
+
+            $instance->status      = ENROL_INSTANCE_ENABLED;
+            $instance->customint6  = 1;
+            $instance->cost        = 10 * $i;
             $instance->enrolperiod = DAYSECS;
             $DB->update_record('enrol', $instance);
             $this->wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
-            $inst = 'inst' . $i;
+            $inst        = 'inst' . $i;
             $this->$inst = $instance;
+
             if ($i <= 3) {
-                $record = new \stdClass;
+                $record          = new \stdClass();
                 $record->section = 1;
-                $record->course = $this->$var->id;
-                $sec = 'sec'.$i;
-                $this->$sec = $this->gen->create_course_section($record);
+                $record->course  = $this->$var->id;
+                $sec             = 'sec' . $i;
+                $this->$sec      = $this->gen->create_course_section($record);
             }
+
             if ($i <= 5) {
-                $record = new \stdClass;
+                $record          = new \stdClass();
                 $record->section = $this->$sec->id ?? null;
-                $record->course = $this->$var->id;
-                $cm = 'cm'.$i;
+                $record->course  = $this->$var->id;
+                $cm              = 'cm' . $i;
+
                 $page = $this->gen->create_module('page', $record);
+
                 $this->$cm = $DB->get_record('course_modules', ['id' => $page->cmid], '*', MUST_EXIST);
             }
         }
 
         // Created coupons in the database.
         $records = [];
-        $now = timedate::time();
+        $now     = timedate::time();
         $expired = $now - 2 * DAYSECS;
-        $notav = $now + 2 * DAYSECS;
+        $notav   = $now + 2 * DAYSECS;
         // Fixed coupons.
         $records[] = [
             'code'        => 'fixed1',
@@ -983,7 +1024,7 @@ final class coupons_test extends \advanced_testcase {
             'code'        => 'enrol1',
             'type'        => 'enrol',
             'value'       => 100,
-            'courses'     => $this->c1->id.','.$this->c7->id,
+            'courses'     => $this->c1->id . ',' . $this->c7->id,
             'timecreated' => $now,
         ];
         $records[] = [
@@ -1098,6 +1139,7 @@ final class coupons_test extends \advanced_testcase {
             $DB->insert_record('enrol_wallet_coupons', $record, false);
         }
     }
+
     /**
      * We will use this frequently, so we can shorten the arguments.
      * @param int|array $value
@@ -1106,7 +1148,7 @@ final class coupons_test extends \advanced_testcase {
         if (is_array($value)) {
             $value = implode(',', $value);
         }
- 
+
         config::make()->coupons = $value;
     }
 }

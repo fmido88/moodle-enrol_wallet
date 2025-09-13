@@ -155,7 +155,7 @@ class discount_line implements renderable, named_templatable {
 
             $prevwidth = $discounts[$id]->percent;
         }
-        
+
         if (!empty($discounts) && isset($data[$catid])) {
             $data[$catid]->discounts = array_values($discounts);
         }
