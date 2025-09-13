@@ -153,6 +153,7 @@ class config {
         $this->init_store();
         $this->store->$name = $value;
     }
+
     /**
      * Get a config value.
      * @param string $name
@@ -214,6 +215,19 @@ class config {
     }
 
     /**
+     * Invoke the class to get or set a config value.
+     * @param string $name
+     * @param mixed $value
+     * @return string|int|bool|null|void
+     */
+    public function __invoke($name, $value = null) {
+        if ($value === null) {
+            return $this->__get($name);
+        } else {
+            $this->__set($name, $value);
+        }
+    }
+    /**
      * Check if a config value exists and display debug message if not.
      * @param string $name
      * @return bool
@@ -221,7 +235,7 @@ class config {
     protected function exists($name) {
         global $CFG;
         $exists = isset($this->$name);
-        if (!$exists && !during_initial_install() && empty($CFG->upgraderunning)) {
+        if (!$exists && !during_initial_install() && !isset($CFG->upgraderunning)) {
             debugging("Trying to get undefined config value $name in enrol_wallet", DEBUG_DEVELOPER);
         }
         return $exists;

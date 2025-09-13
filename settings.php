@@ -37,9 +37,6 @@ $context = context_system::instance();
 $settings = new admin_settingpage('enrol_wallet', get_string('pluginname', 'enrol_wallet'));
 
 if ($ADMIN->fulltree) {
-    global $DB;
-
-    require_once($CFG->dirroot.'/enrol/wallet/lib.php');
     $walletplugin = new enrol_wallet_plugin;
 
     // Adding an option to migrate credits, enrol instances and users enrollments from enrol_credit to enrol_wallet.
@@ -468,11 +465,6 @@ if ($ADMIN->fulltree) {
                                                         get_string('paymentaccount_help', 'enrol_wallet'), 0, $accounts);
     $settings->add($paymentaccount);
 
-    // Add default currency.
-    $supportedcurrencies = options::get_possible_currencies($paymentaccount->get_setting());
-    $settings->add(new admin_setting_configselect('enrol_wallet/currency', get_string('currency', 'enrol_wallet'),
-                                            get_string('currency_help', 'enrol_wallet'), '', $supportedcurrencies));
-
     // Add custom currency.
     $settings->add(new admin_setting_configtext_with_maxlength('enrol_wallet/customcurrencycode',
                                                 get_string('customcurrencycode', 'enrol_wallet'),
@@ -482,6 +474,13 @@ if ($ADMIN->fulltree) {
                                                 get_string('customcurrency_desc', 'enrol_wallet'), ''));
     $settings->hide_if('enrol_wallet/customcurrency', 'enrol_wallet/paymentaccount', 'neq', '0');
     $settings->hide_if('enrol_wallet/customcurrencycode', 'enrol_wallet/paymentaccount', 'neq', '0');
+
+    // Add default currency.
+    $supportedcurrencies = options::get_possible_currencies($paymentaccount->get_setting());
+    $currencysettigs = new admin_setting_configselect('enrol_wallet/currency', get_string('currency', 'enrol_wallet'),
+                                            get_string('currency_help', 'enrol_wallet'), '', $supportedcurrencies);
+
+    $settings->add($currencysettigs);
 
     // Is instance enabled.
     $options = options::get_status_options();
@@ -558,5 +557,6 @@ if ($ADMIN->fulltree) {
     $settings->hide_if('enrol_wallet/awardcreteria', 'enrol_wallet/awards');
     $settings->hide_if('enrol_wallet/awardvalue', 'enrol_wallet/awards');
 }
+
 // Include extra pages.
 require_once('extrasettings.php');
