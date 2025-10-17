@@ -22,6 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\hooks_callbacks;
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\urls\pages;
@@ -46,8 +47,8 @@ use enrol_wallet\output\wallet_balance;
  * @return void
  */
 function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
-    require_once(__DIR__.'/locallib.php');
     global $OUTPUT, $CFG, $USER;
+
     $context = context_system::instance();
     $cancredit = has_capability('enrol/wallet:creditdebit', $context);
 
@@ -136,6 +137,11 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
  * @return void
  */
 function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, stdClass $course, context_course $context) {
+
+    if (hooks_callbacks::shouldnt()) {
+        return;
+    }
+
     $context = context_system::instance();
 
     $captransactions = has_capability('enrol/wallet:transaction', $context);
@@ -471,7 +477,8 @@ function enrol_wallet_before_standard_top_of_body_html() {
 function enrol_wallet_after_require_login() {
     global $USER, $CFG, $SESSION;
     require_once($CFG->dirroot.'/login/lib.php');
-    if (isguestuser() || empty($USER->id)) {
+
+    if (hooks_callbacks::shouldnt()) {
         return;
     }
 

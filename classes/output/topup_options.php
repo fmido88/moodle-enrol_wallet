@@ -270,14 +270,18 @@ class topup_options implements templatable, renderable {
 
         $options = array_values(array_filter($options));
 
-        $options[0]['show'] = true;
+        $this->display = !empty($options);
+
+        if ($this->display) {
+            $options[0]['show'] = true;
+        }
 
         $context = [
-            'display' => $this->display && !empty($options),
+            'display' => $this->display,
             'items'   => $options,
         ];
 
-        if ($context['display']) {
+        if ($this->display) {
             $context += $this->export_policy_warn();
         }
 

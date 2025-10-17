@@ -43,7 +43,6 @@ $title = get_string('wallet', 'enrol_wallet');
 
 $PAGE->set_heading($title);
 $PAGE->set_title("{$SITE->fullname} | $title");
-$PAGE->set_pagelayout('frontpage');
 $PAGE->set_secondary_navigation(true, true);
 
 $tabs = new wallet_tabs();

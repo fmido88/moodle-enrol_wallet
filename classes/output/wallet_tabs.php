@@ -158,7 +158,11 @@ class wallet_tabs implements renderable, templatable {
     public function export_topup(renderer_base $output) {
         $topup = new topup_options();
 
-        return $topup->export_for_template($output);
+        $context = $topup->export_for_template($output);
+        if (!$context['display']) {
+            return [];
+        }
+        return $context;
     }
 
     /**

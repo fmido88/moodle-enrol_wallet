@@ -144,12 +144,20 @@ class hooks_callbacks {
      * @param bool $logincheck should be logged in too.
      * @return bool
      */
-    protected static function shouldnt($logincheck = true): bool {
+    public static function shouldnt($logincheck = true): bool {
         global $CFG;
-        $shouldnt = during_initial_install() || isset($CFG->upgraderunning);
+        $shouldnt = get_config('enrol_wallet', 'version') < 2025091004;
+
+        $shouldnt = $shouldnt || !class_exists("enrol_wallet\\local\\config");
+
+        $shouldnt = $shouldnt || during_initial_install();
+        $shouldnt = $shouldnt || !empty($CFG->upgraderunning);
+        $shouldnt = $shouldnt || @moodle_needs_upgrading();
+
         if ($logincheck) {
             $shouldnt = $shouldnt || !isloggedin() || isguestuser();
         }
+
         return $shouldnt;
     }
 }
