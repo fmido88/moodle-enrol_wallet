@@ -56,8 +56,8 @@ class cleanup_wallet_items extends \core\task\scheduled_task {
 
         $params = [
             'timetocheck' => timedate::time() - 5 * DAYSECS,
-            'component' => 'enrol_wallet',
-            'area' => 'wallettopup',
+            'component'   => 'enrol_wallet',
+            'area'        => 'wallettopup',
         ];
 
         $sql = "SELECT it.*
