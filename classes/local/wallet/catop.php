@@ -79,7 +79,7 @@ class catop {
         }
 
         if (!isset($category)) {
-            $category = core_course_category::get($this->catid);
+            $category = core_course_category::get($this->catid, MUST_EXIST, true);
         }
 
         $this->parents = $category->get_parents();
