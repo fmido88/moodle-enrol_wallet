@@ -44,33 +44,16 @@ class catop {
     protected array $parents = [];
 
     /**
-     * @var int
-     */
-    private $userid;
-
-    /**
-     * the refundable category balance.
-     * @var float
-     */
-    public $refundable;
-
-    /**
-     * The nonrefundable category balance;.
-     * @var float
-     */
-    public $nonrefundable;
-
-    /**
      * The total balance.
      * @var float
      */
-    public $balance;
+    protected $balance;
 
     /**
      * The details array.
      * @var catdetails[]
      */
-    public $details;
+    public array $details;
 
     /**
      * How much of the free gift amount has been cut.
@@ -79,19 +62,13 @@ class catop {
     private $freecut = 0;
 
     /**
-     * The free gifted balance.
-     * @var float
-     */
-    private $free = 0;
-
-    /**
      * Create a category operation object which will store the balance data.
      *
      * @param object|int $categoryorid the category or its id.
      * @param details    $details
      */
     public function __construct(int|object $categoryorid, details $details) {
-        if (is_object($categoryorid)) {
+        if (\is_object($categoryorid)) {
             $this->catid = $categoryorid->id;
 
             if ($categoryorid instanceof core_course_category) {
@@ -119,6 +96,14 @@ class catop {
     }
 
     /**
+     * Get the balance details object with categories only and
+     * no main balance.
+     * @return details
+     */
+    protected function get_details_object(): details {
+        return new details(0, 0, 0, $this->get_catids(), $this->details);
+    }
+    /**
      * Return categories ids (this category id and parents).
      * @return int[]
      */
@@ -144,11 +129,6 @@ class catop {
             $norefund += $details[$id]->nonrefundable;
             $free     += $details[$id]->free ?? 0;
         }
-
-        $this->refundable    = $refund;
-        $this->nonrefundable = $norefund;
-        $this->free          = min($this->nonrefundable, $free);
-        $this->balance       = $refund + $norefund;
     }
 
     /**
@@ -156,7 +136,7 @@ class catop {
      * @return float the non refundable balance
      */
     public function get_non_refundable_balance() {
-        return $this->nonrefundable;
+        return $this->get_details_object()->valid_nonrefundable;
     }
 
     /**
@@ -164,7 +144,7 @@ class catop {
      * @return float the refundable balance
      */
     public function get_refundable_balance() {
-        return $this->refundable;
+        return $this->get_details_object()->valid_refundable;
     }
 
     /**
@@ -172,11 +152,7 @@ class catop {
      * @return float the total category balance
      */
     public function get_balance() {
-        if (!isset($this->balance)) {
-            $this->balance = $this->nonrefundable + $this->refundable;
-        }
-
-        return $this->balance;
+        return $this->get_details_object()->valid;
     }
 
     /**
@@ -199,13 +175,7 @@ class catop {
      * @return float
      */
     public function get_free_balance(): float {
-        $free = 0;
-
-        foreach ($this->parents as $id) {
-            $free += $this->details[$id]->free ?? 0;
-        }
-
-        return $free;
+        return $this->get_details_object()->valid_free;
     }
 
     /**
@@ -218,18 +188,14 @@ class catop {
         $catobj = $this->details[$this->catid] ?? new catdetails(0, 0, 0);
 
         if ($refundable) {
-            $this->refundable   += $amount;
             $catobj->refundable += $amount;
         } else {
-            $this->nonrefundable   += $amount;
             $catobj->nonrefundable += $amount;
 
             if ($free) {
-                $this->free   += $amount;
                 $catobj->free += $amount;
             }
         }
-        $this->balance += $amount;
 
         $this->details[$this->catid] = $catobj;
     }
@@ -258,6 +224,29 @@ class catop {
     }
 
     /**
+     * Reset all the cat balances of the user to zero.
+     * @return void
+     */
+    public function reset_all_balances() {
+        foreach ($this->parents as $id) {
+            $this->reset_cat_balance($id);
+        }
+        $this->compute_cat_balance();
+    }
+    /**
+     * Reset a cat balance for a user to zero.
+     * @param int $id Category id.
+     * @return void
+     */
+    private function reset_cat_balance(int $id) {
+        if (!isset($this->details[$id])) {
+            return;
+        }
+
+        $this->details[$id] = new catdetails(0, 0, 0);
+    }
+
+    /**
      * Cut balance from single category only.
      * @param  float $amount amount to be cut.
      * @param  int   $id     the id of the category.
@@ -276,16 +265,12 @@ class catop {
         $free = $this->details[$id]->free;
 
         if ($refundable >= $amount) {
-            $refundable       -= $amount;
-            $this->refundable -= $amount;
+            $refundable -= $amount;
             $remain = 0;
         } else {
             $nonrefundable = $nonrefundable - $amount + $refundable;
             $newfree       = $free - $amount + $refundable;
 
-            $this->nonrefundable -= $amount - $refundable;
-
-            $this->refundable -= $refundable;
             $refundable = 0;
 
             if ($nonrefundable >= 0) {
@@ -298,7 +283,6 @@ class catop {
             $newfree = max($newfree, 0);
             $freecut = max($free - $newfree, 0);
 
-            $this->free -= $freecut;
             $this->freecut += $freecut;
         }
 

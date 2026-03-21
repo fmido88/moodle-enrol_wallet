@@ -56,9 +56,9 @@ class frontend extends \core_availability\frontend {
         $enabled = $pluginmanager->get_enabled_plugins('availability');
         $componentparams = new \stdClass();
 
-        $allowed = explode(',', config::make()->availability_plugins);
+        $allowed = explode(',', config::make()->availability_plugins ?? '');
         foreach ($enabled as $plugin => $info) {
-            if (!in_array($plugin, $allowed)) {
+            if (!\in_array($plugin, $allowed)) {
                 continue;
             }
             // Create plugin front-end object.

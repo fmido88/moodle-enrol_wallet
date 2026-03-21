@@ -21,8 +21,10 @@ use core\hook\navigation\primary_extend;
 use core\output\pix_icon;
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
+use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use navigation_node;
+use stdClass;
 
 /**
  * Class hooks_callbacks
@@ -57,6 +59,7 @@ class hooks_callbacks {
      * @return void
      */
     public static function low_balance_warning(before_standard_top_of_body_html_generation $hook) {
+        global $SESSION;
         // Don't display notice for guests or logged out.
         if (self::shouldnt()) {
             return;
@@ -70,6 +73,18 @@ class hooks_callbacks {
             return;
         }
 
+        if (!isset($SESSION->enrol_wallet_low_balance_notice)) {
+            $lastnotice = 0;
+        } else {
+            $lastnotice =& $SESSION->enrol_wallet_low_balance_notice;
+        }
+
+        // One notification per hour.
+        $SESSION->enrol_wallet_low_balance_notice =& $lastnotice;
+        if ($lastnotice > timedate::time() - HOURSECS) {
+            return;
+        }
+
         // Check the conditions.
         $condition = $config->noticecondition;
 
@@ -77,6 +92,7 @@ class hooks_callbacks {
         $balance = $op->get_total_balance();
         // Todo: only notify limited times per session.
         if ($balance <= (int)$condition) {
+            $lastnotice = timedate::time();
             // Display the warning.
             \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
         }
@@ -146,10 +162,11 @@ class hooks_callbacks {
      */
     public static function shouldnt($logincheck = true): bool {
         global $CFG;
-        $shouldnt = get_config('enrol_wallet', 'version') < 2025091004;
+        $plugin = new stdClass();
+        include("{$CFG->dirroot}/enrol/wallet/version.php");
+        $shouldnt = get_config('enrol_wallet', 'version') < $plugin->version;
 
-        $shouldnt = $shouldnt || !class_exists("enrol_wallet\\local\\config");
-
+        $shouldnt = $shouldnt || !class_exists("\\enrol_wallet\\local\\config");
         $shouldnt = $shouldnt || during_initial_install();
         $shouldnt = $shouldnt || !empty($CFG->upgraderunning);
         $shouldnt = $shouldnt || @moodle_needs_upgrading();

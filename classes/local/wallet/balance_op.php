@@ -24,6 +24,7 @@ use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\catop;
 use enrol_wallet\event\transactions_triggered;
 use enrol_wallet\notifications;
+use enrol_wallet\payment\item;
 use enrol_wallet\task\turn_non_refundable;
 use enrol_wallet\local\discounts\discount_rules as discounts;
 use enrol_wallet\local\entities\section;
@@ -288,6 +289,52 @@ class balance_op extends balance {
     }
 
     /**
+     * Reset the balance of a single user to 0.
+     * @param string $reason Description for the reason of resetting.
+     * @return void
+     */
+    public function reset_balance($reason = '') {
+        global $DB, $USER;
+        $oldbalance = $this->get_valid_balance();
+
+        $this->details->refundable    = 0;
+        $this->details->nonrefundable = 0;
+        $this->details->freegift      = 0;
+
+        if (!empty($this->catop)) {
+            $this->catop->reset_all_balances();
+            $this->details->catbalance = $this->catop->details;
+        }
+
+        $this->update();
+
+        $desc = get_string('balance_reset_desc', 'enrol_wallet', fullname($USER));
+        if (!empty($reason)) {
+            $desc .= ": $reason";
+        }
+
+        $operation = $oldbalance > 0 ? self::DEBIT : self::CREDIT;
+        $recorddata = [
+            'userid'      => $this->userid,
+            'type'        => $operation,
+            'amount'      => $oldbalance,
+            'balbefore'   => $oldbalance,
+            'balance'     => 0,
+            'norefund'    => 0,
+            'category'    => $this->catid ?? 0,
+            'opby'        => static::USER,
+            'thingid'     => $USER->id,
+            'descripe'    => $desc,
+            'timecreated' => timedate::time(),
+        ];
+
+        $this->transactionid = $DB->insert_record('enrol_wallet_transactions', $recorddata);
+
+        notifications::transaction_notify($recorddata);
+
+        $this->trigger_transaction_event($operation, $USER->id, '', false);
+    }
+    /**
      * Basic function to debit balance from a user.
      * The parameter $for should be one of the constants balance_op::D_*** or balance_op::USER for manual debit
      * or balance_op::OTHER for other reason specified in the $desc param.
@@ -524,7 +571,7 @@ class balance_op extends balance {
     public function credit($amount, $by = self::OTHER, $thingid = 0, $desc = '', $refundable = true, $trigger = true) {
         global $DB;
 
-        if (in_array($by, [self::USER, self::C_TRANSFER, self::C_REFERRAL])) {
+        if (\in_array($by, [self::USER, self::C_TRANSFER, self::C_REFERRAL])) {
             $charger = $thingid;
         } else {
             $charger = $this->userid;
@@ -695,6 +742,7 @@ class balance_op extends balance {
      * @return void
      */
     private function set_category($op, $reason, $thingid) {
+        global $DB;
         if ($this->source == self::WP || !empty($this->catop)) {
             return;
         }
@@ -757,8 +805,8 @@ class balance_op extends balance {
                     // Credit done by payment, Check for the category id from the item.
                     // The category could be directly specified in the record or could be extracted from..
                     // ...the enrolment instance.
-                    global $DB;
-                    $item         = $DB->get_record('enrol_wallet_items', ['id' => $thingid]);
+                    $item = item::get_record(['id' => $thingid], MUST_EXIST);
+
                     $this->userid = $item->userid;
 
                     if (!empty($item->category)) {

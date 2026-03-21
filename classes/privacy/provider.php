@@ -287,7 +287,7 @@ class provider implements
     /**
      * Delete all data for all users in the specified context.
      *
-     * @param context $context The specific context to delete data for.
+     * @param \context $context The specific context to delete data for.
      */
     public static function delete_data_for_all_users_in_context(\context $context) {
         global $DB;
@@ -295,49 +295,54 @@ class provider implements
         if (!$dbman->table_exists('payments')) {
             return;
         }
+
+        $paymentselect = "SELECT p.id ";
+        $itemsselect = "SELECT DISTINCT it.id as itemid ";
+        $todeleteitems = [];
         if ($context instanceof \context_course) {
-            $sql = "SELECT p.id
-                      FROM {payments} p
+            $sql = "FROM {payments} p
                       JOIN {enrol} e ON (p.component = :component AND p.itemid = e.id)
                      WHERE e.courseid = :courseid";
             $params = [
                 'component' => 'enrol_wallet',
                 'courseid'  => $context->instanceid,
             ];
+            $todeleteitems += $DB->get_records_sql($itemsselect . $sql, $params);
             if (class_exists('\core_payment\privacy\provider')) {
-                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+                \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
             }
 
         } else if ($context instanceof \context_system) {
             // If context is system, then the enrolment belongs to a deleted enrolment.
-            $sql = "SELECT p.id
-                      FROM {payments} p
-                 LEFT JOIN {enrol} e ON p.itemid = e.id
+            $sql = "FROM {payments} p
+                 LEFT JOIN {enrol_wallet_items} it ON (p.itemid = it.id AND p.userid = it.userid)
+                 LEFT JOIN {enrol} e ON (p.itemid = e.id OR (e.id = it.instanceid AND it.instanceid IS NOT NULL))
                      WHERE p.component = :component AND e.id IS NULL";
             $params = [
                 'component' => 'enrol_wallet',
             ];
+            $todeleteitems += $DB->get_records_sql($itemsselect . $sql, $params);
             if (class_exists('\core_payment\privacy\provider')) {
-                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+                \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
             }
             // Also there if fake items for topping up the wallet.
-            $sql = "SELECT p.userid
-                      FROM {payments} p
+            $sql = "FROM {payments} p
                  LEFT JOIN {enrol_wallet_items} it ON (p.itemid = it.id AND p.userid = it.userid)
-                     WHERE p.component = :component AND p.paymentarea = :paymentarea";
+                     WHERE p.component = :component
+                       AND p.paymentarea = :paymentarea";
             $params = [
                 'component'   => 'enrol_wallet',
                 'paymentarea' => 'wallettopup',
             ];
+            $todeleteitems += $DB->get_records_sql($itemsselect . $sql, $params);
 
             if (class_exists('\core_payment\privacy\provider')) {
-                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+                \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
             }
-            // Delete fake items.
-            $ids = $DB->get_records('payments', ['component' => 'enrol_wallet', 'paymentarea' => 'wallettopup']);
-            foreach ($ids as $payment) {
-                $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid, 'userid' => $payment->userid]);
-            }
+        }
+        // Delete fake items.
+        foreach ($todeleteitems as $item) {
+            $DB->delete_records('enrol_wallet_items', ['id' => $item->itemid]);
         }
     }
 
@@ -365,26 +370,40 @@ class provider implements
             }
         }
 
-        [$insql, $inparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
+        $paymentselect = "SELECT p.id ";
+        $itemsselect = "SELECT DISTINCT it.id as itemid ";
+        $todeleteitems = [];
+        if (!empty($courseids)) {
+            [$insql, $inparams] = $DB->get_in_or_equal($courseids, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT p.id
-                  FROM {payments} p
-                  JOIN {enrol_wallet_items} it ON p.itemid = it.id
-                  JOIN {enrol} e ON (p.component = :component AND it.instanceid = e.id)
-                 WHERE p.userid = :userid AND e.courseid $insql";
-        $params = $inparams + [
-            'component' => 'enrol_wallet',
-            'userid'    => $contextlist->get_user()->id,
-        ];
-        if (class_exists('\core_payment\privacy\provider')) {
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            $sql = "FROM {payments} p
+                    JOIN {enrol_wallet_items} it ON p.itemid = it.id
+                    JOIN {enrol} e ON (p.component = :component AND it.instanceid = e.id)
+                    WHERE p.userid = :userid AND e.courseid $insql";
+            $params = $inparams + [
+                'component' => 'enrol_wallet',
+                'userid'    => $contextlist->get_user()->id,
+            ];
+            $todeleteitems += $DB->get_records_sql($itemsselect . $sql, $params);
+            if (class_exists('\core_payment\privacy\provider')) {
+                \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
+            }
+
+            $sql = "SELECT DISTINCT it.id as itemid
+                    FROM {enrol_wallet_items} it
+               LEFT JOIN {enrol} e ON e.id = it.instanceid
+               LEFT JOIN {course} c ON (c.category = it.category OR e.courseid = c.id)
+                   WHERE (c.id IS NOT NULL OR e.id IS NOT NULL)
+                     AND c.id $insql
+                     AND it.userid = :userid";
+            $params = $inparams + ['userid' => $contextlist->get_user()->id];
+            $todeleteitems += $DB->get_records_sql($sql, $params);
         }
 
-        if (in_array(SYSCONTEXTID, $contextlist->get_contextids())) {
+        if (\in_array(SYSCONTEXTID, $contextlist->get_contextids())) {
             // Orphaned payments.
             // First deleted enrollments.
-            $sql = "SELECT p.id
-                      FROM {payments} p
+            $sql = "FROM {payments} p
                       JOIN {enrol_wallet_items} it ON p.itemid = it.id
                  LEFT JOIN {enrol} e ON it.instanceid = e.id
                      WHERE p.component = :component
@@ -394,12 +413,12 @@ class provider implements
                 'component' => 'enrol_wallet',
                 'userid' => $contextlist->get_user()->id,
             ];
+            $todeleteitems += $DB->get_records_sql($itemsselect . $sql, $params);
             if (class_exists('\core_payment\privacy\provider')) {
-                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+                \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
             }
             // Also check for wallet topup.
-            $sql = "SELECT p.id
-                      FROM {payments} p
+            $sql = "FROM {payments} p
                  LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
                      WHERE p.component = :component
                         AND p.paymentarea = :paymentarea
@@ -409,18 +428,22 @@ class provider implements
                 'userid'      => $contextlist->get_user()->id,
                 'paymentarea' => 'wallettopup',
             ];
+            $todeleteitems += $DB->get_records_sql($itemsselect . $sql, $params);
+
             if (class_exists('\core_payment\privacy\provider')) {
-                \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+                \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
             }
-            // Delete fake items.
-            $ids = $DB->get_records('payments', [
-                                                    'component'   => 'enrol_wallet',
-                                                    'paymentarea' => 'wallettopup',
-                                                    'userid'      => $contextlist->get_user()->id,
-                                                ]);
-            foreach ($ids as $payment) {
-                $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid, 'userid' => $payment->userid]);
-            }
+            $sql = "SELECT DISTINCT it.id as itemid
+                    FROM {enrol_wallet_items} it
+                   WHERE (it.instanceid = 0)
+                     AND it.userid = :userid";
+            $params = ['userid' => $contextlist->get_user()->id];
+            $todeleteitems += $DB->get_records_sql($sql, $params);
+        }
+
+        // Delete fake items.
+        foreach ($todeleteitems as $item) {
+            $DB->delete_records('enrol_wallet_items', ['id' => $item->itemid]);
         }
     }
 
@@ -434,10 +457,12 @@ class provider implements
 
         $context = $userlist->get_context();
 
+        $itemsids = [];
+        $paymentselect = "SELECT p.id ";
+        $itemsselect = "SELECT DISTINCT(it.id) as itemid ";
         if ($context instanceof \context_course) {
             [$usersql, $userparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
-            $sql = "SELECT p.id
-                      FROM {payments} p
+            $sql = "FROM {payments} p
                       JOIN {enrol_wallet_items} it ON p.itemid = it.id
                       JOIN {enrol} e ON (p.component = :component AND it.instanceid = e.id)
                      WHERE e.courseid = :courseid AND p.userid $usersql";
@@ -446,13 +471,16 @@ class provider implements
                 'courseid'  => $context->instanceid,
             ];
 
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            $records = $DB->get_records_sql($itemsselect . $sql, $params);
+            foreach ($records as $record) {
+                $itemsids[$record->itemid] = $record->itemid;
+            }
+            \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
         } else if ($context instanceof \context_system) {
             // Orphaned payments.
             // First deleted enrollments.
             [$usersql, $userparams] = $DB->get_in_or_equal($userlist->get_userids(), SQL_PARAMS_NAMED);
-            $sql = "SELECT p.id
-                      FROM {payments} p
+            $sql = "FROM {payments} p
                       JOIN {enrol_wallet_items} it ON p.itemid = it.id
                  LEFT JOIN {enrol} e ON it.instanceid = e.id
                      WHERE p.component = :component
@@ -461,10 +489,13 @@ class provider implements
             $params = $userparams + [
                 'component' => 'enrol_wallet',
             ];
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
+            $records = $DB->get_records_sql($itemsselect . $sql, $params);
+            foreach ($records as $record) {
+                $itemsids[$record->itemid] = $record->itemid;
+            }
+            \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
             // Also check for wallet topup.
-            $sql = "SELECT p.id
-                      FROM {payments} p
+            $sql = "FROM {payments} p
                  LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
                      WHERE p.component = :component
                        AND p.paymentarea = :paymentarea
@@ -474,19 +505,18 @@ class provider implements
                 'component'   => 'enrol_wallet',
                 'paymentarea' => 'wallettopup',
             ];
-            \core_payment\privacy\provider::delete_data_for_payment_sql($sql, $params);
-            // Delete fake items.
-            $sql = "SELECT p.itemid
-                      FROM {payments} p
-                 LEFT JOIN {enrol_wallet_items} it ON p.itemid = it.id
-                     WHERE p.component = :component
-                       AND p.paymentarea = :paymentarea
-                       AND p.userid $usersql
-                       AND it.userid = p.userid";
-            $ids = $DB->get_records_sql($sql, $params);
-            foreach ($ids as $payment) {
-                $DB->delete_records('enrol_wallet_items', ['id' => $payment->itemid]);
+            $records = $DB->get_records_sql($itemsselect . $sql, $params);
+            foreach ($records as $record) {
+                if (empty($record->itemid)) {
+                    continue;
+                }
+                $itemsids[$record->itemid] = $record->itemid;
             }
+            \core_payment\privacy\provider::delete_data_for_payment_sql($paymentselect . $sql, $params);
+            // Delete fake items.
+        }
+        foreach ($itemsids as $itemid) {
+            $DB->delete_records('enrol_wallet_items', ['id' => $itemid]);
         }
     }
 }

@@ -25,6 +25,7 @@
 namespace enrol_wallet\local\restriction;
 
 use enrol_wallet\local\utils\timedate;
+use enrol_wallet_plugin;
 
 /**
  * Class handles conditional availability information for a wallet enrol instance.
@@ -96,11 +97,12 @@ class info extends \core_availability\info {
     protected function set_in_database($availability) {
         global $DB;
 
-        $instance = new \stdClass();
-        $instance->id = $this->instance->id;
-        $instance->customtext2 = $availability;
-        $instance->timemodified = timedate::time();
-        $DB->update_record('enrol', $instance);
+        $plugin = enrol_wallet_plugin::get_plugin();
+
+        $new = new \stdClass();
+        $new->customtext2 = $availability;
+
+        $plugin->update_instance($this->instance, $new);
     }
 
     /**
@@ -164,13 +166,13 @@ class info extends \core_availability\info {
      */
     public function is_available(&$information, $grabthelot = false, $userid = 0,
                                 $modinfo = null) {
-        global $USER, $OUTPUT, $DB;
+        global $USER, $DB;
 
         // Default to no information.
         $information = '';
 
         // Do nothing if there are no availability restrictions.
-        if (is_null($this->availability)) {
+        if (!isset($this->availability)) {
             return true;
         }
 
@@ -224,7 +226,7 @@ class info extends \core_availability\info {
      * @return string Correctly formatted info string
      */
     public static function format_info($inforenderable, $courseorid) {
-        global $PAGE, $OUTPUT;
+        global $OUTPUT;
 
         // Use renderer if required.
         if (is_string($inforenderable)) {
@@ -308,7 +310,7 @@ class info extends \core_availability\info {
     protected function decode_availability($availability, $lax) {
         // Decode JSON data.
         $structure = json_decode($availability);
-        if (is_null($structure)) {
+        if ($structure === null) {
             throw new \coding_exception('Invalid availability text', $availability);
         }
 

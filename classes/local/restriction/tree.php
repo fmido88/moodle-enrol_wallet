@@ -102,8 +102,7 @@ class tree extends \core_availability\tree {
      */
     public function check_available($not, \core_availability\info $info, $grabthelot, $userid) {
         global $DB;
-        $oldinfo = $info;
-        unset($info);
+        $oldinfo = clone $info;
         // If there are no children in this group, we just treat it as available.
         if (!$this->children) {
             return new result(true);
@@ -124,7 +123,7 @@ class tree extends \core_availability\tree {
         $enabled = explode(',', $enabled);
         $additional = '';
         foreach ($this->children as $index => $child) {
-            if (!in_array($decoded->c[$index]->type, $enabled)) {
+            if (!\in_array($decoded->c[$index]->type, $enabled)) {
                 continue;
             }
             if ($child instanceof \availability_completion\condition) {
@@ -145,7 +144,7 @@ class tree extends \core_availability\tree {
             $childyes = $childresult->is_available();
             if (!$childyes) {
                 $failedchildren[] = $childresult;
-                if (!is_null($this->showchildren) && !$this->showchildren[$index]) {
+                if ($this->showchildren !== null && !$this->showchildren[$index]) {
                     $totallyhide = true;
                 }
             }

@@ -25,6 +25,9 @@
 namespace enrol_wallet\local\entities;
 
 use enrol_wallet\local\config;
+use enrol_wallet\local\utils\timedate;
+use enrol_wallet_plugin;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -34,67 +37,68 @@ require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\discounts\offers;
 use enrol_wallet_plugin as wallet;
-use core_course_category;
 
 /**
  * Helper class for wallet enrolment instance.
  * @package enrol_wallet
  *
- * @property-read int $id The instance id.
- * @property-read int $courseid The course id.
- * @property-read string $enrol The enrolment method (always "wallet").
- * @property-read int $status The status of the instance (enabled or disabled).
- * @property-read int $sortorder The sort order of the instance in the course.
- * @property-read string $name The name of the instance.
- * @property-read int $enrolperiod The duration of enrolment in seconds.
- * @property-read int $enrolstartdate The start date of enrolment.
- * @property-read int $enrolenddate The end date of enrolment.
- * @property-read int $expirynotify Whom to notify about expiration? (0 - no, 1 - enroller, 2 - all enrolled).
- * @property-read int $expirythreshold When to send notification? (in seconds).
- * @property-read bool $notifyall If to notify enrolled and enroller or not, (overridden by expirynotify).
- * @property-read string $password The password for enrolment (not used).
- * @property-read float $cost The cost of the enrolment instance.
- * @property-read string $currency The currency of the enrolment instance.
- * @property-read int $roleid The id of the role assigned to users enrolled in this instance.
- * @property-read int $customint1 The payment account id.
- * @property-read int $paymentaccountid The payment account id (alias for customint1).
- * @property-read int $customint2 The long time no see (unenrol inactive after) in seconds.
- * @property-read int $longtimenosee The long time no see (unenrol inactive after) in seconds (alias for customint2).
- * @property-read int $customint3 The maximum number of users enrolled in this instance.
- * @property-read int $maxenrolled The maximum number of users enrolled in this instance (alias for customint3).
- * @property-read int $customint4 If to send welcome email.
- * @property-read bool $sendcoursewelcomemessage If to send welcome email (alias for customint4).
- * @property-read int $customint5 The cohort restriction id.
- * @property-read int $cohortrestrictionid The cohort restriction id (alias for customint5).
- * @property-read int $customint6 If to allow new enrolments.
- * @property-read bool $allownewenrol If to allow new enrolments (alias for customint6).
- * @property-read int $customint7 The minimum number of required courses for enrolment restriction.
- * @property-read int $minrequiredcourses The minimum number of required courses for enrolment restriction (alias for customint7).
- * @property-read int $customint8 If to enable awards.
- * @property-read bool $enableawards If to enable awards (alias for customint8).
- * @property-read string $customchar1 Not used.
- * @property-read string $customchar2 Not used.
- * @property-read string $customchar3 The ids of the courses required for enrolment restriction (string) integers imploded by ','.
- * @property-read string $requiredcourses The ids of the courses required for enrolment restriction (alias for customchar3).
- * @property-read int $customdec1 The condition for award (percentage) (int) 0 - 99.
- * @property-read float $awardcondition The condition for award (percentage) (alias for customdec1).
- * @property-read float $customdec2 The award value per each raw mark above the condition.
- * @property-read float $awardvalue The award value per each raw mark above the condition (alias for customdec2).
- * @property-read string $customtext1 The welcome email content.
- * @property-read string $welcomemessage The welcome email content (alias for customtext1).
- * @property-read string $customtext2 The restriction rules in JSON format.
- * @property-read string $restrictionrules The restriction rules in JSON format (alias for customtext2).
- * @property-read string $customtext3 The offers rules in JSON format.
- * @property-read string $offersrules The offers rules in JSON format (alias for customtext3).
- * @property-read string $customtext4 Not used.
- * @property-read int $timecreated The time at which the instance was created.
- * @property-read int $timemodified The time at which the instance was modified.
+ * @property int    $id                         The instance id.
+ * @property int    $courseid                   The course id.
+ * @property string $enrol                      The enrolment method (always "wallet").
+ * @property int    $status                     The status of the instance (enabled or disabled).
+ * @property int    $sortorder                  The sort order of the instance in the course.
+ * @property string $name                       The name of the instance.
+ * @property int    $enrolperiod                The duration of enrolment in seconds.
+ * @property int    $enrolstartdate             The start date of enrolment.
+ * @property int    $enrolenddate               The end date of enrolment.
+ * @property int    $expirynotify               Whom to notify about expiration? (0 - no, 1 - enroller, 2 - all enrolled).
+ * @property int    $expirythreshold            When to send notification? (in seconds).
+ * @property bool   $notifyall                  If to notify enrolled and enroller or not, (overridden by expirynotify).
+ * @property string $password                   The password for enrolment (not used).
+ * @property float  $cost                       The cost of the enrolment instance.
+ * @property string $currency                   The currency of the enrolment instance.
+ * @property int    $roleid                     The id of the role assigned to users enrolled in this instance.
+ * @property int    $customint1                 The payment account id.
+ * @property int    $paymentaccountid           The payment account id (alias for customint1).
+ * @property int    $customint2                 The long time no see (unenrol inactive after) in seconds.
+ * @property int    $longtimenosee              The long time no see (unenrol inactive after) in seconds (alias for customint2).
+ * @property int    $customint3                 The maximum number of users enrolled in this instance.
+ * @property int    $maxenrolled                The maximum number of users enrolled in this instance (alias for customint3).
+ * @property int    $customint4                 If to send welcome email.
+ * @property bool   $sendcoursewelcomemessage   If to send welcome email (alias for customint4).
+ * @property int    $customint5                 The cohort restriction id.
+ * @property int    $cohortrestrictionid        The cohort restriction id (alias for customint5).
+ * @property int    $customint6                 If to allow new enrolments.
+ * @property bool   $allownewenrol              If to allow new enrolments (alias for customint6).
+ * @property int    $customint7                 The minimum number of required courses for enrolment restriction.
+ * @property int    $minrequiredcourses         The minimum number of required courses for enrolment restriction
+ *                                              (alias for customint7).
+ * @property int    $customint8                 If to enable awards.
+ * @property bool   $enableawards               If to enable awards (alias for customint8).
+ * @property string $customchar1                Not used.
+ * @property string $customchar2                Not used.
+ * @property string $customchar3                The ids of the courses required for enrolment restriction (string)
+ *                                              integers imploded by ','.
+ * @property string $requiredcourses            The ids of the courses required for enrolment restriction (alias for customchar3).
+ * @property int    $customdec1                 The condition for award (percentage) (int) 0 - 99.
+ * @property float  $awardcondition             The condition for award (percentage) (alias for customdec1).
+ * @property float  $customdec2                 The award value per each raw mark above the condition.
+ * @property float  $awardvalue                 The award value per each raw mark above the condition (alias for customdec2).
+ * @property string $customtext1                The welcome email content.
+ * @property string $welcomemessage             The welcome email content (alias for customtext1).
+ * @property string $customtext2                The restriction rules in JSON format.
+ * @property string $availabilityconditionsjson The availability conditions in JSON format (alias for customtext2).
+ * @property string $customtext3                The offers rules in JSON format.
+ * @property string $offersrules                The offers rules in JSON format (alias for customtext3).
+ * @property string $customtext4                Not used.
+ * @property int    $timecreated                The time at which the instance was created.
+ * @property int    $timemodified               The time at which the instance was modified.
  * @property-read \stdClass $instance The enrol wallet instance object.
  * @property-read float $costafter The cost after calculating discounts.
  * @property-read coupons $couponutil The coupon helper class object.
  * @property-read int $userid The id of the user we need to calculate the discount for.
  */
-class instance extends \stdClass {
+class instance extends entity implements \IteratorAggregate {
     /**
      * Calculate the cost after discount sequentially.
      * @var int
@@ -115,57 +119,40 @@ class instance extends \stdClass {
 
     /**
      * The enrol wallet instance.
-     * @var \stdClass
+     * @var stdClass
      */
-    public $instance;
-
-    /**
-     * The instance id.
-     * @var int
-     */
-    public $id;
-
-    /**
-     * The id of the course which the instance belong to.
-     * @var int
-     */
-    public $courseid;
-
-    /**
-     * The cost after calculating discounts.
-     * @var float
-     */
-    public $costafter;
-
-    /**
-     * The coupon helper class object.
-     * @var coupons
-     */
-    public $couponutil;
-
-    /**
-     * The id of the user we need to calculate the discount for.
-     * @var int
-     */
-    public $userid;
+    public stdClass $instance;
 
     /**
      * The all discounts in this instance.
-     * @var array
+     * @var float[]
      */
-    private $discounts = [];
+    private array $discounts = [];
 
     /**
      * The behavior of discount calculation.
      * @var int
      */
-    private $behavior;
+    private int $behavior;
 
     /**
      * Caching instances.
      * @var array
      */
-    protected static $cached = [];
+    protected static array $cached = [];
+
+    /**
+     * If the instance class in dirty state and the cached values
+     * of $costafter could be cleared.
+     * @var bool
+     */
+    private bool $dirty = false;
+
+    /**
+     * Check if this instance as no cost set.
+     * @var bool
+     */
+    private bool $nocost = false;
 
     /**
      * Create a new enrol wallet instance helper class.
@@ -174,35 +161,39 @@ class instance extends \stdClass {
      * @param int|\stdClass $instanceorid The enrol wallet instance or its id.
      * @param int           $userid       the id of the user, 0 means the current user.
      */
-    public function __construct($instanceorid, $userid = 0) {
-        global $USER;
+    public function __construct(int|stdClass $instanceorid, int $userid = 0) {
+        $this->instance = match (true) {
+            is_number($instanceorid)      => self::get_instance_by_id($instanceorid),
+            $instanceorid instanceof self => $instanceorid->get_instance(),
+            default                       => $instanceorid,
+        };
 
-        if (is_number($instanceorid)) {
-            $this->instance = self::get_instance_by_id($instanceorid);
-        } else {
-            $this->instance = $instanceorid;
-        }
-        $this->id       = $this->instance->id;
-        $this->courseid = $this->instance->courseid;
-
-        if (empty($userid)) {
-            $this->userid = $USER->id;
-        } else if (is_object($userid)) {
-            $this->userid = $userid->id;
-        } else {
-            $this->userid = $userid;
-        }
+        parent::__construct($this->instance->courseid, $this->instance->id, $userid);
 
         $this->behavior = (int)config::make()->discount_behavior;
-        $this->calculate_cost_after_discount();
-        $this->set_static_cache();
+    }
+
+    /**
+     * Get the course context this instance belongs to.
+     * @return \core\context
+     */
+    public function get_context(): \context {
+        return $this->get_course_context();
+    }
+
+    /**
+     * Return the coupon area const value AREA_ENROL.
+     * @return int
+     */
+    protected static function get_coupon_area(): int {
+        return coupons::AREA_ENROL;
     }
 
     /**
      * Magic getter for instance properties.
      *
-     * @param  string     $name The property name.
-     * @return mixed|null
+     * @param  string $name The property name.
+     * @return mixed
      */
     public function __get($name) {
         if (property_exists($this, $name)) {
@@ -225,13 +216,77 @@ class instance extends \stdClass {
     }
 
     /**
+     * Magic setter for instance properties.
+     *
+     * @param  string $name  The property name.
+     * @param  mixed  $value The value to set.
+     * @return void
+     */
+    public function __set($name, $value) {
+        if (property_exists($this, $name)) {
+            $this->$name = $value;
+        }
+
+        if (property_exists($this->instance, $name)) {
+            $this->instance->$name = $value;
+            $this->$name           = $value;
+        } else {
+            // If the property is not found in the instance object, try to get it from the field map.
+            $fieldname = $this->get_instance_field_map($name);
+
+            if ($fieldname) {
+                $this->instance->$fieldname = $value;
+                $this->$fieldname           = $value;
+            } else {
+                debugging('Invalid property: ' . $name . ' in instance helper class', DEBUG_ALL);
+            }
+        }
+        $this->mark_as_dirty();
+    }
+
+    /**
+     * Magic isset for instance properties.
+     *
+     * @param  string $name The property name.
+     * @return bool
+     */
+    public function __isset($name) {
+        if (property_exists($this, $name) && isset($this->$name)) {
+            return true;
+        }
+
+        if (property_exists($this->instance, $name) && isset($this->instance->$name)) {
+            return true;
+        }
+
+        // If the property is not found in the instance object, try to get it from the field map.
+        $fieldname = $this->get_instance_field_map($name);
+
+        if ($fieldname && property_exists($this->instance, $fieldname) && isset($this->instance->$fieldname)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // phpcs:disable moodle.NamingConventions.ValidFunctionName.LowercaseMethod
+    /**
+     * Returns an external iterator.
+     * @return \ArrayIterator
+     */
+    public function getIterator(): \Traversable {
+        // phpcs:enable
+        return new \ArrayIterator($this->instance);
+    }
+
+    /**
      * Get the field map for the instance.
      * The map is used to get the field name from the instance object.
      *
      * @param  string|null       $fieldname The field name to get the map for, if null returns the whole map.
      * @return array|string|null
      */
-    protected function get_instance_field_map($fieldname = null) {
+    protected function get_instance_field_map(?string $fieldname = null): array|string|null {
         $map = [
             'customint1'  => 'paymentaccountid', // Payment Account id.
             'customint2'  => 'longtimenosee', // Long time no see.
@@ -248,7 +303,7 @@ class instance extends \stdClass {
             'customdec1'  => 'awardcondition', // Condition for award (percentage) (int) 0 - 99.
             'customdec2'  => 'awardvalue', // Award value per each raw mark above the condition (float).
             'customtext1' => 'welcomemessage', // Welcome email content (string).
-            'customtext2' => 'restrictionrules', // Restriction rules (JSON).
+            'customtext2' => 'availabilityconditionsjson', // Restriction rules (JSON).
             'customtext3' => 'offersrules', // Offers rules (JSON).
             'customtext4' => null, // Not used....
         ];
@@ -271,10 +326,11 @@ class instance extends \stdClass {
      * for multiple callings.
      * @return void
      */
-    private function set_static_cache() {
-        $cache                                         = new \stdClass();
-        $cache->costafter                              = $this->costafter;
-        $cache->discounts                              = $this->discounts;
+    private function set_static_cache(): void {
+        $cache            = new \stdClass();
+        $cache->costafter = $this->get_cost_after_discount() ?? null;
+        $cache->discounts = $this->discounts;
+
         self::$cached[$this->id . '-' . $this->userid] = $cache;
     }
 
@@ -282,16 +338,54 @@ class instance extends \stdClass {
      * Reset static values.
      * @return void
      */
-    public static function reset_static_cache() {
+    public static function reset_static_cache(): void {
         self::$cached = [];
     }
 
     /**
-     * Get the enrol wallet instance by id.
-     * @param  int             $instanceid
-     * @return \stdClass|false
+     * Check if the user has enrolment record existed for this instance.
+     * @param  bool $activeonly
+     * @return bool
      */
-    private static function get_instance_by_id($instanceid) {
+    public function is_enrolled(bool $activeonly = true): bool {
+        global $DB;
+        $sql = 'SELECT 1 FROM {user_enrolments} ue
+                WHERE ue.enrolid = :enrolid
+                  AND ue.userid  = :userid';
+        $params = ['enrolid' => $this->id, 'userid' => $this->userid];
+
+        if ($activeonly) {
+            $sql .= ' AND ue.status = :status AND (ue.timeend = 0 OR ue.timeend > :timenow1) AND ue.timestart < :timenow2';
+            $now                = timedate::time();
+            $params['status']   = ENROL_USER_ACTIVE;
+            $params['timenow1'] = $now;
+            $params['timenow2'] = $now;
+        }
+
+        return $DB->record_exists_sql($sql, $params);
+    }
+
+    /**
+     * Get the user enrollments records for this instance.
+     * @return array
+     */
+    public function get_enrollments(): array {
+        global $DB;
+        $sql = 'SELECT *
+                FROM {user_enrolments} ue
+                WHERE ue.enrolid = :enrolid
+                  AND ue.userid  = :userid';
+        $params = ['enrolid' => $this->id, 'userid' => $this->userid];
+
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    /**
+     * Get the enrol wallet instance by id.
+     * @param  int      $instanceid
+     * @return stdClass
+     */
+    private static function get_instance_by_id(int $instanceid): stdClass {
         global $DB;
         $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
 
@@ -299,96 +393,36 @@ class instance extends \stdClass {
     }
 
     /**
-     * Get the enrol wallet instance object.
+     * Get the enrol wallet instance record.
      * @return \stdClass
      */
-    public function get_instance() {
+    public function get_instance(): stdClass {
         return $this->instance;
     }
 
     /**
-     * Get the course that the instance belongs to.
-     * @return \stdClass
-     */
-    public function get_course() {
-        return get_course($this->courseid);
-    }
-    /**
      * Get course context object at which the instance belongs to.
      * @return \core\context
      */
-    public function get_course_context() {
-        return \context_course::instance($this->courseid);
-    }
-    /**
-     * Get course category object at which the instance belongs to.
-     * @return core_course_category
-     */
-    public function get_course_category() {
-        $catid = $this->get_category_id();
-
-        return core_course_category::get($catid, IGNORE_MISSING, true, $this->userid);
-    }
-
-    /**
-     * Get course category object at which the instance belongs to.
-     * @return int
-     */
-    public function get_category_id() {
-        $catid = $this->get_course()->category;
-
-        return $catid;
+    public function get_course_context(): \core\context\course {
+        return \core\context\course::instance($this->courseid);
     }
 
     /**
      * Get instance name.
      * @return string
      */
-    public function get_name() {
+    public function get_name(): string {
         $wallet = new wallet();
 
         return $wallet->get_instance_name($this->instance);
     }
 
     /**
-     * Calculate and return discount due to discount coupon.
-     * @return float from 0 to 1
-     */
-    private function get_coupon_discount() {
-        // Check if there is a discount coupon first.
-        $coupon = coupons::check_discount_coupon();
-
-        $discount = 0;
-
-        if (!empty($coupon)) {
-            $couponutil = new coupons($coupon, $this->userid);
-
-            $validation = $couponutil->validate_coupon(coupons::AREA_ENROL, $this->instance->id);
-
-            if (true === $validation) {
-                $this->couponutil = $couponutil;
-
-                if ($couponutil->type == coupons::DISCOUNT && $couponutil->valid) {
-                    $discount = min($couponutil->value / 100, 1);
-                }
-            } else if (is_string($validation)) {
-                static $warned = false;
-
-                if (!$warned) {
-                    $warned = true;
-                    \core\notification::error($validation);
-                }
-            }
-        }
-
-        return $discount;
-    }
-
-    /**
      * Calculate and return discount due to repurchasing the course.
      * @return float from 0 to 1
      */
-    private function get_repurchase_discount() {
+    private function get_repurchase_discount(): float {
         global $DB;
         $userid     = $this->userid;
         $instanceid = $this->instance->id;
@@ -396,6 +430,7 @@ class instance extends \stdClass {
 
         if ($ue = $DB->get_record('user_enrolments', ['enrolid' => $instanceid, 'userid' => $userid])) {
             $config = config::make();
+
             if (!empty($ue->timeend) && $config->repurchase) {
                 if ($first = $config->repurchase_firstdis) {
                     $discount   = min($first / 100, 1);
@@ -416,7 +451,7 @@ class instance extends \stdClass {
      * Calculate and return the discount due to offers.
      * @return float from 0 to 1
      */
-    private function get_offers_discount() {
+    private function get_offers_discount(): float {
         $offers   = new offers($this->instance, $this->userid);
         $discount = 0;
 
@@ -438,51 +473,12 @@ class instance extends \stdClass {
     }
 
     /**
-     * Calculate and return the discount due to profile field.
-     * @return float from 0 to 1
-     */
-    private function get_profile_field_discount() {
-        global $DB;
-        $discount = 0;
-
-        // Check if the discount according to custom profile field in enabled.
-        if (!$fieldid = config::make()->discount_field) {
-            return $discount;
-        }
-
-        // Check the data in the discount field.
-        $data = $DB->get_field('user_info_data', 'data', ['userid' => $this->userid, 'fieldid' => $fieldid]);
-
-        if (empty($data)) {
-            return $discount;
-        }
-
-        // If the user has free access to courses return 0 cost.
-        if (stripos(strtolower($data), 'free') !== false) {
-            $discount = 1;
-            // If there is a word no in the data means no discount.
-        } else if (stripos(strtolower($data), 'no') !== false) {
-            $discount = 0;
-        } else {
-            // Get the integer from the data.
-            preg_match('/\d+/', $data, $matches);
-
-            if (isset($matches[0]) && intval($matches[0]) <= 100) {
-                // Cannot allow discount more than 100%.
-                $discount = intval($matches[0]) / 100;
-            }
-        }
-
-        return min(1, $discount);
-    }
-
-    /**
      * Calculate, store and return all types of discounts.
      * @return array
      */
-    private function calculate_discounts() {
+    private function calculate_discounts(): array {
         $this->discounts = [
-            'coupons'    => $this->get_coupon_discount(),
+            'coupons'    => $this->get_coupon_discount($this->cost),
             'profile'    => $this->get_profile_field_discount(),
             'repurchase' => $this->get_repurchase_discount(),
             'offers'     => $this->get_offers_discount(),
@@ -496,13 +492,12 @@ class instance extends \stdClass {
      * and then calculate the cost of the course after discount.
      * @return void
      */
-    private function calculate_cost_after_discount() {
+    private function calculate_cost_after_discount(): void {
         $instance = $this->instance;
         $cost     = $instance->cost;
 
         if (!is_numeric($cost) || $cost < 0) {
-            $this->costafter = null;
-
+            $this->nocost = true;
             return;
         }
 
@@ -510,26 +505,26 @@ class instance extends \stdClass {
 
         if ($cost == 0) {
             $this->costafter = $cost;
-
             return;
         }
 
         $cache = self::$cached[$this->id . '-' . $this->userid] ?? null;
 
-        if ($cache) {
+        if ($cache && isset($cache->costafter)) {
             $this->discounts = $cache->discounts;
             $this->costafter = $cache->costafter;
 
             return;
         }
+
         $discounts = $this->calculate_discounts();
         $discount  = 0;
 
-        if ($this->behavior === self::B_SUM) {
+        if ($this->behavior == self::B_SUM) {
             foreach ($discounts as $d) {
                 $discount += $d;
             }
-        } else if ($this->behavior === self::B_MAX) {
+        } else if ($this->behavior == self::B_MAX) {
             $discount = max($discounts);
         } else {
             $discount = $this->calculate_sequential_discount($discounts);
@@ -545,7 +540,7 @@ class instance extends \stdClass {
      * @param  bool  $percentage
      * @return float
      */
-    private function calculate_sequential_discount($discounts, $percentage = false) {
+    private function calculate_sequential_discount(array $discounts, bool $percentage = false): float {
         \core_collator::asort($discounts, \core_collator::SORT_NUMERIC);
         $discounts = array_reverse($discounts);
 
@@ -565,18 +560,74 @@ class instance extends \stdClass {
     }
 
     /**
-     * Get the cost of the enrol instance after discount.
-     * @param  bool       $recalculate
-     * @return float|null the cost after discount.
+     * Check if the cached values of cost after discount need to be cleared first.
+     * @return bool
      */
-    public function get_cost_after_discount($recalculate = false) {
-        if ($recalculate) {
+    public function is_dirty(): bool {
+        return $this->dirty;
+    }
+
+    /**
+     * Mark as dirty to clear the cached values of cost after discount.
+     * @return void
+     */
+    public function mark_as_dirty(): void {
+        $this->dirty = true;
+    }
+
+    /**
+     * Check if the instance is dirty and hence clear
+     * caches.
+     * @return void
+     */
+    protected function check_dirty(): void {
+        if ($this->is_dirty()) {
             self::reset_static_cache();
             $this->calculate_cost_after_discount();
+            $this->dirty = false;
+        }
+    }
+    /**
+     * Update the instance record in the database.
+     * @return bool
+     */
+    public function update(): bool {
+        global $DB;
+        $record = $this->get_instance();
+        $plugin = enrol_wallet_plugin::get_plugin();
+        $done = $plugin->update_instance($record, $record);
+        $this->instance = $DB->get_record('enrol', ['id' => $this->id]);
+        return $done;
+    }
+
+    /**
+     * Set the userid to calculate the discount for.
+     * @param int|stdClass $user
+     * @return void
+     */
+    public function set_user(int|stdClass $user = 0): void {
+        parent::set_user($user);
+        $this->mark_as_dirty();
+    }
+    /**
+     * Get the cost of the enrol instance after discount.
+     * @param  ?float     $unused
+     * @return float|null the cost after discount.
+     */
+    public function get_cost_after_discount(?float $unused = null): ?float {
+        $this->check_dirty();
+
+        if ($this->nocost) {
+            return null;
         }
 
-        if (!is_null($this->costafter) && is_numeric($this->costafter)) {
-            return (float)$this->costafter;
+        if (!isset($this->costafter)) {
+            $this->calculate_cost_after_discount();
+            $this->set_static_cache();
+        }
+
+        if (isset($this->costafter)) {
+            return $this->costafter;
         }
 
         return null;
@@ -586,13 +637,17 @@ class instance extends \stdClass {
      * Check if there is a discount in this instance.
      * @return bool
      */
-    public function has_discount() {
-        if ($this->costafter < $this->instance->cost || $this->costafter === (float)0) {
+    public function has_discount(): bool {
+        $this->check_dirty();
+
+        $costafter = $this->get_cost_after_discount();
+        if ($costafter < $this->instance->cost || $costafter === (float)0) {
             return true;
         }
+
         $costs = $this->get_all_costs();
 
-        if ($this->costafter < max($costs)) {
+        if ($costafter < max($costs)) {
             return true;
         }
 
@@ -603,16 +658,18 @@ class instance extends \stdClass {
      * get the discount in this instance in percentage.
      * @return int from 0 to 100
      */
-    public function get_rounded_discount() {
-        if ($this->costafter === (float)0) {
+    public function get_rounded_discount(): int {
+        $this->check_dirty();
+        $costafter = $this->get_cost_after_discount();
+        if ($costafter === 0.0) {
             return 100;
         }
 
-        $difference = $this->instance->cost - $this->costafter;
+        $difference = $this->instance->cost - $costafter;
 
         if ($difference <= 0) {
             $costs      = $this->get_all_costs();
-            $difference = max($costs) - $this->costafter;
+            $difference = max($costs) - $costafter;
         }
 
         if ($difference > 0) {
@@ -626,7 +683,7 @@ class instance extends \stdClass {
      * Return all discounts in all instances.
      * @return array
      */
-    public function get_all_discounts() {
+    public function get_all_discounts(): array {
         global $DB;
         $instances = $DB->get_records('enrol', ['courseid' => $this->courseid]);
         $discounts = [];
@@ -643,7 +700,7 @@ class instance extends \stdClass {
      * Return an array of costs of non restricted instances keyed with the instance id;.
      * @return array
      */
-    public function get_all_costs() {
+    public function get_all_costs(): array {
         global $DB;
         $instances = $DB->get_records('enrol', ['courseid' => $this->courseid]);
         $costs     = [];
@@ -665,7 +722,7 @@ class instance extends \stdClass {
      * Return the id of cheapest instance in this course.
      * @return int|null
      */
-    public function get_the_cheapest_instance_id() {
+    public function get_the_cheapest_instance_id(): ?int {
         $costs = $this->get_all_costs();
         $min   = min($costs);
 
@@ -676,19 +733,5 @@ class instance extends \stdClass {
         }
 
         return null;
-    }
-
-    /**
-     * Get the coupon code used for discount if existed.
-     * @return coupons|null
-     */
-    public function get_coupon_helper() {
-        if (isset($this->couponutil)) {
-            return $this->couponutil;
-        }
-
-        // Recheck the coupons helper class.
-        $this->get_coupon_discount();
-        return $this->couponutil ?? null;
     }
 }

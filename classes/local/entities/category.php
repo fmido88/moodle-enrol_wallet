@@ -31,18 +31,19 @@ class category {
      * The category object.
      * @var core_course_category $category
      */
-    protected $category;
+    protected core_course_category $category;
 
     /**
      * The id of the category.
      * @var int $catid
      */
-    protected $catid;
+    protected int $catid;
 
     /**
      * @var array[int] the parents ids.
      */
-    protected $parents = [];
+    protected array $parents = [];
+
     /**
      * Create a category helper object.
      *
@@ -56,7 +57,7 @@ class category {
         } else if ($categoryorid instanceof core_course_category) {
             $this->catid = $categoryorid->id;
             $this->category = $categoryorid;
-        } else if (is_object($categoryorid)) {
+        } else if (\is_object($categoryorid)) {
             $this->catid = $categoryorid->id;
             $this->category = core_course_category::get($categoryorid->id, IGNORE_MISSING, true);
         }
@@ -64,7 +65,7 @@ class category {
         if (!empty($this->category)) {
             $this->parents = $this->category->get_parents();
             // Include the catid with the parents array for easy search.
-            $this->parents[$this->catid] = $this->catid;
+            $this->parents[] = $this->catid;
         }
     }
 
@@ -72,14 +73,14 @@ class category {
      * Get the core_course_category object.
      * @return core_course_category
      */
-    public function get_category() {
+    public function get_category(): ?core_course_category {
         return $this->category ?? null;
     }
     /**
      * Get the parents of the current category INCLUDING the category itself.
-     * @return array of names of the categories keyed by the category id.
+     * @return string[] of names of the categories keyed by the category id.
      */
-    public function get_parents() {
+    public function get_parents(): array {
         $all = [];
         foreach ($this->parents as $catid) {
             $catname = core_course_category::get($catid)->get_formatted_name();
@@ -93,7 +94,7 @@ class category {
      * @param int $catid the category id to check with this one.
      * @return bool
      */
-    public function is_belong_to_this($catid) {
+    public function is_belong_to_this(int $catid): bool {
         if ($catid == $this->catid) {
             return true;
         }
@@ -103,7 +104,7 @@ class category {
         }
 
         $ids = $this->category->get_all_children_ids();
-        if (in_array($catid, $ids)) {
+        if (\in_array($catid, $ids)) {
             return true;
         }
 
@@ -115,7 +116,7 @@ class category {
      * @param int $cmid
      * @return bool
      */
-    public function is_child_cm($cmid) {
+    public function is_child_cm(int $cmid): bool {
         global $DB;
         $sql = "SELECT cm.id, c.category
                 FROM {course_modules} cm
@@ -136,7 +137,7 @@ class category {
      * @param int $sectionid
      * @return bool
      */
-    public function is_child_section($sectionid) {
+    public function is_child_section(int $sectionid): bool {
         global $DB;
         $sql = "SELECT cs.id, c.category
                 FROM {course_sections} cs
@@ -157,7 +158,7 @@ class category {
      * @param int $instanceid
      * @return bool
      */
-    public function is_child_instance($instanceid) {
+    public function is_child_instance(int $instanceid): bool {
         global $DB;
         $sql = "SELECT e.id, c.category
                 FROM {enrol} e
@@ -179,14 +180,10 @@ class category {
      * @param int $userid
      * @return static
      */
-    public static function create_from_instance($instanceorid, $userid = 0) {
+    public static function create_from_instance($instanceorid, $userid = 0): static {
         $helper = new instance($instanceorid, $userid);
         $category = $helper->get_course_category();
-        if (static::class == self::class) {
-            return new static($category);
-        }
-
-        return new static($category, $userid);
+        return new static($category);
     }
 
     /**
@@ -194,10 +191,10 @@ class category {
      * @param int|\stdClass $courseorid
      * @return static
      */
-    public static function create_from_course($courseorid) {
+    public static function create_from_course($courseorid): static {
         if (is_number($courseorid)) {
             $course = get_course($courseorid);
-        } else if (is_object($courseorid)) {
+        } else if (\is_object($courseorid)) {
             $course = $courseorid;
         } else {
             throw new \moodle_exception('invalidcourseid');

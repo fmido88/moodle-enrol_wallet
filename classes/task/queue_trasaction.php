@@ -16,8 +16,9 @@
 
 namespace enrol_wallet\task;
 
-use enrol_wallet\util\balance_op;
-use enrol_wallet\util\balance;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+
 /**
  * Class queue_trasaction
  *
@@ -39,7 +40,8 @@ class queue_trasaction  extends \core\task\adhoc_task {
      * @return void
      */
     public function execute() {
-        $data = $this->get_custom_data();
+        $data = (array)$this->get_custom_data();
+
         $op = new balance_op($data['userid'], $data['catid'] ?? 0);
         if ($data['method'] == 'credit') {
             $op->credit($data['amount'], $data['by'], $data['thingid'], $data['desc'], $data['refundable'], $data['trigger']);
@@ -49,11 +51,11 @@ class queue_trasaction  extends \core\task\adhoc_task {
     }
     /**
      * Queue credit
-     * @param \enrol_wallet\util\balance $op
+     * @param balance $op
      * @param array $args
      * @return void
      */
-    public static function queue_credit(balance $op, array $args) {
+    public static function credit(balance $op, array $args) {
         $args['method'] = 'credit';
         $args['userid'] = $op->get_user_id();
         $args['catid'] = $op->get_catid();
@@ -61,11 +63,11 @@ class queue_trasaction  extends \core\task\adhoc_task {
     }
     /**
      * Queue debit
-     * @param \enrol_wallet\util\balance $op
+     * @param balance $op
      * @param array $args
      * @return void
      */
-    public static function queue_debit(balance $op, array $args) {
+    public static function debit(balance $op, array $args) {
         $args['method'] = 'debit';
         $args['userid'] = $op->get_user_id();
         $args['catid'] = $op->get_catid();

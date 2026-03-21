@@ -14,11 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace enrol_wallet;
+namespace enrol_wallet\local\coupons;
 
 use context_course;
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
+use enrol_wallet\local\coupons\generator;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
@@ -296,7 +297,7 @@ final class coupons_test extends \advanced_testcase {
         $this->assertTrue(coupons::is_enabled());
         $this->set_config([coupons::FIXED, coupons::NOCOUPONS]);
         $this->assertFalse(coupons::is_enabled());
-        $this->set_config('');
+        $this->set_config(null);
         $this->assertFalse(coupons::is_enabled());
     }
 
@@ -560,7 +561,7 @@ final class coupons_test extends \advanced_testcase {
         $this->assertEquals(0, $coupons->get_user_use());
 
         // Check if discount coupons marked as used when the user get enrolled.
-        coupons::set_session_coupon('percent6');
+        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst2->id);
         $wallet   = new enrol_wallet_plugin();
         $instance = new instance($this->inst2);
         $this->assertEquals(10, $instance->get_cost_after_discount());
@@ -613,6 +614,87 @@ final class coupons_test extends \advanced_testcase {
 
         $coupons = new coupons('percent9');
         $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+    }
+
+    /**
+     * Validation for fixed discount coupons.
+     * @covers ::validate_coupon()
+     */
+    public function test_validate_fixed_discount_coupon(): void {
+        $this->set_config(coupons::FIXEDDISCOUNT);
+        $coupons = new coupons('fixeddiscount1');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->setUser($this->u1);
+        $coupons = new coupons('fixeddiscount1');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $coupons = new coupons('fixeddiscount1');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+        $coupons = new coupons('fixeddiscount1');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id));
+        $coupons = new coupons('fixeddiscount1');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_TOPUP));
+
+        $coupons = new coupons('fixeddiscount2');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $coupons->mark_coupon_used();
+        $this->setUser($this->u2);
+        $coupons = new coupons('fixeddiscount2');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $coupons->mark_coupon_used();
+        $coupons = new coupons('fixeddiscount2');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $coupons->mark_coupon_used();
+
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $coupons->mark_coupon_used();
+
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+
+        $this->setUser($this->u1);
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $coupons->mark_coupon_used();
+
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $coupons->mark_coupon_used();
+
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+
+        $this->setUser($this->u3);
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $coupons->mark_coupon_used();
+
+        $coupons = new coupons('fixeddiscount3');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertEquals(5, $coupons->get_total_use());
+        $this->assertEquals(1, $coupons->get_user_use());
+
+        $coupons = new coupons('fixeddiscount4');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+
+        $this->setUser($this->u5);
+        $coupons = new coupons('fixeddiscount5');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm3->id));
+
+        $coupons = new coupons('fixeddiscount6');
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertEquals(get_course($this->inst7->courseid)->category, $this->cat4->id);
+        $coupons = new coupons('fixeddiscount6');
+        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id));
     }
 
     /**
@@ -675,8 +757,9 @@ final class coupons_test extends \advanced_testcase {
         $this->assertNotTrue($validation);
 
         config::make()->catbalance = 0;
-        $coupons                   = new coupons('category1');
-        $validation                = $coupons->validate_coupon(coupons::AREA_TOPUP);
+
+        $coupons    = new coupons('category1');
+        $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
         $this->assertNotTrue($validation);
 
         $coupons    = new coupons('category2');
@@ -861,28 +944,13 @@ final class coupons_test extends \advanced_testcase {
             $record = new \stdClass();
             $var    = 'c' . $i;
 
-            switch ($i) {
-                case 1:
-                case 2:
-                    $record->category = $this->cat1->id;
-                    break;
+            $record->category = match($i) {
+                1, 2 => $this->cat1->id,
+                3, 4 => $this->cat2->id,
+                5, 6 => $this->cat3->id,
+                7    => $this->cat4->id,
+            };
 
-                case 3:
-                case 4:
-                    $record->category = $this->cat2->id;
-                    break;
-
-                case 5:
-                case 6:
-                    $record->category = $this->cat3->id;
-                    break;
-
-                case 7:
-                    $record->category = $this->cat4->id;
-                    break;
-
-                default:
-            }
             $this->$var = $this->gen->create_course($record);
 
             // Update the enrolment instances for each course.
@@ -918,234 +986,128 @@ final class coupons_test extends \advanced_testcase {
         }
 
         // Created coupons in the database.
-        $records = [];
         $now     = timedate::time();
         $expired = $now - 2 * DAYSECS;
         $notav   = $now + 2 * DAYSECS;
         // Fixed coupons.
-        $records[] = [
-            'code'        => 'fixed1',
-            'type'        => 'fixed',
-            'value'       => 50,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'fixed2',
-            'type'        => 'fixed',
-            'value'       => 100,
-            'maxusage'    => 2, // Limited by max usage.
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'fixed3',
-            'type'        => 'fixed',
-            'value'       => 70,
-            'maxusage'    => 5,
-            'maxperuser'  => 2, // Limited by max use per user.
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'fixed4',
-            'type'        => 'fixed',
-            'value'       => 70,
-            'validfrom'   => $notav, // Not available yet.
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'fixed5',
-            'type'        => 'fixed',
-            'value'       => 50,
-            'validto'     => $expired, // Expired.
-            'timecreated' => $now,
-        ];
+        generator::create_coupon_record(code: 'fixed1', type: 'fixed', value: 50);
+        generator::create_coupon_record(code: 'fixed2', type: 'fixed', value: 100, maxusage: 2);
+        generator::create_coupon_record(code: 'fixed3', type: 'fixed', value: 70, maxusage: 5, maxperuser: 2);
+        generator::create_coupon_record(code: 'fixed4', type: 'fixed', value: 70, validfrom: $notav);
+        generator::create_coupon_record(code: 'fixed5', type: 'fixed', value: 50, validto: $expired);
+
         // Discount coupons.
-        $records[] = [
-            'code'        => 'percent1',
-            'type'        => 'percent',
-            'value'       => 20,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent2',
-            'type'        => 'percent',
-            'value'       => 50,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent3',
-            'type'        => 'percent',
-            'value'       => 100,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent4',
-            'type'        => 'percent',
-            'value'       => 150, // Invalid value.
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent5',
-            'type'        => 'percent',
-            'value'       => 50,
-            'maxusage'    => 2,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent6',
-            'type'        => 'percent',
-            'value'       => 50,
-            'maxusage'    => 5,
-            'maxperuser'  => 2,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent7',
-            'type'        => 'percent',
-            'value'       => 50,
-            'validfrom'   => $notav,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent8',
-            'type'        => 'percent',
-            'value'       => 50,
-            'validto'     => $expired,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'percent9',
-            'type'        => 'percent',
-            'value'       => 50,
-            'category'    => $this->cat1->id,
-            'timecreated' => $now,
-        ];
+        generator::create_coupon_record(code: 'percent1', type: 'percent', value: 20);
+        generator::create_coupon_record(code: 'percent2', type: 'percent', value: 50);
+        generator::create_coupon_record(code: 'percent3', type: 'percent', value: 100);
+        generator::create_coupon_record(code: 'percent4', type: 'percent', value: 150); // Invalid value.
+        generator::create_coupon_record(code: 'percent5', type: 'percent', value: 50, maxusage: 2);
+        generator::create_coupon_record(code: 'percent6', type: 'percent', value: 50, maxusage: 5, maxperuser: 2);
+        generator::create_coupon_record(code: 'percent7', type: 'percent', value: 50, validfrom: $notav);
+        generator::create_coupon_record(code: 'percent8', type: 'percent', value: 50, validto: $expired);
+        generator::create_coupon_record(code: 'percent9', type: 'percent', value: 50, category: $this->cat1->id);
+        generator::create_coupon_record(code: 'percent10', type: 'percent', value: 50, category: $this->cat2->id);
+
         // Enrol coupons.
-        $records[] = [
-            'code'        => 'enrol1',
-            'type'        => 'enrol',
-            'value'       => 100,
-            'courses'     => $this->c1->id . ',' . $this->c7->id,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'enrol2',
-            'type'        => 'enrol',
-            'courses'     => implode(',', [$this->c2->id, $this->c3->id, $this->c4->id]),
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'enrol3',
-            'type'        => 'enrol',
-            'courses'     => $this->c5->id,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'enrol4',
-            'type'        => 'enrol',
-            'courses'     => null,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'enrol5',
-            'type'        => 'enrol',
-            'courses'     => implode(',', [$this->c2->id, $this->c3->id, $this->c4->id]),
-            'maxusage'    => 2,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'enrol6',
-            'type'        => 'enrol',
-            'courses'     => implode(',', [$this->c2->id, $this->c3->id, $this->c4->id]),
-            'maxusage'    => 5,
-            'maxperuser'  => 2,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'enrol7',
-            'type'        => 'enrol',
-            'value'       => 50,
-            'category'    => null,
-            'courses'     => implode(',', [$this->c2->id, $this->c3->id, $this->c4->id]),
-            'validfrom'   => $notav,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'enrol8',
-            'type'        => 'enrol',
-            'value'       => 50,
-            'courses'     => implode(',', [$this->c2->id, $this->c3->id, $this->c4->id]),
-            'validto'     => $expired,
-            'timecreated' => $now,
-        ];
+        generator::create_coupon_record(code: 'enrol1', type: 'enrol', courses: [$this->c1->id, $this->c7->id]);
+        generator::create_coupon_record(code: 'enrol2', type: 'enrol', courses: [$this->c2->id, $this->c3->id, $this->c4->id]);
+        generator::create_coupon_record(code: 'enrol3', type: 'enrol', courses: [$this->c5->id]);
+        generator::create_coupon_record(code: 'enrol4', type: 'enrol');
+        generator::create_coupon_record(
+            code: 'enrol5',
+            type: 'enrol',
+            courses: [$this->c2->id, $this->c3->id, $this->c4->id],
+            maxusage: 2
+        );
+        generator::create_coupon_record(
+            code: 'enrol6',
+            type: 'enrol',
+            courses: [$this->c2->id, $this->c3->id, $this->c4->id],
+            maxusage: 5,
+            maxperuser: 2
+        );
+        generator::create_coupon_record(
+            code: 'enrol7',
+            type: 'enrol',
+            courses: [$this->c2->id, $this->c3->id, $this->c4->id],
+            validfrom: $notav
+        );
+        generator::create_coupon_record(
+            code: 'enrol8',
+            type: 'enrol',
+            courses: [$this->c2->id, $this->c3->id, $this->c4->id],
+            validto: $expired
+        );
 
         // Category coupons.
-        $records[] = [
-            'code'        => 'category1',
-            'type'        => 'category',
-            'value'       => 100,
-            'category'    => $this->cat1->id, // Should be valid in its child.
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'category2',
-            'type'        => 'category',
-            'value'       => 70,
-            'category'    => $this->cat4->id, // Shouldn't be valid in its parent.
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'category3',
-            'type'        => 'category',
-            'value'       => 50,
-            'category'    => null, // Invalid record.
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'category4',
-            'type'        => 'category',
-            'value'       => 50,
-            'category'    => $this->cat3->id,
-            'maxusage'    => 2,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'category5',
-            'type'        => 'category',
-            'value'       => 100,
-            'category'    => $this->cat3->id,
-            'courses'     => null,
-            'maxusage'    => 5,
-            'maxperuser'  => 2,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'category6',
-            'type'        => 'category',
-            'value'       => 70,
-            'category'    => $this->cat3->id,
-            'validfrom'   => $notav,
-            'timecreated' => $now,
-        ];
-        $records[] = [
-            'code'        => 'category7',
-            'type'        => 'category',
-            'value'       => 50,
-            'category'    => $this->cat3->id,
-            'validto'     => $expired,
-            'timecreated' => $now,
-        ];
+        generator::create_coupon_record(
+            code: 'category1',
+            type: 'category',
+            value: 100,
+            category: $this->cat1->id
+        );
+        generator::create_coupon_record(
+            code: 'category2',
+            type: 'category',
+            value: 70,
+            category: $this->cat4->id
+        ); // Shouldn't be valid in its parent.
+        generator::create_coupon_record(
+            code: 'category3',
+            type: 'category',
+            value: 50
+        ); // Invalid record.
+        generator::create_coupon_record(
+            code: 'category4',
+            type: 'category',
+            value: 50,
+            category: $this->cat3->id,
+            maxusage: 2
+        );
+        generator::create_coupon_record(
+            code: 'category5',
+            type: 'category',
+            value: 100,
+            category: $this->cat3->id,
+            maxusage: 5,
+            maxperuser: 2
+        );
+        generator::create_coupon_record(
+            code: 'category6',
+            type: 'category',
+            value: 70,
+            category: $this->cat3->id,
+            validfrom: $notav
+        );
+        generator::create_coupon_record(
+            code: 'category7',
+            type: 'category',
+            value: 50,
+            category: $this->cat3->id,
+            validto: $expired
+        );
 
-        foreach ($records as $record) {
-            $DB->insert_record('enrol_wallet_coupons', $record, false);
-        }
+        $fixeddiscount = coupons::type_to_string(coupons::FIXEDDISCOUNT);
+        // Fixed discount value coupons.
+        generator::create_coupon_record(code: 'fixeddiscount1', type: $fixeddiscount, value: 50);
+        generator::create_coupon_record(code: 'fixeddiscount2', type: $fixeddiscount, value: 100, maxusage: 2);
+        generator::create_coupon_record(code: 'fixeddiscount3', type: $fixeddiscount, value: 70, maxusage: 5, maxperuser: 2);
+        generator::create_coupon_record(code: 'fixeddiscount4', type: $fixeddiscount, value: 70, validfrom: $notav);
+        generator::create_coupon_record(code: 'fixeddiscount5', type: $fixeddiscount, value: 50, validto: $expired);
+        // For certain category.
+        generator::create_coupon_record(code: 'fixeddiscount6', type: $fixeddiscount, value: 50, category: $this->cat4->id);
+        // For certain course.
+        generator::create_coupon_record(code: 'fixeddiscount7', type: $fixeddiscount, value: 50, courses: [$this->c1->id]);
+        // High value.
+        generator::create_coupon_record(code: 'fixeddiscount8', type: $fixeddiscount, value: 200);
     }
 
     /**
      * We will use this frequently, so we can shorten the arguments.
-     * @param int|array $value
+     * @param int|array|null $value
      */
     private function set_config($value): void {
-        if (is_array($value)) {
+        if (\is_array($value)) {
             $value = implode(',', $value);
         }
 

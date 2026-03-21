@@ -14,30 +14,30 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace enrol_wallet;
+namespace enrol_wallet\external;
 
 use core_external\external_api;
 use enrol_wallet\external\enrol as enrol_wallet_external;
 use enrol_wallet\local\config;
-use externallib_advanced_testcase;
+use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\transactions;
+use externallib_advanced_testcase;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/webservice/tests/helpers.php');
 
 /**
- * wallet enrol external PHPunit tests
+ * wallet enrol external PHPunit tests.
  *
  * @package   enrol_wallet
  * @copyright 2023 Mohammad Farouk
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @runTestsInSeparateProcesses
  */
-final class externallib_test extends externallib_advanced_testcase {
-
+final class enrol_test extends externallib_advanced_testcase {
     /**
-     * Test get_instance_info
+     * Test get_instance_info.
      * @covers ::get_instance_info()
      */
     public function test_get_instance_info(): void {
@@ -54,22 +54,22 @@ final class externallib_test extends externallib_advanced_testcase {
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
 
-        $coursedata = new \stdClass();
+        $coursedata          = new \stdClass();
         $coursedata->visible = 0;
-        $course = $this->getDataGenerator()->create_course($coursedata);
+        $course              = $this->getDataGenerator()->create_course($coursedata);
 
         // Add enrolment methods for course.
-        $instanceid1 = $walletplugin->add_instance($course, ['status' => ENROL_INSTANCE_ENABLED,
-                                                                'name' => 'Test instance 1',
+        $instanceid1 = $walletplugin->add_instance($course, ['status'        => ENROL_INSTANCE_ENABLED,
+                                                                'name'       => 'Test instance 1',
                                                                 'customint6' => 1,
-                                                                'cost' => 50,
-                                                                'roleid' => $studentrole->id,
+                                                                'cost'       => 50,
+                                                                'roleid'     => $studentrole->id,
                                                             ]);
-        $instanceid2 = $walletplugin->add_instance($course, ['status' => ENROL_INSTANCE_DISABLED,
+        $instanceid2 = $walletplugin->add_instance($course, ['status'        => ENROL_INSTANCE_DISABLED,
                                                                 'customint6' => 1,
-                                                                'cost' => 100,
-                                                                'name' => 'Test instance 2',
-                                                                'roleid' => $studentrole->id,
+                                                                'cost'       => 100,
+                                                                'name'       => 'Test instance 2',
+                                                                'roleid'     => $studentrole->id,
                                                             ]);
 
         $enrolmentmethods = $DB->get_records('enrol', ['courseid' => $course->id, 'status' => ENROL_INSTANCE_ENABLED]);
@@ -99,6 +99,7 @@ final class externallib_test extends externallib_advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
         transactions::payment_topup(60, $user->id);
         $this->setUser($user);
+
         try {
             enrol_wallet_external::get_instance_info($instanceid1);
         } catch (\moodle_exception $e) {
@@ -121,7 +122,7 @@ final class externallib_test extends externallib_advanced_testcase {
     }
 
     /**
-     * Test enrol_user
+     * Test enrol_user.
      * @covers ::enrol_user()
      */
     public function test_enrol_user(): void {
@@ -139,24 +140,24 @@ final class externallib_test extends externallib_advanced_testcase {
 
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
-        $user1 = $this->getDataGenerator()->create_user();
+        $user1   = $this->getDataGenerator()->create_user();
         transactions::payment_topup(100, $user1->id);
 
         $context1 = \context_course::instance($course1->id);
         $context2 = \context_course::instance($course2->id);
 
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
-        $instance1id = $walletplugin->add_instance($course1, ['status' => ENROL_INSTANCE_ENABLED,
-                                                                'name' => 'Test instance 1',
+        $instance1id = $walletplugin->add_instance($course1, ['status'       => ENROL_INSTANCE_ENABLED,
+                                                                'name'       => 'Test instance 1',
                                                                 'customint6' => 1,
-                                                                'cost' => 50,
-                                                                'roleid' => $studentrole->id,
+                                                                'cost'       => 50,
+                                                                'roleid'     => $studentrole->id,
                                                             ]);
-        $instance2id = $walletplugin->add_instance($course2, ['status' => ENROL_INSTANCE_DISABLED,
+        $instance2id = $walletplugin->add_instance($course2, ['status'       => ENROL_INSTANCE_DISABLED,
                                                                 'customint6' => 1,
-                                                                'name' => 'Test instance 2',
-                                                                'cost' => 200,
-                                                                'roleid' => $studentrole->id,
+                                                                'name'       => 'Test instance 2',
+                                                                'cost'       => 200,
+                                                                'roleid'     => $studentrole->id,
                                                             ]);
         $instance1 = $DB->get_record('enrol', ['id' => $instance1id], '*', MUST_EXIST);
         $instance2 = $DB->get_record('enrol', ['id' => $instance2id], '*', MUST_EXIST);
@@ -176,6 +177,7 @@ final class externallib_test extends externallib_advanced_testcase {
         // Try instance not enabled.
         try {
             enrol_wallet_external::enrol_user($course2->id);
+            $this->assertTrue(false); // Should not reached.
         } catch (\moodle_exception $e) {
             $this->assertEquals('canntenrol', $e->errorcode);
         }
@@ -193,5 +195,59 @@ final class externallib_test extends externallib_advanced_testcase {
         // Make sure no balance deducted.
         $balance = transactions::get_user_balance($user1->id);
         $this->assertEquals(50, $balance);
+    }
+
+    /**
+     * Test enrol_user with no instance specified.
+     * @covers ::enrol_user()
+     */
+    public function test_enrol_user_no_instance(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+
+        $user   = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+
+        // Give user enough balance.
+        $op = new balance_op($user->id);
+        $op->credit(100);
+
+        $this->setUser($user);
+
+        // Call external function without instance ID.
+        $result = \enrol_wallet\external\enrol::enrol_user($course->id, 0);
+        $result = external_api::clean_returnvalue(\enrol_wallet\external\enrol::enrol_user_returns(), $result);
+
+        // Should return status.
+        $this->assertIsArray($result);
+    }
+
+    /**
+     * Test enrol_user with insufficient balance.
+     * @covers ::enrol_user()
+     */
+    public function test_enrol_user_insufficient_balance(): void {
+        global $DB;
+
+        $this->resetAfterTest(true);
+
+        $user   = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+
+        $instance             = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance->customint6 = 1;
+        $instance->cost       = 100;
+        $DB->update_record('enrol', $instance);
+
+        // User has no balance.
+        $this->setUser($user);
+
+        // Call external function.
+        $result = \enrol_wallet\external\enrol::enrol_user($course->id, $instance->id);
+        $result = external_api::clean_returnvalue(\enrol_wallet\external\enrol::enrol_user_returns(), $result);
+
+        // Should return error status.
+        $this->assertIsArray($result);
     }
 }

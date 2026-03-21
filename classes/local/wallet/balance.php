@@ -23,8 +23,7 @@ use enrol_wallet\wordpress;
 use enrol_wallet\local\entities\section;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\entities\cm;
-
-use cache;
+use stdClass;
 
 /**
  * Class balance
@@ -98,40 +97,30 @@ class balance {
      * @param int $userid
      * @param int|object $category the category id.
      */
-    public function __construct($userid = 0, $category = 0) {
+    public function __construct(int $userid = 0, int|object $category = 0) {
         global $COURSE, $USER;
 
         $config = config::make();
         $source = $config->walletsource;
-        if ($source === false) {
+        if (\in_array($source, [null, false], true)) {
             $source = self::MOODLE;
         }
 
         $this->source = $source;
 
-        if (!empty($userid)) {
-            $this->userid = $userid;
-        } else {
-            $this->userid = $USER->id;
-        }
+        $this->userid = match(true) {
+            !empty($userid) => $userid,
+            default         => $USER->id,
+        };
 
         $this->catenabled = (bool)$config->catbalance && ($this->source == self::MOODLE);
-        if ($this->catenabled) {
-            if (empty($category)) {
-                $category = $COURSE->category ?? 0;
-            }
 
-            if (is_object($category)) {
-                $this->catid = $category->id;
-            } else if ($category > 0) {
-                $this->catid = $category;
-            } else {
-                $this->catid = 0;
-            }
-
-        } else {
-            $this->catid = 0;
-        }
+        $this->catid = $this->catenabled ? match(true) {
+            empty($category) && !empty($COURSE->category) => $COURSE->category,
+            \is_object($category)                         => $category->id,
+            is_number($category) && $category > 0         => $category,
+            default                                       => 0
+        } : 0;
 
         $this->set_balance_details();
 
@@ -142,7 +131,7 @@ class balance {
      * Get the user id at which this balance util belongs to.
      * @return int
      */
-    public function get_user_id() {
+    public function get_user_id(): int {
         return $this->userid;
     }
 
@@ -157,7 +146,7 @@ class balance {
      * Get the category id at which this balance util belongs to.
      * @return int
      */
-    public function get_catid() {
+    public function get_catid(): int {
         return $this->catid ?? 0;
     }
     /**
@@ -250,7 +239,7 @@ class balance {
      * Get the record for the table enrol_wallet_balance
      * @return \stdClass
      */
-    private function get_record() {
+    private function get_record(): stdClass {
         global $DB;
         $userid = $this->userid;
 
@@ -301,7 +290,7 @@ class balance {
      * in the database
      * @return string
      */
-    private function format_cat_balance() {
+    private function format_cat_balance(): string {
         $catbalance = [];
         foreach ($this->details->catbalance as $id => $obj) {
             $catbalance[$id] = $obj->get_object();
@@ -460,7 +449,7 @@ class balance {
      * this includes the sum of balance in this category, parents and main balance.
      * @return float
      */
-    public function get_valid_balance() {
+    public function get_valid_balance(): float {
         $this->check();
         if (!$this->catenabled) {
             return $this->get_total_balance();
@@ -520,7 +509,7 @@ class balance {
      * @param int $catid
      * @return float
      */
-    public function get_cat_balance($catid) {
+    public function get_cat_balance($catid): float {
         $this->check();
         if (!isset($this->details->catbalance[$catid])) {
             return 0;
@@ -536,7 +525,7 @@ class balance {
      * @param int $userid 0 means the current user.
      * @return static
      */
-    public static function create_from_instance($instance, $userid = 0) {
+    public static function create_from_instance($instance, $userid = 0): static {
         $util = new instance($instance, $userid);
         $category = $util->get_course_category();
         return new static($userid, $category);
@@ -549,7 +538,7 @@ class balance {
      * @param int $userid 0 means the current user.
      * @return static
      */
-    public static function create_from_cm($cm, $userid = 0) {
+    public static function create_from_cm($cm, $userid = 0): static {
         $util = new cm($cm, $userid);
         $category = $util->get_course_category();
         return new static($userid, $category);
@@ -562,7 +551,7 @@ class balance {
      * @param int $userid 0 means the current user.
      * @return static
      */
-    public static function create_from_section($section, $userid = 0) {
+    public static function create_from_section($section, $userid = 0): static {
         $util = new section($section, $userid);
         $category = $util->get_course_category();
         return new static($userid, $category);

@@ -16,9 +16,11 @@
 
 namespace enrol_wallet\local\coupons;
 
+use core_text;
 use enrol_wallet\local\utils\timedate;
 use progress_trace;
 use null_progress_trace;
+use stdClass;
 
 /**
  * Class generator
@@ -65,7 +67,9 @@ class generator {
             $charset .= self::NUMBERS_CHARSET;
         }
 
-        $count = strlen($charset);
+        $charset = self::remove_like_characters($charset);
+
+        $count = core_text::strlen($charset);
 
         while ($length--) {
             $randomcoupon .= $charset[mt_rand(0, $count - 1)];
@@ -74,6 +78,74 @@ class generator {
         return $randomcoupon;
     }
 
+    /**
+     * Remove like letters and numbers as it may be look alike in some
+     * fonts.
+     * @param string $charset
+     * @return string
+     */
+    protected static function remove_like_characters(string $charset): string {
+        // Remove 1 l I if two existed together.
+        $r = (int)(strstr($charset, '1') !== false)
+           + (int)(strstr($charset, 'l') !== false)
+           + (int)(strstr($charset, 'I') !== false);
+        if ($r > 1) {
+            $charset = str_replace(['1', 'l', 'I'], '', $charset);
+        }
+
+        // Remove O and 0.
+        $r = (int)(strstr($charset, 'O') !== false)
+           + (int)(strstr($charset, '0') !== false);
+        if ($r > 1) {
+            $charset = str_replace(['0', 'O'], '', $charset);
+        }
+
+        return $charset;
+    }
+    /**
+     * Generate a single coupon from the data given.
+     * used for phpunit testing.
+     * @param string $code
+     * @param int $maxusage
+     * @param int $maxperuser
+     * @param float $value
+     * @param string $type
+     * @param int $category
+     * @param array $courses
+     * @param int $validfrom
+     * @param int $validto
+     * @return object
+     */
+    public static function create_coupon_record(string $code = '',
+                                        int $maxusage = 0,
+                                        int $maxperuser = 0,
+                                        float $value = 0,
+                                        string $type = 'fixed',
+                                        int $category = 0,
+                                        array $courses = [],
+                                        int $validfrom = 0,
+                                        int $validto = 0): stdClass {
+        global $DB;
+        $record = (object)[
+            'type'        => $type,
+            'value'       => $value,
+            'category'    => $category,
+            'courses'     => implode(',', $courses),
+            'maxusage'    => $maxusage,
+            'maxperuser'  => $maxperuser,
+            'validfrom'   => $validfrom,
+            'validto'     => $validto,
+            'timecreated' => timedate::time(),
+        ];
+        if (!empty($code)) {
+            $record->code = $code;
+        } else {
+            $record->code = self::generate_random_coupon(10, ['upper' => true, 'lower' => true, 'digits' => true]);
+        }
+
+        $record->id = $DB->insert_record('enrol_wallet_coupons', $record);
+        return $record;
+    }
     /**
      * Generating coupons.
      *
@@ -123,8 +195,8 @@ class generator {
             $digits = $options->digits;
 
             $lastprogress = 0;
-            while (count($ids) < $number) {
-                $progress = round(count($ids) / $number * 100);
+            while (\count($ids) < $number) {
+                $progress = round(\count($ids) / $number * 100);
                 if ($progress > $lastprogress + 5) {
                     $trace->output('Generating coupons... ' . $progress . '%');
                     $lastprogress = $progress;

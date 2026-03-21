@@ -21,10 +21,10 @@ use core\output\renderable;
 use core\output\renderer_base;
 use core\url;
 use core_user;
+use enrol_wallet\hook\extend_topup_options;
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\form\applycoupon_form;
-use enrol_wallet\local\discounts\discount_rules;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\payment;
@@ -260,15 +260,15 @@ class topup_options implements templatable, renderable {
         if (!$this->display) {
             return ['display' => false];
         }
+        $hook = new extend_topup_options($this->user, $output);
+        $hook->add_options($this->get_bundles());
+        $hook->add_options($this->get_topup_form());
+        $hook->add_options($this->get_coupon_topup());
+        $hook->add_options($this->get_teller_men($output));
 
-        $options = [];
-        $options[] = $this->get_bundles();
-        $options[] = $this->get_topup_form();
-        $options[] = $this->get_coupon_topup();
-        $options[] = $this->get_vc_credit_form();
-        $options[] = $this->get_teller_men($output);
+        \core\di::get(\core\hook\manager::class)->dispatch($hook);
 
-        $options = array_values(array_filter($options));
+        $options = $hook->get_options();
 
         $this->display = !empty($options);
 

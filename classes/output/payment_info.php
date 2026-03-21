@@ -27,6 +27,7 @@ use core\context;
 use enrol_wallet\local\config;
 use enrol_wallet\local\utils\payment;
 use enrol_wallet\local\utils\timedate;
+use enrol_wallet\payment\item;
 use renderable;
 use stdClass;
 use templatable;
@@ -154,21 +155,12 @@ class payment_info implements renderable, templatable {
             return ['nocost' => '<p>'.get_string('nocost', 'enrol_wallet').'</p>'];
         }
 
-        $payrecord = [
-            'cost'        => $cost,
-            'currency'    => $this->currency,
-            'userid'      => $USER->id,
-            'instanceid'  => $this->instanceid,
-        ];
-        if (!$id = $DB->get_field('enrol_wallet_items', 'id', $payrecord, IGNORE_MULTIPLE)) {
-            $payrecord['timecreated'] = timedate::time();
-            $id = $DB->insert_record('enrol_wallet_items', $payrecord);
-        }
+        $item = item::create_item($cost, $this->currency, null, $this->instanceid);
 
         $data = [
             'isguestuser' => isguestuser() || !isloggedin(),
             'cost'        => payment_helper::get_cost_as_string($cost, $this->currency),
-            'itemid'      => $id,
+            'itemid'      => $item->get('id'),
             'description' => get_string('purchasedescription', 'enrol_wallet',
                                     format_string($this->course->fullname, true, ['context' => $this->context])),
             'successurl'  => service_provider::get_success_url('wallet', $this->instanceid)->out(false),
@@ -179,6 +171,7 @@ class payment_info implements renderable, templatable {
         } else {
             $data['balance'] = false;
         }
+
         return $data;
     }
 }

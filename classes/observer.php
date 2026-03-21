@@ -24,6 +24,7 @@
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
+use enrol_wallet\local\referral\hold;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance_op;
@@ -223,13 +224,13 @@ class observer {
         }
 
         $plugins = explode(',', $config->referral_plugins);
-        if (empty($plugins) || !in_array($enrolmethod, $plugins, true)) {
+        if (empty($plugins) || !\in_array($enrolmethod, $plugins, true)) {
             return;
         }
 
         $referred = \core_user::get_user($userid, 'username,firstname');
 
-        $hold = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $referred->username]);
+        $hold = hold::get_by_referred($referred->username);
 
         if (empty($hold) || !empty($hold->released)) {
             return;
@@ -247,10 +248,9 @@ class observer {
         $op->credit($hold->amount, $op::C_REFERRAL, $userid, $refdesc, false);
 
         // Updating the hold_gift record.
-        $hold->timemodified = timedate::time();
         $hold->released = 1;
         $hold->courseid = $courseid;
-        $DB->update_record('enrol_wallet_hold_gift', $hold);
+        $hold->update();
     }
 
     /**
@@ -299,7 +299,7 @@ class observer {
         $params['action'] = 'login';
 
         // Using the observer to set redirect page so the operation done on foreground client side.
-        $SESSION->wantsurl = actions::WP_LOGIN->out();
+        $SESSION->wantsurl = actions::WP_LOGIN->out($params);
     }
 
     /**

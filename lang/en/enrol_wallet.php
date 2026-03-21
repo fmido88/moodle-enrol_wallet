@@ -22,9 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 $string['MWC'] = 'Wallet Coins';
-
 
 $string['addbundle'] = 'Add bundle';
 $string['addbundle_help'] = 'Add a quick top up value associated with this conditional discount rule.';
@@ -55,10 +53,10 @@ $string['awardssite_help'] = 'Enable the ability for the course creator to set a
 $string['awardvalue'] = 'Award value';
 $string['awardvalue_help'] = 'How much did the student get for each one grade above the condition?';
 
-
 $string['balance'] = 'Balance';
 $string['balance_after'] = 'Balance after';
 $string['balance_before'] = 'Balance before';
+$string['balance_reset_desc'] = 'Reset the balance of the user to zero.';
 $string['borrow'] = 'Borrowing balance';
 $string['borrow_desc'] = 'Enable and set condition to make trusted users able to get enrolled in courses without having sufficient balance, their balance become negative and they had to recharge the wallet to pay for it later.';
 $string['borrow_enable'] = 'Enable borrowing';
@@ -80,7 +78,6 @@ $string['bundle_value'] = 'Quick top up value';
 $string['bundle_value_error'] = 'bundle value should be greater than or equals the condition';
 $string['bundle_value_help'] = 'This value must be greater than or equal to the condition. Also make sure this is the value before discount.';
 $string['bundlevalidin'] = 'valid to be used in';
-
 
 $string['cachedef_balance'] = 'This is store the user\'s balance details';
 $string['cachedef_coupon'] = 'Storing the coupon data';
@@ -172,7 +169,8 @@ $string['coupon_applyfilter'] = 'Apply filter';
 $string['coupon_applyfixed'] = 'Coupon code applied successfully with value of {$a->value} {$a->currency}.';
 $string['coupon_applynocourse'] = 'Error during applying coupon, course not found.';
 $string['coupon_applynothere'] = 'Cannot apply this type of coupons here.';
-$string['coupon_applynothere_category'] = 'Cannot apply category coupon here as it is meant to be used in specific category only.';
+$string['coupon_applynothere_category'] = 'Cannot apply this coupon here as it is meant to be used in category: {$a} only.';
+$string['coupon_applynothere_course'] = 'Cannot apply this coupons here. It can be applied for one of these courses only:<br> {$a}';
 $string['coupon_applynothere_discount'] = 'Cannot apply discount coupon here.';
 $string['coupon_applynothere_enrol'] = 'Cannot apply enrolment coupons here. Please use it on the course page';
 $string['coupon_cat_notsufficient'] = 'The value of this coupon is not sufficient to be used in this course.';
@@ -232,6 +230,7 @@ $string['couponarea_cm'] = 'For course module access';
 $string['couponarea_enrol'] = 'For enrollment';
 $string['couponarea_section'] = 'For course section access';
 $string['couponarea_topup'] = 'For topup the wallet';
+$string['couponareanotexist'] = 'Coupon area {$a-&gt;area} with id {$a-&gt;id} not exist or deleted.';
 $string['couponid'] = 'id';
 $string['coupons'] = 'Coupons';
 $string['coupons_category_error'] = 'Must select category';
@@ -292,7 +291,6 @@ The following placeholders may be included in the message:
 * User email {$a->email}
 * User fullname {$a->fullname}';
 
-
 $string['datefrom'] = 'From';
 $string['dateto'] = 'To';
 $string['debit'] = 'Debit';
@@ -318,7 +316,6 @@ $string['discounts'] = 'Discounts';
 $string['discountscopouns'] = 'Discounts & Coupons';
 $string['discountscopouns_desc'] = 'Choose if you want to apply percentage discounts to users using a custom profile field. <br>
 Also, applying coupons for this plugin.';
-
 
 $string['editselectedusers'] = 'Edit selected user enrollments';
 $string['enablerefund'] = 'Enable refund';
@@ -368,15 +365,15 @@ $string['expirymessageenrollerbody'] = 'Enrolment in the course \'{$a->course}\'
 To extend their enrolment, go to {$a->extendurl}';
 $string['expirymessageenrollersubject'] = 'Enrolment expiry notification';
 
-
 $string['filter_coupons'] = 'Filter Coupons';
 $string['filter_transaction'] = 'Filter Transactions';
 $string['fixedcoupondisabled'] = 'Fixed value coupons are disabled in this website.';
+$string['fixeddiscountcoupon'] = 'Fixed Discount Coupon';
+$string['fixeddiscoupondisabled'] = 'Fixed discount coupons are disaple in this site.';
 $string['fixedvaluecoupon'] = 'Fixed value coupon';
 $string['freecourses'] = 'Free courses in this website';
 $string['frontpageoffers'] = 'Offers page link in frontpage navigation';
 $string['frontpageoffers_desc'] = 'Add a link to offers page in front page navigation';
-
 
 $string['generalenrolsetting'] = 'General plugin settings.';
 $string['giftdesc'] = 'New user with id {$a->userid} at {$a->time} had a gift of amount {$a->amount} on his wallet.';
@@ -384,16 +381,18 @@ $string['giftvalue'] = 'New users gift value';
 $string['giftvalue_help'] = 'The value which will be added to new users wallet.';
 $string['greaterthan'] = 'Greater than';
 $string['greaterthanorequal'] = 'Greater than or equal';
-
+$string['guestnousecoupons'] = 'Guests cannot use coupons';
 
 $string['insufficient_balance'] = 'You have insufficient wallet balance to enroll. {$a->cost_before} {$a->currency} are required, your balance is {$a->user_balance} {$a->currency}.';
 $string['insufficient_balance_discount'] = 'You have insufficient wallet balance to enroll. <del>{$a->cost_before} {$a->currency}</del> {$a->cost_after} {$a->currency} are required, your balance is {$a->user_balance} {$a->currency}.';
 $string['insufficientbalance'] = 'Sorry, you have insufficient balance for this operation. You need {$a->amount} while you have only {$a->balance}';
 $string['invalidcoupon_operation'] = 'Invalid coupon operation, This coupon type may be disabled is this site or invalid configuration.';
+$string['invalidcouponcategory'] = 'Invalid coupon record. No category specified or not enabled';
+$string['invalidcouponcourse'] = 'Invalid coupon record. No course or category specified';
+$string['invalidfixeddiscountcoupon'] = 'Invalid use of a fixed discount coupon';
 $string['invalidpercentcoupon'] = 'Invalid value for percentage coupon, cannot exceed 100.';
 $string['invalidvalue'] = 'Invalid Value, please enter a valid value.';
 $string['inyourwallet'] = 'in your wallet.';
-
 
 $string['longtimenosee'] = 'Un-enrol inactive after';
 $string['longtimenosee_help'] = 'If users haven\'t accessed a course for a long time, then they are automatically unenrolled. This parameter specifies that time limit.';
@@ -402,7 +401,6 @@ $string['lowbalancenotification'] = 'Low Wallet Balance<br>Your balance is {$a}.
 $string['lowbalancenotify'] = 'Low Balance Notification.';
 $string['lowbalancenotify_desc'] = 'If enabled and the user\'s balance is smaller than or equal the condition, a warning notifications appears in every page in the website.';
 $string['lowerletters'] = 'lower case';
-
 
 $string['mainbalance'] = 'Main balance: ';
 $string['manualrefundboxlabel'] = 'Check the following box to display the top up options.';
@@ -436,7 +434,6 @@ $string['mywallet'] = 'My Wallet';
 $string['mywalletnav'] = 'Show my wallet in nav bar.';
 $string['mywalletnav_desc'] = 'Set to true to display my wallet (link to wallet page) in primary navigation bar.';
 
-
 $string['negativebalance'] = 'Balance cannot be negative. Trying to deduct {$a->amount} from a balance of {$a->before}';
 $string['newenrols'] = 'Allow new enrollments';
 $string['newenrols_desc'] = 'Allow users to enrol into new courses by default.';
@@ -460,7 +457,7 @@ $string['noticecondition'] = 'Min balance for notify';
 $string['noticecondition_desc'] = 'If the balance is smaller than or equal to this condition, a notification appears to the user.';
 $string['notrefund'] = ' Nonrefundable (extra): ';
 
-
+$string['offer_type_not_available'] = 'The selected offer type {$a} is not available.';
 $string['offers'] = 'Offers';
 $string['offers_ce_desc'] = '{$a->discount}% DISCOUNT if you are enrolled in {$a->condition} of these courses:<br> {$a->courses}';
 $string['offers_course_enrol_based'] = 'Another course enrolment based offer';
@@ -495,7 +492,6 @@ $string['offers_time_desc'] = '{$a->discount}% DISCOUNT if you purchase this cou
 $string['offersnav'] = 'Add offers in primary navigation';
 $string['offersnav_desc'] = 'or you can click here to add offers to primary navigation';
 $string['othercourserestriction'] = 'Unable to enrol yourself in this course unless you are enrolled in at least {$a->number} of these courses {$a->courses}';
-
 
 $string['paymentaccount'] = 'Payment account';
 $string['paymentaccount_help'] = 'choose the payment account in which you will accept payments';
@@ -556,7 +552,6 @@ $string['profile_field_map'] = 'Profile field mapping';
 $string['profile_field_map_help'] = 'Select the profile field that stores information about discounts in user profiles.';
 $string['purchase'] = 'Purchase';
 $string['purchasedescription'] = 'Enrolment in course {$a}';
-
 
 $string['randomcoupons'] = 'Random Coupons';
 $string['receiver'] = 'Receiver';
@@ -626,12 +621,12 @@ $string['repurchase_firstdis'] = 'First repurchase discount';
 $string['repurchase_firstdis_desc'] = 'If specified, the users will get discount by this percentage value (0 - 100) for the second time they purchase the course.';
 $string['repurchase_seconddis'] = 'Second repurchase discount';
 $string['repurchase_seconddis_desc'] = 'For the third time the users purchase (second repurchase) the course, they will get discounted by this value. (should be between 0 - 100)';
+$string['reset'] = 'Reset';
 $string['restrictionenabled'] = 'Enable restriction.';
 $string['restrictionenabled_desc'] = 'If disabled, not restrictions will be checked.';
 $string['restrictions'] = 'Enrolment restrictions';
 $string['restrictions_desc'] = 'Like sections and course modules, now Wallet Enrollments offers an option to add restriction to the enrolment, not all availability plugins tested well, so you can choose from here what works fine and please report any error so we can improve this functionality.';
 $string['role'] = 'Default assigned role';
-
 
 $string['selectuser'] = 'Please select a user.';
 $string['sendcoursewelcomemessage'] = 'Send course welcome message';
@@ -653,7 +648,6 @@ $string['status_desc'] = 'Enable wallet enrolment method in new courses.';
 $string['status_help'] = 'If enabled together with \'Allow new enrollments\' disabled, only users who enrolled previously can access the course. If disabled, this enrolment method is effectively disabled, since all existing enrollments are suspended and new users cannot enrol.';
 $string['submit_coupongenerator'] = 'Create';
 $string['syncenrolmentstask'] = 'Wallet enrolment synchronize enrollments task';
-
 
 $string['tellermen'] = 'Teller men to be displayed';
 $string['tellermen_desc'] = 'Users selected here will be public displayed on the topping up options to let users know who to ask to charging their wallets. (Select none will display nothing)';
@@ -677,6 +671,7 @@ $string['topupvalue_help'] = 'Value to topup your wallet by using payment method
 $string['total'] = 'Total';
 $string['transaction_perpage'] = 'Transactions per page';
 $string['transaction_type'] = 'Type of transaction';
+$string['transactionreason'] = 'Reason';
 $string['transactions'] = 'Wallet transactions';
 $string['transactions_details'] = 'More transaction details';
 $string['transfer'] = 'Transfer balance to other user';
@@ -697,7 +692,6 @@ $string['transformation_credit_desc'] = 'Using enrol_credit? If you want, you ca
 $string['transformation_credit_done'] = 'Transformation and migration has been queued successfully and will run shortly, please check after a while for credits and enrollments.';
 $string['transformation_credit_title'] = 'Transformation of credit to wallet';
 $string['turn_not_refundable_task'] = 'Turn balance to non-refundable.';
-
 
 $string['unenrol'] = 'Un-enrol user';
 $string['unenrollimitafter'] = 'Cannot un-enrol self after:';
@@ -750,11 +744,9 @@ $string['usedto'] = 'Used To';
 $string['usernotexist'] = 'User not exist';
 $string['usernotfound'] = 'No user found with this email {$a}';
 
-
 $string['validfrom'] = 'Valid from';
 $string['validto'] = 'Valid to';
 $string['value'] = 'Amount per transaction';
-
 
 $string['wallet'] = 'Wallet';
 $string['wallet:bulkedit'] = 'Bulk edit the enrollments in all courses';
@@ -793,6 +785,5 @@ $string['wordpressloggins_desc'] = 'If enabled users are logged in and out from 
 $string['wordpressurl'] = 'Wordpress url';
 $string['wordpressurl_desc'] = 'Wordpress url with woo-wallet (tera wallet) plugin on it';
 $string['wrongemailformat'] = 'Wrong Email format.';
-
 
 $string['youhavebalance'] = 'You have balance:';

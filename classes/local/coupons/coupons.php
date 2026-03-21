@@ -24,10 +24,15 @@
 
 namespace enrol_wallet\local\coupons;
 
+use context;
 use context_module;
+use core\exception\coding_exception;
+use core_course_category;
+use core_course_list_element;
 use enrol_wallet\local\config;
 use enrol_wallet\local\entities\category as cat_helper;
 use enrol_wallet\local\entities\cm;
+use enrol_wallet\local\entities\entity;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\entities\section;
 use enrol_wallet\local\utils\timedate;
@@ -35,11 +40,6 @@ use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet_plugin as wallet;
 use stdClass;
-
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 
 /**
  * Class to handle coupons operations.
@@ -76,14 +76,20 @@ class coupons {
     public const ALL = 5;
 
     /**
+     * Fixed discount type coupons.
+     */
+    public const FIXEDDISCOUNT = 6;
+
+    /**
      * Coupons types
      * keys according to how it stored in database.
      */
     public const TYPES = [
-        'fixed'    => self::FIXED,
-        'percent'  => self::DISCOUNT,
-        'category' => self::CATEGORY,
-        'enrol'    => self::ENROL,
+        'fixed'         => self::FIXED,
+        'percent'       => self::DISCOUNT,
+        'category'      => self::CATEGORY,
+        'enrol'         => self::ENROL,
+        'fixeddis'      => self::FIXEDDISCOUNT,
     ];
 
     /**
@@ -120,21 +126,21 @@ class coupons {
      * The coupon code.
      * @var string
      */
-    public string $code;
+    protected string $code;
 
     /**
      * The coupon type
      * Should be integer as one of the types constant but it starts initialization
      * as string first as the type saved in database table.
-     * @var string|int
+     * @var int
      */
-    public string|int|null $type = null;
+    protected int $type = 0;
 
     /**
      * The coupon value.
      * @var float
      */
-    public float $value = 0;
+    protected float $value = 0;
 
     /**
      * The user id.
@@ -146,7 +152,7 @@ class coupons {
      * Is the coupon valid?
      * @var bool
      */
-    public bool $valid;
+    protected bool $valid;
 
     /**
      * The area code at which the coupon applied.
@@ -183,7 +189,7 @@ class coupons {
      * Error string.
      * @var string
      */
-    public string $error;
+    protected string $error;
 
     /**
      * The coupons source.
@@ -198,19 +204,10 @@ class coupons {
      */
     public function __construct($code, $userid = 0) {
         global $USER;
-        $this->source = config::instance()->walletsource;
+        $this->source = config::make()->walletsource;
         $this->code   = $code;
+        $this->userid = empty($userid) ? $USER->id : $userid;
 
-        if (empty($userid)) {
-            $this->userid = $USER->id;
-        } else {
-            $this->userid = $userid;
-        }
-
-        if (isguestuser($this->userid) || empty($this->userid)) {
-            $this->valid = false;
-            $this->error = 'Please login to use coupons';
-        }
         $this->set_coupon_data($code, $this->userid);
     }
 
@@ -230,11 +227,11 @@ class coupons {
             return;
         }
 
-        if ($this->source == balance::WP) {
+        if ($this->source === balance::WP) {
             $wordpress  = new \enrol_wallet\wordpress();
             $coupondata = $wordpress->get_coupon($coupon, $userid, 0, false);
 
-            if (!is_array($coupondata)) {
+            if (!\is_array($coupondata)) {
                 // Error from wordpress.
                 $this->valid = false;
                 $this->error = $coupondata;
@@ -269,38 +266,66 @@ class coupons {
         }
 
         foreach ($coupondata as $key => $value) {
+            if ($key == 'type') {
+                $value = self::type_to_int($value);
+            }
             $this->$key = $value;
         }
-        $this->type = self::TYPES[$this->type];
+    }
 
-        if ($this->type !== self::DISCOUNT) {
-            self::unset_session_coupon();
+    /**
+     * Get the coupons data.
+     * @return array
+     */
+    public function get_data() {
+        if ($this->has_error()) {
+            return [];
         }
-        $this->check_enabled();
-        $this->validated_record();
+        $data = [
+            'code'     => $this->code,
+            'value'    => $this->value,
+            'type'     => $this->get_type(),
+            'category' => $this->category ?? null,
+            'courses'  => $this->courses ?? null,
+        ];
+
+        if (!empty($this->record)) {
+            foreach ($this->record as $key => $value) {
+                if (!isset($data[$key])) {
+                    $data[$key] = $value;
+                }
+            }
+        }
+
+        return $data;
     }
 
     /**
      * Check if the current coupon type is enabled.
+     * @return bool
      */
-    protected function check_enabled() {
+    protected function check_enabled(): bool {
         // First check if this type is enabled in the website.
         if (!$this->is_enabled_type()) {
-            $identifier  = $this->get_key($this->type, self::TYPES) . 'coupondisabled';
+            $identifier  = $this->get_type() . 'coupondisabled';
             $this->error = get_string($identifier, 'enrol_wallet');
             $this->valid = false;
+
+            return false;
         }
+
+        return true;
     }
 
     /**
      * Check if the current type is enabled or not.
      * @return bool
      */
-    public function is_enabled_type() {
+    public function is_enabled_type(): bool {
         $type    = $this->type;
         $enabled = $this->get_enabled();
 
-        if (in_array(self::NOCOUPONS, $enabled)) {
+        if (\in_array(self::NOCOUPONS, $enabled)) {
             return false;
         }
 
@@ -308,16 +333,16 @@ class coupons {
             $type = self::TYPES[$type];
         }
 
-        if (in_array(self::ALL, $enabled) && $this->source == balance::MOODLE) {
+        if (\in_array(self::ALL, $enabled) && $this->source === balance::MOODLE) {
             return true;
         }
         $wpcoupons = [self::FIXED, self::DISCOUNT];
 
-        if ($this->source == balance::WP && !in_array($type, $wpcoupons)) {
+        if ($this->source === balance::WP && !\in_array($type, $wpcoupons)) {
             return false;
         }
 
-        if (in_array($type, $enabled)) {
+        if (\in_array($type, $enabled)) {
             return true;
         }
 
@@ -355,12 +380,12 @@ class coupons {
         }
         $enabled = explode(',', $config);
 
-        if (in_array(self::NOCOUPONS, $enabled)) {
+        if (\in_array(self::NOCOUPONS, $enabled)) {
             return $options;
         }
         $names = self::get_coupons_options();
 
-        if (in_array(self::ALL, $enabled)) {
+        if (\in_array(self::ALL, $enabled)) {
             return $names;
         }
 
@@ -372,16 +397,122 @@ class coupons {
     }
 
     /**
+     * Check if coupons is enabled on this site or not.
+     * @return bool
+     */
+    public static function is_enabled() {
+        if (\in_array(self::NOCOUPONS, self::get_enabled())) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the coupon is used for discount only.
+     * @return bool
+     */
+    public function is_discount_coupon(): bool {
+        return \in_array($this->type, [self::DISCOUNT, self::FIXEDDISCOUNT]);
+    }
+
+    /**
+     * Check if the coupon type could be used to topup the wallet.
+     * @return bool
+     */
+    public function is_topup_coupon(): bool {
+        return \in_array($this->type, [self::FIXED, self::CATEGORY]);
+    }
+
+    /**
+     * Check if the coupon could be used directly for enrolment.
+     * @return bool
+     */
+    public function is_enrol_coupon(): bool {
+        $true = \in_array($this->type, [self::ENROL, self::FIXED]);
+        $true = $true || ($this->type === self::CATEGORY && $this->is_same_category());
+
+        return $true;
+    }
+
+    /**
+     * Set the area of applying the coupon and its id.
+     * @param int $area the area code {@see self::AREAS}
+     * @param int $id   The instance, cm or section id.
+     */
+    protected function set_area($area, $id = 0) {
+        $this->area   = $area;
+        $this->areaid = $id;
+    }
+
+    /**
      * Return all options of coupons types and their names to be used in plugin settings.
      * @return array
      */
     public static function get_coupons_options() {
         return [
-            self::FIXED    => get_string('fixedvaluecoupon', 'enrol_wallet'),
-            self::DISCOUNT => get_string('percentdiscountcoupon', 'enrol_wallet'),
-            self::CATEGORY => get_string('categorycoupon', 'enrol_wallet'),
-            self::ENROL    => get_string('enrolcoupon', 'enrol_wallet'),
+            self::FIXED         => get_string('fixedvaluecoupon', 'enrol_wallet'),
+            self::DISCOUNT      => get_string('percentdiscountcoupon', 'enrol_wallet'),
+            self::CATEGORY      => get_string('categorycoupon', 'enrol_wallet'),
+            self::ENROL         => get_string('enrolcoupon', 'enrol_wallet'),
+            self::FIXEDDISCOUNT => get_string('fixeddiscountcoupon', 'enrol_wallet'),
         ];
+    }
+
+    /**
+     * Get the coupon type in form of one of the integer type constants.
+     * @param string|int $type
+     */
+    public static function type_to_int(string|int $type): ?int {
+        if (\is_string($type) && \array_key_exists($type, self::TYPES)) {
+            return self::TYPES[$type];
+        }
+
+        if (\is_number($type) && \in_array($type, self::TYPES)) {
+            return $type;
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the coupon type in form of one of the string type constants.
+     * @param  string|int  $type
+     * @return string|null
+     */
+    public static function type_to_string(string|int $type): ?string {
+        if (\is_number($type)) {
+            return self::get_key($type, self::TYPES);
+        }
+
+        if (\is_string($type) && \array_key_exists($type, self::TYPES)) {
+            return $type;
+        }
+
+        return null;
+    }
+
+    /**
+     * Return the type as string as to be stored in database.
+     * @param bool $string
+     * @return string|int
+     */
+    public function get_type($string = true): string|int {
+        if ($string) {
+            return self::get_key($this->type, self::TYPES);
+        }
+        return $this->type;
+    }
+
+    /**
+     * Get the key of a value in the given array.
+     * @param mixed $value
+     * @param array $array
+     */
+    protected static function get_key($value, $array) {
+        $fliped = array_flip($array);
+
+        return $fliped[$value] ?? null;
     }
 
     /**
@@ -389,11 +520,7 @@ class coupons {
      * @param int|string $type
      */
     public static function get_type_visible_name($type) {
-        if (in_array($type, self::TYPES) || array_key_exists($type, self::TYPES)) {
-            if (!is_number($type)) {
-                $type = self::TYPES[$type];
-            }
-
+        if ($type = self::type_to_int($type)) {
             return self::get_coupons_options()[$type];
         }
 
@@ -411,7 +538,7 @@ class coupons {
             $area  = $areas[(int)$area] ?? '';
         }
 
-        if (empty($area) || !array_key_exists($area, self::AREAS)) {
+        if (empty($area) || !\array_key_exists($area, self::AREAS)) {
             debugging("The coupon area $area not exists.");
 
             return '';
@@ -449,42 +576,29 @@ class coupons {
                 return $section->get_name();
 
             default:
-                debugging("Invalid coupon area $area passed to get_used_area_name()");
-
-                return '';
+                throw new coding_exception("Invalid coupon area $area passed to get_used_area_name()");
         }
-    }
-
-    /**
-     * Check if coupons is enabled on this site or not.
-     * @return bool
-     */
-    public static function is_enabled() {
-        if (in_array(self::NOCOUPONS, self::get_enabled())) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
      * Validate the coupon's record (time usage, number of usage ...).
+     * @return bool
      */
-    protected function validated_record() {
+    protected function validate_record(): bool {
         if (!empty($this->error)) {
             $this->valid = false;
 
-            return;
+            return false;
         }
 
-        if (!is_numeric($this->value) || ($this->value <= 0 && $this->type != self::ENROL)) {
+        if (!is_numeric($this->value) || ($this->value <= 0 && $this->type !== self::ENROL)) {
             $this->valid = false;
             $this->error = get_string('coupon_invalidrecord', 'enrol_wallet');
 
-            return;
+            return false;
         }
 
-        if ($this->source == balance::MOODLE) {
+        if ($this->source === balance::MOODLE) {
             // If it is on moodle website.
             $couponrecord = $this->record;
 
@@ -493,7 +607,7 @@ class coupons {
                 $this->valid = false;
                 $this->error = get_string('coupon_exceedusage', 'enrol_wallet');
 
-                return;
+                return false;
             }
 
             // Make sure that this coupon is within validation time (0 mean any time).
@@ -502,14 +616,14 @@ class coupons {
                 $date        = userdate($couponrecord->validfrom);
                 $this->error = get_string('coupon_notvalidyet', 'enrol_wallet', $date);
 
-                return;
+                return false;
             }
 
             if (!empty($couponrecord->validto) && $couponrecord->validto < timedate::time()) {
                 $this->valid = false;
                 $this->error = get_string('coupon_expired', 'enrol_wallet');
 
-                return;
+                return false;
             }
 
             // Check the maximum limit per each user has not been reached.
@@ -517,34 +631,34 @@ class coupons {
                 $this->valid = false;
                 $this->error = get_string('coupon_exceedusage', 'enrol_wallet');
 
-                return;
+                return false;
             }
         }
-    }
 
-    /**
-     * Set the area of applying the coupon and its id.
-     * @param int $area the area code {@see self::AREAS}
-     * @param int $id   The instance, cm or section id.
-     */
-    protected function set_area($area, $id = 0) {
-        $this->area   = $area;
-        $this->areaid = $id;
+        return true;
     }
 
     /**
      * Check if the area is valid for applying this coupon.
      * MUST CALL ::set_area before using this method.
-     * @return void
+     * @return bool
      */
-    protected function validate_area() {
-        if (!isset($this->type) || !empty($this->error) || empty($this->area)) {
+    protected function validate_area(): bool {
+        if (!$this->check_area_record_exists()) {
+            $area        = $this->get_area_visible_name($this->area);
+            $this->error = get_string('couponareanotexist', 'enrol_wallet', ['area' => $area, 'id' => $this->areaid]);
+            $this->valid = false;
+
+            return false;
+        }
+
+        if (empty($this->type) || !empty($this->error) || empty($this->area)) {
             $this->valid = false;
         } else {
             switch ($this->area) {
                 // For toping up the wallet.
                 case self::AREA_TOPUP:
-                    if (!in_array($this->type, [self::FIXED, self::CATEGORY])) {
+                    if (!\in_array($this->type, [self::FIXED, self::CATEGORY])) {
                         $this->valid = false;
                     }
                     break;
@@ -568,25 +682,163 @@ class coupons {
             }
         }
 
-        if (!$this->valid) {
+        if ($this->valid === false) {
             $this->error = get_string('coupon_applynothere', 'enrol_wallet');
+
+            return false;
         }
+
+        return true;
+    }
+
+    /**
+     * Check if the area to be validated is the same stored here.
+     * @param  ?int             $area
+     * @param  int              $areaid
+     * @throws coding_exception
+     * @return bool
+     */
+    protected function is_same_area_input(?int $area, int $areaid): bool {
+        global $DB;
+
+        if ($area === null) {
+            return true;
+        }
+
+        if (!\in_array($area, self::AREAS)) {
+            throw new coding_exception("Non recognized coupon apply area $area");
+        }
+
+        if ($area === $this->area && $area === self::AREA_TOPUP || $areaid === $this->areaid) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if the record exists for this area (example: the enrol instance).
+     * @return bool
+     */
+    protected function check_area_record_exists() {
+        global $DB;
+        $conditions = ['id' => $this->areaid];
+
+        return match ($this->area) {
+            self::AREA_TOPUP   => true,
+            self::AREA_ENROL   => $DB->record_exists('enrol', $conditions),
+            self::AREA_CM      => $DB->record_exists('course_modules', $conditions),
+            self::AREA_SECTION => $DB->record_exists('course_sections', $conditions),
+            default            => false,
+        };
+    }
+
+    /**
+     * Validate if the coupon is restricted to be used in certain category or courses.
+     * @return bool
+     */
+    private function validate_area_category_and_courses() {
+        if (!empty($this->category) && !$this->is_same_category()) {
+            $category    = core_course_category::get($this->category, IGNORE_MISSING, false, $this->userid);
+            $this->error = get_string('coupon_applynothere_category', 'enrol_wallet', $category->get_nested_name());
+            $this->valid = false;
+
+            return false;
+        }
+
+        if (!empty($this->courses) && ($entity = $this->get_entity_helper_class())) {
+            if (!\in_array($entity->get_course_id(), $this->courses)) {
+                $available = '';
+
+                foreach ($this->courses as $courseid) {
+                    try {
+                        $course = @get_course($courseid);
+                    } catch (\Throwable $e) {
+                        $course = null;
+                    }
+
+                    if ($course) {
+                        $course     = new core_course_list_element($course);
+                        $coursename = $course->get_formatted_fullname();
+                        $available .= '- ' . $coursename . '<br>';
+                    }
+                }
+
+                $this->valid = false;
+                $this->error = get_string('coupon_applynothere_course', 'enrol_wallet', $available);
+
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the applying area is within the same category in property category.
+     * @param  cat_helper $catop
+     * @return bool
+     */
+    private function is_same_category($catop = null): bool {
+        if (empty($catop)) {
+            $catid = $this->category;
+            $catop = new cat_helper($catid);
+        }
+
+        return match($this->area) {
+            self::AREA_ENROL   => $catop->is_child_instance($this->areaid),
+            self::AREA_CM      => $catop->is_child_cm($this->areaid),
+            self::AREA_SECTION => $catop->is_child_section($this->areaid),
+            self::AREA_TOPUP   => true,
+            default            => false,
+        };
+    }
+
+    /**
+     * Validate a percentage discount coupon.
+     * @return bool
+     */
+    private function validate_discount_coupon(): bool {
+        if ($this->value > 100 || $this->value <= 0) {
+            $this->error = get_string('invalidpercentcoupon', 'enrol_wallet');
+            $this->valid = false;
+
+            return false;
+        }
+
+        return $this->validate_area_category_and_courses();
+    }
+
+    /**
+     * Validate a fixed discount coupon.
+     * @return bool
+     */
+    private function validate_fixed_discount_coupon(): bool {
+        if ($this->value <= 0) {
+            $this->error = get_string('invalidfixeddiscountcoupon', 'enrol_wallet');
+            $this->valid = false;
+
+            return false;
+        }
+
+        return $this->validate_area_category_and_courses();
     }
 
     /**
      * Check if the category coupon if valid to be used here.
+     * @return bool
      */
-    private function validate_category_coupon() {
+    private function validate_category_coupon(): bool {
         if (!$this->type == self::CATEGORY) {
-            return;
+            return false;
         }
-        $catenabled = (bool)config::instance()->catbalance && $this->source == balance::MOODLE;
+        $catenabled = (bool)config::instance()->catbalance && $this->source === balance::MOODLE;
 
         if (empty($this->category) || (!$catenabled && $this->area == self::AREA_TOPUP)) {
-            $this->error = get_string('coupon_applynothere_category', 'enrol_wallet');
+            $this->error = get_string('invalidcouponcategory', 'enrol_wallet');
             $this->valid = false;
 
-            return;
+            return false;
         }
         $catid = $this->category;
         $catop = new cat_helper($catid);
@@ -596,84 +848,58 @@ class coupons {
             $this->valid  = false;
             $categoryname = $catop->get_category()->get_nested_name(false);
             $this->error  = get_string('coupon_categoryfail', 'enrol_wallet', $categoryname);
-        }
-    }
 
-    /**
-     * Check if the applying area is within the same category in property category.
-     * @param  cat_helper $catop
-     * @return bool
-     */
-    private function is_same_category($catop = null) {
-        if (empty($catop)) {
-            $catid = $this->category;
-            $catop = new cat_helper($catid);
+            return false;
         }
 
-        switch ($this->area) {
-            case self::AREA_ENROL:
-                return $catop->is_child_instance($this->areaid);
-
-            case self::AREA_CM:
-                return $catop->is_child_cm($this->areaid);
-
-            case self::AREA_SECTION:
-                return $catop->is_child_section($this->areaid);
-
-            case self::AREA_TOPUP:
-                return true;
-
-            default:
-                return false;
-        }
+        return true;
     }
 
     /**
      * Validate enrol coupon.
+     * @return bool
      */
-    private function validate_enrol_coupon() {
-        if (empty($this->courses)) {
-            $this->valid = false;
-            $this->error = get_string('coupon_applynothere_enrol', 'enrol_wallet');
-
-            return;
-        }
+    private function validate_enrol_coupon(): bool {
         global $DB;
 
-        $courseid = $DB->get_field('enrol', 'courseid', ['id' => $this->areaid, 'enrol' => 'wallet'], MUST_EXIST);
-
-        if (!in_array($courseid, $this->courses)) {
-            $available = '';
-
-            foreach ($this->courses as $courseid) {
-                $coursename = get_course($courseid)->fullname;
-                $available .= '- ' . $coursename . '<br>';
-            }
+        if (empty($this->courses) && empty($this->category)) {
             $this->valid = false;
-            $this->error = get_string('coupon_enrolerror', 'enrol_wallet', $available);
+            $this->error = get_string('invalidcouponcourse', 'enrol_wallet');
+
+            return false;
         }
+
+        return $this->validate_area_category_and_courses();
     }
 
     /**
      * Check if the coupon is valid to be used in this area.
      * returns string on error and true if valid.
-     * @param  int         $area   code, value, type, courses, category
+     * @param  ?int        $area   code, value, type, courses, category
      * @param  int         $areaid the area at which the coupon applied (instanceid, cmid, sectionid)
      * @return bool|string
      */
-    public function validate_coupon($area = null, $areaid = 0) {
-        if (!empty($this->error)) {
+    public function validate_coupon(?int $area = null, int $areaid = 0): true|string {
+        if ($this->is_same_area_input($area, $areaid) && !empty($this->error)) {
+            return $this->error;
+        }
+        unset($this->error);
+
+        if (isguestuser($this->userid) || empty($this->userid)) {
+            $this->valid = false;
+            $this->error = get_string('guestnousecoupons', 'enrol_wallet');
+
             return $this->error;
         }
 
         $this->valid = true;
 
-        if (is_string($area) && !is_number($area)) {
-            $area = self::AREAS[$area];
+        if ($area !== null) {
+            $this->set_area($area, $areaid);
         }
 
-        if (!is_null($area) && in_array($area, self::AREAS)) {
-            $this->set_area($area, $areaid);
+        if (!$this->validate_record() || !$this->check_enabled()) {
+            return $this->error;
         }
 
         $this->validate_area();
@@ -684,13 +910,7 @@ class coupons {
 
         switch ($this->type) {
             case self::DISCOUNT:
-                if ($this->value > 100) {
-                    $this->error = get_string('invalidpercentcoupon', 'enrol_wallet');
-                    $this->valid = false;
-                } else if (!empty($this->category) && !$this->is_same_category()) {
-                    $this->error = get_string('coupon_applynothere_discount', 'enrol_wallet');
-                    $this->valid = false;
-                }
+                $this->validate_discount_coupon();
                 break;
 
             case self::FIXED:
@@ -704,6 +924,10 @@ class coupons {
                 $this->validate_enrol_coupon();
                 break;
 
+            case self::FIXEDDISCOUNT:
+                $this->validate_fixed_discount_coupon();
+                break;
+
             default:
         }
 
@@ -715,81 +939,60 @@ class coupons {
     }
 
     /**
-     * Check if the coupons is passed primary validation of not the
-     * area set yet.
-     * @return bool
-     */
-    public function is_valid_for_now() {
-        return empty($this->error) && (is_null($this->valid) || $this->valid === true);
-    }
-
-    /**
      * Return the value of this coupon.
      * @return float
      */
-    public function get_value() {
+    public function get_value(): float {
         return $this->value;
     }
 
     /**
-     * Return the type as string.
+     * Get the code of the coupon.
      * @return string
      */
-    public function get_type() {
-        return $this->get_key($this->type, self::TYPES);
-    }
-
-    /**
-     * Get the key of a value in the given array.
-     * @param mixed $value
-     * @param array $array
-     */
-    protected function get_key($value, $array) {
-        $fliped = array_flip($array);
-
-        return $fliped[$value] ?? null;
+    public function get_code(): string {
+        return $this->code;
     }
 
     /**
      * Return the error due to validation process.
      * false if there is none and the coupon is valid.
-     * @return bool|string
+     * @return bool
      */
-    public function has_error() {
-        if (!empty($this->error)) {
-            return $this->error;
-        }
-
-        return !$this->valid;
+    public function has_error(): bool {
+        $this->check_validation();
+        return !empty($this->error) || !$this->valid;
     }
 
     /**
-     * Get the coupons data.
-     * @return array
+     * Return the last error when applying the coupon if
+     * any existed.
+     * @return string|null
      */
-    public function get_data() {
-        if (!$this->valid) {
-            return [];
-        }
-        $data = [
-            'code'     => $this->code,
-            'value'    => $this->value,
-            'type'     => $this->get_type(),
-            'category' => $this->category ?? null,
-            'courses'  => $this->courses ?? null,
-        ];
-
-        if (!empty($this->record)) {
-            foreach ($this->record as $key => $value) {
-                if (!isset($data[$key])) {
-                    $data[$key] = $value;
-                }
-            }
-        }
-
-        return $data;
+    public function get_error(): ?string {
+        $this->check_validation();
+        return $this->error ?? null;
     }
 
+
+    /**
+     * Is the coupon valid or not?
+     * @return bool
+     */
+    public function is_valid(): bool {
+        $this->check_validation();
+        return $this->valid;
+    }
+    /**
+     * Check if the coupon has been validated or not.
+     * @throws coding_exception
+     * @return void
+     */
+    protected function check_validation(): void {
+        if (!isset($this->valid)) {
+            throw new coding_exception('Cannot check error or valid status before call ::validate_coupoun()');
+        }
+    }
     /**
      * Apply the coupon for enrolment or topping up the wallet.
      *
@@ -812,7 +1015,7 @@ class coupons {
         $op   = $this->get_balance_operation();
 
         // Check if we applying the coupon (fixed value coupons) charge the wallet directly.
-        if (in_array($this->type, [self::FIXED, self::CATEGORY])) {
+        if (\in_array($this->type, [self::FIXED, self::CATEGORY])) {
             $desc = get_string('topupcoupon_desc', 'enrol_wallet', $this->code);
             $op->credit($this->value, $op::C_COUPON, $this->record->id, $desc, false);
             $used = true;
@@ -822,78 +1025,35 @@ class coupons {
         // If true and the value >= the fee, save time for student and enrol directly.
         if ($this->area == self::AREA_ENROL) {
             $balance  = $op->get_valid_balance();
-            $util     = new instance($this->areaid, $this->userid);
-            $instance = $util->get_instance();
+            $instance = new instance($this->areaid, $this->userid);
             $user     = \core_user::get_user($this->userid);
-            $fee      = (float)$util->get_cost_after_discount();
+            $fee      = (float)$instance->get_cost_after_discount();
             $plugin   = new wallet();
 
-            if ($this->type == self::ENROL
-                || (
-                    ($this->type == self::CATEGORY || $this->type == self::FIXED)
-                    && $balance >= $fee
-                )
-            ) {
+            if ($this->type === self::ENROL || $this->is_topup_coupon() && $balance >= $fee) {
                 $used = true;
+
                 // Check if the coupon value is grater than or equal the fee.
                 // Enrol the user in the course.
-                $context = \context_course::instance($instance->courseid);
-
-                if (!is_enrolled($context, $user, '', true)) {
-                    if ($this->type == self::ENROL) {
-                        $charge = false;
-                    } else {
-                        $charge = true;
-                    }
+                if (!$instance->is_enrolled(true)) {
+                    $charge = ($this->type !== self::ENROL);
                     $plugin->enrol_self($instance, $user, $charge);
-                } else if ($this->type == self::ENROL) {
+                } else if ($this->type === self::ENROL) {
                     $used = false;
                 }
-            } else if ($this->type == self::CATEGORY && $balance < $fee) {
+            } else if ($this->type === self::CATEGORY && $balance < $fee) {
                 $error = get_string('coupon_cat_notsufficient', 'enrol_wallet');
                 \core\notification::error($error);
             }
         }
 
-        if ($this->type == self::DISCOUNT) {
+        if ($this->is_discount_coupon()) {
             self::set_session_coupon($this->code);
         }
 
         if ($used) {
             // Mark the coupon as used.
             $this->mark_coupon_used();
-        }
-    }
-
-    /**
-     * Get balance operation object according to the given area.
-     *
-     * @return balance_op
-     */
-    private function get_balance_operation() {
-        if ($this->type === self::FIXED) {
-            return new balance_op($this->userid);
-        }
-
-        switch ($this->area) {
-            case self::AREA_ENROL:
-                return balance_op::create_from_instance($this->areaid, $this->userid);
-
-            case self::AREA_TOPUP:
-                if ($this->type == self::CATEGORY) {
-                    return new balance_op($this->userid, $this->category);
-                }
-
-                return new balance_op($this->userid);
-
-            case self::AREA_CM:
-                return balance_op::create_from_cm($this->areaid, $this->userid);
-
-            case self::AREA_SECTION:
-                return balance_op::create_from_section($this->areaid, $this->userid);
-
-            default:
-                return new balance_op($this->userid);
         }
     }
 
@@ -912,6 +1072,10 @@ class coupons {
         if (!isset($this->valid)) {
             throw new \coding_exception('cannot be called before validation');
         } else if (!$this->valid) {
+            if (PHPUNIT_TEST) {
+                debugging('Cannot mark an invalid coupon as used.');
+            }
+
             return;
         }
         // Unset the session coupon to make sure not used again.
@@ -923,8 +1087,8 @@ class coupons {
             $instanceid = 0;
         }
 
-        if ($this->source == balance::WP) {
-            if ($this->type == self::DISCOUNT) {
+        if ($this->source === balance::WP) {
+            if ($this->type === self::DISCOUNT) {
                 // It is already included in the wordpress plugin code.
                 $wordpress = new \enrol_wallet\wordpress();
                 $wordpress->get_coupon($this->code, $this->userid, $instanceid, true);
@@ -941,7 +1105,7 @@ class coupons {
         // Logging the usage in the coupon usage table.
         $logdata = [
             'code'       => $this->code,
-            'type'       => $this->get_key($this->type, self::TYPES),
+            'type'       => $this->get_type(),
             'value'      => $this->value,
             'userid'     => $this->userid,
             'area'       => $this->area,
@@ -959,17 +1123,9 @@ class coupons {
             'other'         => $logdata,
         ];
 
-        if (!empty($instanceid)) {
-            $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'id' => $instanceid], '*', MUST_EXIST);
-
-            $eventdata['courseid'] = $instance->courseid;
-            $eventdata['context']  = \context_course::instance($instance->courseid);
-        } else if ($this->area == self::AREA_CM) {
-            $eventdata['context'] = \context_module::instance($this->areaid);
-        } else if ($this->area == self::AREA_SECTION) {
-            $courseid              = $DB->get_field('course_sections', 'course', ['id' => $this->areaid]);
-            $eventdata['courseid'] = $courseid;
-            $eventdata['context']  = \context_course::instance($courseid);
+        if ($entity = $this->get_entity_helper_class()) {
+            $eventdata['context']  = $entity->get_context();
+            $eventdata['courseid'] = $entity->get_course_id();
         } else {
             $eventdata['context'] = \context_system::instance();
         }
@@ -982,11 +1138,12 @@ class coupons {
      * Get the total number that the coupon has been used.
      * @return int|null
      */
-    public function get_total_use() {
-        if (!$this->source == balance::MOODLE) {
+    public function get_total_use(): ?int {
+        global $DB;
+
+        if (!$this->source === balance::MOODLE) {
             return null;
         }
-        global $DB;
         $count = $DB->count_records('enrol_wallet_coupons_usage', ['code' => $this->code]);
 
         return max($count, $this->record->usetimes);
@@ -997,7 +1154,7 @@ class coupons {
      * @return int|null
      */
     public function get_user_use() {
-        if (!$this->source == balance::MOODLE) {
+        if (!$this->source === balance::MOODLE) {
             return null;
         }
         global $DB;
@@ -1007,6 +1164,63 @@ class coupons {
         ]);
 
         return $count;
+    }
+
+    /**
+     * Get balance operation object according to the given area.
+     *
+     * @return balance_op
+     */
+    private function get_balance_operation() {
+        if ($this->type === self::FIXED) {
+            return new balance_op($this->userid);
+        }
+
+        switch ($this->area) {
+            case self::AREA_ENROL:
+                return balance_op::create_from_instance($this->areaid, $this->userid);
+
+            case self::AREA_TOPUP:
+                if ($this->type === self::CATEGORY) {
+                    return new balance_op($this->userid, $this->category);
+                }
+
+                return new balance_op($this->userid);
+
+            case self::AREA_CM:
+                return balance_op::create_from_cm($this->areaid, $this->userid);
+
+            case self::AREA_SECTION:
+                return balance_op::create_from_section($this->areaid, $this->userid);
+
+            default:
+                return new balance_op($this->userid);
+        }
+    }
+
+    /**
+     * Get the entity class helper for the current area.
+     * @return cm|instance|section|null
+     */
+    public function get_entity_helper_class(): ?entity {
+        return match ($this->area) {
+            self::AREA_TOPUP   => null,
+            self::AREA_ENROL   => new instance($this->areaid, $this->userid),
+            self::AREA_CM      => new cm($this->areaid, $this->userid),
+            self::AREA_SECTION => new section($this->areaid, $this->userid),
+        };
+    }
+
+    /**
+     * Get the context for the current area.
+     * @return context
+     */
+    public function get_area_context(): context {
+        if ($entity = $this->get_entity_helper_class()) {
+            return $entity->get_context();
+        }
+
+        return \context_system::instance();
     }
 
     /**
@@ -1056,8 +1270,11 @@ class coupons {
      * Check if there is coupon code in session or as a parameter.
      * @return string|null return the coupon code, or null if not found.
      */
-    public static function check_discount_coupon() {
-        $coupon = !empty($_SESSION['coupon']) ? clean_param($_SESSION['coupon'], PARAM_ALPHANUM) : null;
+    public static function check_discount_coupon(): ?string {
+        global $SESSION;
+        $coupon = !empty($SESSION->enrol_wallet_coupon)
+                  ? clean_param($SESSION->enrol_wallet_coupon, PARAM_ALPHANUM)
+                  : null;
 
         return $coupon;
     }
@@ -1067,7 +1284,8 @@ class coupons {
      * @param string $code the coupon code.
      */
     public static function set_session_coupon($code) {
-        $_SESSION['coupon'] = $code;
+        global $SESSION;
+        $SESSION->enrol_wallet_coupon = $code;
         instance::reset_static_cache();
     }
 
@@ -1075,8 +1293,8 @@ class coupons {
      * Unset any session coupons.
      */
     public static function unset_session_coupon() {
-        $_SESSION['coupon'] = null;
-        unset($_SESSION['coupon']);
+        global $SESSION;
+        $SESSION->enrol_wallet_coupon = null;
         instance::reset_static_cache();
     }
 }

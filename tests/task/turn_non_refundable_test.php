@@ -21,7 +21,7 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace enrol_wallet;
+namespace enrol_wallet\task;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;

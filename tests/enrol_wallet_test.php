@@ -1142,7 +1142,8 @@ final class enrol_wallet_test extends \advanced_testcase {
         $instance2id = $walletplugin->add_default_instance($course);
         $instance2 = $walletplugin->get_instance_by_id($instance2id);
         $data2['cost'] = 100;
-        $walletplugin->update_instance($instance2, (object) $data2);
+
+        $walletplugin->update_instance($instance2, (object)$data2);
 
         $walletplugin = new enrol_wallet_plugin;
         // Sufficient balance for both.

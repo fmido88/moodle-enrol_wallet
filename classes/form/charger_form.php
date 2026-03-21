@@ -31,12 +31,12 @@ use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
-use enrol_wallet\local\utils\catoptions;
-use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\discounts\discount_rules;
+use enrol_wallet\local\utils\catoptions;
 use enrol_wallet\local\utils\form;
+use enrol_wallet\local\wallet\balance;
 
 /**
  * The form by which managers could charge others manually.
@@ -62,34 +62,42 @@ class charger_form extends \moodleform {
      * the name you gave the class extending moodleform. You should call your class something
      * like
      *
-     * @param mixed $action the action attribute for the form. If empty defaults to auto detect the
-     *              current url. If a moodle_url object then outputs params as hidden variables.
-     * @param mixed $customdata if your form defintion method needs access to data such as $course
-     *              $cm, etc. to construct the form definition then pass it in this array. You can
-     *              use globals for somethings.
-     * @param string $method if you set this to anything other than 'post' then _GET and _POST will
-     *               be merged and used as incoming data to the form.
-     * @param string $target target frame for form submission. You will rarely use this. Don't use
-     *               it if you don't need to as the target attribute is deprecated in xhtml strict.
-     * @param mixed $attributes you can pass a string of html attributes here or an array.
-     *               Special attribute 'data-random-ids' will randomise generated elements ids. This
-     *               is necessary when there are several forms on the same page.
-     *               Special attribute 'data-double-submit-protection' set to 'off' will turn off
-     *               double-submit protection JavaScript - this may be necessary if your form sends
-     *               downloadable files in response to a submit button, and can't call
-     *               \core_form\util::form_download_complete();
-     * @param bool $editable
-     * @param array $ajaxformdata Forms submitted via ajax, must pass their data here, instead of relying on _GET and _POST.
+     * @param mixed  $action       the action attribute for the form. If empty defaults to auto detect the
+     *                             current url. If a moodle_url object then outputs params as hidden variables.
+     * @param mixed  $customdata   if your form defintion method needs access to data such as $course
+     *                             $cm, etc. to construct the form definition then pass it in this array. You can
+     *                             use globals for somethings.
+     * @param string $method       if you set this to anything other than 'post' then _GET and _POST will
+     *                             be merged and used as incoming data to the form.
+     * @param string $target       target frame for form submission. You will rarely use this. Don't use
+     *                             it if you don't need to as the target attribute is deprecated in xhtml strict.
+     * @param mixed  $attributes   you can pass a string of html attributes here or an array.
+     *                             Special attribute 'data-random-ids' will randomise generated elements ids. This
+     *                             is necessary when there are several forms on the same page.
+     *                             Special attribute 'data-double-submit-protection' set to 'off' will turn off
+     *                             double-submit protection JavaScript - this may be necessary if your form sends
+     *                             downloadable files in response to a submit button, and can't call
+     *                             \core_form\util::form_download_complete();
+     * @param bool   $editable
+     * @param array  $ajaxformdata Forms submitted via ajax, must pass their data here, instead of relying on _GET and _POST.
      */
-    public function __construct($action = null, $customdata = null, $method = 'post', $target = '',
-                                $attributes = null, $editable = true, $ajaxformdata = null) {
+    public function __construct(
+        $action = null,
+        $customdata = null,
+        $method = 'post',
+        $target = '',
+        $attributes = null,
+        $editable = true,
+        $ajaxformdata = null
+    ) {
         if (empty($attributes)) {
             $attributes = ['id' => $this->get_form_id()];
         } else if (is_array($attributes)) {
             $attributes['id'] = $this->get_form_id();
         } else {
-            $attributes .= ' id="'.$this->get_form_id().'"';
+            $attributes .= ' id="' . $this->get_form_id() . '"';
         }
+
         return parent::__construct($action, $customdata, $method, $target, $attributes, $editable, $ajaxformdata);
     }
 
@@ -100,10 +108,10 @@ class charger_form extends \moodleform {
     protected function get_form_id() {
         if (isset($this->formid)) {
             return $this->formid;
-        } else {
-            $this->formid = $this->get_form_identifier() . '_' . random_string();
-            return $this->formid;
         }
+        $this->formid = $this->get_form_identifier() . '_' . random_string();
+
+        return $this->formid;
     }
 
     /**
@@ -111,21 +119,16 @@ class charger_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $CFG, $DB, $USER, $PAGE;
+        global $DB, $PAGE;
 
         $mform = $this->_form;
+        $hook = new \enrol_wallet\hook\before_charger_form_definition($mform, $this->_customdata);
+        \core\di::get(\core\hook\manager::class)->dispatch($hook);
         // Check the conditional discount.
-        $enabled = config::instance()->conditionaldiscount_apply;
-        if (!empty($enabled)) {
+        $cdenabled = config::instance()->conditionaldiscount_apply;
+
+        if (!empty($cdenabled)) {
             $i = discount_rules::add_discounts_to_form($mform);
-        }
-
-        if (file_exists($CFG->dirroot.'/blocks/vc/lib.php')
-            && !empty($this->_customdata['vc'])
-            && function_exists('block_vc_extend_credit_form')) {
-
-            require_once($CFG->dirroot.'/blocks/vc/lib.php');
-            block_vc_extend_credit_form($mform, $this->get_data());
         }
 
         $mform->addElement('header', 'main', get_string('chargingoptions', 'enrol_wallet'));
@@ -133,6 +136,7 @@ class charger_form extends \moodleform {
         $operations = [
             'credit'  => get_string('credit', 'enrol_wallet'),
             'debit'   => get_string('debit', 'enrol_wallet'),
+            'reset'   => get_string('reset', 'enrol_wallet'),
         ];
         $oplabel = get_string('chargingoperation', 'enrol_wallet');
         $mform->addElement('select', 'op', $oplabel, $operations);
@@ -141,11 +145,13 @@ class charger_form extends \moodleform {
         $mform->addElement('text', 'value', $valuetitle);
         $mform->setType('value', PARAM_FLOAT);
         $mform->hideIf('value', 'op', 'eq', 'balance');
+        $mform->hideIf('value', 'op', 'eq', 'reset');
 
         $balance = new balance();
+
         if ($balance->catenabled) {
             $categorytitle = get_string('category');
-            $catoptions = catoptions::get_all_categories_options();
+            $catoptions    = catoptions::get_all_categories_options();
             $mform->addElement('select', 'category', $categorytitle, $catoptions);
         } else {
             $mform->addElement('hidden', 'category');
@@ -156,23 +162,27 @@ class charger_form extends \moodleform {
         $mform->addElement('checkbox', 'neg', get_string('debitnegative', 'enrol_wallet'));
         $mform->hideIf('neg', 'op', 'neq', 'debit');
 
-        if (!empty($enabled)) {
+        if (!empty($cdenabled)) {
             // Empty div used by js to display the calculated final value.
-            $enter = get_string('entervalue', 'enrol_wallet');
+            $enter      = get_string('entervalue', 'enrol_wallet');
             $attributes = ['data-holder' => 'calculated-value', 'style' => 'font-weight: 700;'];
-            $html = \html_writer::div($enter, 'alert alert-warning', $attributes);
+            $html       = \html_writer::div($enter, 'alert alert-warning', $attributes);
             $mform->addElement('html', $html);
         }
 
         form::add_user_auto_complete_selection($mform, 'userlist', get_string('selectusers', 'enrol_manual'), 'charger-userlist');
 
-        $buttons = [];
+        $mform->addElement('text', 'reason', get_string('transactionreason', 'enrol_wallet'));
+        $mform->setType('reason', PARAM_TEXT);
+
+        $buttons   = [];
         $buttons[] = $mform->createElement('submit', 'submit', get_string('submit'));
         $buttons[] = $mform->createElement('button', 'displaybalance', get_string('showbalance', 'enrol_wallet'));
         $mform->addGroup($buttons);
         $PAGE->requires->js_call_amd('enrol_wallet/balance', 'init', ['formid' => $this->get_form_id()]);
 
         $mform->addElement('html', '<div data-purpose="balance-holder"></div>');
+
         if (!empty($i)) {
             // Add some js code to display the actual value to charge the wallet with.
             $args = ['formid' => $this->get_form_id(), 'formType' => 'charge'];
@@ -180,6 +190,7 @@ class charger_form extends \moodleform {
         }
 
         $errors = optional_param_array('errors', null, PARAM_RAW);
+
         if (!empty($errors)) {
             foreach ($errors as $element => $error) {
                 $mform->setElementError($element, $error);
@@ -194,11 +205,10 @@ class charger_form extends \moodleform {
      * If there are errors return array of errors ("fieldname"=>"error message"),
      * otherwise true if ok.
      * Server side rules do not work for uploaded files, implement serverside rules here if needed.
-     * @param array $data array of ("fieldname"=>value) of submitted data
+     * @param array $data  array of ("fieldname"=>value) of submitted data
      * @param array $files array of uploaded files "element_name"=>tmp_file_path
      */
     public function validation($data, $files) {
-
         global $DB;
         $errors = parent::validation($data, $files);
 
@@ -208,37 +218,37 @@ class charger_form extends \moodleform {
             }
 
             $op = $data['op'];
-            if (!in_array($op, ['credit', 'debit', 'balance'])) {
+
+            if (!\in_array($op, ['credit', 'debit', 'balance', 'reset'])) {
                 $errors['op'] = get_string('charger_invalid_operation', 'enrol_wallet');
+
                 return $errors;
             }
 
             $value  = $data['value'] ?? '';
-            $userid = $data['userlist'];
-            $catid = $data['category'] ?? 0;
+            $userid = $data['userlist'] ?? 0;
+            $catid  = $data['category'] ?? 0;
+
             // No value.
             if (empty($value) && ($op !== 'balance')) {
                 $errors['value'] = get_string('charger_novalue', 'enrol_wallet');
             }
 
             // No user.
-            if (empty($userid) || !$DB->record_exists('user', ['id' => $userid])) {
+            if (empty($errors['userlist']) && empty($userid) || !$DB->record_exists('user', ['id' => $userid])) {
                 $errors['userlist'] = get_string('charger_nouser', 'enrol_wallet');
             }
 
-            if (empty($data['neg'])) {
+            if (empty($data['neg']) && empty($errors)) {
                 $balance = new balance($userid, $catid);
-                $before = $balance->get_valid_balance();
+                $before  = $balance->get_valid_balance();
+
                 if ($op === 'debit' && $value > $before) {
                     // Cannot deduct more than the user's balance.
-                    $a = ['value' => $value, 'before' => $before];
+                    $a               = ['value' => $value, 'before' => $before];
                     $errors['value'] = get_string('charger_debit_err', 'enrol_wallet', $a);
                 }
             }
-
-        } else if (!empty($data['submitvc'])) {
-
-            return $errors;
         }
 
         return $errors;
@@ -246,11 +256,12 @@ class charger_form extends \moodleform {
 
     /**
      * Process the submission of the form.
-     * @param array|stdClass $data
+     * @param  array|stdClass $data
      * @return bool|null
      */
     public function process_form_submission($data = null) {
         global $USER, $DB;
+
         if (!$data) {
             $data = $this->get_data();
         }
@@ -260,33 +271,46 @@ class charger_form extends \moodleform {
         }
 
         $data = (array)$data;
-        $op = $data['op'] ?? '';
+        $op   = $data['op'] ?? '';
 
         if (!empty($op) && $op != 'result') {
-
             $value  = $data['value'] ?? '';
             $userid = $data['userlist'];
             $catid  = $data['category'] ?? 0;
+            $reason = $data['reason'] ?? '';
 
             $charger = $USER->id;
 
             $operations = new balance_op($userid, $catid);
-            $before = $operations->get_total_balance();
-            if ($op === 'credit') {
+            $before     = $operations->get_total_balance();
 
-                $desc = get_string('charger_credit_desc', 'enrol_wallet', fullname($USER));
-                // Process the transaction.
-                $operations->credit($value, $operations::USER, $charger, $desc);
-                $after = $operations->get_total_balance();
+            switch ($op) {
+                case 'reset':
+                    $operations->reset_balance();
+                    break;
 
-            } else if ($op === 'debit') {
-                $neg = $data['neg'] ?? optional_param('neg', false, PARAM_BOOL);
-                // Process the payment.
-                $operations->debit($value, $operations::USER, $charger, '', $neg);
-                $after = $operations->get_total_balance();
+                case 'credit':
+                    $desc = get_string('charger_credit_desc', 'enrol_wallet', fullname($USER));
 
+                    if (!empty($reason)) {
+                        $desc .= ": $reason";
+                    }
+
+                    // Process the transaction.
+                    $operations->credit($value, $operations::USER, $charger, $desc);
+                    break;
+
+                case 'debit':
+                    $neg = $data['neg'] ?? optional_param('neg', false, PARAM_BOOL);
+                    // Process the payment.
+                    $operations->debit($value, $operations::USER, $charger, $reason, $neg);
+                    break;
+
+                default:
+                    break;
             }
 
+            $after  = $operations->get_total_balance();
             $params = [
                 'before' => $before,
                 'after'  => ($op == 'balance') ? $before : $after,
@@ -302,7 +326,7 @@ class charger_form extends \moodleform {
 
     /**
      * Add notifications about charge result.
-     * @param array $params
+     * @param  array $params
      * @return bool
      */
     public function notify_result(array $params = []) {
@@ -310,30 +334,30 @@ class charger_form extends \moodleform {
             return false;
         }
 
-        $result = $params['result'] ?? optional_param('result', false, PARAM_TEXT);
-        $before = $params['before'] ?? optional_param('before', '', PARAM_FLOAT);
-        $after  = $params['after'] ?? optional_param('after', '', PARAM_FLOAT);
-        $userid = $params['userid'] ?? optional_param('userid', '', PARAM_INT);
-        $err    = $params['err'] ?? optional_param('error', '', PARAM_TEXT);
+        $result = $params['result'] ?? $this->optional_param('result', false, PARAM_TEXT);
+        $before = $params['before'] ?? $this->optional_param('before', '', PARAM_FLOAT);
+        $after  = $params['after'] ?? $this->optional_param('after', '', PARAM_FLOAT);
+        $userid = $params['userid'] ?? $this->optional_param('userid', '', PARAM_INT);
+        $err    = $params['err'] ?? $this->optional_param('error', '', PARAM_TEXT);
 
         $info = '';
-        if (!empty($err)) {
 
+        if (!empty($err)) {
             $info .= get_string('ch_result_error', 'enrol_wallet', $err);
             $type = 'error';
-
         } else {
-
-            $user = \core_user::get_user($userid);
-            $userfull = $user->firstname.' '.$user->lastname.' ('.$user->email.')';
+            $user     = \core_user::get_user($userid);
+            $userfull = $user->firstname . ' ' . $user->lastname . ' (' . $user->email . ')';
             // Display the result to the user.
             $info .= get_string('ch_result_before', 'enrol_wallet', $before);
             $type = 'success';
+
             if (!empty($result) && is_numeric($result)) {
                 $success = true;
             } else {
                 $success = false;
-                if (is_string($result)) {
+
+                if (\is_string($result)) {
                     $info .= $result;
                 }
             }
@@ -343,23 +367,21 @@ class charger_form extends \moodleform {
                 'after_before' => ($after - $before),
                 'before'       => $before,
             ];
-            if ($after !== $before) {
 
+            if ($after !== $before) {
                 if ($after !== '') {
                     $info .= get_string('ch_result_after', 'enrol_wallet', $after);
                 }
+
                 if ($after < 0) {
                     $info .= get_string('ch_result_negative', 'enrol_wallet');
                     $type = 'warning';
                 }
 
                 $info .= get_string('ch_result_info_charge', 'enrol_wallet', $a);
-
             } else {
-
                 $info .= get_string('ch_result_info_balance', 'enrol_wallet', $a);
                 $type = $success ? 'info' : 'error';
-
             }
         }
         // Display the results.

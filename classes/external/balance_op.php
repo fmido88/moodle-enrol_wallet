@@ -49,16 +49,16 @@ class balance_op extends external_api {
      * @return array
      */
     public static function get_balance_details($userid) {
-        global $PAGE;
+        global $PAGE, $USER;
 
         $params = self::validate_parameters(self::get_balance_details_parameters(), ['userid' => $userid]);
         $userid = $params['userid'];
 
         require_login();
         $context = \context_user::instance($userid);
-        $PAGE->set_context($context);
+        self::validate_context($context);
 
-        require_capability('enrol/wallet:viewotherbalance', $context);
+        $userid == $USER->id || require_capability('enrol/wallet:viewotherbalance', $context);
 
         $renderable = new wallet_balance($userid);
         $renderer = helper::get_wallet_renderer($PAGE);

@@ -25,53 +25,25 @@
 namespace enrol_wallet\local\entities;
 
 use core_course_list_element;
-use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
-use core_course_category;
+use stdClass;
 
 /**
  * Helper class for wallet enrolment instance
  * @package enrol_wallet
  */
-class section {
+class section extends entity {
     /**
      * course module record.
      * @var \stdClass
      */
-    public $section;
-    /**
-     * The cm id
-     * @var int
-     */
-    public $id;
-    /**
-     * The course which the instance belong to.
-     * @var int
-     */
-    public $courseid;
+    public stdClass $section;
 
     /**
      * The costs before discount.
      * @var array
      */
-    public $costs = [];
-    /**
-     * The cost after discount.
-     * @var float
-     */
-    public $costafter;
-
-    /**
-     * The coupon helper class object
-     * @var coupons
-     */
-    public $couponutil;
-
-    /**
-     * The id of the user.
-     * @var int
-     */
-    protected $userid;
+    public array $costs = [];
 
     /**
      * Create a new enrol wallet instance helper class.
@@ -81,23 +53,29 @@ class section {
      * @param int $userid the id of the user, 0 means the current user.
      */
     public function __construct($sectionid, $userid = 0) {
-        global $USER, $DB;
+        global $DB;
         $this->section = $DB->get_record('course_sections', ['id' => $sectionid]);
-        $this->id = $sectionid;
-        $this->courseid = $this->section->course;
-
-        if (empty($userid)) {
-            $this->userid = $USER->id;
-        } else {
-            $this->userid = $userid;
-        }
+        parent::__construct($this->section->course, $sectionid, $userid);
 
         if (!empty($this->section->availability)) {
             $conditions = json_decode($this->section->availability);
             $this->set_costs($conditions);
         }
     }
-
+    /**
+     * Get the course context that the section belongs to.
+     * @return bool|\core\context\course
+     */
+    public function get_context(): \context {
+        return \context_course::instance($this->courseid);
+    }
+    /**
+     * Return the coupon area.
+     * @return int
+     */
+    protected static function get_coupon_area(): int {
+        return coupons::AREA_SECTION;
+    }
     /**
      * Set all available costs for this cm, considering multiple conditions may be applied.
      * @param \stdClass $conditions the availability tree.
@@ -113,21 +91,10 @@ class section {
     }
 
     /**
-     * Get the course that the instance belongs to.
-     * @return \stdClass|null
-     */
-    public function get_course() {
-        if (!empty($this->courseid)) {
-            return get_course($this->courseid);
-        }
-        return null;
-    }
-
-    /**
      * Get the visible name of the section.
      * @return string
      */
-    public function get_name() {
+    public function get_name(): string {
         global $CFG;
 
         if (!empty($this->section->name)) {
@@ -142,88 +109,19 @@ class section {
 
         return "$sectionname ($coursename)";
     }
-    /**
-     * Get course category object at which the instance belongs to.
-     * @return core_course_category|null
-     */
-    public function get_course_category() {
-        $catid = $this->get_category_id();
-        if (!empty($catid)) {
-            core_course_category::get($catid);
-        }
-        return null;
-    }
-
-    /**
-     * Return only the id of the category.
-     * @return int
-     */
-    public function get_category_id() {
-        if ($course = $this->get_course()) {
-            return $course->category;
-        }
-        return 0;
-    }
 
     /**
      * Calculate percentage discount for a user from custom profile field and coupon code.
      * and then return the cost of the cm after discount.
-     * @param float $cost The cost passed in the availability_wallet process
+     * @param ?float $cost The cost passed in the availability_wallet process
      *                    We check this cost against all costs in availability tree
      * @return float|null
      */
-    public function get_cost_after_discount($cost) {
-        global $DB;
-        if (!in_array($cost, $this->costs)) {
+    public function get_cost_after_discount(?float $cost = null): ?float {
+        if (!\in_array($cost, $this->costs)) {
+            debugging("The cost passes to get_cost_after_discount() is not in the cost list.", DEBUG_DEVELOPER);
             return null;
         }
-
-        // Check if there is a discount coupon first.
-        if ($coupon = coupons::check_discount_coupon()) {
-            $couponutil = new coupons($coupon);
-            $this->couponutil = $couponutil;
-            $couponutil->validate_coupon(coupons::AREA_SECTION, $this->id);
-        }
-
-        $this->costafter = $cost;
-
-        if (!empty($coupon) && $couponutil->valid && $couponutil->type == coupons::DISCOUNT) {
-            $this->costafter = $cost * (1 - $couponutil->value / 100);
-        }
-
-        // Check if the discount according to custom profile field in enabled.
-        if (!$fieldid = config::make()->discount_field) {
-            return $this->costafter;
-        }
-        // Check the data in the discount field.
-        $data = $DB->get_field('user_info_data', 'data', ['userid' => $this->userid, 'fieldid' => $fieldid]);
-
-        if (empty($data) || stripos($data, 'no') !== false) {
-            return $this->costafter;
-        }
-
-        // If the user has free access to courses return 0 cost.
-        if (stripos($data, 'free') !== false) {
-            $this->costafter = 0;
-            // If there is a word no in the data means no discount.
-        } else {
-            // Get the integer from the data.
-            preg_match('/\d+/', $data, $matches);
-            if (isset($matches[0]) && intval($matches[0]) <= 100) {
-                // Cannot allow discount more than 100%.
-                $discount = intval($matches[0]);
-                $this->costafter = $this->costafter * (100 - $discount) / 100;
-            }
-        }
-
-        return $this->costafter;
-    }
-
-    /**
-     * Get the coupon code used for discount if existed.
-     * @return coupons|null
-     */
-    public function get_coupon_helper() {
-        return $this->couponutil ?? null;
+        return $this->calculate_discount($cost);
     }
 }

@@ -25,14 +25,14 @@
 }}
 <ul class="nav nav-tabs" role="tablist">
     {{#pages}}
-    <li class="nav-item" data-key="{{key}}">
+    <li class="nav-item {{#isactive}}active{{/isactive}}" data-key="{{key}}">
         <a class="nav-link" href="#link{{key}}" title="{{name}}" role="tab" data-toggle="tab" data-bs-toggle="tab" data-text="{{name}}">{{name}}</a>
     </li>
     {{/pages}}
 </ul>
 <div class="tab-content mt-3">
     {{#pages}}
-    <div class="tab-pane" id="link{{key}}" role="tabpanel">
+    <div class="tab-pane {{#isactive}}active show{{/isactive}}" id="link{{key}}" role="tabpanel">
         {{#prerendered}}
             {{{content}}}
         {{/prerendered}}

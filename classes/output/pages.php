@@ -16,6 +16,8 @@
 
 namespace enrol_wallet\output;
 
+use enrol_wallet\local\referral\code;
+use enrol_wallet\local\referral\hold;
 use moodle_url;
 use html_table;
 use html_writer;
@@ -51,7 +53,8 @@ class pages {
      */
     public static function process_referral_page($userid = 0) {
         global $DB, $USER, $CFG, $OUTPUT, $SITE;
-        if (!(bool)config::make()->referral_enabled) {
+        $config = config::make();
+        if (!(bool)$config->referral_enabled) {
             echo get_string('referral_not_enabled', 'enrol_wallet');
             return;
         }
@@ -62,46 +65,34 @@ class pages {
             $user = core_user::get_user($userid);
         }
 
-        $isparent = false;
         if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
             require_once("$CFG->dirroot/auth/parent/auth.php");
             $authparent = new \auth_plugin_parent;
-            $isparent = $authparent->is_parent($user);
+            if ($authparent->is_parent($user)) {
+                echo get_string('referral_noparents', 'enrol_wallet');
+                return;
+            }
         }
 
-        if ($isparent) {
-            echo get_string('referral_noparents', 'enrol_wallet');
-            return;
-        }
-
-        $config = config::make();
         $amount = $config->referral_amount;
         $maxref = $config->referral_max;
 
         // If the referral code not exist for this user, create a new one.
-        $exist = $DB->get_record('enrol_wallet_referral', ['userid' => $user->id]);
-        if (!$exist) {
-            $data = (object)[
-                'userid' => $user->id,
-                'code'   => random_string(15) . $user->id,
-            ];
-            $DB->insert_record('enrol_wallet_referral', $data);
-            $exist = $DB->get_record('enrol_wallet_referral', ['userid' => $user->id]);
-        }
+        $exist = code::get_code_record($userid);
 
         $signup = new moodle_url('/login/signup.php', ['refcode' => $exist->code]);
 
         // Check if there is a hold gift for this user.
-        $holdgift = $DB->get_record('enrol_wallet_hold_gift', ['referred' => $user->username]);
+        $holdgift = hold::get_by_referred($user->username);
         // Check if there is past referrals by this user.
-        $refusers = $DB->get_records('enrol_wallet_hold_gift', ['referrer' => $user->id]);
+        $refusers = hold::get_by_referrer($user->id);
 
         $output = '';
 
         $emaildata = [
             'amount' => $amount,
             'url'    => $signup->out(),
-            'site'   => $SITE->fullname,
+            'site'   => format_string($SITE->fullname),
         ];
         $templatedata = [
             'amount'       => $amount,
@@ -115,7 +106,7 @@ class pages {
         if (!empty($holdgift)) {
             $referrer = core_user::get_user($holdgift->referrer);
             $a = [
-                'name' => fullname($referrer),
+                'name'   => fullname($referrer),
                 'amount' => format_float($holdgift->amount, 2),
             ];
             $message = get_string('referral_holdgift', 'enrol_wallet', $a);

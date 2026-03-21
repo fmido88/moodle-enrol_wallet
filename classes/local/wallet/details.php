@@ -101,7 +101,8 @@ class details {
             if (!isset($obj->$name)) {
                 throw new coding_exception("The property $name not exists in the class " . $obj::class);
             }
-            if ($total || in_array($id, $this->catids)) {
+
+            if ($total || \in_array($id, $this->catids)) {
                 $value += $obj->$name;
             }
         }

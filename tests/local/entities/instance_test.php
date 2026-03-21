@@ -14,23 +14,23 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace enrol_wallet\util;
+namespace enrol_wallet\local\entities;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
-use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\coupons\generator;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->dirroot.'/enrol/wallet/lib.php');
+require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 
 use enrol_wallet_plugin;
 
 /**
- * Tests for Wallet enrolment
+ * Tests for Wallet enrolment.
  *
  * @package    enrol_wallet
  * @category   test
@@ -47,14 +47,14 @@ final class instance_test extends \advanced_testcase {
         global $DB;
         self::resetAfterTest(true);
 
-        $walletplugin = new enrol_wallet_plugin;
+        $walletplugin = new enrol_wallet_plugin();
         // Check that cost after discount return the original cost.
-        $user1 = $this->getDataGenerator()->create_user();
+        $user1   = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
 
-        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance1             = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance1->customint6 = 1;
-        $instance1->cost = 200;
+        $instance1->cost       = 200;
         $DB->update_record('enrol', $instance1);
         $walletplugin->update_status($instance1, ENROL_INSTANCE_ENABLED);
 
@@ -63,14 +63,14 @@ final class instance_test extends \advanced_testcase {
         // Check the discounts according to user profile field.
         // Create a custom profile field.
         $fielddata = (object)[
-            'name' => 'discount',
+            'name'      => 'discount',
             'shortname' => 'discount',
         ];
         $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
 
-        $config = config::make();
+        $config                 = config::make();
         $config->discount_field = $fieldid;
-        $op = new balance_op($user1->id);
+        $op                     = new balance_op($user1->id);
         $op->credit(150);
         $userfielddata = (object)[
             'userid'  => $user1->id,
@@ -78,11 +78,11 @@ final class instance_test extends \advanced_testcase {
             'data'    => 'free',
         ];
         $userdataid = $DB->insert_record('user_info_data', $userfielddata);
-        $costafter = $walletplugin->get_cost_after_discount($user1->id, $instance1, true);
+        $costafter  = $walletplugin->get_cost_after_discount($user1->id, $instance1, true);
         $this->assertEquals(0, $costafter);
 
         $dataupdate = (object)[
-            'id' => $userdataid,
+            'id'   => $userdataid,
             'data' => '20% discount',
         ];
         $DB->update_record('user_info_data', $dataupdate);
@@ -91,62 +91,111 @@ final class instance_test extends \advanced_testcase {
 
         // Check coupon discounts.
         $user2 = $this->getDataGenerator()->create_user();
-        $op = new balance_op($user2->id);
+        $op    = new balance_op($user2->id);
         $op->credit(150);
 
         // Create percent discount coupon.
-        $all = implode(',', coupons::TYPES);
+        $all             = implode(',', coupons::TYPES);
         $config->coupons = $all;
-        $coupon = [
-            'code'     => 'test1',
-            'type'     => 'percent',
-            'value'    => 50,
-            'maxusage' => 1,
-        ];
-        $DB->insert_record('enrol_wallet_coupons', $coupon);
+        generator::create_coupon_record(code: 'test1', type: 'percent', value: 50, maxusage: 1);
+        generator::create_coupon_record(
+            code: 'test2',
+            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            value: 50,
+            maxusage: 1
+        );
+        generator::create_coupon_record(
+            code: 'test3',
+            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            value: 150,
+            maxusage: 1
+        );
+        generator::create_coupon_record(
+            code: 'test4',
+            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            value: 200,
+            maxusage: 1
+        );
+        generator::create_coupon_record(
+            code: 'test5',
+            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            value: 250,
+            maxusage: 1
+        );
+
         coupons::set_session_coupon('test1');
         $this->assertEquals('test1', coupons::check_discount_coupon());
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(100, $costafter);
+
+        $coupons = new coupons('test2', $user2->id);
+        $coupons->apply_coupon(coupons::AREA_ENROL, $instance1->id);
+        $this->assertEquals('test2', coupons::check_discount_coupon());
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
+        $this->assertEquals(150, $costafter);
+
+        $coupons = new coupons('test3', $user2->id);
+        $coupons->apply_coupon(coupons::AREA_ENROL, $instance1->id);
+        $this->assertEquals('test3', coupons::check_discount_coupon());
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
+        $this->assertEquals(50, $costafter);
+
+        $coupons = new coupons('test4', $user2->id);
+        $coupons->apply_coupon(coupons::AREA_ENROL, $instance1->id);
+        $this->assertEquals('test4', coupons::check_discount_coupon());
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
+        $this->assertEquals(0, $costafter);
+
+        $coupons = new coupons('test5', $user2->id);
+        $coupons->apply_coupon(coupons::AREA_ENROL, $instance1->id);
+        $this->assertEquals('test5', coupons::check_discount_coupon());
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
+        $this->assertEquals(0, $costafter);
+
         $config->coupons = coupons::DISCOUNT;
+        coupons::set_session_coupon('test1');
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(100, $costafter);
-        $config->coupons = coupons::FIXED . ',' . coupons::ENROL;
+
+        coupons::set_session_coupon('test2');
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
-        $config->coupons = coupons::NOCOUPONS;
+
+        $config->coupons = coupons::FIXEDDISCOUNT;
+        coupons::set_session_coupon('test1');
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
+        $this->assertEquals(200, $costafter);
+
+        coupons::set_session_coupon('test2');
+        $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
+        $this->assertEquals(150, $costafter);
+
+        $config->coupons = coupons::FIXED . ',' . coupons::ENROL;
+        $costafter       = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
+        $this->assertEquals(200, $costafter);
+
+        $config->coupons = coupons::NOCOUPONS;
+        $costafter       = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
         coupons::unset_session_coupon();
 
         // Create a fixed & category coupons and check that there is no discount.
         $config->coupons = enrol_wallet_plugin::WALLET_COUPONSALL;
-        $coupon = [
-            'code' => 'test2',
-            'type' => 'fixed',
-            'value' => 50,
-            'maxusage' => 1,
-        ];
-        $DB->insert_record('enrol_wallet_coupons', $coupon);
-        $coupon = [
-            'code' => 'test3',
-            'type' => 'category',
-            'value' => 50,
-            'maxusage' => 1,
-            'category' => $course1->category,
-        ];
-        $DB->insert_record('enrol_wallet_coupons', $coupon);
-        coupons::set_session_coupon('test2');
+        generator::create_coupon_record(code: 'test6', type: 'fixed', value: 50, maxusage: 1);
+        generator::create_coupon_record(code: 'test7', type: 'category', value: 50, category: $course1->category, maxusage: 1);
+
+        coupons::set_session_coupon('test6');
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
-        coupons::set_session_coupon('test3');
+
+        coupons::set_session_coupon('test7');
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
         coupons::unset_session_coupon();
     }
 
     /**
-     * Testing discounts after first and second repurchase
+     * Testing discounts after first and second repurchase.
      * @covers ::get_cost_after_discount
      */
     public function test_repurchase_discount_and_function(): void {
@@ -158,21 +207,21 @@ final class instance_test extends \advanced_testcase {
         $course2 = $this->getDataGenerator()->create_course();
         $context = \context_course::instance($course2->id);
 
-        $instance = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $instance->customint6 = 1;
-        $instance->cost = 100;
+        $instance              = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance->customint6  = 1;
+        $instance->cost        = 100;
         $instance->enrolperiod = DAYSECS;
         $DB->update_record('enrol', $instance);
         $wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
 
         $user = $this->getDataGenerator()->create_user();
-        $op = new balance_op($user->id);
+        $op   = new balance_op($user->id);
         $op->credit(450);
 
         $wallet->enrol_self($instance, $user);
-        $record = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $user->id]);
+        $record               = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $user->id]);
         $record->timemodified = timedate::time() - 10 * DAYSECS;
-        $record->timecreated = timedate::time() - 10 * DAYSECS;
+        $record->timecreated  = timedate::time() - 10 * DAYSECS;
         $DB->update_record('user_enrolments', $record);
 
         $op = new balance_op($user->id);
@@ -189,24 +238,25 @@ final class instance_test extends \advanced_testcase {
         $inst = new instance($instance, $user->id);
         $this->setUser($user);
         $this->assertNotTrue($wallet->can_self_enrol($instance));
-        $this->assertEquals(100, $inst->get_cost_after_discount(true));
+        $this->assertEquals(100, $inst->get_cost_after_discount());
 
         // Enable the repurchase.
         $config->repurchase = 1;
-        $wallet = new enrol_wallet_plugin;
+        $wallet             = new enrol_wallet_plugin();
         $this->assertTrue($wallet->can_self_enrol($instance));
-        $this->assertEquals(100, $inst->get_cost_after_discount(true));
+        $this->assertEquals(100, $inst->get_cost_after_discount());
 
         // Set first discount.
         $config->repurchase_firstdis = 40;
+        $inst->mark_as_dirty();
         $this->assertTrue($wallet->can_self_enrol($instance));
-        $this->assertEquals(60, $inst->get_cost_after_discount(true));
+        $this->assertEquals(60, $inst->get_cost_after_discount());
 
         // Make sure it is not affected by second discount option.
         $config->repurchase_seconddis = 60;
-        $wallet = new enrol_wallet_plugin;
+        $wallet                       = new enrol_wallet_plugin();
 
-        $this->assertEquals(60, $inst->get_cost_after_discount(true));
+        $this->assertEquals(60, $inst->get_cost_after_discount());
         $op = new balance_op($user->id);
         $this->assertTrue(is_enrolled($context, $user));
         $this->assertEquals(350, $op->get_total_balance());
@@ -223,6 +273,7 @@ final class instance_test extends \advanced_testcase {
         $DB->update_record('user_enrolments', (object)['id' => $record->id, 'timemodified' => $now - 2 * DAYSECS]);
 
         $this->assertFalse(is_enrolled($context, $user, '', true));
-        $this->assertEquals(40, $inst->get_cost_after_discount(true));
+        $inst->mark_as_dirty();
+        $this->assertEquals(40, $inst->get_cost_after_discount());
     }
 }

@@ -24,9 +24,13 @@
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
+use enrol_wallet\local\referral\code;
+use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet_plugin;
+use mod_assign_generator;
+use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -150,7 +154,8 @@ final class observer_test extends \advanced_testcase {
      * @return \stdClass
      */
     public function course_completion_init($course, $maxgrade = 100) {
-        // Make an assignment.
+        // phpcs:ignore moodle.Commenting.InlineComment.DocBlock
+        /** @var mod_assign_generator */
         $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
         $params = [
             'course' => $course->id,
@@ -192,7 +197,8 @@ final class observer_test extends \advanced_testcase {
 
         // The target user already received a grade, so internal_get_state should be already complete.
         $completioninfo = new \completion_info($course);
-        $this->assertEquals(COMPLETION_COMPLETE, $completioninfo->internal_get_state($cm, $user->id, null));
+        $notused = new stdClass();
+        $this->assertEquals(COMPLETION_COMPLETE, $completioninfo->internal_get_state($cm, $user->id, $notused));
 
         $this->setAdminUser();
         $ccompletion = new \completion_completion(['course' => $course->id, 'userid' => $user->id]);
@@ -246,7 +252,6 @@ final class observer_test extends \advanced_testcase {
         // Enable referrals.
         $config->referral_enabled = 1;
         $config->referral_amount = 50;
-        $CFG->registerauth = 'email';
 
         // Create the first user.
         $user1 = $this->getDataGenerator()->create_user();
@@ -255,37 +260,11 @@ final class observer_test extends \advanced_testcase {
 
         $this->assertEquals(0, $balance1);
         // Generate a referral code.
-        $data = (object)[
-            'userid' => $user1->id,
-            'code' => random_string(15) . $user1->id,
-        ];
-        $DB->insert_record('enrol_wallet_referral', $data);
-        $code = $DB->get_record('enrol_wallet_referral', ['userid' => $user1->id])->code;
+        $code = code::get_code_record($user1->id)->code;
         $this->assertTrue(!empty($code));
 
-        // Try to simulate the signup process as the referral program work with self-registration only.
-        $this->setUser(null);
-        $authplugin = signup_is_enabled();
-        $user2 = new \stdClass;
-        $user2->username  = 'something';
-        $user2->password  = 'P@ssw0rd';
-        $user2->email     = 'fake@fake.com';
-        $user2->email2    = 'fake@fake.com';
-        $user2->firstname = 'Mohammad';
-        $user2->lastname  = 'Farouk';
-        $user2->country   = 'EG';
-        $user2->refcode   = $code;
-        $user2->sesskey   = sesskey();
-
-        $sink = $this->redirectEmails();
-        $user2 = signup_setup_new_user($user2);
-
-        core_login_post_signup_requests($user2);
-
-        $authplugin->user_signup($user2, false);
-
-        $user2 = get_complete_user_data('username', 'something');
-        $DB->set_field('user', 'confirmed', 1, ['id' => $user2->id]);
+        $gen = testing::get_generator();
+        $user2 = $gen->signup_user(['username' => 'something'], $code);
 
         // Check the database changes.
         $refer = $DB->get_record('enrol_wallet_referral', ['userid' => $user1->id]);
@@ -306,6 +285,7 @@ final class observer_test extends \advanced_testcase {
 
         $this->setAdminUser();
 
+        $sink = $this->redirectEmails();
         // Enrol by manual enrolment not trigger the gift release.
         $course1 = $this->getDataGenerator()->create_course();
         $this->getDataGenerator()->enrol_user($user2->id, $course1->id);
@@ -347,6 +327,8 @@ final class observer_test extends \advanced_testcase {
         // Check that is no repetition to the gift.
         $course3 = $this->getDataGenerator()->create_course();
         $this->getDataGenerator()->enrol_user($user2->id, $course3->id);
+        $sink->close();
+
         $balance = new balance($user1->id);
         $balance1 = $balance->get_total_balance();
         $nonrefund1 = $balance->get_total_nonrefundable();
@@ -363,7 +345,6 @@ final class observer_test extends \advanced_testcase {
         $this->assertEquals(50, $balance2);
         $this->assertEquals(50, $nonrefund2);
         $this->assertEquals(50, $free2);
-        $sink->close();
 
         // Set max referrals to 1 and check validation.
         $config->referral_max = 1;

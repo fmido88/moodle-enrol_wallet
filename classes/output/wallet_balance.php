@@ -23,6 +23,7 @@
  */
 namespace enrol_wallet\output;
 
+use core\url;
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\urls\reports;
@@ -83,9 +84,9 @@ class wallet_balance implements renderable, templatable {
      * No complex types - only stdClass, array, int, string, float, bool
      * Any additional info that is required for the template is pre-calculated (e.g. capability checks).
      * @param renderer_base $output
-     * @return array|\stdClass
+     * @return \stdClass
      */
-    public function export_for_template(renderer_base $output) {
+    public function export_for_template(renderer_base $output): stdClass {
 
         $helper = new balance($this->userid);
         // Get the user balance.
@@ -145,7 +146,12 @@ class wallet_balance implements renderable, templatable {
         $tempctx->currency     = $currency;
 
         if (!AJAX_SCRIPT) {
-            $currenturl = $output->get_page()->url;
+            $currenturl = qualified_me();
+            if (!$currenturl && PHPUNIT_TEST) {
+                $currenturl = new url('/');
+            }
+
+            $currenturl = new url($currenturl);
             $walleturl = pages::WALLET->url();
             if (!$walleturl->compare($currenturl, URL_MATCH_BASE)) {
                 $walleturl->set_anchor('linkbalance');

@@ -24,7 +24,8 @@
 
 namespace enrol_wallet\task;
 
-use enrol_wallet\util\balance_op;
+use enrol_wallet\local\wallet\balance_op;
+
 /**
  * Send expiry notifications task.
  */
@@ -68,7 +69,7 @@ class migrate_enrollments extends \core\task\adhoc_task {
      * @param \text_progress_trace $trace
      */
     private function transform_credit($trace) {
-        global $DB, $CFG;
+        global $DB;
         $creditplugin = enrol_get_plugin('credit');
 
         $allusers = $DB->get_records('user', [], '', 'id');

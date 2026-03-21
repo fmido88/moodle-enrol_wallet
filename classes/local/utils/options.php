@@ -35,12 +35,11 @@ class options {
      *
      * @return array
      */
-    public static function get_status_options() {
-        $options = [
+    public static function get_status_options(): array {
+        return [
                     ENROL_INSTANCE_ENABLED  => get_string('yes'),
                     ENROL_INSTANCE_DISABLED => get_string('no'),
                 ];
-        return $options;
     }
 
     /**
@@ -48,9 +47,8 @@ class options {
      *
      * @return array
      */
-    public static function get_newenrols_options() {
-        $options = [1 => get_string('yes'), 0 => get_string('no')];
-        return $options;
+    public static function get_newenrols_options(): array {
+        return [1 => get_string('yes'), 0 => get_string('no')];
     }
 
     /**
@@ -58,13 +56,12 @@ class options {
      *
      * @return array
      */
-    public static function get_expirynotify_options() {
-        $options = [
+    public static function get_expirynotify_options(): array {
+        return [
                     0 => get_string('no'),
                     1 => get_string('expirynotifyenroller', 'core_enrol'),
                     2 => get_string('expirynotifyall', 'core_enrol'),
                 ];
-        return $options;
     }
 
     /**
@@ -72,8 +69,8 @@ class options {
      *
      * @return array
      */
-    public static function get_longtimenosee_options() {
-        $options = [
+    public static function get_longtimenosee_options(): array {
+        return [
                     0              => get_string('never'),
                     1800 * DAYSECS => get_string('numdays', '', 1800),
                     1000 * DAYSECS => get_string('numdays', '', 1000),
@@ -88,7 +85,6 @@ class options {
                     14 * DAYSECS   => get_string('numdays', '', 14),
                     7 * DAYSECS    => get_string('numdays', '', 7),
                 ];
-        return $options;
     }
 
     /**
@@ -96,7 +92,7 @@ class options {
      * @param int $courseid Current course id of exceptions.
      * @return array<string>
      */
-    public static function get_courses_options($courseid) {
+    public static function get_courses_options($courseid): array {
         // Adding restriction upon another course enrolment.
         // Prepare the course selector.
         $courses = get_courses();
@@ -122,23 +118,21 @@ class options {
      * Return an array of valid send welcome email options.
      * @return array<string>
      */
-    public static function get_send_welcome_email_option() {
-        $options = [
+    public static function get_send_welcome_email_option(): array {
+        return [
             ENROL_DO_NOT_SEND_EMAIL                 => get_string('no'),
             ENROL_SEND_EMAIL_FROM_COURSE_CONTACT    => get_string('sendfromcoursecontact', 'enrol'),
             ENROL_SEND_EMAIL_FROM_NOREPLY           => get_string('sendfromnoreply', 'enrol'),
         ];
-
-        return $options;
     }
 
     /**
      * Get available cohorts options for cohort restriction options.
-     * @param stdClass $instance
+     * @param instance $instance
      * @param context $context
      * @return array<string>
      */
-    public static function get_cohorts_options($instance, $context) {
+    public static function get_cohorts_options(instance $instance, context $context): array {
         global $CFG, $DB;
         require_once($CFG->dirroot.'/cohort/lib.php');
 
@@ -172,7 +166,7 @@ class options {
      * @param int $account The payment account id if exist.
      * @return array[currencycode => currencyname]
      */
-    public static function get_possible_currencies($account = null) {
+    public static function get_possible_currencies($account = null): array {
         $codes = [];
         if (class_exists('\core_payment\helper')) {
             $codes = \core_payment\helper::get_supported_currencies();
@@ -183,9 +177,7 @@ class options {
             $currencies[$c] = new lang_string($c, 'core_currencies');
         }
 
-        uasort($currencies, function($a, $b) {
-            return strcmp($a, $b);
-        });
+        uasort($currencies, fn($a, $b): int =>  strcmp($a, $b));
 
         // Adding custom currency in case of there is no available payment gateway or customize the wallet.
         if (empty($currencies) || empty($account)) {
@@ -193,7 +185,7 @@ class options {
             $customcurrency = $config->customcurrency ?? get_string('MWC', 'enrol_wallet');
             $cc = $config->customcurrencycode ?? '';
             // Don't override standard currencies.
-            if (!array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MWC') {
+            if (!\array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MWC') {
                 $currencies[$cc] = $customcurrency;
             }
         }
@@ -206,7 +198,7 @@ class options {
      * @param integer $defaultrole the id of the role that is set as the default for wallet enrolment
      * @return array index is the role id, value is the role name
      */
-    public static function extend_assignable_roles($context, $defaultrole) {
+    public static function extend_assignable_roles($context, $defaultrole): array {
         global $DB;
 
         $roles = get_assignable_roles($context, ROLENAME_BOTH);
@@ -224,7 +216,7 @@ class options {
      *
      * @return array
      */
-    public static function get_expire_actions_options() {
+    public static function get_expire_actions_options(): array {
         return [
             ENROL_EXT_REMOVED_KEEP           => get_string('extremovedkeep', 'enrol'),
             ENROL_EXT_REMOVED_SUSPENDNOROLES => get_string('extremovedsuspendnoroles', 'enrol'),
@@ -240,7 +232,7 @@ class options {
      * - Max: Apply the maximum discount from all coupons to the final amount.
      * @return string[]
      */
-    public static function get_discount_behavior_options() {
+    public static function get_discount_behavior_options(): array {
         return [
             instance::B_SEQ => get_string('discount_behavior_sequential', 'enrol_wallet'),
             instance::B_SUM => get_string('discount_behavior_sum', 'enrol_wallet'),

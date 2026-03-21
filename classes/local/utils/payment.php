@@ -21,6 +21,7 @@ use core\url;
 use core_payment\account;
 use core_payment\helper;
 use core_plugin_manager;
+use dml_missing_record_exception;
 use enrol_wallet\local\config;
 
 /**
@@ -83,7 +84,7 @@ class payment {
      * Todo: use our own to exclude paygw_wallet.
      * @return void
      */
-    public static function init_payment_js() {
+    public static function init_payment_js(): void {
         global $PAGE;
         $PAGE->requires->js_call_amd('core_payment/gateways_modal', 'init');
     }
@@ -93,7 +94,7 @@ class payment {
      * @param int $accountid
      * @return bool
      */
-    public static function is_valid_account($accountid): bool {
+    public static function is_valid_account(int $accountid): bool {
         if (empty($accountid) || !is_number($accountid) || $accountid < 0) {
             return false;
         }
@@ -102,18 +103,27 @@ class payment {
             return false;
         }
 
-        $account = new account($accountid);
+        try {
+            $account = new account($accountid);
+        } catch (dml_missing_record_exception $e) {
+            if (!PHPUNIT_TEST) {
+                debugging($e->getMessage(), DEBUG_ALL);
+            }
+
+            return false;
+        }
+
         if (!$account->is_available() || !$account->is_valid()) {
             return false;
         }
 
         $gateways = $account->get_gateways(true);
-        if (count($gateways) > 1) {
+        if (\count($gateways) > 1) {
             return true;
         }
 
         $gatewaysnames = array_keys($gateways);
-        if (count($gatewaysnames) === 1 && 'wallet' === $gatewaysnames[0]) {
+        if (\count($gatewaysnames) === 1 && 'wallet' === $gatewaysnames[0]) {
             // This means that the only gateway available is paygw_wallet
             // which cannot be used with wallet.
             return false;
@@ -128,8 +138,8 @@ class payment {
      * @param bool $sensitive case sensitive check
      * @return bool
      */
-    public static function is_valid_currency($currency, $sensitive = true): bool {
-        if (empty($currency) || !is_string($currency) || strlen($currency) !== 3) {
+    public static function is_valid_currency(string $currency, bool $sensitive = true): bool {
+        if (empty($currency) || !\is_string($currency) || \strlen($currency) !== 3) {
             return false;
         }
 
@@ -146,7 +156,7 @@ class payment {
             $classname = '\paygw_' . $plugin . '\gateway';
 
             $currencies = component_class_callback($classname, 'get_supported_currencies', [], []);
-            if (in_array($currency, $currencies)) {
+            if (\in_array($currency, $currencies)) {
                 return true;
             }
         }

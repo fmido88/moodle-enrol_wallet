@@ -38,7 +38,7 @@ class instance extends external_api {
     public static function get_cost_parameters() {
         return new external_function_parameters([
             'instanceid' => new external_value(PARAM_INT, 'The id of the enrol wallet instance'),
-            'userid' => new external_value(PARAM_INT, 'The id of the user', VALUE_OPTIONAL, 0),
+            'userid' => new external_value(PARAM_INT, 'The id of the user', VALUE_DEFAULT, 0),
         ]);
     }
 
@@ -49,7 +49,7 @@ class instance extends external_api {
      * @param int $userid
      * @return array
      */
-    public static function get_cost($instanceid, $userid) {
+    public static function get_cost($instanceid, $userid = 0) {
         $params = ['instanceid' => $instanceid, 'userid' => $userid];
         $params = self::validate_parameters(self::get_cost_parameters(), $params);
         $userid = $params['userid'];

@@ -1,5 +1,11 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 6.0.0 ##
+- Refactor most of the plugin code.
+- Fix and enhance calculations.
+- Fix bugs.
+- Add more phpunit tests.
+
 ## V 5.6.0 ##
 - Fix free cut calculations.
 - Add static cashes for discount calculation.

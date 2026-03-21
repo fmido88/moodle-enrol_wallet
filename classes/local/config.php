@@ -173,6 +173,8 @@ class config {
 
         if ($value !== false) {
             $this->set_to_store($name, $value);
+        } else {
+            return null;
         }
 
         return $value;
@@ -194,6 +196,8 @@ class config {
      */
     public function __unset($name) {
         unset_config($name, 'enrol_wallet');
+        $this->$name = null;
+        $this->set_to_store($name, null);
     }
 
     /**
@@ -234,11 +238,30 @@ class config {
      */
     protected function exists($name) {
         global $CFG;
-        $exists = isset($this->$name);
-        if (!$exists && !during_initial_install() && !isset($CFG->upgraderunning)) {
+        $exists = isset($this->$name) || property_exists($this, $name) || property_exists($this->store, $name);
+        if (!$exists && !self::upgrading()) {
             debugging("Trying to get undefined config value $name in enrol_wallet", DEBUG_DEVELOPER);
         }
         return $exists;
+    }
+
+    /**
+     * Check if the plugin is being updating.
+     * @return bool
+     */
+    public static function upgrading(): bool {
+        global $CFG;
+        $running = during_initial_install() || isset($CFG->upgraderunning);
+        if ($running) {
+            return true;
+        }
+
+        $plugin = new stdClass();
+        $plugin->version = 0;
+        @include("{$CFG->dirroot}/enrol/wallet/version.php");
+
+        $currentversion = get_config('enrol_wallet', 'version');
+        return $plugin->version < $currentversion;
     }
     /**
      * Static getter.

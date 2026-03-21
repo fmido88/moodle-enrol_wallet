@@ -24,6 +24,7 @@
 
 namespace enrol_wallet\form;
 
+use core\exception\coding_exception;
 use core\exception\moodle_exception;
 use core\url;
 use enrol_wallet\local\config;
@@ -72,6 +73,10 @@ class applycoupon_form extends \moodleform {
         global $PAGE;
         $mform = $this->_form;
         $instance = ((object)$this->_customdata)->instance;
+        if (!isset($instance)) {
+            throw new coding_exception('The enrol instance stdClass should be pass to custom data arg.');
+        }
+
         $url = ((object)$this->_customdata)->url ?? $instance->url ?? '';
         if (empty($url) && $PAGE->has_set_url()) {
             $url = $PAGE->url;
@@ -83,7 +88,7 @@ class applycoupon_form extends \moodleform {
         $validate = false; // Validation for percentage discount coupons only.
         if (!$cancel && !empty($coupon)) {
             $couponobj = new coupons($coupon);
-            if ($couponobj->type == coupons::DISCOUNT) {
+            if ($couponobj->get_type(false) === coupons::DISCOUNT) {
                 $areaid = $instance->id ?? $instance->cmid ?? $instance->sectionid ?? 0;
                 if (!empty($instance->id)) {
                     $area = coupons::AREA_ENROL;
@@ -232,39 +237,39 @@ class applycoupon_form extends \moodleform {
         $couponutil = new coupons($data['coupon']);
 
         if (!empty($data['instanceid'])) {
-            $area = $couponutil::AREA_ENROL;
+            $area = coupons::AREA_ENROL;
             $areaid = $data['instanceid'];
         } else if (!empty($data['cmid'])) {
-            $area = $couponutil::AREA_CM;
+            $area = coupons::AREA_CM;
             $areaid = $data['cmid'];
         } else if (!empty($data['sectionid'])) {
-            $area = $couponutil::AREA_SECTION;
+            $area = coupons::AREA_SECTION;
             $areaid = $data['sectionid'];
         } else {
-            $area = $couponutil::AREA_TOPUP;
+            $area = coupons::AREA_TOPUP;
             $areaid = 0;
         }
 
         $couponutil->validate_coupon($area, $areaid);
-        if ($error = $couponutil->has_error()) {
+        if ($error = $couponutil->get_error()) {
             $msg = get_string('coupon_applyerror', 'enrol_wallet', $error ?? '');
             $msgtype = 'error';
             // This mean that the function return error.
         } else {
 
             $value = $couponutil->get_value();
-            $type = $couponutil->type;
+            $type = $couponutil->get_type(false);
             switch($area) {
                 case coupons::AREA_ENROL:
                     $id = $DB->get_field('enrol', 'courseid', ['id' => $areaid, 'enrol' => 'wallet'], IGNORE_MISSING);
                     if (!empty($id)) {
-                        $redirecturl = new url('/enrol/index.php', ['id' => $id, 'coupon' => $couponutil->code]);
+                        $redirecturl = new url('/enrol/index.php', ['id' => $id, 'coupon' => $couponutil->get_code()]);
                     }
                     break;
                 case coupons::AREA_CM:
                 case coupons::AREA_SECTION:
                     if (!empty($url)) {
-                        $redirecturl = $url . '&' . http_build_query(['coupon' => $couponutil->code]);
+                        $redirecturl->param('coupon', $couponutil->get_code());
                     }
                     break;
                 default:
@@ -272,7 +277,7 @@ class applycoupon_form extends \moodleform {
 
             $couponutil->apply_coupon($area, $areaid);
             // Check the type to determine what to do.
-            if ($type == coupons::FIXED) {
+            if ($type === coupons::FIXED) {
                 // Apply the coupon code to add its value to the user's wallet and enrol if value is enough.
                 $currency = config::instance()->currency;
                 $a = [
@@ -282,7 +287,7 @@ class applycoupon_form extends \moodleform {
                 $msg = get_string('coupon_applyfixed', 'enrol_wallet', $a);
                 $msgtype = 'success';
 
-            } else if (($type == coupons::DISCOUNT) && ($area == coupons::AREA_ENROL)) {
+            } else if ($couponutil->is_discount_coupon() && ($area == coupons::AREA_ENROL)) {
                 // Percentage discount coupons applied in enrolment.
                 if (!empty($id)) {
                     $msg = get_string('coupon_applydiscount', 'enrol_wallet', $value);
@@ -293,20 +298,20 @@ class applycoupon_form extends \moodleform {
                     $msgtype = 'error';
                 }
 
-            } else if ($type == coupons::DISCOUNT
-                        && in_array($area, [coupons::AREA_SECTION, coupons::AREA_CM])) {
+            } else if ($couponutil->is_discount_coupon()
+                        && \in_array($area, [coupons::AREA_SECTION, coupons::AREA_CM])) {
 
                 // This is the case when the coupon applied by availability wallet.
 
                 $msg = get_string('coupon_applydiscount', 'enrol_wallet', $value);
                 $msgtype = 'success';
 
-            } else if ($type == coupons::CATEGORY) {
+            } else if ($type === coupons::CATEGORY) {
                 // This type of coupons is restricted to be used in certain categories.
                 $msg = get_string('coupon_categoryapplied', 'enrol_wallet');
                 $msgtype = 'success';
 
-            } else if ($type == coupons::AREA_ENROL) {
+            } else if ($type === coupons::ENROL) {
                 // Apply the coupon and enrol the user.
                 $msg = get_string('coupon_enrolapplied', 'enrol_wallet');
                 $msgtype = 'success';

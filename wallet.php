@@ -34,7 +34,6 @@ require_login(null, false);
 $context = context_system::instance();
 
 $url = pages::WALLET->url();
-$url->set_anchor("linkbalance");
 
 $PAGE->set_url($url);
 $PAGE->set_context($context);

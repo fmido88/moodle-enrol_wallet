@@ -25,6 +25,7 @@ use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\payment;
 use enrol_wallet\local\utils\timedate;
+use enrol_wallet\payment\item;
 
 require_once('../../../config.php');
 require_once(__DIR__.'/../lib.php');
@@ -92,16 +93,9 @@ echo $OUTPUT->header();
 $desc = get_string('paymenttopup_desc', 'enrol_wallet');
 
 // Set a fake item form payment.
-$itemdata = [
-    'cost'        => $value,
-    'currency'    => $currency,
-    'userid'      => $USER->id,
-    'category'    => $category,
-    'timecreated' => timedate::time(),
-];
-$id = $DB->insert_record('enrol_wallet_items', $itemdata);
+$item = item::create_item($value, $currency, null, 0, $category);
 // Prepare the payment button.
-$attributes = payment::get_payment_button_attributes($id, $value, $desc);
+$attributes = payment::get_payment_button_attributes($item->get('id'), $value, $desc);
 
 // Again there is no need for this $yesurl as clicking the button trigger the payment.
 // Just in case.

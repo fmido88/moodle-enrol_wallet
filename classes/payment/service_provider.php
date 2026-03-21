@@ -25,6 +25,7 @@
 
 namespace enrol_wallet\payment;
 
+use dml_missing_record_exception;
 use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance_op as op;
 
@@ -50,7 +51,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
         // Get the fake item in case of topping up the wallet.
         try {
-            $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
+            $item = new item($itemid);
         } catch (\dml_exception $e) {
             // Check for already paid item.
             $conditions = [
@@ -97,11 +98,15 @@ class service_provider implements \core_payment\local\callback\service_provider 
      */
     public static function get_success_url(string $paymentarea, int $itemid): \moodle_url {
         global $DB;
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', IGNORE_MISSING);
+        try {
+            $item = new item($itemid);
+        } catch (dml_missing_record_exception $e) {
+            $item = null;
+        }
         // Check if the payment is for enrolment or topping up the wallet.
-        if ($item && ($paymentarea == 'walletenrol') && !empty($item->instanceid)) {
+        if ($item && ($paymentarea == 'walletenrol') && !empty($item->get('instanceid'))) {
 
-            $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->instanceid], MUST_EXIST);
+            $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->get('instanceid')], MUST_EXIST);
 
             return new \moodle_url('/course/view.php', ['id' => $courseid]);
 
@@ -125,8 +130,8 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
         require_once($CFG->dirroot.'/enrol/wallet/lib.php');
         // Get the fake item in case of topping up the wallet.
-        $item = $DB->get_record('enrol_wallet_items', ['id' => $itemid], '*', MUST_EXIST);
-        $op = new op($userid, $item->category ?? 0);
+        $item = new item($itemid);
+        $op = new op($userid, $item->get('category') ?? 0);
 
         $coststring = \core_payment\helper::get_cost_as_string($item->cost, $item->currency);
         $desc = get_string('topuppayment_desc', 'enrol_wallet', $coststring);
@@ -145,7 +150,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
                 try {
                     $enroled = $plugin->enrol_self($instance, $user);
                 } catch (\moodle_exception $e) {
-                    if (in_array($e->errorcode, ['cannotdeductbalance', 'negativebalance'])) {
+                    if (\in_array($e->errorcode, ['cannotdeductbalance', 'negativebalance'])) {
                         $enroled = false;
                     } else {
                         throw $e;

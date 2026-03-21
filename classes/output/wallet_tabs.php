@@ -24,6 +24,7 @@ use core\output\html_writer;
 use core\output\renderable;
 use core\output\renderer_base;
 use core\output\templatable;
+use core\url;
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\reports;
 use enrol_wallet\table\transactions;
@@ -180,8 +181,12 @@ class wallet_tabs implements renderable, templatable {
      * @return string
      */
     public function render_transactions(renderer_base $output) {
-        $url = clone $output->get_page()->url;
-        $url->set_anchor('linktransactions');
+        if ($output->get_page()->has_set_url()) {
+            $url = clone $output->get_page()->url;
+            $url->set_anchor('linktransactions');
+        } else {
+            $url = new url(qualified_me());
+        }
 
         $transactionurl = reports::TRANSACTIONS->url();
         $class          = ['class' => 'btn btn-primary'];
@@ -220,8 +225,12 @@ class wallet_tabs implements renderable, templatable {
      * @return bool|string
      */
     public function render_transfer(renderer_base $output) {
-        $url = clone $output->get_page()->url;
-        $url->set_anchor('linktransfer');
+        if ($output->get_page()->has_set_url()) {
+            $url = clone $output->get_page()->url;
+            $url->set_anchor('linktransfer');
+        } else {
+            $url = new url(qualified_me());
+        }
 
         ob_start();
         pages::process_transfer_page($url);
@@ -247,10 +256,25 @@ class wallet_tabs implements renderable, templatable {
     public function export_for_template(renderer_base $output) {
         $pages = [];
 
+        $active = 'balance';
+        if ($output->get_page()->has_set_url()) {
+            $url = $output->get_page()->url;
+            $anchor = $url->get_encoded_anchor();
+            if (!empty($anchor)) {
+                $active = ltrim($anchor, '#link');
+            }
+
+            // Fallback.
+            if (!\array_key_exists($active, $this->tabnames)) {
+                $active = 'balance';
+            }
+        }
+
         foreach ($this->tabnames as $key => $label) {
             $page = [
-                'key'  => $key,
-                'name' => $label,
+                'key'      => $key,
+                'name'     => $label,
+                'isactive' => $key === $active,
             ];
             $exportmethod = "export_{$key}";
             $rendermethod = "render_{$key}";

@@ -32,7 +32,7 @@ $ids     = required_param('ids', PARAM_TEXT);
 
 $contextsys = context_system::instance();
 
-require_login();
+require_login(null, false);
 require_capability('enrol/wallet:deletecoupon', $contextsys);
 require_sesskey();
 
@@ -45,14 +45,11 @@ $returnurl = reports::COUPONS->url();
 
 if ($confirm) {
     $ids = explode(',', $ids);
-    $n = 0;
-    foreach ($ids as $id) {
-        $delete = $DB->delete_records('enrol_wallet_coupons', ['id' => $id]);
-        $n += (int)$delete;
-    }
 
-    redirect($returnurl, get_string('couponsdeleted', 'enrol_wallet', $n));
+    [$in, $params] = $DB->get_in_or_equal($ids);
+    $DB->delete_records_select('enrol_wallet_coupons', 'id ' . $in, $params);
 
+    redirect($returnurl, get_string('couponsdeleted', 'enrol_wallet', count($ids)));
 }
 
 echo $OUTPUT->header();

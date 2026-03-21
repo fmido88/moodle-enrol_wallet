@@ -15,14 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Contains tests for balance operations
+ * Contains tests for balance operations.
  *
  * @package    enrol_wallet
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace enrol_wallet\util;
+
+namespace enrol_wallet\local\wallet;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
@@ -60,57 +61,57 @@ final class balance_op_test extends \advanced_testcase {
         $now = timedate::time();
         config::make()->conditionaldiscount_apply = 1;
         $params = [
-            'cond' => 400,
-            'percent' => 15,
-            'timecreated' => $now,
+            'cond'         => 400,
+            'percent'      => 15,
+            'timecreated'  => $now,
             'timemodified' => $now,
             'usermodified' => $USER->id,
         ];
         $DB->insert_record('enrol_wallet_cond_discount', $params);
 
         $params = [
-            'cond' => 200,
-            'percent' => 15,
-            'category' => $cat1->id,
-            'timecreated' => $now,
+            'cond'         => 200,
+            'percent'      => 15,
+            'category'     => $cat1->id,
+            'timecreated'  => $now,
             'timemodified' => $now,
             'usermodified' => $USER->id,
         ];
         $DB->insert_record('enrol_wallet_cond_discount', $params);
 
         $params = [
-            'cond' => 600,
-            'percent' => 20,
-            'timecreated' => $now,
+            'cond'         => 600,
+            'percent'      => 20,
+            'timecreated'  => $now,
             'timemodified' => $now,
             'usermodified' => $USER->id,
         ];
         $DB->insert_record('enrol_wallet_cond_discount', $params);
 
         $params = [
-            'cond' => 800,
-            'percent' => 25,
-            'timecreated' => $now,
+            'cond'         => 800,
+            'percent'      => 25,
+            'timecreated'  => $now,
             'timemodified' => $now,
             'usermodified' => $USER->id,
         ];
         $DB->insert_record('enrol_wallet_cond_discount', $params);
 
         $params = [
-            'cond' => 200,
-            'percent' => 50,
-            'timeto' => $now - DAYSECS, // Expired.
-            'timecreated' => $now,
+            'cond'         => 200,
+            'percent'      => 50,
+            'timeto'       => $now - DAYSECS, // Expired.
+            'timecreated'  => $now,
             'timemodified' => $now,
             'usermodified' => $USER->id,
         ];
         $DB->insert_record('enrol_wallet_cond_discount', $params);
 
         $params = [
-            'cond' => 400,
-            'percent' => 50,
-            'timefrom' => $now + DAYSECS, // Not available yet.
-            'timecreated' => $now,
+            'cond'         => 400,
+            'percent'      => 50,
+            'timefrom'     => $now + DAYSECS, // Not available yet.
+            'timecreated'  => $now,
             'timemodified' => $now,
             'usermodified' => $USER->id,
         ];
@@ -121,39 +122,39 @@ final class balance_op_test extends \advanced_testcase {
 
         // The user tries to pay 500, this is the number passes to the function.
         $extra2 = 500 * 0.15;
-        $op = new balance_op($user2->id);
+        $op     = new balance_op($user2->id);
         $op->credit(500 * 0.85);
 
         $extra3 = 700 * 0.2;
-        $op = new balance_op($user3->id);
+        $op     = new balance_op($user3->id);
         $op->credit(700 * 0.8);
 
         $extra4 = 1000 * 0.25;
-        $op = new balance_op($user4->id);
+        $op     = new balance_op($user4->id);
         $op->credit(1000 * 0.75);
 
         $op = new balance_op($user5->id, $cat1->id);
         $op->credit(400 * 0.85);
 
-        $balance = new balance($user1->id);
-        $balance1 = $balance->get_total_balance();
+        $balance   = new balance($user1->id);
+        $balance1  = $balance->get_total_balance();
         $norefund1 = $balance->get_total_nonrefundable();
-        $free1 = $balance->get_total_free();
+        $free1     = $balance->get_total_free();
 
-        $balance = new balance($user2->id);
-        $balance2 = $balance->get_total_balance();
+        $balance   = new balance($user2->id);
+        $balance2  = $balance->get_total_balance();
         $norefund2 = $balance->get_total_nonrefundable();
-        $free2 = $balance->get_total_free();
+        $free2     = $balance->get_total_free();
 
-        $balance = new balance($user3->id);
-        $balance3 = $balance->get_total_balance();
+        $balance   = new balance($user3->id);
+        $balance3  = $balance->get_total_balance();
         $norefund3 = $balance->get_total_nonrefundable();
-        $free3 = $balance->get_total_free();
+        $free3     = $balance->get_total_free();
 
-        $balance = new balance($user4->id);
-        $balance4 = $balance->get_total_balance();
+        $balance   = new balance($user4->id);
+        $balance4  = $balance->get_total_balance();
         $norefund4 = $balance->get_total_nonrefundable();
-        $free4 = $balance->get_total_free();
+        $free4     = $balance->get_total_free();
 
         $this->assertEquals(200, $balance1);
         $this->assertEquals(0, $norefund1);
@@ -192,11 +193,11 @@ final class balance_op_test extends \advanced_testcase {
     public function test_credit(): void {
         global $DB;
         $this->resetAfterTest();
-        $gen = $this->getDataGenerator();
+        $gen   = $this->getDataGenerator();
         $user1 = $gen->create_user();
         $user2 = $gen->create_user();
-        $cat1 = $gen->create_category();
-        $cat2 = $gen->create_category();
+        $cat1  = $gen->create_category();
+        $cat2  = $gen->create_category();
 
         $op = new balance_op($user1->id);
         $op->credit(100);
@@ -381,11 +382,11 @@ final class balance_op_test extends \advanced_testcase {
     public function test_credit_nocat(): void {
         global $DB;
         $this->resetAfterTest();
-        $gen = $this->getDataGenerator();
+        $gen   = $this->getDataGenerator();
         $user1 = $gen->create_user();
         $user2 = $gen->create_user();
-        $cat1 = $gen->create_category();
-        $cat2 = $gen->create_category();
+        $cat1  = $gen->create_category();
+        $cat2  = $gen->create_category();
 
         config::make()->catbalance = 0;
 
@@ -503,35 +504,36 @@ final class balance_op_test extends \advanced_testcase {
         $count = $DB->count_records('enrol_wallet_transactions', ['userid' => $user1->id]);
         $this->assertEquals(6, $count);
     }
+
     /**
-     * Test debit method
+     * Test debit method.
      * @covers ::debit
      * @return void
      */
     public function test_debit(): void {
         global $DB;
         $this->resetAfterTest();
-        $gen = $this->getDataGenerator();
-        $user1 = $gen->create_user();
-        $user2 = $gen->create_user();
-        $cat1 = $gen->create_category();
-        $cat2 = $gen->create_category();
-        $cat3 = $gen->create_category(['parent' => $cat2->id]);
+        $gen        = $this->getDataGenerator();
+        $user1      = $gen->create_user();
+        $user2      = $gen->create_user();
+        $cat1       = $gen->create_category();
+        $cat2       = $gen->create_category();
+        $cat3       = $gen->create_category(['parent' => $cat2->id]);
         $catbalance = [
             $cat1->id => (object)[
-                'refundable' => 50,
+                'refundable'    => 50,
                 'nonrefundable' => 30,
             ],
             $cat2->id => (object)[
-                'refundable' => 70,
+                'refundable'    => 70,
                 'nonrefundable' => 100,
             ],
         ];
         $record = [
-            'userid' => $user1->id,
-            'refundable' => 200,
+            'userid'        => $user1->id,
+            'refundable'    => 200,
             'nonrefundable' => 120,
-            'cat_balance' => json_encode($catbalance),
+            'cat_balance'   => json_encode($catbalance),
         ];
         $DB->insert_record('enrol_wallet_balance', $record, false);
         $op = new balance_op($user1->id);
@@ -637,6 +639,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(200, $op->get_valid_balance());
         $this->assertEquals(120, $op->get_valid_nonrefundable());
     }
+
     /**
      * Test debit method with disabling category balance.
      * @covers ::debit
@@ -648,27 +651,27 @@ final class balance_op_test extends \advanced_testcase {
 
         config::make()->catbalance = 0;
 
-        $gen = $this->getDataGenerator();
-        $user1 = $gen->create_user();
-        $user2 = $gen->create_user();
-        $cat1 = $gen->create_category();
-        $cat2 = $gen->create_category();
-        $cat3 = $gen->create_category(['parent' => $cat2->id]);
+        $gen        = $this->getDataGenerator();
+        $user1      = $gen->create_user();
+        $user2      = $gen->create_user();
+        $cat1       = $gen->create_category();
+        $cat2       = $gen->create_category();
+        $cat3       = $gen->create_category(['parent' => $cat2->id]);
         $catbalance = [
             $cat1->id => (object)[
-                'refundable' => 50,
+                'refundable'    => 50,
                 'nonrefundable' => 30,
             ],
             $cat2->id => (object)[
-                'refundable' => 70,
+                'refundable'    => 70,
                 'nonrefundable' => 100,
             ],
         ];
         $record = [
-            'userid' => $user1->id,
-            'refundable' => 200,
+            'userid'        => $user1->id,
+            'refundable'    => 200,
             'nonrefundable' => 120,
-            'cat_balance' => json_encode($catbalance),
+            'cat_balance'   => json_encode($catbalance),
         ];
         $DB->insert_record('enrol_wallet_balance', $record, false);
 
@@ -801,31 +804,32 @@ final class balance_op_test extends \advanced_testcase {
         $total = $op->get_total_refundable() + $op->get_total_nonrefundable();
         $this->assertEquals($total, $op->get_total_balance());
     }
+
     /**
-     * Test free balance add and deduct
+     * Test free balance add and deduct.
      * @covers ::get_total_free
      * @return void
      */
     public function test_free_balance(): void {
         global $DB;
         $this->resetAfterTest();
-        $gen = $this->getDataGenerator();
-        $cat1 = $gen->create_category();
-        $cat2 = $gen->create_category();
-        $course1 = $gen->create_course(['category' => $cat1->id]);
-        $course2 = $gen->create_course(['category' => $cat2->id]);
+        $gen       = $this->getDataGenerator();
+        $cat1      = $gen->create_category();
+        $cat2      = $gen->create_category();
+        $course1   = $gen->create_course(['category' => $cat1->id]);
+        $course2   = $gen->create_course(['category' => $cat2->id]);
         $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $user1 = $gen->create_user();
-        $user2 = $gen->create_user();
-        $user3 = $gen->create_user();
-        $user4 = $gen->create_user();
-        $user5 = $gen->create_user();
-        $user6 = $gen->create_user();
-        $user7 = $gen->create_user();
-        $user8 = $gen->create_user();
-        $user9 = $gen->create_user();
-        $user10 = $gen->create_user();
+        $user1     = $gen->create_user();
+        $user2     = $gen->create_user();
+        $user3     = $gen->create_user();
+        $user4     = $gen->create_user();
+        $user5     = $gen->create_user();
+        $user6     = $gen->create_user();
+        $user7     = $gen->create_user();
+        $user8     = $gen->create_user();
+        $user9     = $gen->create_user();
+        $user10    = $gen->create_user();
 
         $op = new balance_op($user1->id);
         $op->credit(50, $op::C_ACCOUNT_GIFT, 0, '', false);
@@ -912,7 +916,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(100, $op->get_total_free());
         $this->assertEquals(100, $op->get_valid_free());
 
-        $op = new balance_op($user5->id, $cat2);
+        $op   = new balance_op($user5->id, $cat2);
         $sink = $this->redirectEvents();
         $op->debit(120, $op::OTHER);
         $events = $sink->get_events();
@@ -979,7 +983,7 @@ final class balance_op_test extends \advanced_testcase {
      */
     public function test_transfer_to_other(): void {
         $this->resetAfterTest();
-        $gen = $this->getDataGenerator();
+        $gen   = $this->getDataGenerator();
         $user1 = $gen->create_user();
         $user2 = $gen->create_user();
 
@@ -991,10 +995,11 @@ final class balance_op_test extends \advanced_testcase {
         $this->setUser($user1);
 
         $data = (object)[
-            'email' => $user2->email,
+            'email'  => $user2->email,
             'amount' => 50,
         ];
         $op = new balance_op($user1->id);
+
         try {
             $op->transfer_to_other($data);
         } catch (\moodle_exception $e) {
@@ -1003,7 +1008,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertNotEmpty($error);
         unset($error);
 
-        $config = config::make();
+        $config                   = config::make();
         $config->transfer_enabled = 1;
 
         $error = $op->transfer_to_other($data);
@@ -1024,16 +1029,16 @@ final class balance_op_test extends \advanced_testcase {
         $config->mintransfer = 20;
 
         $data->amount = 15;
-        $op = new balance_op;
-        $msg = $op->transfer_to_other($data);
+        $op           = new balance_op();
+        $msg          = $op->transfer_to_other($data);
         $this->assertStringContainsString('The minimum transfer amount is', $msg);
 
-        $config->transferpercent = 20;
+        $config->transferpercent  = 20;
         $config->transferfee_from = 'sender';
 
         $data->amount = 50;
-        $op = new balance_op;
-        $msg = $op->transfer_to_other($data);
+        $op           = new balance_op();
+        $msg          = $op->transfer_to_other($data);
         $this->assertStringContainsString('Sorry, you have insufficient balance for this operation.', $msg);
 
         $op->credit(100);
@@ -1050,7 +1055,7 @@ final class balance_op_test extends \advanced_testcase {
 
         $config->transferfee_from = 'receiver';
 
-        $op = new balance_op;
+        $op = new balance_op();
         $op->transfer_to_other($data);
 
         $balance = new balance();
@@ -1078,7 +1083,7 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertStringContainsString('Sorry, you have insufficient balance for this operation.', $error);
 
         $data->category = $cat1->id;
-        $msg = $op->transfer_to_other($data);
+        $msg            = $op->transfer_to_other($data);
 
         $balance = new balance($user1->id, $cat1->id);
         $this->assertEquals(350, $balance->get_valid_balance(), $msg);
@@ -1096,13 +1101,15 @@ final class balance_op_test extends \advanced_testcase {
      */
     private function reset_balance($userid): void {
         $op = new balance_op($userid);
-        $op->debit($op->get_valid_balance(), $op::OTHER);
+        $op->reset_balance();
         $details = $op->get_balance_details();
+
         if (!empty($details->catbalance)) {
             $ids = array_keys($details->catbalance);
+
             foreach ($ids as $catid) {
                 $op = new balance_op($userid, $catid);
-                $op->debit($op->get_valid_balance(), $op::OTHER);
+                $op->reset_balance();
             }
         }
 
@@ -1117,7 +1124,7 @@ final class balance_op_test extends \advanced_testcase {
      * @return void
      */
     public function test_multiple_transactions(): void {
-        global $CFG, $DB;
+        global $DB;
         $this->resetAfterTest();
         $user = $this->getDataGenerator()->create_user();
         $this->setUser($user);
@@ -1164,5 +1171,76 @@ final class balance_op_test extends \advanced_testcase {
         $this->assertEquals(-580, $op->get_total_balance());
         $this->assertEquals(-580, $op->get_valid_balance());
         $this->assertEquals(-580, $op->get_main_balance());
+    }
+
+    /**
+     * Testing resetting balance.
+     * @covers ::reset_balance()
+     * @return void
+     */
+    public function test_reset_balance(): void {
+        $this->resetAfterTest();
+        $user      = $this->getDataGenerator()->create_user();
+        $parentcat = $this->getDataGenerator()->create_category();
+        $childcat  = $this->getDataGenerator()->create_category(['parent' => $parentcat->id]);
+        $this->setUser($user);
+
+        $op = new balance_op($user->id);
+        $op->credit(100, refundable: false);
+        $op->credit(50, refundable: false);
+        $op->debit(100);
+        $op->credit(50, refundable: true);
+        $this->assertEquals(100, $op->get_total_balance());
+
+        $op->reset_balance();
+        $this->assertEquals(0, $op->get_total_balance());
+
+        $op = new balance_op($user->id);
+        $op->debit(300, neg: true);
+        $this->assertEquals(-300, $op->get_total_balance());
+        $op->reset_balance();
+        $this->assertEquals(0, $op->get_total_balance());
+
+        $op = new balance_op($user->id);
+        $op->credit(400);
+        $op = new balance_op($user->id, $parentcat->id);
+        $op->credit(600);
+        $op = new balance_op($user->id, $childcat->id);
+        $op->credit(200);
+
+        $this->assertEquals(1200, $op->get_total_balance());
+        $op->reset_balance();
+        $this->assertEquals(0, $op->get_total_balance());
+
+        $op = new balance_op($user->id);
+        $op->debit(400, neg: true);
+        $op = new balance_op($user->id, $parentcat->id);
+        $op->debit(600, neg: true);
+        $op = new balance_op($user->id, $childcat->id);
+        $op->debit(200, neg: true);
+
+        $this->assertEquals(-1200, $op->get_total_balance());
+        $op->reset_balance();
+        $this->assertEquals(0, $op->get_total_balance());
+
+        $op = new balance_op($user->id);
+        $op->credit(400);
+        $op = new balance_op($user->id, $childcat->id);
+        $op->credit(200);
+        $op = new balance_op($user->id, $parentcat->id);
+        $op->credit(600);
+
+        $this->assertEquals(1200, $op->get_total_balance());
+        $op->reset_balance();
+        $this->assertEquals(200, $op->get_total_balance());
+
+        $op = new balance_op($user->id, $parentcat->id);
+        $op->credit(600);
+        $op = new balance_op($user->id);
+        $op->credit(400);
+
+        $this->assertEquals(1200, $op->get_total_balance());
+        $op->reset_balance();
+        $this->assertEquals(800, $op->get_total_balance());
     }
 }

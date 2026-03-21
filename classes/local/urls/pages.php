@@ -37,5 +37,5 @@ enum pages: string {
     // Transfer balance to another user page.
     case TRANSFER = 'pages/transfer.php';
     // Wallet home page.
-    case WALLET = 'wallet.php';
+    case WALLET = 'wallet.php#linkbalance';
 }

@@ -34,8 +34,6 @@ require_once(__DIR__.'/lib.php');
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\wallet\balance;
 
-global $USER;
-
 require_login(null, false);
 
 $instanceid = required_param('instance', PARAM_INT);

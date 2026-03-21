@@ -24,6 +24,8 @@
 
 use enrol_wallet\hooks_callbacks;
 use enrol_wallet\local\config;
+use enrol_wallet\local\referral\code;
+use enrol_wallet\local\referral\hold;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\urls\reports;
@@ -379,7 +381,7 @@ function enrol_wallet_post_signup_requests($user) {
     // Check the referral code.
     if (!empty($user->refcode) && $refenabled && !empty($amount)) {
         global $DB;
-        $refrecord = $DB->get_record('enrol_wallet_referral', ['code' => $user->refcode]); // The code should be unique.
+        $refrecord = code::get_record(['code' => $user->refcode]); // The code should be unique.
         // Check if the reference code is available and the user didn't exceed the available referral times.
         // If $maxref is zero means no limit.
         if (!empty($refrecord) && (empty($maxref) || $refrecord->usetimes < $maxref)) {
@@ -391,20 +393,17 @@ function enrol_wallet_post_signup_requests($user) {
             }
             $users[] = $user->username;
 
-            $update = (object)[
-                'id'       => $refrecord->id,
-                'usetimes' => $refrecord->usetimes + 1,
-                'users'    => json_encode($users),
-            ];
-            $DB->update_record('enrol_wallet_referral', $update);
+            $refrecord->usetimes += 1;
+            $refrecord->users = json_encode($users);
+            $refrecord->update();
+
             // Insert the hold record.
-            $hold = [
+            $hold = (object)[
                 'referrer'    => $refrecord->userid,
                 'referred'    => $user->username,
                 'amount'      => $amount,
-                'timecreated' => timedate::time(),
             ];
-            $DB->insert_record('enrol_wallet_hold_gift', $hold);
+            (new hold(0, $hold))->create();
         }
     }
 

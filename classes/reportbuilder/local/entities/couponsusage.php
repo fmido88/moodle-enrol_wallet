@@ -89,7 +89,11 @@ class couponsusage extends base {
         ->add_field("{$cusagealias}.area")
         ->add_joins($this->get_joins())
         ->set_is_sortable(true)
-        ->set_callback(function (int $area) {
+        ->set_callback(function (?int $area) {
+            if ($area === null) {
+                // For old versions of the plugin where area was not set.
+                return '';
+            }
             return couponshelper::get_area_visible_name($area);
         });
 

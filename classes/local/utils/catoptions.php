@@ -25,6 +25,7 @@ namespace enrol_wallet\local\utils;
 
 use enrol_wallet\local\entities\instance;
 use core_course_category;
+use stdClass;
 
 /**
  * Class methods to get all the categories options to be displayed in forms
@@ -60,7 +61,7 @@ class catoptions {
         } else if ($categoryorid instanceof core_course_category) {
             $this->catid = $categoryorid->id;
             $this->category = $categoryorid;
-        } else if (is_object($categoryorid)) {
+        } else if (\is_object($categoryorid)) {
             $this->catid = $categoryorid->id;
             $this->category = core_course_category::get($categoryorid->id);
         }
@@ -132,7 +133,7 @@ class catoptions {
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         if (!empty($this->catid)) {
-            list($in, $catparams) = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
+            [$in, $catparams] = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
             $select .= " AND category $in";
             $params += $catparams;
         } else {
@@ -228,15 +229,14 @@ class catoptions {
     }
     /**
      * Construct the class from enrol wallet instance id.
-     * @param int $instanceid
+     * @param int|stdClass $instanceid
      * @return static
      */
-    public static function create_from_instance_id($instanceid = 0) {
+    public static function create_from_instance_id(int|stdClass $instanceid = 0): static {
         if (empty($instanceid)) {
             return new static();
-        } else {
-            $instancehelper = new instance($instanceid);
-            return new static($instancehelper->get_course_category());
         }
+        $instancehelper = new instance($instanceid);
+        return new static($instancehelper->get_course_category());
     }
 }

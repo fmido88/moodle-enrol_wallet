@@ -308,7 +308,7 @@ class coupon extends base {
      * Get all available filters.
      * @return array<filter>
      */
-    protected function get_all_filters() {
+    public function get_all_filters() {
         $filters = [];
         $calias  = $this->get_table_alias('enrol_wallet_coupons');
 
@@ -444,7 +444,7 @@ class coupon extends base {
 
         if (has_capability('enrol/wallet:deletecoupon', $systemcontext)) {
             $actions[] = new action(
-                url: actions::DELETE_COUPON->url(['id' => ':id', 'sesskey' => sesskey()]),
+                url: actions::DELETE_COUPON->url(['ids' => ':id', 'sesskey' => sesskey()]),
                 icon: new pix_icon('i/delete', get_string('delete')),
                 title: new lang_string('delete')
             );

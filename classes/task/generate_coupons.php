@@ -43,6 +43,6 @@ class generate_coupons extends \core\task\adhoc_task {
         $trace->output('Data: ' . $this->get_custom_data_as_string());
 
         $ids = generator::create_coupons($options, $trace);
-        $trace->output('Finished generating coupons with codes: ' . implode(',', $ids));
+        $trace->output('Finished generating coupons with ids: ' . implode(',', $ids));
     }
 }
