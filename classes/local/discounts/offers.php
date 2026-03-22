@@ -745,7 +745,7 @@ class offers {
         $costfield = $DB->sql_cast_char2real('e.cost');
         $notemptycost = '(' . $DB->sql_isnotempty('enrol', 'e.cost', true, false);
         $notemptycost .= " AND e.cost IS NOT NULL)";
-    
+
         $sql = "SELECT e.id as instanceid, c.*, e.customtext3, e.cost
                 From {course} c
                 JOIN {enrol} e ON e.courseid = c.id

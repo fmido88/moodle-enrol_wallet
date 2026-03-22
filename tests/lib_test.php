@@ -60,7 +60,7 @@ final class lib_test extends \advanced_testcase {
         config::make()->frontpageoffers = true;
 
         $this->setAdminUser();
-        // $page = new moodle_page();
+
         $PAGE->set_context(context_course::instance(SITEID));
         $PAGE->set_course($SITE);
         $PAGE->set_url(new moodle_url('/'));
