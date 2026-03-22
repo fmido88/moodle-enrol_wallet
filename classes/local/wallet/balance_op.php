@@ -546,11 +546,14 @@ class balance_op extends balance {
         if (empty($description) && !empty($desc)) {
             $description = $desc;
         } else if (!empty($desc)) {
-            $description .= ', ' . $desc;
+            $separator = (empty($description)) ? '' : ', ';
+            $description .= "{$separator}{$desc}";
         } else if (empty($description)) {
             // Should not happen.
-            $a['charger'] = fullname($USER);
-            $description  = get_string('debitdesc_user', 'enrol_wallet', $a);
+            if (!isguestuser($USER) && \core\user::is_real_user($USER, true)) {
+                $a['charger'] = fullname($USER);
+                $description  = get_string('debitdesc_user', 'enrol_wallet', $a);
+            }
         }
 
         return $description;
@@ -700,7 +703,7 @@ class balance_op extends balance {
      * @return string
      */
     private function get_credit_description($by, $thingid, $desc) {
-        $description = $desc;
+        $description = '';
 
         switch ($by) {
             case self::C_CASHBACK:
@@ -728,6 +731,14 @@ class balance_op extends balance {
             case self::C_REFERRAL:
             case self::C_VC:
             default:
+        }
+
+        if (empty($description)) {
+            return $desc;
+        }
+
+        if (!empty($desc)) {
+            $description .= " \n$desc";
         }
 
         return $description;

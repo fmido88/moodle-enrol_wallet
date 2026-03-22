@@ -286,7 +286,7 @@ class charger_form extends \moodleform {
 
             switch ($op) {
                 case 'reset':
-                    $operations->reset_balance();
+                    $operations->reset_balance($reason);
                     break;
 
                 case 'credit':
