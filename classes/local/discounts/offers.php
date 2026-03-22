@@ -761,7 +761,7 @@ class offers {
             'time1'  => timedate::time(),
             'time2'  => timedate::time(),
             'wallet' => 'wallet',
-            'zero'   => $DB->sql_cast_char2real('0'),
+            'zero'   => '0',
         ];
 
         if (!empty($categoryid)) {
