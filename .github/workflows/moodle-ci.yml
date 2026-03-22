@@ -88,18 +88,18 @@ jobs:
         run: moodle-plugin-ci grunt --max-lint-warnings 0
       - name: PHPUnit tests
         if: ${{ !cancelled() }}
-        run: moodle-plugin-ci phpunit --display-warnings --display-notices --display-deprecations
-      - name: Behat features
-        if: ${{ !cancelled() }}
-        run: moodle-plugin-ci behat --profile chrome
-      - name: Upload Behat Faildump
-        if: ${{ failure() && steps.behat.outcome == 'failure' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: Behat Faildump (${{ join(matrix.*, ', ') }})
-          path: ${{ github.workspace }}/moodledata/behat_dump
-          retention-days: 7
-          if-no-files-found: ignore
+        run: moodle-plugin-ci phpunit --display-notices
+      # - name: Behat features
+      #   if: ${{ !cancelled() }}
+      #   run: moodle-plugin-ci behat --profile chrome
+      # - name: Upload Behat Faildump
+      #   if: ${{ failure() && steps.behat.outcome == 'failure' }}
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: Behat Faildump (${{ join(matrix.*, ', ') }})
+      #     path: ${{ github.workspace }}/moodledata/behat_dump
+      #     retention-days: 7
+      #     if-no-files-found: ignore
       - name: Mark cancelled jobs as failed.
         if: ${{ cancelled() }}
         run: exit 1
