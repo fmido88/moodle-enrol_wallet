@@ -741,7 +741,10 @@ class offers {
     public static function get_courses_with_offers($categoryid = 0): array {
         global $DB;
         $notempty = $DB->sql_isnotempty('enrol', 'e.customtext3', true, true);
-        $zerocost = $DB->sql_equal('e.cost', '0');
+
+        $costfield = $DB->sql_cast_char2real('e.cost');
+        $notemptycost = '(' . $DB->sql_isnotempty('enrol', 'e.cost', true, false);
+        $notemptycost .= " AND e.cost IS NOT NULL)";
     
         $sql = "SELECT e.id as instanceid, c.*, e.customtext3, e.cost
                 From {course} c
@@ -751,13 +754,14 @@ class offers {
                   AND (e.enrolenddate > :time2 OR e.enrolenddate = 0)
                   AND e.enrol = :wallet
                   AND c.visible = 1
-                  AND ($zerocost OR $notempty)";
+                  AND (($notemptycost AND $costfield = :zero) OR $notempty)";
         $order = " ORDER BY c.timecreated DESC";
         $params = [
             'stat'   => ENROL_INSTANCE_ENABLED,
             'time1'  => timedate::time(),
             'time2'  => timedate::time(),
             'wallet' => 'wallet',
+            'zero'   => $DB->sql_cast_char2real('0'),
         ];
 
         if (!empty($categoryid)) {
