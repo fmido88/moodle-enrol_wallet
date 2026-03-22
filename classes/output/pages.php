@@ -186,36 +186,36 @@ class pages {
      * @return string
      */
     public static function get_charger_confirm($data, $returnurl, $pageurl = null) {
-        global $OUTPUT, $PAGE;
+        global $OUTPUT;
         if (!has_capability('enrol/wallet:creditdebit', \context_system::instance())) {
             return '';
         }
 
         if (empty($pageurl)) {
-            $pageurl = $PAGE->url;
+            $pageurl = new moodle_url(qualified_me());
         }
 
         $confirmurl = new moodle_url($pageurl, $data);
         $confirmurl->param('confirm', true);
         $confirmurl->param('return', $returnurl->out_as_local_url());
         $confirmbutton = new single_button($confirmurl, get_string('confirm'), 'post');
-        $cancelbutton = new single_button($returnurl, get_string('cancel'), 'post');
+        $cancelbutton  = new single_button($returnurl, get_string('cancel'), 'post');
 
         if (!empty($data['category'])) {
-            $category = core_course_category::get($data['category'], IGNORE_MISSING);
+            $category = core_course_category::get($data['category'], IGNORE_MISSING, true);
         } else {
             $category = null;
         }
 
-        $balance = new balance($data['userlist'], $category);
+        $balance = new balance($data['userlist'], $category ?? 0);
         $userbalance = $balance->get_valid_balance();
 
         $user = core_user::get_user($data['userlist']);
         $name = html_writer::link(new moodle_url('/user/view.php', ['id' => $user->id]), fullname($user), ['target' => '_blank']);
 
         $a = [
-            'name' => $name,
-            'amount' => $data['value'],
+            'name'    => $name,
+            'amount'  => $data['value'],
             'balance' => $userbalance,
         ];
         $a['category'] = !(empty($category)) ? $category->get_nested_name(false) : get_string('site');
@@ -231,7 +231,7 @@ class pages {
                 break;
             case 'credit':
                 $msg = get_string('confirm_credit', 'enrol_wallet', $a);
-                list($extra, $condition) = discount_rules::get_the_rest($data['value'], $data['category']);
+                [$extra, $condition] = discount_rules::get_the_rest($data['value'], $data['category']);
                 if (!empty($extra)) {
                     $msg .= '<br>'.get_string('confirm_additional_credit', 'enrol_wallet', $extra);
                 }
@@ -239,10 +239,17 @@ class pages {
             default:
                 $msg = '';
         }
+
         if ($negativewarn) {
             $warning = get_string('confirm_negative', 'enrol_wallet');
             $msg .= $OUTPUT->notification($warning, 'error', false);
         }
+
+        if (!empty($data['reason'])) {
+            $msg .= html_writer::empty_tag('br');
+            $msg .= get_string('transactionreason', 'enrol_wallet') . ": {$data['reason']}";
+        }
+
         return $OUTPUT->confirm($msg, $confirmbutton, $cancelbutton);
     }
 
