@@ -50,5 +50,6 @@ final class migrate_enrollment_test extends \advanced_testcase {
 
         // If we get here without errors, the task executed successfully.
         $this->assertTrue(true);
+        // For full testing it requires enrol_credit.
     }
 }

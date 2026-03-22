@@ -59,6 +59,5 @@ final class generate_coupons_test extends \advanced_testcase {
 
         $this->assertEquals(5, $DB->count_records('enrol_wallet_coupons'));
         // If we get here without errors, the task executed successfully.
-        $this->assertTrue(true);
     }
 }

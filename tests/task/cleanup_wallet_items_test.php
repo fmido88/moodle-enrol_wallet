@@ -44,5 +44,11 @@ final class cleanup_wallet_items_test extends \advanced_testcase {
         ob_end_clean();
         // If we get here without errors, the task executed successfully.
         $this->assertTrue(true);
+
+        // Todo: Create three items, two more than five days ago
+        // one with payment completed, and the others not.
+        // The third is less than five days.
+        // Assert that the only uncompleted item with no payment
+        // is deleted, others still here.
     }
 }
