@@ -45,8 +45,9 @@ class coupons_course_selector extends course_selector {
         $params = [];
         foreach ($courseids as $i => $cid) {
             $param = database::generate_param_name("_{$i}");
-            $clauses[] = "CONCAT(',', $fieldsql, ',') LIKE :$param";
-            $params[$param] = "%,$cid,%";
+            $fieldname = $DB->sql_concat("\\,", $fieldsql, "\\,");
+            $clauses[] = $DB->sql_like($fieldname, ":$param");
+            $params[$param] = "%\\,$cid\\,%";
         }
 
         return ['(' . implode(' AND ', $clauses) . ')', $params];
