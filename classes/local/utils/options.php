@@ -17,6 +17,7 @@
 namespace enrol_wallet\local\utils;
 
 use context;
+use context_course;
 use core_course_category;
 use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
@@ -93,9 +94,10 @@ class options {
      * @return array<string>
      */
     public static function get_courses_options($courseid): array {
+        global $DB;
         // Adding restriction upon another course enrolment.
         // Prepare the course selector.
-        $courses = get_courses();
+        $courses = $DB->get_records('course', null, '', 'id, category, fullname');
         $options = [];
         foreach ($courses as $course) {
             // We don't check enrolment in home page.
@@ -108,8 +110,8 @@ class options {
                 continue;
             }
             $catname = $category->get_nested_name(false, ':') . ': ';
-
-            $options[$course->id] = $catname . $course->fullname;
+            $context = context_course::instance($courseid);
+            $options[$course->id] = $catname . format_string($course->fullname, true, ['context' => $context]);
         }
         return $options;
     }
