@@ -235,7 +235,7 @@ class charger_form extends \moodleform {
             }
 
             // No user.
-            if (empty($errors['userlist']) && empty($userid) || !$DB->record_exists('user', ['id' => $userid])) {
+            if (empty($errors['userlist']) && (empty($userid) || !$DB->record_exists('user', ['id' => $userid]))) {
                 $errors['userlist'] = get_string('charger_nouser', 'enrol_wallet');
             }
 
