@@ -550,7 +550,7 @@ class balance_op extends balance {
             $description .= "{$separator}{$desc}";
         } else if (empty($description)) {
             // Should not happen.
-            if (!isguestuser($USER) && \core\user::is_real_user($USER, true)) {
+            if (!isguestuser($USER) && \core\user::is_real_user($USER->id, true)) {
                 $a['charger'] = fullname($USER);
                 $description  = get_string('debitdesc_user', 'enrol_wallet', $a);
             }
