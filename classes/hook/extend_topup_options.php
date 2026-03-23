@@ -85,7 +85,7 @@ class extend_topup_options {
         foreach ($options as $k => $option) {
             if ($key === $option['key']) {
                 $target = $options[$k];
-                unset($option[$k]);
+                unset($options[$k]);
                 break;
             }
         }
