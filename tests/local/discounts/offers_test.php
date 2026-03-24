@@ -1012,7 +1012,9 @@ final class offers_test extends \advanced_testcase {
         // Test the static method returns array with expected keys.
         $reflection = new \ReflectionClass(offers::class);
         $method     = $reflection->getMethod('get_offer_options');
-        $method->setAccessible(true);
+        if ((float)(PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION) < 8.1) {
+            $method->setAccessible(true);
+        }
 
         $options = $method->invoke(null);
 
@@ -1069,7 +1071,9 @@ final class offers_test extends \advanced_testcase {
         // Test the fname method via reflection.
         $reflection = new \ReflectionClass(offers::class);
         $method     = $reflection->getMethod('fname');
-        $method->setAccessible(true);
+        if ((float)(PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION) < 8.1) {
+            $method->setAccessible(true);
+        }
 
         // Test different combinations.
         $result = $method->invoke(null, 'time', 'discount', 1);

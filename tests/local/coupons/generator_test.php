@@ -137,7 +137,9 @@ final class generator_test extends \advanced_testcase {
 
         $class = new ReflectionClass(generator::class);
         $method = $class->getMethod('remove_like_characters');
-        $method->setAccessible(true);
+        if ((float)(PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION) < 8.1) {
+            $method->setAccessible(true);
+        }
 
         // Test 1: All character sets combined.
         $charset = generator::LOWERCASE_CHARSET . generator::UPPERCASE_CHARSET . generator::NUMBERS_CHARSET;
