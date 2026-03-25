@@ -26,7 +26,7 @@ use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\task\migrate_enrollments;
 
-require_once('../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
 require_login(null, false);
 $context = context_system::instance();

@@ -25,7 +25,7 @@
 use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\local\urls\actions;
 
-require_once('../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
 // Any error displaying causing page to not redirect and charging operation may be proceeded twice.
 set_debugging(DEBUG_NONE, false);
@@ -48,4 +48,6 @@ $PAGE->set_url($url);
 $form = new applycoupon_form();
 $redirect = $form->process_coupon_data($data);
 
-redirect($redirect);
+if (!PHPUNIT_TEST) {
+    redirect($redirect);
+}

@@ -22,7 +22,7 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once('../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\reports;
@@ -49,10 +49,13 @@ if ($confirm) {
     [$in, $params] = $DB->get_in_or_equal($ids);
     $DB->delete_records_select('enrol_wallet_coupons', 'id ' . $in, $params);
 
-    redirect($returnurl, get_string('couponsdeleted', 'enrol_wallet', count($ids)));
+    if (!PHPUNIT_TEST) {
+        redirect($returnurl, get_string('couponsdeleted', 'enrol_wallet', count($ids)));
+    }
 }
-
-echo $OUTPUT->header();
+if (!PHPUNIT_TEST) {
+    echo $OUTPUT->header();
+}
 
 $optionsyes = ['sesskey' => sesskey(), 'confirm' => 1, 'ids' => $ids];
 
@@ -63,5 +66,6 @@ $buttoncancel = new single_button($returnurl, get_string('no'));
 $message = get_string('confirmdeletecoupon', 'enrol_wallet', $ids);
 
 echo $OUTPUT->confirm($message, $buttoncontinue, $buttoncancel);
-
-echo $OUTPUT->footer();
+if (!PHPUNIT_TEST) {
+    echo $OUTPUT->footer();
+}

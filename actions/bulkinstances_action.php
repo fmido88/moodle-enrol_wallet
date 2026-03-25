@@ -25,7 +25,7 @@
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\utils\timedate;
 
-require_once('../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 // Some security.
 require_login();
 

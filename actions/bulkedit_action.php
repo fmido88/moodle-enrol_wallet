@@ -24,7 +24,7 @@
 
 use enrol_wallet\local\urls\manage;
 
-require_once('../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
 require_login();
 $frontpagectx = context_course::instance(SITEID);
@@ -123,8 +123,10 @@ foreach ($courses as $courseid) {
 $url = manage::BULKENROLMENTS->url();
 $msg = get_string('enrollmentupdated', 'enrol_wallet');
 
-if ($i == 0) {
-    redirect($url, $i . $msg, null, 'warning');
-} else {
-    redirect($url, $i . ' '. $msg, null, 'info');
+if (!PHPUNIT_TEST) {
+    if ($i == 0) {
+        redirect($url, $i . $msg, null, 'warning');
+    } else {
+        redirect($url, $i . ' '. $msg, null, 'info');
+    }
 }
