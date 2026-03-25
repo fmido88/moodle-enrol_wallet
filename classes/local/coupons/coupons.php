@@ -219,11 +219,7 @@ class coupons {
     protected function set_coupon_data($coupon, $userid): void {
         global $DB;
 
-        if (!$this->is_enabled()) {
-            // This means that coupons is disabled in the site.
-            $this->valid = false;
-            $this->error = 'Coupons are disabled in this site.';
-
+        if (!$this->check_enabled()) {
             return;
         }
 
@@ -245,7 +241,7 @@ class coupons {
 
             if (!$couponrecord) {
                 $this->valid = false;
-                $this->error = get_string('coupon_notexist', 'enrol_wallet');
+                $this->error = get_string('coupon_notexist', 'enrol_wallet') . "($coupon)";
 
                 return;
             }
@@ -305,6 +301,14 @@ class coupons {
      * @return bool
      */
     protected function check_enabled(): bool {
+        if (!$this->is_enabled()) {
+            // This means that coupons is disabled in the site.
+            $this->valid = false;
+            $this->error = 'Coupons are disabled in this site.';
+
+            return false;
+        }
+
         // First check if this type is enabled in the website.
         if (!$this->is_enabled_type()) {
             $identifier  = $this->get_type() . 'coupondisabled';
@@ -322,6 +326,11 @@ class coupons {
      * @return bool
      */
     public function is_enabled_type(): bool {
+        if (empty($this->type)) {
+            // Not initialized yet no need to un-validate.
+            return $this->is_enabled();
+        }
+
         $type    = $this->type;
         $enabled = $this->get_enabled();
 
@@ -361,7 +370,7 @@ class coupons {
         }
         $types = explode(',', $config);
 
-        if (count($types) >= 4 || in_array(self::ALL, $types)) {
+        if (\count($types) >= 4 || \in_array(self::ALL, $types)) {
             return [self::ALL];
         }
 
@@ -508,8 +517,9 @@ class coupons {
      * Get the key of a value in the given array.
      * @param mixed $value
      * @param array $array
+     * @return int|string|null
      */
-    protected static function get_key($value, $array) {
+    protected static function get_key($value, $array): int|string|null {
         $fliped = array_flip($array);
 
         return $fliped[$value] ?? null;
@@ -593,7 +603,7 @@ class coupons {
 
         if (!is_numeric($this->value) || ($this->value <= 0 && $this->type !== self::ENROL)) {
             $this->valid = false;
-            $this->error = get_string('coupon_invalidrecord', 'enrol_wallet');
+            $this->error = get_string('coupon_invalidrecord', 'enrol_wallet') . " ({$this->code}: {$this->value})";
 
             return false;
         }
@@ -898,7 +908,7 @@ class coupons {
             $this->set_area($area, $areaid);
         }
 
-        if (!$this->validate_record() || !$this->check_enabled()) {
+        if (!$this->check_enabled() || !$this->validate_record()) {
             return $this->error;
         }
 
