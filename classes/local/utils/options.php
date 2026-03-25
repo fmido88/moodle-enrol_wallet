@@ -18,6 +18,7 @@ namespace enrol_wallet\local\utils;
 
 use context;
 use context_course;
+use core_collator;
 use core_course_category;
 use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
@@ -113,6 +114,8 @@ class options {
             $context = context_course::instance($courseid);
             $options[$course->id] = $catname . format_string($course->fullname, true, ['context' => $context]);
         }
+
+        core_collator::asort($options);
         return $options;
     }
 
