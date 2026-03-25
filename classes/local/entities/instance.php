@@ -366,6 +366,42 @@ class instance extends entity implements \IteratorAggregate {
     }
 
     /**
+     * Check if the user has a wallet enrollment in
+     * a given course.
+     * @param int $courseid
+     * @param int $userid
+     * @param bool $activeonly
+     * @return bool
+     */
+    public static function is_enrolled_by_wallet(int $courseid, int $userid = 0, bool $activeonly = true) {
+        global $DB, $USER;
+        if ($userid <= 0) {
+            $userid = (int)$USER->id;
+        }
+
+        $sql = 'SELECT 1
+                FROM {user_enrolments} ue
+                JOIN {enrol} e ON e.id = ue.enrolid
+                WHERE ue.userid  = :userid
+                  AND e.enrol = :wallet
+                  AND e.courseid = :courseid';
+        $params = [
+            'wallet'  => 'wallet',
+            'userid'  => $userid,
+            'courseid' => $courseid,
+        ];
+
+        if ($activeonly) {
+            $sql .= ' AND ue.status = :status AND (ue.timeend = 0 OR ue.timeend > :timenow1) AND ue.timestart < :timenow2';
+            $now                = timedate::time();
+            $params['status']   = ENROL_USER_ACTIVE;
+            $params['timenow1'] = $now;
+            $params['timenow2'] = $now;
+        }
+
+        return $DB->record_exists_sql($sql, $params);
+    }
+    /**
      * Get the user enrollments records for this instance.
      * @return array
      */
