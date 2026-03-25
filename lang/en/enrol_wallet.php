@@ -787,3 +787,13 @@ $string['wordpressurl_desc'] = 'Wordpress url with woo-wallet (tera wallet) plug
 $string['wrongemailformat'] = 'Wrong Email format.';
 
 $string['youhavebalance'] = 'You have balance:';
+$string['source'] = 'Source';
+$string['display'] = 'Display';
+$string['wallet_balance_coupons'] = 'Balance and coupons';
+$string['refund'] = 'Refund';
+$string['topup_options'] = 'Topup options';
+$string['wallet_discounts'] = 'Wallet balance discounts';
+$string['purchase_discounts'] = 'Purchace discount';
+$string['freegifts'] = 'Free gifts';
+$string['restriction'] = 'Restrictions';
+$string['default_instance'] = 'Instance defaults';
