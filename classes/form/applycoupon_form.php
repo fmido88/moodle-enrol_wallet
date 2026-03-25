@@ -72,6 +72,7 @@ class applycoupon_form extends \moodleform {
     public function definition() {
         global $PAGE;
         $mform = $this->_form;
+        $this->form_customdata_from_submitted_data();
         $instance = ((object)$this->_customdata)->instance;
         if (!isset($instance)) {
             throw new coding_exception('The enrol instance stdClass should be pass to custom data arg.');
@@ -324,5 +325,54 @@ class applycoupon_form extends \moodleform {
 
         \core\notification::add($msg, $msgtype);
         return $redirecturl;
+    }
+
+    /**
+     * Format custom data from submitted data in case of using the form
+     * for submission only.
+     *
+     * @return void
+     */
+    public function form_customdata_from_submitted_data() {
+        if (!empty($this->_customdata) && !empty(((object)($this->_customdata))->instance)) {
+            return;
+        }
+        $data = [
+            'instanceid'   => $this->optional_param('instanceid', null, PARAM_INT),
+            'cmid'         => $this->optional_param('cmid', null, PARAM_INT),
+            'sectionid'    => $this->optional_param('sectionid', null, PARAM_INT),
+            'courseid'     => $this->optional_param('courseid', null, PARAM_INT),
+            'url'          => $this->optional_param('url', null, PARAM_LOCALURL),
+        ];
+        if (empty($this->_customdata)) {
+            $this->_customdata = new stdClass();
+        } else {
+            $this->_customdata = (object)$this->_customdata;
+        }
+
+        $checks = ['instanceid', 'cmid', 'sectionid'];
+        $valid = false;
+
+        foreach ($checks as $id) {
+            if (isset($data[$id])) {
+                $valid = true;
+            }
+        }
+
+        if (!$valid) {
+            return;
+        }
+
+        $instance = new stdClass;
+        $instance->id = $data['instanceid'];
+        $instance->cmid = $data['cmid'];
+        $instance->sectionid = $data['sectionid'];
+        $instance->url = $data['url'];
+        $instance->courseid = $data['courseid'];
+
+        $this->_customdata->instance = $instance;
+        if (!isset($this->_customdata->url) && !empty($instance->url)) {
+            $this->_customdata->url = $instance->url;
+        }
     }
 }
