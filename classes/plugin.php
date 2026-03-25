@@ -1280,13 +1280,16 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Add elements to the edit instance form.
      *
-     * @param stdClass $instance
+     * @param ?stdClass $instance
      * @param MoodleQuickForm $mform
      * @param context $context
      */
     public function edit_instance_form($instance, \MoodleQuickForm $mform, $context) {
         // Merge these two settings to one value for the single selection element.
-        $instance = $this->get_helper($instance);
+        if (!empty($instance->id)) {
+            $instance = $this->get_helper($instance);
+        }
+
         if ($instance->notifyall && $instance->expirynotify) {
             $instance->expirynotify = 2;
         }
