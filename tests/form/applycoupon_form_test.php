@@ -25,11 +25,14 @@
 
 namespace enrol_wallet\form;
 
+use context_course;
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\generator;
 use enrol_wallet\local\utils\testing;
+use enrol_wallet\local\wallet\balance;
 use enrol_wallet_generator;
+use moodle_url;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -722,5 +725,52 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // The form should be created successfully with unique identifier.
         $this->assertInstanceOf(applycoupon_form::class, $form);
+    }
+
+    /**
+     * Test the submission through action page.
+     * @covers ::process_coupon_data()
+     * @covers ::validation()
+     * @return void
+     */
+    public function test_coupon_action_page():void {
+        global $CFG, $PAGE;
+        $this->resetAfterTest();
+        config::make()->coupons = implode(',', [
+            coupons::FIXED,
+            coupons::CATEGORY,
+        ]);
+        // Create a user.
+        $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
+
+        // Create a course and instance.
+        $course = $this->getDataGenerator()->create_course();
+        $instance = testing::get_generator()->create_instance($course->id, false, 30);
+
+        $_POST['instanceid'] = $instance->id;
+        $_POST['courseid'] = $instance->courseid;
+        $_POST['submitcoupon'] = true;
+
+        $couponcode = 'TeStingCode251';
+        $record = generator::create_coupon_record(
+            code: $couponcode,
+            type: 'fixed',
+            value: 50.0,
+            maxusage: 10
+        );
+
+        $coupon = new coupons($record->code);
+
+        $_POST['coupon'] = $couponcode;
+        $redirect = null;
+        include_once("{$CFG->dirroot}/enrol/wallet/actions/coupon_action.php");
+
+        $this->assertInstanceOf(moodle_url::class, $redirect);
+        $this->assertEmpty($redirect->param('error'), $redirect->param('error') ?? '');
+        $this->assertTrue(is_enrolled(context_course::instance($course->id), $user));
+
+        $ba = new balance();
+        $this->assertEquals(20, $ba->get_total_balance());
     }
 }
