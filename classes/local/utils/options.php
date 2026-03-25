@@ -137,7 +137,7 @@ class options {
      * @param context $context
      * @return array<string>
      */
-    public static function get_cohorts_options(instance $instance, context $context): array {
+    public static function get_cohorts_options(stdClass $instance, context $context): array {
         global $CFG, $DB;
         require_once($CFG->dirroot.'/cohort/lib.php');
 
