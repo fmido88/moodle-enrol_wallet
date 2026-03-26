@@ -800,3 +800,6 @@ $string['default_instance'] = 'Instance defaults';
 
 $string['activeonly'] = 'Active only';
 $string['walletonly'] = 'Wallet only';
+
+$string['tellercontactinfo'] = 'The teller \'{$a}\' contact info';
+$string['tellercontactinfo_desc'] = 'The contact info of the teller like phone number or something, this info will be displayed to users.';

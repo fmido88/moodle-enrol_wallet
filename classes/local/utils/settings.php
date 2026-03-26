@@ -400,15 +400,23 @@ class settings {
      */
     protected function load_topup_options_settings_tab(admin_settingpage $page) {
         $context = context_system::instance();
-
+        // Todo: add a note that payment topup option will be available when
+        // choose a payment gateway and currency.
         // Add option to display users with capabiliy to credit others on the site.
         $page->add(new admin_setting_heading('enrol_wallet_tellermen',
                                     get_string('tellermen_heading', 'enrol_wallet'),
                                     get_string('tellermen_heading_desc', 'enrol_wallet')));
-        $tellermen = get_users_by_capability($context, 'enrol/wallet:creditdebit', 'u.id, u.firstname, u.lastname');
+        $ufselects = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
+        $tellermen = get_users_by_capability($context, 'enrol/wallet:creditdebit', $ufselects);
         $tellermen += get_admins();
+        $contactinfo = [];
         foreach ($tellermen as $user) {
-            $tellermen[$user->id] = $user->firstname . ' '. $user->lastname;
+            $tellermen[$user->id] = fullname($user);
+            $contactinfo[] = new admin_setting_confightmleditor("enrol_wallet/teller_{$user->id}",
+                                                                get_string('tellercontactinfo', 'enrol_wallet', $tellermen[$user->id]),
+                                                                get_string('tellercontactinfo_desc', 'enrol_wallet'),
+                                                                '',
+                                                                PARAM_RAW_TRIMMED);
         }
 
         $page->add(new admin_setting_configmultiselect('enrol_wallet/tellermen',
@@ -416,7 +424,11 @@ class settings {
                                     get_string('tellermen_desc', 'enrol_wallet'),
                                     [], $tellermen));
 
-
+        foreach($contactinfo as $cinfo) {
+            $page->add($cinfo);
+            // Todo: find a way to add this using js and ajax to be instantenuously apear
+            // when the admin selects a tellerman.
+        }
     }
 
     /**
