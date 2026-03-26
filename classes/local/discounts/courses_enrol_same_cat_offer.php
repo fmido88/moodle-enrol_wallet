@@ -47,12 +47,12 @@ class courses_enrol_same_cat_offer extends offer_item {
      * Active enrollments only.
      * @var bool
      */
-    protected bool $activeonly = true;
+    protected bool $activeonly = false;
     /**
      * Wallet enrollments only.
      * @var bool
      */
-    protected bool $walletonly = true;
+    protected bool $walletonly = false;
     /**
      * {@inheritDoc}
      * @param stdClass $offer
@@ -63,8 +63,8 @@ class courses_enrol_same_cat_offer extends offer_item {
         parent::__construct($offer, $courseid, $userid);
         $this->condition = $offer->condition;
         $this->courses = $offer->courses;
-        $this->walletonly = $offer->walletonly ?? true;
-        $this->activeonly = $offer->activeonly ?? true;
+        $this->walletonly = $offer->walletonly ?? false;
+        $this->activeonly = $offer->activeonly ?? false;
     }
 
     #[\Override()]
@@ -105,12 +105,13 @@ class courses_enrol_same_cat_offer extends offer_item {
             'discount'  => format_float($this->discount, 2),
             'condition' => $this->condition == 'any' ? get_string('any') : get_string('all'),
         ];
+        // Todo: create a template is more convenient here.
         return get_string('offers_ce_desc', 'enrol_wallet', $a);
     }
 
     #[\Override()]
     public function validate_offer(): bool {
-        global $DB, $USER;
+        global $DB;
         $ids = $this->courses;
         $condition = $this->condition;
 
@@ -133,11 +134,13 @@ class courses_enrol_same_cat_offer extends offer_item {
 
         if ($this->activeonly) {
             $sql .= " AND ue.status = :stat
-                   AND (ue.timeend >= :now1 OR ue.timeend = :zero)";
-            $params['zero'] = 0;
+                   AND (ue.timeend >= :now1 OR ue.timeend = 0)
+                   AND (ue.timestart <= :now2 OR ue.timeend = 0";
             $params['now1'] = timedate::time();
+            $params['now2'] = timedate::time();
             $params['stat'] = ENROL_USER_ACTIVE;
         }
+
         $records = $DB->get_records_sql($sql, $params);
 
         if (empty($records)) {

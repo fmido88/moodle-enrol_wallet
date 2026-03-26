@@ -17,6 +17,7 @@
 namespace enrol_wallet\local\discounts;
 
 use core_course_category;
+use enrol_wallet\local\utils\timedate;
 use MoodleQuickForm;
 use stdClass;
 
@@ -38,6 +39,12 @@ class other_category_courses_offer extends offer_item {
      * @var int
      */
     protected int $number;
+
+    /**
+     * Active enrolment only.
+     * @var bool
+     */
+    protected bool $activeonly = false;
     /**
      * {@inheritDoc}
      * @param stdClass $offer
@@ -48,6 +55,7 @@ class other_category_courses_offer extends offer_item {
         parent::__construct($offer, $courseid, $userid);
         $this->cat = (int)$offer->cat;
         $this->number = $offer->number ?? $offer->courses;
+        $this->activeonly = $offer->activeonly ?? false;
     }
 
     #[\Override()]
@@ -79,27 +87,38 @@ class other_category_courses_offer extends offer_item {
             return false;
         }
 
-        $ids = [$catid];
-
         $category = core_course_category::get($catid, IGNORE_MISSING, false, $this->userid);
 
         if (!$category) {
             return false;
         }
 
-        $ids += $category->get_all_children_ids();
+        $ids = [$catid, ...$category->get_all_children_ids()];
 
         [$in, $inparams] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+        $params = $inparams + [
+            'thiscourse' => $this->courseid,
+            'userid'     => $this->userid,
+        ];
 
         $sql = "SELECT ue.id
                 FROM {user_enrolments} ue
                 JOIN {enrol} e ON ue.enrolid = e.id
                 JOIN {course} c ON c.id = e.courseid
                 WHERE c.category $in
-                  AND c.id != :thiscourse
+                  AND c.id <> :thiscourse
                   AND ue.userid = :userid";
-        $params = ['thiscourse' => $this->courseid, 'userid' => $this->userid];
-        $params += $inparams;
+
+        if ($this->activeonly) {
+            $sql .= " AND ue.status = :active
+                      AND (ue.timeend >= :now1 OR ue.timeend = 0)
+                      AND (ue.timestart <= :now2 OR ue.timestart = 0)";
+            $params += [
+                'active' => ENROL_USER_ACTIVE,
+                'now1' => timedate::time(),
+                'now2' => timedate::time(),
+            ];
+        }
 
         $records = $DB->get_records_sql($sql, $params, 0, $number + 1);
 
@@ -147,6 +166,8 @@ class other_category_courses_offer extends offer_item {
         $group[] = $mform->createElement('select', 'offer_otherc_courses_' . $inc, get_string('courses'), $options);
         $label   = get_string('offers_other_category_courses_based', 'enrol_wallet');
         $mform->addGroup($group, 'offer_otherc_' . $inc, $label, null, false);
+
+        $mform->addElement('advcheckbox', 'offer_otherc_activeonly_' . $inc, get_string('activeonly', 'enrol_wallet'));
     }
 
     #[\Override()]

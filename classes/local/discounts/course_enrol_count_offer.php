@@ -35,6 +35,11 @@ class course_enrol_count_offer extends offer_item {
     protected int $number;
 
     /**
+     * If the user has active enrolment in these course.
+     * @var bool
+     */
+    protected bool $activeonly = false;
+    /**
      * {@inheritDoc}
      * @param stdClass $offer
      * @param int $courseid
@@ -43,6 +48,7 @@ class course_enrol_count_offer extends offer_item {
     public function __construct(stdClass $offer, int $courseid, int $userid = 0) {
         parent::__construct($offer, $courseid, $userid);
         $this->number = $offer->number ?? $offer->courses;
+        $this->activeonly = $offer->activeonly ?? false;
     }
     #[\Override()]
     public static function key(): string {
@@ -106,6 +112,8 @@ class course_enrol_count_offer extends offer_item {
         }
         $element = $mform->addElement('select', 'offer_nc_number_' . $inc, get_string('courses'), $options);
         $element->setMultiple(false);
+
+        $mform->addElement('advcheckbox', 'offer_nc_activeonly_' . $inc, get_string('activeonly', 'enrol_wallet'));
     }
 
     #[\Override()]
