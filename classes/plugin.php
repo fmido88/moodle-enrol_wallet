@@ -22,7 +22,9 @@ use enrol_wallet\form\topup_form;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
-use enrol_wallet\local\entities\instance as helper;
+use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\restriction\cohorts;
+use enrol_wallet\local\restriction\courses;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\payment;
@@ -98,10 +100,10 @@ class enrol_wallet_plugin extends enrol_plugin {
     protected $costafter = [];
 
     /**
-     * Helper Class
-     * @var helper
+     * instance Class
+     * @var instance
      */
-    protected $helper;
+    protected $instance;
     /**
      * Creating new enrol_wallet_plugin, passing the instance object or id
      * will calculate the cost after discount and caches it.
@@ -110,8 +112,8 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function __construct($instance = null) {
         if (!empty($instance)) {
-            $this->helper = new helper($instance);
-            $this->costafter[$instance->id] = $this->helper->get_cost_after_discount();
+            $this->instance = new instance($instance);
+            $this->costafter[$instance->id] = $this->instance->get_cost_after_discount();
         }
     }
 
@@ -147,7 +149,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $icons = [];
         foreach ($instances as $instance) {
-            $instance = new helper($instance);
+            $instance = new instance($instance);
             $cost = $instance->get_cost_after_discount();
             $enrolstat = $this->can_self_enrol($instance);
             $canenrol  = (true === $enrolstat);
@@ -545,7 +547,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             }
 
             $wallet = self::get_plugin();
-            $instance = new helper($instance, $USER->id);
+            $instance = new instance($instance, $USER->id);
             $instance->mark_as_dirty();
             $othercost = $instance->get_cost_after_discount(true);
             $enrolstat = $wallet->can_self_enrol($instance);
@@ -894,10 +896,10 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Get the helper class
+     * Get the instance class
      * @param \stdClass|int $instance
      * @param int $userid
-     * @return helper|null
+     * @return instance|null
      */
     protected function get_helper($instance, $userid = 0) {
         global $USER;
@@ -913,18 +915,18 @@ class enrol_wallet_plugin extends enrol_plugin {
             return null;
         }
 
-        if (empty($this->helper)
-            || ($this->helper->id != $instanceid)
-            || $userid != $this->helper->userid) {
+        if (empty($this->instance)
+            || ($this->instance->id != $instanceid)
+            || $userid != $this->instance->userid) {
 
-            if ($instance instanceof helper && $userid == $instance->userid) {
-                $this->helper = $instance;
+            if ($instance instanceof instance && $userid == $instance->userid) {
+                $this->instance = $instance;
                 return $instance;
             }
 
-            $this->helper = new helper($instance, $userid);
+            $this->instance = new instance($instance, $userid);
         }
-        return $this->helper;
+        return $this->instance;
     }
 
     /**
@@ -1795,7 +1797,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return int id of new instance, null if can not be created
      */
     public function add_instance($course, $fields = null) {
-        helper::reset_static_cache();
+        instance::reset_static_cache();
         offers::parse_data($fields);
 
         // In the form we are representing 2 db columns with one field.
@@ -1821,7 +1823,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @param stdClass $data modified instance fields
      */
     public function update_instance($instance, $data) {
-        helper::reset_static_cache();
+        instance::reset_static_cache();
         offers::parse_data($data);
 
         // Check first if expiry notify is sent by the edit form (not sent in case of bulk edit only).
@@ -1849,7 +1851,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $data->customint6 = $instance->customint6;
         }
 
-        if ($instance instanceof helper) {
+        if ($instance instanceof instance) {
             $instance = $instance->get_instance();
         }
 
@@ -1859,11 +1861,11 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Get the enrol wallet instance by id.
      * @param int $instanceid
-     * @return ?helper
+     * @return ?instance
      */
-    public function get_instance_by_id($instanceid): ?helper {
-        $helper = $this->get_helper($instanceid);
-        return $helper;
+    public function get_instance_by_id($instanceid): ?instance {
+        $instance = $this->get_helper($instanceid);
+        return $instance;
     }
 
     /**
@@ -1872,11 +1874,11 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return bool|stdClass
      */
     public function get_course_by_instance_id($instanceid) {
-        $helper = $this->get_helper($instanceid);
-        if (empty($helper)) {
+        $instance = $this->get_helper($instanceid);
+        if (empty($instance)) {
             return false;
         }
-        return $helper->get_course();
+        return $instance->get_course();
     }
 
     /**
@@ -1952,7 +1954,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             return $this->costafter[$instance->id];
         }
 
-        if (!($instance instanceof helper) || $instance->userid != $userid) {
+        if (!($instance instanceof instance) || $instance->userid != $userid) {
             $instance = $this->get_helper($instance, $userid);
         }
 
