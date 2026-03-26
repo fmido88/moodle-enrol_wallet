@@ -94,14 +94,6 @@ class settings {
             }
         }
 
-        if (count($this->settings->get_tabs()) !== \count($methods) - 2) {
-            echo '<pre>';
-            foreach($this->settings->get_tabs() as $tab) {
-                echo $tab->name . "<br>";
-            }
-            var_dump($methods);
-            echo '</pre>';
-        }
         return $this->settings;
     }
     /**
