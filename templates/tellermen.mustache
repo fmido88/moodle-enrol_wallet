@@ -26,16 +26,21 @@
 
 <div class="box by-3 generalbox">
     <h6>{{#str}}tellermen_display_guide, enrol_wallet{{/str}}</h6>
-    <ul>
+    <dl>
     {{#users}}
-        <li>
+        <dt>
             {{#canviewprofile}}
                 <a href="{{{url}}}">{{fullname}}</a>
             {{/canviewprofile}}
             {{^canviewprofile}}
                 <span>{{fullname}}</span>
             {{/canviewprofile}}
-        </li>
+        </dt>
+        <dd>
+            {{#contactinfo}}
+                <div>{{{contactinfo}}}</div>
+            {{/contactinfo}}
+        </dd>
     {{/users}}
-    </ul>
+    </dl>
 </div>

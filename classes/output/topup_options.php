@@ -101,8 +101,8 @@ class topup_options implements templatable, renderable {
         // Set the data we want to send to forms.
         $instance = new stdClass;
         $data = new stdClass;
-
         $config = config::make();
+
         $instance->id         = 0;
         $instance->courseid   = SITEID;
         $instance->currency   = $config->currency;
@@ -189,6 +189,7 @@ class topup_options implements templatable, renderable {
     /**
      * Get VC charging form.
      * Todo: Transfer the topup options to a hook.
+     * @deprecated This is not used any more in the newer version of vc_block
      * @return array{content: string, key: string, label: string}|null
      */
     public function get_vc_credit_form() {
@@ -233,10 +234,23 @@ class topup_options implements templatable, renderable {
                 continue;
             }
 
+            // In some cases may this user not have the capability any more but still exists
+            // in the configuration.
+            // May be we want to remove'em from here but what if the admin reassign'em again?
+            // Keep the configuration untouched just in case.
+            if (!has_capability('enrol/wallet:creditdebit', $output->get_page()->context)) {
+                continue;
+            }
+
+            $contactinfo = null;
+            if ($info = get_config('enrol_wallet', "teller_{$tellerid}")) {
+                $contactinfo = format_text($info);
+            }
             $tellermen[] = [
                 'fullname'       => fullname($teller),
                 'canviewprofile' => user_can_view_profile($teller),
                 'url'            => new url('/user/view.php', ['id' => $tellerid]),
+                'contactinfo'    => $contactinfo,
             ];
         }
 
