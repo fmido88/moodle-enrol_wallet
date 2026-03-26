@@ -580,39 +580,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * @return false|string
      */
     public function is_course_enrolment_restriction(stdClass $instance): false|string {
-        global $DB;
-        $instance = $this->get_helper($instance);
-        if (!empty($instance->customchar3) && !empty($instance->customint7)) {
-            $courses = explode(',', $instance->customchar3);
-            $restrict = false;
-            $count = 0;
-            $total = 0;
-            $notenrolled = [];
-            foreach ($courses as $courseid) {
-                if (!$DB->record_exists('course', ['id' => $courseid])) {
-                    continue;
-                }
-
-                $total++;
-                $coursectx = context_course::instance($courseid);
-                if (!is_enrolled($coursectx)) {
-                    $restrict = true;
-                    // The user is not enrolled in the required course.
-                    $notenrolled[] = get_course($courseid)->fullname;
-                } else {
-                    // Count the courses which the user enrolled in.
-                    $count++;
-                }
-            }
-
-            $coursesnames = '(' . implode(', ', $notenrolled) . ')';
-            // In case that the course creator choose a higher number than the selected courses.
-            $limit = min($total, $instance->customint7);
-            if ($restrict && $count < $limit) {
-                return $coursesnames;
-            }
-        }
-        return false;
+        return courses::is_restricted($instance);
     }
 
     /**
@@ -632,6 +600,8 @@ class enrol_wallet_plugin extends enrol_plugin {
             return '';
         }
 
+        // Todo: Auto enrol and redirect to course page in case of future
+        // packages and subscriptions.
         enrolpage_viewed::create_and_trigger($instance);
 
         $couponsetting = config::make()->coupons;
@@ -826,7 +796,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         // Check the restrictions upon other courses enrollment.
-        if ($coursesnames = $this->is_course_enrolment_restriction($instance)) {
+        if ($coursesnames = courses::is_restricted($instance)) {
             $a = [
                 'courses' => $coursesnames,
                 'number'  => $instance->customint7,
@@ -835,15 +805,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         // Check the cohorts restrictions.
-        if ($instance->customint5) {
-            require_once("$CFG->dirroot/cohort/lib.php");
-            if (!cohort_is_member($instance->customint5, $USER->id)) {
-                $cohort = $DB->get_record('cohort', ['id' => $instance->customint5]);
-                if ($cohort) {
-                    $a = format_string($cohort->name, true, ['context' => context::instance_by_id($cohort->contextid)]);
-                    $return[] = markdown_to_html(get_string('cohortnonmemberinfo', 'enrol_wallet', $a));
-                }
-            }
+        if ($cohortsrequired = cohorts::is_restricted($instance)) {
+            $return[] = $cohortsrequired;
         }
 
         if (!empty(config::make()->restrictionenabled) && !empty($instance->customtext2)) {
@@ -1163,6 +1126,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 }
             }
             $instanceid = $this->add_instance($course, (array)$data);
+            // Todo: Remove offers and restrictions related to other courses if not the same site.
         }
 
         $step->set_mapping('enrol', $oldid, $instanceid);
@@ -1192,7 +1156,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     public function restore_role_assignment($instance, $roleid, $userid, $contextid) {
         // This is necessary only because we may migrate other types to this instance,
         // we do not use component in wallet enrol.
-        role_assign($roleid, $userid, $contextid, '', 0);
+        role_assign($roleid, $userid, $contextid);
     }
 
     /**
@@ -1215,51 +1179,6 @@ class enrol_wallet_plugin extends enrol_plugin {
     public function can_hide_show_instance($instance) {
         $context = context_course::instance($instance->courseid);
         return has_capability('enrol/wallet:config', $context);
-    }
-
-    /**
-     * Adding another course restriction options to enrolment edit form.
-     * @param array<string> $coursesoptions
-     * @param \MoodleQuickForm $mform
-     * @param stdClass $instance
-     * @return void
-     */
-    public function course_restriction_edit($coursesoptions, \MoodleQuickForm $mform, $instance = null) {
-        if (!empty($coursesoptions)) {
-            $count = count($coursesoptions);
-
-            $options = [];
-            for ($i = 0; $i <= $count; $i++) {
-                $options[$i] = $i;
-            }
-            $select = $mform->addElement('select', 'customint7', get_string('coursesrestriction_num', 'enrol_wallet'), $options);
-            $select->setMultiple(false);
-            $mform->addHelpButton('customint7', 'coursesrestriction_num', 'enrol_wallet');
-
-            $mform->addElement('hidden', 'customchar3', '', ['id' => 'wallet_customchar3']);
-            $mform->setType('customchar3', PARAM_TEXT);
-
-            $attributes = [
-                'id'       => 'wallet_courserestriction',
-                'onChange' => 'restrictByCourse()',
-            ];
-            $restrictionlable = get_string('coursesrestriction', 'enrol_wallet');
-            $select = $mform->addElement('select', 'courserestriction', $restrictionlable, $coursesoptions, $attributes);
-            $select->setMultiple(true);
-            $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
-            $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
-            if (!empty($instance->customchar3)) {
-                $mform->setDefault('courserestriction', explode(',', $instance->customchar3));
-            }
-        } else {
-            $mform->addElement('hidden', 'customint7');
-            $mform->setType('customint7', PARAM_INT);
-            $mform->setConstant('customint7', 0);
-
-            $mform->addElement('hidden', 'customchar3');
-            $mform->setType('customchar3', PARAM_TEXT);
-            $mform->setConstant('customchar3', '');
-        }
     }
 
     /**
@@ -1426,38 +1345,13 @@ class enrol_wallet_plugin extends enrol_plugin {
         $this->include_availability($instance, $mform, $context);
 
         // Cohort restriction.
-        $cohorts = options::get_cohorts_options($instance, $context);
-        if (count($cohorts) > 1) {
-            $mform->addElement('select', 'customint5', get_string('cohortonly', 'enrol_wallet'), $cohorts);
-            $mform->addHelpButton('customint5', 'cohortonly', 'enrol_wallet');
-        } else {
-            $mform->addElement('hidden', 'customint5');
-            $mform->setType('customint5', PARAM_INT);
-            $mform->setConstant('customint5', 0);
-        }
+        cohorts::add_to_edit_form($mform, $instance, $context);
 
         // Course restriction.
-        $coursesoptions = options::get_courses_options($instance->courseid);
-        $this->course_restriction_edit($coursesoptions, $mform, $instance);
+        courses::add_to_edit_form($mform, $instance);
 
         $offers = new offers($instance);
         $offers->get_form_offers_elements($mform);
-        if (!empty($coursesoptions)) {
-            // Add some js code to set the value of customchar3 element for the restriction course enrolment.
-            $js = <<<JS
-                    function restrictByCourse() {
-                        var textelement = document.getElementById("wallet_customchar3");
-                        var courseArray = document.getElementById("wallet_courserestriction").selectedOptions;
-                        var selectedValues = [];
-                        for (var i = 0; i < courseArray.length; i++) {
-                            selectedValues.push(courseArray[i].value);
-                        }
-                        // Set the value of the hidden input field to the comma-separated string of selected values.
-                        textelement.value = selectedValues.join(",");
-                    }
-                JS;
-            $mform->addElement('html', '<script>'.$js.'</script>');
-        }
     }
 
     /**
