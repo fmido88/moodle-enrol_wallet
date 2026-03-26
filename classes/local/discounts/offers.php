@@ -412,17 +412,11 @@ class offers {
      * @param MoodleQuickForm $mform
      */
     public function get_form_offers_elements(MoodleQuickForm &$mform): void {
-        global $PAGE, $CFG;
+        global $PAGE;
         $mform->addElement('header', 'wallet_offers', get_string('offers', 'enrol_wallet'));
 
         $options = self::get_offer_options();
-        // Not implanted yet.
-        unset($options['geo']);
 
-        if (!file_exists($CFG->dirroot . '/availability/condition/profile/classes/condition.php')) {
-            // If some how the availability_profile not exist as we used it to assist in validation.
-            unset($options['pf']);
-        }
         $mform->addElement('select', 'add_offer', get_string('add'), $options);
 
         $courseid = $this->instance->courseid;
