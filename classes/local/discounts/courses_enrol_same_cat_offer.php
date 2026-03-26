@@ -19,6 +19,8 @@ namespace enrol_wallet\local\discounts;
 use core\output\html_writer;
 use core_course_category;
 use core_course_list_element;
+use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\utils\timedate;
 use moodle_url;
 use MoodleQuickForm;
 use stdClass;
@@ -42,6 +44,16 @@ class courses_enrol_same_cat_offer extends offer_item {
      */
     protected string $condition;
     /**
+     * Active enrollments only.
+     * @var bool
+     */
+    protected bool $activeonly = true;
+    /**
+     * Wallet enrollments only.
+     * @var bool
+     */
+    protected bool $walletonly = true;
+    /**
      * {@inheritDoc}
      * @param stdClass $offer
      * @param int $courseid
@@ -51,6 +63,8 @@ class courses_enrol_same_cat_offer extends offer_item {
         parent::__construct($offer, $courseid, $userid);
         $this->condition = $offer->condition;
         $this->courses = $offer->courses;
+        $this->walletonly = $offer->walletonly ?? true;
+        $this->activeonly = $offer->activeonly ?? true;
     }
 
     #[\Override()]
@@ -63,10 +77,20 @@ class courses_enrol_same_cat_offer extends offer_item {
         $courseslist = html_writer::start_tag('ul');
 
         foreach ($this->courses as $id) {
-            $course     = new core_course_list_element(get_course($id));
-            $context    = $course->get_context();
+            $course  = new core_course_list_element(get_course($id));
+            $context = $course->get_context();
 
-            $enrolled   = is_enrolled($context, $this->userid);
+            $enrolled = $this->walletonly
+                    ? instance::is_enrolled_by_wallet($id, $this->userid, $this->activeonly)
+                    : is_enrolled($context, $this->userid, '', $this->activeonly);
+
+            if ($enrolled) {
+                if ($this->condition == 'any') {
+                    return '';
+                } else {
+                    continue;
+                }
+            }
 
             $coursename = $course->get_formatted_fullname();
             $courseurl  = new moodle_url('/course/view.php', ['id' => $id]);
@@ -86,19 +110,34 @@ class courses_enrol_same_cat_offer extends offer_item {
 
     #[\Override()]
     public function validate_offer(): bool {
-        global $DB;
+        global $DB, $USER;
         $ids = $this->courses;
         $condition = $this->condition;
 
         [$in, $inparams] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
 
-        $sql = "SELECT ue.id
+        $sql = "SELECT ue.id, e.enrol
                   FROM {user_enrolments} ue
                   JOIN {enrol} e ON ue.enrolid = e.id
                  WHERE e.courseid $in
                    AND ue.userid = :userid";
 
-        $params  = $inparams + ['userid' => $this->userid];
+        $params  = $inparams + [
+            'userid' => $this->userid,
+        ];
+
+        if ($this->walletonly) {
+            $sql .= " AND e.enrol = :wallet";
+            $params['wallet'] = 'wallet';
+        }
+
+        if ($this->activeonly) {
+            $sql .= " AND ue.status = :stat
+                   AND (ue.timeend >= :now1 OR ue.timeend = :zero)";
+            $params['zero'] = 0;
+            $params['now1'] = timedate::time();
+            $params['stat'] = ENROL_USER_ACTIVE;
+        }
         $records = $DB->get_records_sql($sql, $params);
 
         if (empty($records)) {
@@ -137,6 +176,9 @@ class courses_enrol_same_cat_offer extends offer_item {
         $element = $mform->addElement('select', 'offer_ce_courses_' . $i, get_string('courses'), $options);
         $element->setMultiple(true);
         $mform->addElement('select', 'offer_ce_condition_' . $i, '', ['all' => get_string('all'), 'any' => get_string('any')]);
+
+        $mform->addElement('advcheckbox', 'offer_ce_activeonly_' . $i, get_string('activeonly', 'enrol_wallet'));
+        $mform->addElement('advcheckbox', 'offer_ce_walletonly_' . $i, get_string('walletonly', 'enrol_wallet'));
     }
 
     #[\Override()]

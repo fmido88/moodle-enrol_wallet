@@ -797,3 +797,6 @@ $string['purchase_discounts'] = 'Purchace discount';
 $string['freegifts'] = 'Free gifts';
 $string['restriction'] = 'Restrictions';
 $string['default_instance'] = 'Instance defaults';
+
+$string['activeonly'] = 'Active only';
+$string['walletonly'] = 'Wallet only';
