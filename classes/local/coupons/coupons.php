@@ -27,6 +27,7 @@ namespace enrol_wallet\local\coupons;
 use context;
 use context_module;
 use core\exception\coding_exception;
+use core\output\html_writer;
 use core_course_category;
 use core_course_list_element;
 use enrol_wallet\local\config;
@@ -562,9 +563,10 @@ class coupons {
      * Instance, cm or section name.
      * @param  int    $area
      * @param  int    $areaid
+     * @param  bool   $withlink
      * @return string
      */
-    public static function get_used_area_name(int $area, int $areaid) {
+    public static function get_used_area_name(int $area, int $areaid, bool $withlink = false) {
         switch ($area) {
             case self::AREA_TOPUP:
                 return get_string('topupbycoupon', 'enrol_wallet');
@@ -573,17 +575,32 @@ class coupons {
                 $instance = new instance($areaid);
 
                 $name       = $instance->get_name();
-                $coursename = $instance->get_course_context()->get_context_name(false);
-
-                return "{$name} ({$coursename})";
+                $context = $instance->get_course_context();
+                $coursename = $context->get_context_name(false);
+                $return = "{$name} ({$coursename})";
+                if (!$withlink) {
+                    return $return;
+                }
+                $url = $context->get_url();
+                return html_writer::link($url, $return);
 
             case self::AREA_CM:
-                return context_module::instance($areaid)->get_context_name(false);
+                $context = context_module::instance($areaid);
+                $name = $context->get_context_name(false);
+                if (!$withlink) {
+                    return $name;
+                }
+                $url = $context->get_url();
+                return html_writer::link($url, $name);
 
             case self::AREA_SECTION:
                 $section = new section($areaid);
-
-                return $section->get_name();
+                $name = $section->get_name();
+                if (!$withlink) {
+                    return $name;
+                }
+                $url = $section->get_context()->get_url()->param('section', $section->section->section);
+                return html_writer::link($url, $name);
 
             default:
                 throw new coding_exception("Invalid coupon area $area passed to get_used_area_name()");
