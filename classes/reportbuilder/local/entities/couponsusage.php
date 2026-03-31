@@ -24,6 +24,7 @@ use core_reportbuilder\local\report\column;
 use core_reportbuilder\local\report\filter;
 use enrol_wallet\local\coupons\coupons as couponshelper;
 use lang_string;
+use stdClass;
 
 /**
  * Coupons usage.
@@ -96,7 +97,21 @@ class couponsusage extends base {
             }
             return couponshelper::get_area_visible_name($area);
         });
-
+        $columns[]   = (new column(
+            'areaname',
+            new lang_string('couponareaname', 'enrol_wallet'),
+            $this->get_entity_name()
+        ))->set_type(column::TYPE_TEXT)
+        ->add_fields("{$cusagealias}.instanceid, {$cusagealias}.area")
+        ->add_joins($this->get_joins())
+        ->set_is_sortable(false)
+        ->set_callback(function ($areaid, stdClass $row) {
+            if (!isset($row->area)) {
+                // For old versions of the plugin where area was not set.
+                return '';
+            }
+            return couponshelper::get_used_area_name($row->area, $row->instanceid, true);
+        });
         $columns[] = (new column(
             'timeused',
             new lang_string('couponusagetime', 'enrol_wallet'),

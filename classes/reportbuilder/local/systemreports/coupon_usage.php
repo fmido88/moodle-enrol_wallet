@@ -80,6 +80,7 @@ class coupon_usage extends system_report {
             'coupon:category',
             'coupon:courses',
             'couponsusage:area',
+            'couponsusage:areaname',
             'couponsusage:timeused',
         ];
         $this->add_columns_from_entities($columns);

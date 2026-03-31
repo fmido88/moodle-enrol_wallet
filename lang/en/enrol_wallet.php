@@ -230,6 +230,7 @@ $string['couponarea_cm'] = 'For course module access';
 $string['couponarea_enrol'] = 'For enrollment';
 $string['couponarea_section'] = 'For course section access';
 $string['couponarea_topup'] = 'For topup the wallet';
+$string['couponareaname'] = 'Area name';
 $string['couponareanotexist'] = 'Coupon area {$a-&gt;area} with id {$a-&gt;id} not exist or deleted.';
 $string['couponid'] = 'id';
 $string['coupons'] = 'Coupons';
