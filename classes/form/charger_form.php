@@ -230,7 +230,7 @@ class charger_form extends \moodleform {
             $catid  = $data['category'] ?? 0;
 
             // No value.
-            if (empty($value) && ($op !== 'balance')) {
+            if (empty($value) && !\in_array($op, ['balance', 'reset'], true)) {
                 $errors['value'] = get_string('charger_novalue', 'enrol_wallet');
             }
 
@@ -245,7 +245,7 @@ class charger_form extends \moodleform {
 
                 if ($op === 'debit' && $value > $before) {
                     // Cannot deduct more than the user's balance.
-                    $a               = ['value' => $value, 'before' => $before];
+                    $a = ['value' => $value, 'before' => $before];
                     $errors['value'] = get_string('charger_debit_err', 'enrol_wallet', $a);
                 }
             }
