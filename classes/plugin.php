@@ -862,9 +862,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Get the instance class
      * @param \stdClass|int $instance
      * @param int $userid
-     * @return instance|null
+     * @return instance|stdClass
      */
-    protected function get_helper($instance, $userid = 0) {
+    protected function get_helper(int|stdClass $instance, int $userid = 0): stdClass {
         global $USER;
         if (empty($userid)) {
             $userid = $USER->id;
@@ -875,7 +875,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         } else if (!empty($instance->id)) {
             $instanceid = $instance->id;
         } else {
-            return null;
+            return $instance;
         }
 
         if (empty($this->instance)
@@ -1207,9 +1207,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      */
     public function edit_instance_form($instance, \MoodleQuickForm $mform, $context) {
         // Merge these two settings to one value for the single selection element.
-        if (!empty($instance->id)) {
-            $instance = $this->get_helper($instance);
-        }
+        $instance = $this->get_helper($instance);
 
         if ($instance->notifyall && $instance->expirynotify) {
             $instance->expirynotify = 2;
