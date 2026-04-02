@@ -130,12 +130,6 @@ class instance extends entity implements \IteratorAggregate {
     private array $discounts = [];
 
     /**
-     * The behavior of discount calculation.
-     * @var int
-     */
-    private int $behavior;
-
-    /**
      * Caching instances.
      * @var array
      */
@@ -169,8 +163,6 @@ class instance extends entity implements \IteratorAggregate {
         };
 
         parent::__construct($this->instance->courseid, $this->instance->id, $userid);
-
-        $this->behavior = (int)config::make()->discount_behavior;
     }
 
     /**
@@ -491,7 +483,7 @@ class instance extends entity implements \IteratorAggregate {
         $offers   = new offers($this->instance, $this->userid);
         $discount = 0;
 
-        switch ($this->behavior) {
+        switch ((int)config::make()->discount_behavior) {
             case self::B_SUM:
                 $discount = $offers->get_sum_discounts();
                 break;
@@ -520,6 +512,10 @@ class instance extends entity implements \IteratorAggregate {
             'offers'     => $this->get_offers_discount(),
         ];
 
+        return $this->discounts;
+    }
+
+    public function get_discounts(): array {
         return $this->discounts;
     }
 
@@ -556,14 +552,22 @@ class instance extends entity implements \IteratorAggregate {
         $discounts = $this->calculate_discounts();
         $discount  = 0;
 
-        if ($this->behavior == self::B_SUM) {
-            foreach ($discounts as $d) {
-                $discount += $d;
-            }
-        } else if ($this->behavior == self::B_MAX) {
-            $discount = max($discounts);
-        } else {
-            $discount = $this->calculate_sequential_discount($discounts);
+        $behavior = (int)config::make()->discount_behavior;
+        switch ($behavior) {
+            case self::B_SUM:
+                foreach ($discounts as $d) {
+                    $discount += $d;
+                }
+                break;
+            case self::B_MAX:
+                $discount = max($discounts);
+                break;
+            case self::B_SEQ:
+                $discount = $this->calculate_sequential_discount($discounts);
+                break;
+            default:
+                $discount = max($discounts);
+                debugging("Unsupported configuration 'discount_behavior' $behavior", DEBUG_DEVELOPER);
         }
 
         $discount        = min(1, $discount);
@@ -633,6 +637,7 @@ class instance extends entity implements \IteratorAggregate {
         $plugin = enrol_wallet_plugin::get_plugin();
         $done = $plugin->update_instance($record, $record);
         $this->instance = $DB->get_record('enrol', ['id' => $this->id]);
+        $this->mark_as_dirty();
         return $done;
     }
 
