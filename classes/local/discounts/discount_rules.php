@@ -26,21 +26,20 @@ namespace enrol_wallet\local\discounts;
 
 use core_course_category;
 use enrol_wallet\local\config;
-use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\output\discount_line;
 use enrol_wallet\output\helper;
 use stdClass;
 
 /**
- * Helper class for wallet enrolment discount rules
+ * Helper class for wallet enrolment discount rules.
  * @package enrol_wallet
  */
 class discount_rules {
     /**
      * Get all valid discount rules for the specified category
-     * If no category passed in constructor, it returns the rules in site level
-     * @param int $catid the course category id.
+     * If no category passed in constructor, it returns the rules in site level.
+     * @param  int        $catid the course category id.
      * @return stdClass[]
      */
     public static function get_current_discount_rules(int $catid = 0): array {
@@ -51,8 +50,10 @@ class discount_rules {
             'time2' => $now,
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
+
         if (!empty($catid)) {
             $all = [];
+
             if ($category = core_course_category::get($catid, IGNORE_MISSING, true)) {
                 $all = $category->get_parents();
             }
@@ -63,14 +64,17 @@ class discount_rules {
         } else {
             $select .= ' AND (category IS NULL OR category = 0)';
         }
+
         return $DB->get_records_select('enrol_wallet_cond_discount', $select, $params, 'cond DESC, percent DESC');
     }
+
     /**
      * Get all site and categories discount rules.
      * @return array[\stdClass]
      */
     public static function get_all_available_discount_rules(): array {
         $enabled = (bool)config::instance()->conditionaldiscount_apply;
+
         if (!$enabled) {
             return [];
         }
@@ -82,14 +86,15 @@ class discount_rules {
     }
 
     /**
-     * Add hidden elements for calculating discounts to a form
-     * @param \MoodleQuickForm $mform
-     * @return int the number of rules
+     * Add hidden elements for calculating discounts to a form.
+     * @param  \MoodleQuickForm $mform
+     * @return int              the number of rules
      */
     public static function add_discounts_to_form(\MoodleQuickForm $mform): int {
         $records = self::get_all_available_discount_rules();
 
         $i = 0;
+
         foreach ($records as $record) {
             $i++;
             // This element only used to pass the values to js code.
@@ -102,11 +107,12 @@ class discount_rules {
             $mform->setType("discount_rule_{$i}", PARAM_TEXT);
             $mform->setConstant("discount_rule_{$i}", json_encode($discountrule));
         }
+
         return $i;
     }
 
     /**
-     * Get all categories ids with a discount rules
+     * Get all categories ids with a discount rules.
      *
      * @param bool $current if set true it will return the valid rules only in this time.
      * @return array[int] of categories id, 0 for site level.
@@ -115,6 +121,7 @@ class discount_rules {
         global $DB;
         $select = '';
         $params = [];
+
         if ($current) {
             $now = timedate::time();
             $params = [
@@ -125,26 +132,29 @@ class discount_rules {
         }
         $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params, 'category ASC', 'id, category');
         $all = [];
+
         foreach ($records as $record) {
             if (empty($record->category)) {
                 $record->category = 0;
             }
             $all[$record->category] = $record->category;
         }
+
         return $all;
     }
 
     /**
-     * Get the rest of the amount that should be added by conditional discount rules
+     * Get the rest of the amount that should be added by conditional discount rules.
      *
-     * @param float $amount
-     * @param int $catid the id of the category, 0 means site level.
+     * @param  float    $amount
+     * @param  int      $catid  the id of the category, 0 means site level.
      * @return ?float[] with two elements the rest of the amount and the condition applied.
      */
     public static function get_the_rest($amount, $catid = 0): array {
         global $DB;
         $enabled = config::instance()->conditionaldiscount_apply;
         $percentdiscount = 0;
+
         if (!empty($enabled)) {
             $records = self::get_current_discount_rules($catid);
 
@@ -153,8 +163,8 @@ class discount_rules {
                     continue;
                 }
                 $beforediscount = $amount + ($amount * $record->percent / (100 - $record->percent));
-                if ($beforediscount >= $record->cond && $record->percent > $percentdiscount) {
 
+                if ($beforediscount >= $record->cond && $record->percent > $percentdiscount) {
                     $percentdiscount = $record->percent;
                     $condition = $record->cond;
                 }
@@ -172,30 +182,32 @@ class discount_rules {
 
         // The rest of the amount after subtract the part the user paid.
         $rest = $amount * $discount / (1 - $discount);
+
         return [$rest, $condition];
     }
 
     /**
      * Get the value before applying the conditional discount.
-     * (i.e. the min value)
-     * @param float $amount
-     * @param int $catid
-     * @param float $discount
+     * (i.e. the min value).
+     * @param  float $amount
+     * @param  int   $catid
+     * @param  float $discount
      * @return float
      */
     public static function get_the_before(float $amount, int $catid = 0, float $discount = 0): float {
         if (empty($discount)) {
             $discount = self::get_applied_discount($amount, $catid);
         }
-        return ($amount * (1 - $discount / 100));
+
+        return $amount * (1 - $discount / 100);
     }
 
     /**
      * Get the value that will be added to the wallet balance after applying the discount
      * rule.
-     * (i.e. the max value)
+     * (i.e. the max value).
      * @param float $amount
-     * @param int $catid
+     * @param int   $catid
      * @param float $discount
      */
     public static function get_the_after(float $amount, int $catid = 0, float $discount = 0): float {
@@ -209,32 +221,36 @@ class discount_rules {
 
         if ($discount >= 100.0) {
             debugging('Cannot get the original value out of discount 100%', DEBUG_DEVELOPER);
+
             return $amount;
         }
 
-        return ($amount / (1 - $discount / 100));
+        return $amount / (1 - $discount / 100);
     }
 
     /**
      * Get the discount that could be applied for a given amount and category.
-     * @param float $amount
-     * @param int $catid
+     * @param  float $amount
+     * @param  int   $catid
      * @return float
      */
     public static function get_applied_discount($amount, $catid): float {
         $discount = 0;
         $records = self::get_current_discount_rules($catid);
+
         foreach ($records as $record) {
             if ($amount >= $record->cond && $record->percent > $discount) {
                 $discount = $record->percent;
             }
         }
+
         return $discount;
     }
+
     /**
      * Render the discount rules as a form of line divided by the rules.
-     * @param int $catid -1 for all rules, 0 site rules only or category id for the rules
-     * in specific category
+     * @param  int    $catid -1 for all rules, 0 site rules only or category id for the rules
+     *                       in specific category
      * @return string
      */
     public static function get_the_discount_line($catid = 0): string {
@@ -254,6 +270,7 @@ class discount_rules {
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         $select .= ' AND bundle IS NOT NULL';
+
         return $DB->get_records_select('enrol_wallet_cond_discount', $select, $params);
     }
 }
