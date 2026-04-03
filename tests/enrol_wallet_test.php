@@ -831,6 +831,35 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         // Todo: Check the cohorts restrictions.
         // Todo: Test restriction rules.
+        // Insufficient balance after discount.
+        $course11 = $this->getDataGenerator()->create_course();
+        $instance11 = $DB->get_record('enrol', ['courseid' => $course11->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance11->customint6 = 1;
+        $instance11->cost = 200;
+        $DB->update_record('enrol', $instance11);
+        $walletplugin->update_status($instance11, ENROL_INSTANCE_ENABLED);
+
+        $fielddata = (object)[
+            'name'      => 'discountfield',
+            'shortname' => 'discountfield',
+        ];
+        $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
+
+        $config = config::make();
+        $config->discount_field = $fieldid;
+
+        $user3 = $this->getDataGenerator()->create_user();
+        $op3 = new balance_op($user3->id);
+        $op3->credit(70);
+        $DB->insert_record('user_info_data', (object)[
+            'userid' => $user3->id,
+            'fieldid' => $fieldid,
+            'data'   => '40% discount',
+        ]);
+
+        $this->setUser($user3);
+        $this->assertSame(enrol_wallet_plugin::INSUFFICIENT_BALANCE_DISCOUNTED, $walletplugin->can_self_enrol($instance11, true));
+
         // Non valid cost.
         $course10 = $this->getDataGenerator()->create_course();
         $instance10 = $DB->get_record('enrol', ['courseid' => $course10->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
