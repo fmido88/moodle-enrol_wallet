@@ -23,6 +23,7 @@ namespace enrol_wallet\local\discounts;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\fake_info
  */
 final class fake_info_test extends \advanced_testcase {
     /**

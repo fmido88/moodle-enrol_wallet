@@ -31,7 +31,6 @@ use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\generator;
 use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\wallet\balance;
-use enrol_wallet_generator;
 use moodle_url;
 
 defined('MOODLE_INTERNAL') || die();
@@ -49,7 +48,6 @@ require_once($CFG->dirroot . '/enrol/wallet/tests/generator/lib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class applycoupon_form_test extends \advanced_testcase {
-
     /**
      * Test form definition creates valid form structure.
      * @covers ::definition()
@@ -65,7 +63,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create custom data for the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
             'url' => '/enrol/index.php?id=' . $course->id,
@@ -114,7 +112,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -122,9 +120,9 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Mock form submission data.
         $data = [
-            'coupon' => $couponcode,
+            'coupon'     => $couponcode,
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
         ];
 
         // Validate the data.
@@ -170,7 +168,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -178,9 +176,9 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Mock form submission data.
         $data = [
-            'coupon' => $couponcode,
+            'coupon'     => $couponcode,
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
         ];
 
         // Validate the data.
@@ -208,7 +206,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -216,9 +214,9 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Mock form submission data with non-existent coupon.
         $data = [
-            'coupon' => 'INVALIDCODE',
+            'coupon'     => 'INVALIDCODE',
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
         ];
 
         // Validate the data.
@@ -267,7 +265,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -275,9 +273,9 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Mock form submission data.
         $data = [
-            'coupon' => $couponcode,
+            'coupon'     => $couponcode,
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
         ];
 
         // Validate the data.
@@ -318,8 +316,8 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Mark the coupon as used once.
         $DB->insert_record('enrol_wallet_coupons_usage', [
-            'code' => $couponcode,
-            'userid' => $user->id,
+            'code'        => $couponcode,
+            'userid'      => $user->id,
             'timecreated' => time(),
         ]);
 
@@ -330,7 +328,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -338,9 +336,9 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Mock form submission data.
         $formdata = [
-            'coupon' => $couponcode,
+            'coupon'     => $couponcode,
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
         ];
 
         // Validate the data.
@@ -387,7 +385,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form with cmid.
         $customdata = [
             'instance' => (object)[
-                'cmid' => $cm->id,
+                'cmid'     => $cm->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -395,8 +393,8 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Mock form submission data.
         $formdata = [
-            'coupon' => $couponcode,
-            'cmid' => $cm->id,
+            'coupon'   => $couponcode,
+            'cmid'     => $cm->id,
             'courseid' => $course->id,
         ];
 
@@ -444,16 +442,16 @@ final class applycoupon_form_test extends \advanced_testcase {
         $customdata = [
             'instance' => (object)[
                 'sectionid' => $section->id,
-                'courseid' => $course->id,
+                'courseid'  => $course->id,
             ],
         ];
         $form = new applycoupon_form(null, $customdata);
 
         // Mock form submission data.
         $formdata = [
-            'coupon' => $couponcode,
+            'coupon'    => $couponcode,
             'sectionid' => $section->id,
-            'courseid' => $course->id,
+            'courseid'  => $course->id,
         ];
 
         // Validate the data.
@@ -548,7 +546,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -556,10 +554,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Set up form data.
         $data = (object)[
-            'coupon' => $couponcode,
+            'coupon'     => $couponcode,
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
-            'cancel' => false,
+            'courseid'   => $course->id,
+            'cancel'     => false,
         ];
 
         // Process the coupon data.
@@ -587,7 +585,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
             'url' => '/enrol/index.php?id=' . $course->id,
@@ -596,10 +594,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Set up form data with cancel.
         $data = (object)[
-            'coupon' => 'SOMECODE',
+            'coupon'     => 'SOMECODE',
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
-            'cancel' => true,
+            'courseid'   => $course->id,
+            'cancel'     => true,
         ];
 
         // Process the coupon data.
@@ -612,7 +610,6 @@ final class applycoupon_form_test extends \advanced_testcase {
             $this->assertStringContainsStringIgnoringCase('Redirect', $e->getMessage());
         }
     }
-
 
     /**
      * Test process_coupon_data with empty coupon.
@@ -632,7 +629,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'id' => $instance->id,
+                'id'       => $instance->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -640,10 +637,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Set up form data with empty coupon.
         $formdata = (object)[
-            'coupon' => '',
+            'coupon'     => '',
             'instanceid' => $instance->id,
-            'courseid' => $course->id,
-            'cancel' => false,
+            'courseid'   => $course->id,
+            'cancel'     => false,
         ];
 
         // Process the coupon data.
@@ -692,7 +689,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         // Create the form.
         $customdata = [
             'instance' => (object)[
-                'cmid' => $cm->id,
+                'cmid'     => $cm->id,
                 'courseid' => $course->id,
             ],
         ];
@@ -718,7 +715,7 @@ final class applycoupon_form_test extends \advanced_testcase {
         $customdata = [
             'instance' => (object)[
                 'sectionid' => $section->id,
-                'courseid' => $course->id,
+                'courseid'  => $course->id,
             ],
         ];
         $form = new applycoupon_form(null, $customdata);
@@ -733,7 +730,7 @@ final class applycoupon_form_test extends \advanced_testcase {
      * @covers ::validation()
      * @return void
      */
-    public function test_coupon_action_page():void {
+    public function test_coupon_action_page(): void {
         global $CFG, $PAGE;
         $this->resetAfterTest();
         config::make()->coupons = implode(',', [

@@ -133,11 +133,11 @@ class options {
 
     /**
      * Get available cohorts options for cohort restriction options.
-     * @param instance $instance
-     * @param context $context
+     * @param instance|stdClass $instance
+     * @param context          $context
      * @return array<string>
      */
-    public static function get_cohorts_options(stdClass $instance, context $context): array {
+    public static function get_cohorts_options(instance|stdClass $instance, context $context): array {
         global $CFG, $DB;
         require_once($CFG->dirroot.'/cohort/lib.php');
 

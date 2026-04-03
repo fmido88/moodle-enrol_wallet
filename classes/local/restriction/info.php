@@ -215,12 +215,8 @@ class info extends \core_availability\info {
     }
 
     /**
-     * Formats the $cm->availableinfo string for display. This includes
-     * filling in the names of any course-modules that might be mentioned.
-     * Should be called immediately prior to display, or at least somewhere
-     * that we can guarantee does not happen from within building the modinfo
-     * object.
-     *
+     * {@inheritDoc}
+     * Override to check grades in modules in other courses and include the name of the course.
      * @param \core_availability_multiple_messages|string $inforenderable Info string or renderable
      * @param int|\stdClass $courseorid
      * @return string Correctly formatted info string
@@ -291,17 +287,8 @@ class info extends \core_availability\info {
     }
 
     /**
-     * Decodes availability data from JSON format.
-     *
-     * This function also validates the retrieved data as follows:
-     * 1. Data that does not meet the API-defined structure causes a
-     *    coding_exception (this should be impossible unless there is
-     *    a system bug or somebody manually hacks the database).
-     * 2. Data that meets the structure but cannot be implemented (e.g.
-     *    reference to missing plugin or to module that doesn't exist) is
-     *    either silently discarded (if $lax is true) or causes a
-     *    coding_exception (if $lax is false).
-     *
+     * {@inheritDoc}
+     * Override to use our own tree.
      * @param string $availability Availability string in JSON format
      * @param boolean $lax If true, throw exceptions only for invalid structure
      * @return tree Availability tree

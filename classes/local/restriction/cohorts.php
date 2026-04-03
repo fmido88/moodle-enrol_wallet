@@ -56,7 +56,7 @@ class cohorts {
      * @param context $context
      * @return void
      */
-    public static function add_to_edit_form(MoodleQuickForm $mform, stdClass $instance, context $context) {
+    public static function add_to_edit_form(MoodleQuickForm $mform, instance|stdClass $instance, context $context) {
         // Cohort restriction.
         $cohorts = options::get_cohorts_options($instance, $context);
         if (\count($cohorts) > 1) {

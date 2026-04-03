@@ -37,7 +37,7 @@ class courses {
      * @param instance|stdClass $instance
      * @return false|string
      */
-    public static function is_restricted(stdClass $instance): false|string {
+    public static function is_restricted(instance|stdClass $instance): false|string {
         global $DB;
         if (!empty($instance->customchar3) && !empty($instance->customint7)) {
             $courses = explode(',', $instance->customchar3);
