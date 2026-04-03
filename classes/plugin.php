@@ -161,7 +161,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             if (!$canenrol && !$insuf) {
                 $cost = null;
-            } else if ($canenrol && $cost === 0.0) {
+            } else if ($canenrol && is_numeric($cost) && floatval($cost) === 0.0) {
                 $discount = 100;
                 $cost = 'FREE';
             }
