@@ -839,12 +839,12 @@ final class enrol_wallet_test extends \advanced_testcase {
         $DB->update_record('enrol', $instance11);
         $walletplugin->update_status($instance11, ENROL_INSTANCE_ENABLED);
 
-        $fielddata = (object)[
+        $fielddata = [
             'name'      => 'discountfield',
             'shortname' => 'discountfield',
+            'datatype'  => 'text',
         ];
-        $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
-
+        $fieldid = $this->getDataGenerator()->create_custom_profile_field($fielddata)->id;
         $config = config::make();
         $config->discount_field = $fieldid;
 
