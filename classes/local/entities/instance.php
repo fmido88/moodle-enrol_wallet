@@ -515,6 +515,10 @@ class instance extends entity implements \IteratorAggregate {
         return $this->discounts;
     }
 
+    /**
+     * Getter for dicounts values (no details).
+     * @return float[]
+     */
     public function get_discounts(): array {
         return $this->discounts;
     }
@@ -682,7 +686,11 @@ class instance extends entity implements \IteratorAggregate {
         $this->check_dirty();
 
         $costafter = $this->get_cost_after_discount();
-        if ($costafter < $this->instance->cost || $costafter === (float)0) {
+        if ($costafter === null) {
+            return false;
+        }
+
+        if ($costafter < $this->instance->cost || $costafter === 0.0) {
             return true;
         }
 
@@ -702,6 +710,10 @@ class instance extends entity implements \IteratorAggregate {
     public function get_rounded_discount(): int {
         $this->check_dirty();
         $costafter = $this->get_cost_after_discount();
+        if ($costafter === null) {
+            return 0;
+        }
+
         if ($costafter === 0.0) {
             return 100;
         }

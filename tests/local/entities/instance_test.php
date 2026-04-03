@@ -195,6 +195,27 @@ final class instance_test extends \advanced_testcase {
     }
 
     /**
+     * Testing has_discount and get_rounded_discount for no-cost instances (null discount path).
+     * @covers ::has_discount
+     * @covers ::get_rounded_discount
+     */
+    public function test_has_discount_no_cost(): void {
+        global $DB;
+        self::resetAfterTest(true);
+
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance->cost = -1; // Invalid cost should set nocost and return null.
+        $DB->update_record('enrol', $instance);
+
+        $inst = new instance($instance, $user->id);
+        $this->assertFalse($inst->has_discount());
+        $this->assertSame(0, $inst->get_rounded_discount());
+    }
+
+    /**
      * Testing discounts after first and second repurchase.
      * @covers ::get_cost_after_discount
      */
