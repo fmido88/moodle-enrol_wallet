@@ -17,8 +17,11 @@
 namespace enrol_wallet\local\discounts;
 
 use availability_profile\condition as profile_c;
+use core\exception\coding_exception;
 use MoodleQuickForm;
+use phpunit_util;
 use stdClass;
+use testing_data_generator;
 
 /**
  * Class profile_field_offer.
@@ -78,13 +81,35 @@ class profile_field_offer extends offer_item {
      * @param stdClass $offer
      * @param int      $courseid
      * @param int      $userid
+     * @param bool     $subcondition
      */
-    public function __construct(\stdClass $offer, int $courseid, int $userid = 0) {
-        parent::__construct($offer, $courseid, $userid);
-        $this->cf    = $offer->cf ?? null;
-        $this->sf    = $offer->sf ?? null;
-        $this->op    = $offer->op;
+    public function __construct(\stdClass $offer, int $courseid, int $userid = 0, bool $subcondition = false) {
+        parent::__construct($offer, $courseid, $userid, $subcondition);
+        $this->cf = $offer->cf ?? null;
+        $this->sf = $offer->sf ?? null;
+        $this->op = $offer->op;
         $this->value = $offer->value ?? null;
+    }
+
+    #[\Override()]
+    public static function is_valid_structure(stdClass $offer): bool {
+        $cf = $offer->cf ?? null;
+        $sf = $offer->sf ?? null;
+        $op = $offer->op;
+        $value = $offer->value ?? null;
+        $valid = !empty($cf) || !empty($sf);
+        $valid = $valid && \in_array($op, [
+            self::PFOP_CONTAINS,
+            self::PFOP_DOES_NOT_CONTAIN,
+            self::PFOP_IS_EQUAL_TO,
+            self::PFOP_STARTS_WITH,
+            self::PFOP_ENDS_WITH,
+            self::PFOP_IS_EMPTY,
+            self::PFOP_IS_NOT_EMPTY,
+        ]);
+        $valid = $valid && (isset($value) || in_array($op, [self::PFOP_IS_NOT_EMPTY, self::PFOP_IS_EMPTY]));
+
+        return $valid;
     }
 
     #[\Override()]
@@ -113,20 +138,36 @@ class profile_field_offer extends offer_item {
             return null;
         }
 
-        if (isset($offer->sf)) {
+        if (isset($this->sf)) {
             $fieldname = get_string($this->sf);
         } else {
-            $name      = $DB->get_field('user_info_field', 'name', ['shortname' => $this->cf]);
+            $name = $DB->get_field('user_info_field', 'name', ['shortname' => $this->cf]);
             $fieldname = format_string($name);
         }
         $a = [
             'op'       => get_string('offers_pfop_' . $this->op, 'enrol_wallet'),
-            'discount' => $this->discount,
+            'discount' => $this->get_formatted_discount(),
             'field'    => $fieldname,
             'value'    => $this->value,
         ];
 
         return get_string('offers_pf_desc', 'enrol_wallet', $a);
+    }
+
+    #[\Override()]
+    public function is_hidden(): bool {
+        global $DB;
+
+        if (parent::is_hidden()) {
+            return true;
+        }
+
+        if (!isset($this->cf) && isset($this->sf)) {
+            return false;
+        }
+
+        // May be this field is deleted.
+        return !$DB->record_exists('user_info_field', ['shortname' => $this->cf]);
     }
 
     /**
@@ -175,8 +216,8 @@ class profile_field_offer extends offer_item {
             if ($available) {
                 return true;
             }
-        } catch (\coding_exception $e) {
-            debugging($e->getMessage(), DEBUG_DEVELOPER);
+        } catch (\Throwable $e) {
+            debugging($e->getMessage(), DEBUG_DEVELOPER, $e->getTrace());
 
             return false;
         }
@@ -190,10 +231,16 @@ class profile_field_offer extends offer_item {
     }
 
     #[\Override()]
-    public static function add_form_element(MoodleQuickForm $mform, int $i, int $courseid): void {
+    public static function add_form_element(
+        MoodleQuickForm $mform,
+        int $i,
+        int $courseid,
+        ?stdClass $offer = null,
+        ?callable $wrapper = null
+    ): void {
         global $CFG;
         $context = \core\context\course::instance($courseid);
-        $fields  = [
+        $fields = [
             'firstname', 'lastname', 'email',
             'city', 'country', 'idnumber',
             'institution', 'department',
@@ -213,10 +260,10 @@ class profile_field_offer extends offer_item {
             $custom['cf' . $field->shortname] = format_string($field->name, true, ['context' => $context]);
         }
         \core_collator::asort($custom);
-        $options    = array_merge(['' => get_string('choosedots')], $stfields, $custom);
-        $group      = [];
-        $label      = get_string('offers_profile_field', 'enrol_wallet');
-        $group[]    = $mform->createElement('select', 'offer_pf_field_' . $inc, $label, $options);
+        $options = array_merge(['' => get_string('choosedots')], $stfields, $custom);
+        $group = [];
+        $label = get_string('offers_profile_field', 'enrol_wallet');
+        $group[] = $mform->createElement('select', static::fname('field', $i, $wrapper), $label, $options);
         $operations = [
             self::PFOP_CONTAINS         => get_string('offers_pfop_contains', 'enrol_wallet'),
             self::PFOP_DOES_NOT_CONTAIN => get_string('offers_pfop_doesnotcontain', 'enrol_wallet'),
@@ -226,27 +273,36 @@ class profile_field_offer extends offer_item {
             self::PFOP_STARTS_WITH      => get_string('offers_pfop_startswith', 'enrol_wallet'),
             self::PFOP_ENDS_WITH        => get_string('offers_pfop_endswith', 'enrol_wallet'),
         ];
-        $group[] = $mform->createElement('select', 'offer_pf_op_' . $inc, '', $operations);
-        $group[] = $mform->createElement('text', 'offer_pf_value_' . $inc, '');
-        $mform->setType('offer_pf_value_' . $inc, PARAM_TEXT);
-        $mform->addGroup($group, 'offer_pf_' . $inc, get_string('offers_profile_field_based', 'enrol_wallet'), null, false);
+        $group[] = $mform->createElement('select', static::fname('op', $i, $wrapper), '', $operations);
+        $group[] = $mform->createElement('text', static::fname('value', $i, $wrapper), '');
+        $mform->setType(static::fname('value', $i, $wrapper), PARAM_TEXT);
+        $mform->addGroup(
+            $group,
+            static::fname('', $i, $wrapper),
+            get_string('offers_profile_field_based', 'enrol_wallet'),
+            null,
+            false
+        );
     }
 
     #[\Override()]
-    public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors): void {
+    public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors, ?callable $wrapper = null): void {
         if (empty($offer->cf) && empty($offer->sf)) {
-            $errors[offers::fname(self::key(), '', $i)] = get_string('offers_error_pfselect', 'enrol_wallet');
-        } else if (!in_array($offer->op, [self::PFOP_IS_EMPTY, self::PFOP_IS_NOT_EMPTY])) {
+            $errors[static::fname('', $i, $wrapper)] = get_string('offers_error_pfselect', 'enrol_wallet');
+        } else if (!\in_array($offer->op, [self::PFOP_IS_EMPTY, self::PFOP_IS_NOT_EMPTY])) {
             if (empty($offer->value)) {
-                $errors[offers::fname(self::key(), '', $i)] = get_string('offers_error_pfnovalue', 'enrol_wallet');
+                $errors[static::fname('', $i, $wrapper)] = get_string('offers_error_pfnovalue', 'enrol_wallet');
             }
         }
     }
 
     #[\Override()]
-    public static function after_edit_form_definition(MoodleQuickForm $mform, stdClass $offer, int $i): void {
-        $type = $offer->type;
-
+    public static function after_edit_form_definition(
+        MoodleQuickForm $mform,
+        stdClass $offer,
+        int $i,
+        ?callable $wrapper = null
+    ): void {
         foreach ($offer as $key => $value) {
             if ($key == 'type') {
                 continue;
@@ -257,9 +313,9 @@ class profile_field_offer extends offer_item {
                     continue;
                 }
                 $value = $key . $value;
-                $key   = 'field';
+                $key = 'field';
             }
-            $mform->setDefault(offers::fname($type, $key, $i), $value);
+            $mform->setDefault(static::fname($key, $i, $wrapper), $value);
         }
     }
 
@@ -274,5 +330,77 @@ class profile_field_offer extends offer_item {
         } else {
             $offers[$i]->$name = $value;
         }
+    }
+
+    /**
+     * Mock an offer object of this type for testing.
+     * @param  ?testing_data_generator $gen
+     * @param  ?float                  $discount
+     * @param  ?string                 $cf
+     * @param  ?string                 $sf
+     * @param  ?string                 $op
+     * @param  ?string|float|int       $value
+     * @return stdClass
+     */
+    public static function mock_offer(
+        ?testing_data_generator $gen = null,
+        ?float $discount = null,
+        ?string $cf = null,
+        ?string $sf = null,
+        ?string $op = null,
+        string|float|int|null $value = null
+    ): stdClass {
+        global $DB;
+
+        if (null === $gen) {
+            $gen = phpunit_util::get_data_generator();
+        }
+        static $inc = 0;
+        $offer = new stdClass();
+        $offer->type = static::key();
+        $offer->discount = $discount ?? random_int(1, 99);
+
+        if ($sf === null && $cf === null) {
+            $fields = ['shortname', 'email', 'firstname', 'lastname', 'country', 'city', 'address'];
+            $randkey = array_rand($fields);
+            $sf = $fields[$randkey];
+        }
+        $offer->cf = $cf;
+        $offer->sf = $sf;
+        $ops = [
+            self::PFOP_CONTAINS,
+            self::PFOP_DOES_NOT_CONTAIN,
+            self::PFOP_IS_EQUAL_TO,
+            self::PFOP_STARTS_WITH,
+            self::PFOP_ENDS_WITH,
+            self::PFOP_IS_EMPTY,
+            self::PFOP_IS_NOT_EMPTY,
+        ];
+
+        if ($op === null) {
+            $op = $ops[rand(0, 6)];
+        }
+
+        if (!\in_array($op, $ops)) {
+            throw new coding_exception("Invalid ->op $op");
+        }
+        $offer->op = $op;
+
+        if ($value === null && !\in_array($op, [self::PFOP_IS_EMPTY, self::PFOP_IS_NOT_EMPTY])) {
+            $value = random_string(5);
+        }
+        $offer->value = $value;
+
+        if ($cf !== null && !$DB->record_exists('user_info_field', ['shortname' => $cf])) {
+            // Check the existence of the field.
+            $record = [
+                'shortname' => $cf,
+                'datatype'  => 'text',
+                'name'      => 'Offer test field ' . $inc++,
+            ];
+            $gen->create_custom_profile_field($record);
+        }
+
+        return $offer;
     }
 }

@@ -19,10 +19,12 @@ namespace enrol_wallet\local\discounts;
 use core_course_category;
 use enrol_wallet\local\utils\timedate;
 use MoodleQuickForm;
+use phpunit_util;
 use stdClass;
+use testing_data_generator;
 
 /**
- * Class other_category_courses_offer
+ * Class other_category_courses_offer.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -34,6 +36,7 @@ class other_category_courses_offer extends offer_item {
      * @var int
      */
     protected int $cat;
+
     /**
      * Number of enrolled courses required.
      * @var int
@@ -45,17 +48,31 @@ class other_category_courses_offer extends offer_item {
      * @var bool
      */
     protected bool $activeonly = false;
+
     /**
      * {@inheritDoc}
      * @param stdClass $offer
-     * @param int $courseid
-     * @param int $userid
+     * @param int      $courseid
+     * @param int      $userid
+     * @param bool     $subcondition
      */
-    public function __construct(stdClass $offer, int $courseid, int $userid = 0) {
-        parent::__construct($offer, $courseid, $userid);
+    public function __construct(stdClass $offer, int $courseid, int $userid = 0, bool $subcondition = false) {
+        parent::__construct($offer, $courseid, $userid, $subcondition);
         $this->cat = (int)$offer->cat;
         $this->number = $offer->number ?? $offer->courses;
         $this->activeonly = $offer->activeonly ?? false;
+    }
+
+    #[\Override()]
+    public static function is_valid_structure(stdClass $offer): bool {
+        $cat = $offer->cat;
+        $number = $offer->number ?? $offer->courses;
+        $activeonly = $offer->activeonly ?? false;
+        $valid = !empty($cat) && is_number($cat) && $cat > 0;
+        $valid = $valid && !empty($number) && is_number($number) && $number > 0;
+        $valid = $valid && $activeonly == (bool)$activeonly;
+
+        return $valid;
     }
 
     #[\Override()]
@@ -70,59 +87,56 @@ class other_category_courses_offer extends offer_item {
         if (!$category) {
             return null;
         }
+        $usercount = static::get_user_courses_count($this->cat, $this->userid, $this->activeonly);
+        $remain = max($this->number - $usercount, 0);
+
         $a = [
             'catname'  => $category->get_nested_name(),
-            'number'   => $this->number,
-            'discount' => format_float($this->discount, 2),
+            'number'   => $remain,
+            'discount' => $this->get_formatted_discount(),
         ];
+
         return get_string('offers_nc_desc', 'enrol_wallet', $a);
+    }
+
+    /**
+     * Hide if the category is not exist of is hidden for the student
+     * or the number of courses available less than the number required.
+     * @return bool
+     */
+    public function is_hidden(): bool {
+        global $DB;
+
+        if (parent::is_hidden()) {
+            return true;
+        }
+
+        $category = core_course_category::get($this->cat, IGNORE_MISSING, false, $this->userid);
+
+        if (!$category) {
+            // The target category is not visible to this user.
+            // Or it has been deleted.
+            return false;
+        }
+
+        $count = $category->get_courses_count(['recursive' => true]);
+
+        // May be some of the courses get deleted.
+        return $count < $this->number;
     }
 
     #[\Override()]
     public function validate_offer(): bool {
         global $DB;
         $number = $this->number;
-        $catid  = $this->cat;
+        $catid = $this->cat;
+
         if (empty($number)) {
             return false;
         }
 
-        $category = core_course_category::get($catid, IGNORE_MISSING, false, $this->userid);
-
-        if (!$category) {
-            return false;
-        }
-
-        $ids = [$catid, ...$category->get_all_children_ids()];
-
-        [$in, $inparams] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
-        $params = $inparams + [
-            'thiscourse' => $this->courseid,
-            'userid'     => $this->userid,
-        ];
-
-        $sql = "SELECT ue.id
-                FROM {user_enrolments} ue
-                JOIN {enrol} e ON ue.enrolid = e.id
-                JOIN {course} c ON c.id = e.courseid
-                WHERE c.category $in
-                  AND c.id <> :thiscourse
-                  AND ue.userid = :userid";
-
-        if ($this->activeonly) {
-            $sql .= " AND ue.status = :active
-                      AND (ue.timeend >= :now1 OR ue.timeend = 0)
-                      AND (ue.timestart <= :now2 OR ue.timestart = 0)";
-            $params += [
-                'active' => ENROL_USER_ACTIVE,
-                'now1' => timedate::time(),
-                'now2' => timedate::time(),
-            ];
-        }
-
-        $records = $DB->get_records_sql($sql, $params, 0, $number + 1);
-
-        if (\count($records) >= $number) {
+        $count = static::get_user_courses_count($this->cat, $this->userid, $this->activeonly, [$this->courseid]);
+        if ($count >= $number) {
             return true;
         }
 
@@ -135,11 +149,17 @@ class other_category_courses_offer extends offer_item {
     }
 
     #[\Override()]
-    public static function add_form_element(MoodleQuickForm $mform, int $i, int $courseid): void {
+    public static function add_form_element(
+        MoodleQuickForm $mform,
+        int $i,
+        int $courseid,
+        ?stdClass $offer = null,
+        ?callable $wrapper = null
+    ): void {
         $thiscourse = get_course($courseid);
         $cetegories = core_course_category::get_all();
-        $options    = [];
-        $max        = 0;
+        $options = [];
+        $max = 0;
         $inc = $i;
 
         foreach ($cetegories as $category) {
@@ -152,35 +172,36 @@ class other_category_courses_offer extends offer_item {
                 continue;
             }
             $options[$category->id] = $category->get_nested_name(false) . " ($count)";
-            $max                    = max($max, $count);
+            $max = max($max, $count);
         }
 
-        $group   = [];
-        $group[] = $mform->createElement('select', 'offer_otherc_cat_' . $inc, get_string('categories'), $options);
+        $group = [];
+        $group[] = $mform->createElement('select', static::fname('cat', $inc, $wrapper), get_string('categories'), $options);
         $options = ['' => get_string('choosedots')];
 
         for ($i = 1; $i <= $max; $i++) {
             $options[$i] = $i;
         }
 
-        $group[] = $mform->createElement('select', 'offer_otherc_courses_' . $inc, get_string('courses'), $options);
-        $label   = get_string('offers_other_category_courses_based', 'enrol_wallet');
-        $mform->addGroup($group, 'offer_otherc_' . $inc, $label, null, false);
+        $group[] = $mform->createElement('select', static::fname('courses', $inc, $wrapper), get_string('courses'), $options);
+        $label = get_string('offers_other_category_courses_based', 'enrol_wallet');
+        $mform->addGroup($group, static::fname('', $inc, $wrapper), $label, null, false);
 
-        $mform->addElement('advcheckbox', 'offer_otherc_activeonly_' . $inc, get_string('activeonly', 'enrol_wallet'));
+        $mform->addElement('advcheckbox', static::fname('activeonly', $inc, $wrapper), get_string('activeonly', 'enrol_wallet'));
     }
 
     #[\Override()]
-    public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors): void {
+    public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors, ?callable $wrapper = null): void {
         if (!$category = core_course_category::get($offer->cat, IGNORE_MISSING)) {
-            $errors[offers::fname(self::key(), '', $i)] = get_string('offers_error_othercnotexist', 'enrol_wallet');
+            $errors[static::fname('', $i, $wrapper)] = get_string('offers_error_othercnotexist', 'enrol_wallet');
+
             return;
         }
 
         if (empty($offer->courses)) {
-            $errors[offers::fname(self::key(), '', $i)] = get_string('offers_error_othercnocourses', 'enrol_wallet');
+            $errors[static::fname('', $i, $wrapper)] = get_string('offers_error_othercnocourses', 'enrol_wallet');
         } else if ($category->get_courses_count(['recursive' => true]) < $offer->courses) {
-            $errors[offers::fname(self::key(), '', $i)] = get_string('offers_error_otherccoursesexceed', 'enrol_wallet');
+            $errors[static::fname('', $i, $wrapper)] = get_string('offers_error_otherccoursesexceed', 'enrol_wallet');
         }
     }
 
@@ -191,5 +212,101 @@ class other_category_courses_offer extends offer_item {
         } else {
             parent::clean_submitted_value($name, $value);
         }
+    }
+
+    /**
+     * Get the count of courses the user enrolled in for a given category.
+     * @param int $catid
+     * @param int $userid
+     * @param bool $activeonly
+     * @param int[] $exclude list of courses ids to be excluded.
+     * @return int|null
+     */
+    public static function get_user_courses_count(int $catid, int $userid, bool $activeonly, array $exclude = []): ?int {
+        global $DB;
+        $category = core_course_category::get($catid, IGNORE_MISSING, false, $userid);
+
+        if (!$category) {
+            return false;
+        }
+
+        $ids = [$catid, ...$category->get_all_children_ids()];
+
+        [$in, $inparams] = $DB->get_in_or_equal($ids, SQL_PARAMS_NAMED);
+        $params = $inparams + [
+            'userid'     => $userid,
+        ];
+
+        $sql = "SELECT ue.id
+                FROM {user_enrolments} ue
+                JOIN {enrol} e ON ue.enrolid = e.id
+                JOIN {course} c ON c.id = e.courseid
+                WHERE c.category $in
+                  AND ue.userid = :userid";
+        if (!empty($exclude)) {
+            [$xin, $xparams] = $DB->get_in_or_equal($exclude, SQL_PARAMS_NAMED, 'param', false);
+            $sql .= " AND c.id $xin";
+            $params += $xparams;
+        }
+        if ($activeonly) {
+            $sql .= ' AND ue.status = :active
+                      AND (ue.timeend >= :now1 OR ue.timeend = 0)
+                      AND (ue.timestart <= :now2 OR ue.timestart = 0)';
+            $params += [
+                'active' => ENROL_USER_ACTIVE,
+                'now1'   => timedate::time(),
+                'now2'   => timedate::time(),
+            ];
+        }
+
+        $records = $DB->get_records_sql($sql, $params);
+
+        return \count($records);
+    }
+    /**
+     * Mock an offer object of this type for testing.
+     * @param  ?testing_data_generator $gen
+     * @param  ?int                    $discount
+     * @param  ?int                    $cat
+     * @param  ?int                    $number
+     * @param  ?bool                   $activeonly
+     * @return stdClass
+     */
+    public static function mock_offer(
+        ?testing_data_generator $gen = null,
+        ?int $discount = null,
+        ?int $cat = null,
+        ?int $number = null,
+        ?bool $activeonly = null
+    ) {
+        global $DB;
+
+        if (null === $gen) {
+            $gen = phpunit_util::get_data_generator();
+        }
+        $offer = new stdClass();
+        $offer->type = static::key();
+        $offer->discount = $discount ?? random_int(1, 99);
+
+        if ($cat === null) {
+            $cat = $gen->create_category()->id;
+
+            for ($i = 0; $i < 7; $i++) {
+                $gen->create_course(['category' => $cat]);
+            }
+        }
+        $offer->cat = $cat;
+
+        if ($number === null) {
+            $number = rand(1, 6);
+        }
+        $offer->number = $number;
+
+        if ($activeonly === null) {
+            $activeonly = (bool)rand(0, 1);
+        }
+        $offer->activeonly = $activeonly;
+
+        return $offer;
     }
 }

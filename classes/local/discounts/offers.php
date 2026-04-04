@@ -120,12 +120,12 @@ class offers {
      * All calculated discounts.
      * @var float[]
      */
-    protected array $discounts = [];
+    protected array $discounts;
 
     /**
      * create an instance of offer helper class to get, calculate and validate the
      * offers rules.
-     * @param \stdClass $instance
+     * @param \stdClass $instance A stdClass with courseid and (offers or customtext3) json offers.
      * @param int       $userid
      */
     public function __construct(stdClass $instance, int $userid = 0) {
@@ -137,33 +137,51 @@ class offers {
             default         => $USER->id,
         };
 
-        $this->offers = match(true) {
-            !empty($instance->customtext3) => (array)json_decode($instance->customtext3),
-            default                        => []
+        $offers = match(true) {
+            !empty($instance->customtext3)                             => (array)json_decode($instance->customtext3),
+            !empty($instance->offers) && \is_string($instance->offers) => (array)json_decode($instance->offers),
+            !empty($instance->offers) && \is_array($instance->offers)  => $instance->offers,
+            default => []
         };
+
+        if (!self::is_valid_structure($offers)) {
+            ob_start();
+            var_dump($offers);
+            $error = "Invalid offers structure: " . ob_get_clean();
+            PHPUNIT_TEST ? throw new coding_exception($error) : debugging($error, DEBUG_DEVELOPER);
+            $offers = [];
+        }
+        $this->offers = array_values($offers);
     }
 
     /**
-     * Magic call.
-     * It's used for testing for now. Todo: remove in the future.
-     * @param string $method
-     * @param array $args
-     * @throws coding_exception
+     * Validate the whole structures.
+     * @param array $offers
      * @return bool
      */
-    public function __call($method, $args) {
-        if (preg_match('/validate_([\w]+)_offer/', $method, $matches)) {
-            $class = $this->get_offer_item($args[0]);
+    protected static function is_valid_structure(array $offers): bool {
+        foreach ($offers as $offer) {
+            if (!\is_object($offer)) {
+                return false;
+            }
 
-            return $class->validate_offer();
+            if (!isset($offer->type) || !isset($offer->discount)) {
+                return false;
+            }
+
+            $class = self::get_offer_class_name($offer->type);
+            if (!$class) {
+                continue;
+            }
+            if (!$class::is_valid_structure($offer)) {
+                return false;
+            }
         }
-
-        throw new coding_exception("The method $method not exist.");
+        return true;
     }
-
     /**
      * Get list of all available offer item classes.
-     * @return array
+     * @return offer_item[]|string[]
      */
     public static function get_offer_classes(): array {
         static $singleton;
@@ -172,6 +190,7 @@ class offers {
             return $singleton;
         }
         $classes = [
+            offers_set::class,
             time_offer::class,
             course_enrol_count_offer::class,
             other_category_courses_offer::class,
@@ -217,7 +236,22 @@ class offers {
 
         return new $class($offer, $this->instance->courseid, $this->userid);
     }
+    /**
+     * Get instances of all offer items.
+     * @return offer_item[]
+     */
+    public function get_offers_items(): array {
+        $classes = [];
+        foreach ($this->offers as $offer) {
+            $class = $this->get_offer_item($offer);
+            if (!$class) {
+                continue;
+            }
+            $classes[] = $class;
+        }
 
+        return $classes;
+    }
     /**
      * Get the raw discount rules,.
      * @return array of objects
@@ -238,17 +272,24 @@ class offers {
             return $descriptions;
         }
 
-        foreach ($this->offers as $key => $offer) {
+        foreach ($this->offers as $offer) {
             $class = $this->get_offer_item($offer);
 
             if (!$class) {
                 continue;
             }
 
+            if ($availableonly && $class->is_hidden()) {
+                continue;
+            }
+
             if (!$discription = $class->get_description($availableonly)) {
                 continue;
             }
-            $descriptions[$key] = $discription;
+            $descriptions[] = [
+                'description' => $discription,
+                'valid' => $class->validate_offer(),
+            ];
         }
 
         return $descriptions;
@@ -261,25 +302,22 @@ class offers {
      */
     public function format_offers_descriptions(bool $availableonly = false): string {
         global $OUTPUT;
-        $output       = '';
         $descriptions = $this->get_detailed_offers($availableonly);
 
         if (empty($descriptions)) {
-            return $output;
+            return '';
         }
 
-        $output .= $OUTPUT->heading(get_string('offers', 'enrol_wallet'), 5);
-        $output .= html_writer::start_tag('ul');
+        $offers = [];
 
         foreach ($descriptions as $key => $description) {
             if (!\array_key_exists($key, (array)$this->offers)) {
                 continue;
             }
-            $output .= html_writer::tag('ul', $description);
+            $offers[] = $description;
         }
-        $output .= html_writer::end_tag('ul');
 
-        return $output;
+        return $OUTPUT->render_from_template('enrol_wallet/offers-description', ['offers' => $offers]);
     }
 
     /**
@@ -295,27 +333,30 @@ class offers {
         $discounts = [];
 
         foreach ($this->offers as $obj) {
+            $class = $this->get_offer_item($obj);
+            if (!$class || $class->is_hidden()) {
+                // Nothing the user could do to obtain this offer
+                // so don't add it to max discount he can get.
+                continue;
+            }
             $discounts[] = (float)$obj->discount;
+        }
+
+        if (empty($discounts)) {
+            return 0;
         }
 
         $behavior = (int)config::instance()->discount_behavior;
 
         if ($behavior === instance::B_MAX) {
             return max($discounts);
-        } else if ($behavior === instance::B_SUM) {
+        }
+
+        if ($behavior === instance::B_SUM) {
             return min(array_sum($discounts), 100);
         }
 
-        $max = 0;
-        \core_collator::asort($discounts, \core_collator::SORT_NUMERIC);
-        $discounts = array_reverse($discounts);
-
-        foreach ($discounts as $d) {
-            $d /= 100;
-            $max = 1 - (1 - $max) * (1 - $d);
-        }
-
-        return min(1, $max) * 100;
+        return self::calculate_sequential($discounts);
     }
 
     /**
@@ -323,7 +364,7 @@ class offers {
      * @return float
      */
     public function get_max_valid_discount(): float {
-        if (empty($this->discounts)) {
+        if (!isset($this->discounts)) {
             $this->discounts = $this->get_available_discounts();
         }
 
@@ -339,13 +380,14 @@ class offers {
      * @return float
      */
     public function get_sum_discounts(): float {
-        if (empty($this->discounts)) {
+        if (!isset($this->discounts)) {
             $this->discounts = $this->get_available_discounts();
-
-            if (empty($this->discounts)) {
-                return 0;
-            }
         }
+
+        if (empty($this->discounts)) {
+            return 0;
+        }
+
         $sum = 0;
 
         foreach ($this->discounts as $d) {
@@ -356,6 +398,44 @@ class offers {
     }
 
     /**
+     * Get the discount calculated sequentially.
+     * @return float
+     */
+    public function get_seq_discounts(): float {
+        if (!isset($this->discounts)) {
+            $this->discounts = $this->get_available_discounts();
+        }
+
+        if (empty($this->discounts)) {
+            return 0;
+        }
+
+        $discounts = fullclone($this->discounts);
+        return self::calculate_sequential($discounts);
+    }
+
+    /**
+     * Calculate sequential discount from array of discount values.
+     * @param array $discounts
+     * @return float|int
+     */
+    protected static function calculate_sequential(array $discounts): float {
+        if (empty($discounts)) {
+            return 0;
+        }
+        \core_collator::asort($discounts, \core_collator::SORT_NUMERIC);
+        $discounts = array_reverse($discounts);
+
+        $seq = 0;
+        foreach ($discounts as $d) {
+            $d /= 100;
+            // Original value (100%)
+            // - The value after discount (100% - current discount) * the next discounted value (100% - next discount).
+            $seq = 1 - (1 - $seq) * (1 - $d);
+        }
+        return min(1, $seq) * 100;
+    }
+    /**
      * Return array with available valid discounts for the passed user.
      * @return float[]
      */
@@ -364,7 +444,9 @@ class offers {
 
         if (empty($this->offers)) {
             return $discounts;
-        } else if (!empty($this->discounts)) {
+        }
+
+        if (isset($this->discounts)) {
             return $this->discounts;
         }
 
@@ -375,7 +457,7 @@ class offers {
                 continue;
             }
 
-            if (!$class->validate_offer()) {
+            if ($class->is_hidden() || !$class->validate_offer()) {
                 continue;
             }
             $discounts[$key] = $class->get_discount();
@@ -389,7 +471,7 @@ class offers {
      * Get offers options.
      * @return array[string]
      */
-    private static function get_offer_options(): array {
+    public static function get_offer_options(): array {
         $classes = self::get_offer_classes();
 
         if (empty($classes)) {
@@ -427,38 +509,19 @@ class offers {
 
         if (!empty($offers)) {
             foreach ($offers as $i => $offer) {
-                self::add_form_fragment($offer->type, $i, $courseid, $mform);
-                $inc  = max($inc, $i);
-                $type = $offer->type;
+                $class = self::get_offer_class_name($offer->type);
 
-                if ($class = self::get_offer_class_name($type)) {
-                    $class::after_edit_form_definition($mform, $offer, $i);
+                if (!$class) {
+                    continue;
                 }
+                $i = max($inc, $i);
+                $class::add_form_fragment($i, $courseid, $mform, $offer);
+                $class::after_edit_form_definition($mform, $offer, $i);
+                $inc++;
             }
         }
 
-        $PAGE->requires->js_call_amd('enrol_wallet/offers', 'init', ['cid' => $courseid, 'inc' => $inc]);
-    }
-
-    /**
-     * Add heading to the form fragment contain the offer type name.
-     * @param  MoodleQuickForm $mform
-     * @param  string          $type
-     * @return void
-     */
-    private static function add_offer_form_heading(MoodleQuickForm $mform, string $type): void {
-        global $OUTPUT;
-        $types = self::get_offer_options();
-        unset($types['']);
-
-        if (!\array_key_exists($type, $types)) {
-            debugging("The offer type $type not exist.", DEBUG_DEVELOPER);
-
-            return;
-        }
-        $name    = $types[$type];
-        $heading = $OUTPUT->heading($name, 5);
-        $mform->addElement('html', $heading);
+        $PAGE->requires->js_call_amd('enrol_wallet/offers', 'init', ['cid' => $courseid, 'inc' => $i ?? 0]);
     }
 
     /**
@@ -471,12 +534,13 @@ class offers {
      * ce - another course enrolment based offer
      * nc - number of enrolment in same category
      * otherc - number of courses in another category
-     * @param  string $type     time - geo - pf - ce - nc
-     * @param  int    $i        increment number
-     * @param  int    $courseid
+     * @param  string      $type      time - geo - pf - ce - nc
+     * @param  int         $i         increment number
+     * @param  int         $courseid
+     * @param  string|null $parentset
      * @return string
      */
-    public static function render_form_fragment(string $type, int $i, int $courseid): string {
+    public static function render_form_fragment(string $type, int $i, int $courseid, ?string $parentset = null): string {
         $mform = new MoodleQuickForm('tempName', 'get', '');
 
         $class = self::get_offer_class_name($type);
@@ -484,27 +548,29 @@ class offers {
         if (!$class) {
             return '';
         }
-        self::add_offer_form_heading($mform, $type);
 
-        $class::add_form_element($mform, $i, $courseid);
+        $issuboffer = !empty($parentset);
+        $wrapper = null;
 
-        $mform->addElement('text', 'offer_' . $type . '_discount_' . $i, get_string('discount', 'enrol_wallet'));
-        $mform->setType('offer_' . $type . '_discount_' . $i, PARAM_FLOAT);
+        if ($parentset) {
+            $k = $parentset;
 
-        $mform->addElement('button', 'offer_delete_' . $i, get_string('delete'), [
-            'data-action-delete' => $i,
-            'data-action'        => 'deleteoffer',
-        ]);
+            // Recursively add wrappers.
+            while (!empty($k)) {
+                [$k, $inc, $settype] = static::analyze_element_key($k);
+
+                $pclass = static::get_offer_class_name($settype);
+                $wrapper = $pclass::get_wrapper($inc, $wrapper);
+            }
+        }
+        $class::add_form_fragment($i, $courseid, $mform, null, !$issuboffer, $wrapper);
+
         ob_start();
         $mform->display();
         $out = ob_get_clean();
 
         // Remove the <form> tags from the form output.
-        $out   = preg_replace('/<form[^>]*>|<\/form>/', '', $out);
-        $style = 'border: 3px groove gray;'
-               . 'border-radius: 15px;'
-               . 'padding: 5px;';
-        $out = html_writer::div($out, '', ['id' => 'offer_group_' . $i, 'style' => $style]);
+        $out = preg_replace('/<form[^>]*>|<\/form>/', '', $out);
 
         return $out;
     }
@@ -519,53 +585,32 @@ class offers {
      * ce - another course enrolment based offer
      * nc - number of enrolment in same category
      * otherc - number of courses in another category
-     * @param string          $type     time - geo - pf - ce - nc
+     * @param stdClass        $offer    time - geo - pf - ce - nc
      * @param int             $i        increment number
      * @param int             $courseid
      * @param MoodleQuickForm $mform
      */
-    public static function add_form_fragment(string $type, int $i, int $courseid, MoodleQuickForm $mform): void {
-        $class = self::get_offer_class_name($type);
+    public static function add_form_fragment(stdClass $offer, int $i, int $courseid, MoodleQuickForm $mform): void {
+        $class = self::get_offer_class_name($offer->type);
 
         if (!$class) {
             return;
         }
-        $style = 'border: 3px groove gray;'
-               . 'border-radius: 15px;'
-               . 'padding: 5px;';
-        $out = html_writer::start_div('', ['id' => 'offer_group_' . $i, 'style' => $style]);
-        $mform->addElement('html', $out);
-
-        self::add_offer_form_heading($mform, $type);
-
-        $class::add_form_element($mform, $i, $courseid);
-
-        $name = self::fname($type, 'discount', $i);
-        $mform->addElement('text', $name, get_string('discount', 'enrol_wallet'));
-        $mform->setType($name, PARAM_FLOAT);
-
-        $attributes = [
-            'data-action-delete' => $i,
-            'data-action'        => 'deleteoffer',
-        ];
-        $mform->addElement('button', 'offer_delete_' . $i, get_string('delete'), $attributes);
-        $mform->addElement('html', html_writer::end_div());
+        $class::add_form_fragment($i, $courseid, $mform, $offer);
     }
 
     /**
-     * Format an offer form element name.
-     * @param string $type the type of offer
-     * @param string $key  the key of the element
-     * @param int    $inc  increment
+     * This is not used anymore, just keep it for now for
+     * phpunit testing.
+     * @param string $type
+     * @param string $key
+     * @param int $inc
+     * @return string
      */
-    public static function fname(string $type, string $key, int $inc): string {
-        $name = "offer_$type";
+    public static function fname(string $type, string $key, int $inc) {
+        $class = static::get_offer_class_name($type);
 
-        if (!empty($key)) {
-            $name .= "_$key";
-        }
-
-        return "{$name}_{$inc}";
+        return $class::fname($key, $inc);
     }
 
     /**
@@ -605,20 +650,19 @@ class offers {
 
         foreach ($offers as $i => $offer) {
             $discount = $offer->discount ?? null;
-            $type     = $offer->type;
+            $type = $offer->type;
+            $class = self::get_offer_class_name($type);
 
             if (empty($discount)
                 || !is_numeric($discount)
                 || $discount < 0 || $discount > 100
             ) {
-                $n          = self::fname($type, 'discount', $i);
+                $n = $class::fname('discount', $i);
                 $errors[$n] = get_string('offers_error_discountvalue', 'enrol_wallet');
             }
 
-            $class = self::get_offer_class_name($type);
-
             if (!$class) {
-                $errors[self::fname($type, 'discount', $i)] = get_string('offer_type_not_available', 'enrol_wallet', $type);
+                $errors[$class::fname('discount', $i)] = get_string('offer_type_not_available', 'enrol_wallet', $type);
                 continue;
             }
             $class::validate_submitted_offer($offer, $i, $errors);
@@ -634,7 +678,7 @@ class offers {
      * @return array[\stdClass]
      */
     protected static function get_offers_from_submitted_data(\stdClass|array $data, ?bool &$hasoffersdata = null): array {
-        $data   = (object)(array)$data;
+        $data = (object)(array)$data;
         $offers = [];
 
         $hasoffersdata = false;
@@ -667,29 +711,45 @@ class offers {
             if (strpos($key, 'offer_') !== 0) {
                 continue;
             }
-            // ... offer_<type>_<key>_<increment>.
-            $chars = explode('_', $key);
 
-            $i    = (int)array_pop($chars);
-            $type = $chars[1];
+            [$k, $i, $type] = static::analyze_element_key($key);
 
-            if (!isset($offers[$i])) {
-                $offers[$i]       = new stdClass();
-                $offers[$i]->type = $type;
-            }
-            $k = $chars[2];
-
-            // Cleaning the values.
-            $class = self::get_offer_class_name($type);
-
-            if (!$class) {
+            if (!$class = self::get_offer_class_name($type)) {
                 continue;
             }
+
+            if (!isset($offers[$i])) {
+                $offers[$i] = new stdClass();
+                $offers[$i]->type = $type;
+            }
+
+            // Cleaning the values.
             $class::clean_submitted_value($k, $value);
             $class::pre_save_submitted_data($offers, $i, $k, $value);
         }
-
         return array_values($offers);
+    }
+
+    /**
+     * Get the element name, increment and offers type from the form element name.
+     * @param  string            $elementkey
+     * @return array<int|string> [$k, $i, $type]
+     */
+    public static function analyze_element_key(string $elementkey) {
+        // ... offer_<type>_<key>_<increment>.
+        $chars = explode('_', $elementkey);
+
+        // Remove offer_.
+        do {
+            $intro = array_shift($chars);
+        } while (!\in_array($intro, [null, 'offer'], true));
+
+        $i = (int)array_pop($chars);
+        $type = array_shift($chars);
+
+        $k = implode('_', $chars);
+
+        return [$k, $i, $type];
     }
 
     /**
@@ -706,7 +766,7 @@ class offers {
             return $offers;
         }
 
-        if (!empty($this->offers) && count((array)$this->offers) > 0) {
+        if (!empty($this->offers) && \count((array)$this->offers) > 0) {
             $offers = (array)$this->offers;
 
             if (!empty($offers)) {
@@ -718,7 +778,7 @@ class offers {
             $offers = (array)json_decode($this->instance->customtext3);
 
             if (!empty($offers)) {
-                $return       = $return + (array)$offers;
+                $return += (array)$offers;
                 $this->offers = $return;
             }
         }
@@ -738,7 +798,7 @@ class offers {
 
         $costfield = $DB->sql_cast_char2real('e.cost');
         $notemptycost = '(' . $DB->sql_isnotempty('enrol', 'e.cost', true, false);
-        $notemptycost .= " AND e.cost IS NOT NULL)";
+        $notemptycost .= ' AND e.cost IS NOT NULL)';
 
         $sql = "SELECT e.id as instanceid, c.*, e.customtext3, e.cost
                 From {course} c
@@ -749,7 +809,7 @@ class offers {
                   AND e.enrol = :wallet
                   AND c.visible = 1
                   AND (($notemptycost AND $costfield = :zero) OR $notempty)";
-        $order = " ORDER BY c.timecreated DESC";
+        $order = ' ORDER BY c.timecreated DESC';
         $params = [
             'stat'   => ENROL_INSTANCE_ENABLED,
             'time1'  => timedate::time(),
@@ -760,7 +820,7 @@ class offers {
 
         if (!empty($categoryid)) {
             $category = core_course_category::get($categoryid, IGNORE_MISSING);
-            $catids   = [];
+            $catids = [];
 
             if ($category) {
                 $catids = $category->get_all_children_ids();
@@ -776,12 +836,12 @@ class offers {
         $final = [];
 
         foreach ($courses as $instanceid => $course) {
-            $instance              = new stdClass();
-            $instance->id          = $instanceid;
-            $instance->courseid    = $course->id;
+            $instance = new stdClass();
+            $instance->id = $instanceid;
+            $instance->courseid = $course->id;
             $instance->customtext3 = $course->customtext3;
 
-            $zero  = is_number($course->cost) && $course->cost == 0;
+            $zero = is_number($course->cost) && $course->cost == 0;
             $class = new static($instance);
 
             $rawoffers = (array)@$class->get_raw_offers();
@@ -799,10 +859,10 @@ class offers {
             }
 
             if (!isset($final[$course->id])) {
-                $final[$course->id]           = $course;
-                $final[$course->id]->free     = $zero;
+                $final[$course->id] = $course;
+                $final[$course->id]->free = $zero;
                 $final[$course->id]->hasoffer = !$zero;
-                $final[$course->id]->offers   = [];
+                $final[$course->id]->offers = [];
                 unset($final[$course->id]->instanceid, $final[$course->id]->customtext3, $final[$course->id]->cost);
             }
             $final[$course->id]->offers[$instanceid] = $class->format_offers_descriptions(true);

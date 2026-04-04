@@ -16,13 +16,12 @@
 
 namespace enrol_wallet\external;
 
-use enrol_wallet\local\discounts\offers;
-
 use core_external\external_api;
-use core_external\external_function_parameters;
 use core_external\external_description;
+use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
+use enrol_wallet\local\discounts\offers;
 
 /**
  * Class offers form.
@@ -33,7 +32,7 @@ use core_external\external_value;
  */
 class offers_form extends external_api {
     /**
-     * Returns description of get_form_fragment() parameters
+     * Returns description of get_form_fragment() parameters.
      *
      * @return external_function_parameters
      */
@@ -42,27 +41,35 @@ class offers_form extends external_api {
             'type'      => new external_value(PARAM_TEXT, 'The type of the offers rules'),
             'increment' => new external_value(PARAM_INT, 'order of the added fragment'),
             'course'    => new external_value(PARAM_INT, 'the course id'),
+            'parentset' => new external_value(PARAM_ALPHANUMEXT, 'The parent set element name', VALUE_DEFAULT, null),
         ]);
     }
 
     /**
      * Return an html fragment of form elements used in offers editing.
      *
-     * @param string $type
-     * @param int $increment
-     * @param int $courseid
+     * @param  string  $type
+     * @param  int     $increment
+     * @param  int     $course
+     * @param  ?string $parentset
      * @return array
      */
-    public static function get_form_fragment($type, $increment, $courseid) {
+    public static function get_form_fragment(string $type, int $increment, int $course, ?string $parentset = null): array {
         global $PAGE;
-        require_login();
-        $params = ['type' => $type, 'increment' => $increment, 'course' => $courseid];
+
+        $params = compact('type', 'increment', 'course', 'parentset');
         $params = self::validate_parameters(self::get_form_fragment_parameters(), $params);
-        $type = $params['type'];
-        $i = $params['increment'];
-        $courseid = $params['course'];
-        $PAGE->set_context(\context_course::instance($courseid));
-        return ['data' => offers::render_form_fragment($type, $i, $courseid)];
+
+        $type      = $params['type'];
+        $i         = $params['increment'];
+        $courseid  = $params['course'];
+        $parentset = $params['parentset'];
+
+        require_login($courseid, false);
+        $context = \context_course::instance($courseid);
+        self::validate_context($context);
+
+        return ['data' => offers::render_form_fragment($type, $i, $courseid, $parentset)];
     }
 
     /**

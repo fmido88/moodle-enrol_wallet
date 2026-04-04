@@ -23,31 +23,36 @@
 
 import Ajax from 'core/ajax';
 import $ from 'jquery';
+import Templates from 'core/templates';
 /**
  * @type {JQuery<HTMLElement>}
  */
 let container;
 let courseid;
 let i = 0;
-
+let setsInc = {};
 /**
  * Add form fragment in the offers container.
  *
  * @param {string} type
+ * @param {string} parentSet
+ * @param {JQuery<HTMLElement} placeholder
+ * @param {Number} increment
  */
-function addFragment(type) {
+async function addFragment(type, parentSet, placeholder, increment) {
     let request = Ajax.call([{
         methodname: "enrol_wallet_get_offer_form_fragment",
         args: {
             type: type,
-            increment: i,
+            increment: increment,
             course: courseid,
+            parentset: parentSet
         }
     }]);
-    request[0].done((data) => {
-        container.append(data.data);
-        addDeleteButtonListener();
-    });
+    let data = await request[0];
+    placeholder.append(data.data);
+    addDeleteButtonListener();
+    addSelectListener();
 }
 
 /**
@@ -59,8 +64,7 @@ function addDeleteButtonListener() {
     buttons.on('click', function(event) {
         event.preventDefault();
         event.stopPropagation();
-        let number = $(this).data('action-delete');
-        let set = $('#offer_group_' + number);
+        let set = $(this).closest('[data-action="offer-set"]');
         set.remove();
     });
 }
@@ -70,14 +74,60 @@ function addDeleteButtonListener() {
  */
 function addSelectListener() {
     let select = $('select[name="add_offer"]');
-    select.on('change', function() {
+    select.off('change');
+    select.on('change', async function() {
         i++;
         let selector = $(this);
-        addFragment(selector.val());
+        await setLoading(selector, container);
+        await addFragment(selector.val(), null, container, i);
+        await setLoading(selector, container, false);
         selector.val('');
     });
-}
+    let subselect = $('select[data-action="add-sub-offer"]');
+    subselect.off('change');
+    subselect.on('change', async function() {
+        let selector = $(this);
+        let i = selector.data("group-increment");
+        let container = selector.closest('div[data-action="offer-set"]');
+        let groupName = selector.data("group-name");
+        let placeholder = container.find('div[data-action="sub-offer-placeholder"][data-group-name="' + groupName + '"]');
 
+        let inc;
+        if (!setsInc[i]) {
+            inc = selector.data("set-increment") + 1;
+            selector.data("set-increment", inc);
+            setsInc[i] = inc;
+        } else {
+            setsInc[i]++;
+            inc = setsInc[i] + 1;
+        }
+
+        await setLoading(selector, placeholder);
+        await addFragment(selector.val(), groupName, placeholder, inc);
+        await setLoading(selector, placeholder, false);
+
+        selector.val('');
+        // eslint-disable-next-line no-console
+        console.log(groupName, inc, i, selector, container, placeholder);
+    });
+}
+/**
+ *
+ * @param {JQuery<HTMLElement} selector
+ * @param {JQuery<HTMLElement} container
+ * @param {Boolean} loading
+ */
+async function setLoading(selector, container, loading = true) {
+    selector.attr('disabled', loading);
+    if (loading) {
+        let loading = document.createElement('div');
+        loading.setAttribute("data-action", "loading-overlay");
+        loading.innerHTML = await Templates.render('core/loading');
+        container.append(loading);
+    } else {
+        container.find('div[data-action="loading-overlay"]').remove();
+    }
+}
 /**
  * Init
  * @param {number} cid the course id

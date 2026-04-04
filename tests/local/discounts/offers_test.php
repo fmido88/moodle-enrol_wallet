@@ -34,6 +34,7 @@ use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\utils\timedate;
 use MoodleQuickForm;
+use stdClass;
 
 /**
  * Tests for offers system.
@@ -45,117 +46,28 @@ use MoodleQuickForm;
  */
 final class offers_test extends \advanced_testcase {
     /**
-     * Test time-based offer validation - valid offer.
-     * @covers ::validate_time_offer()
-     */
-    public function test_validate_time_offer_valid(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create an instance with a time-based offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 20,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get the offers.
-        $rawoffers = $offerhelper->get_raw_offers();
-        $this->assertCount(1, $rawoffers);
-
-        // Validate time offer.
-        $class = $offerhelper->get_offer_item($rawoffers[0]);
-        $result = $class->validate_offer();
-        $this->assertTrue($result);
-    }
-
-    /**
-     * Test time-based offer validation - not started yet.
-     * @covers ::validate_time_offer()
-     */
-    public function test_validate_time_offer_not_started(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create an instance with a time-based offer that hasn't started.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now + DAYSECS,
-                'to'       => $now + 2 * DAYSECS,
-                'discount' => 20,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get the offers.
-        $rawoffers = $offerhelper->get_raw_offers();
-
-        // Validate time offer - should be false because not started.
-        $class = $offerhelper->get_offer_item($rawoffers[0]);
-        $result = $class->validate_offer();
-        $this->assertFalse($result);
-    }
-
-    /**
-     * Test time-based offer validation - expired.
-     * @covers ::validate_time_offer()
-     */
-    public function test_validate_time_offer_expired(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create an instance with an expired time-based offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - 3 * DAYSECS,
-                'to'       => $now - DAYSECS,
-                'discount' => 20,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get the offers.
-        $rawoffers = $offerhelper->get_raw_offers();
-
-        // Validate time offer - should be false because expired.
-        $result = $offerhelper->validate_time_offer($rawoffers[0]);
-        $this->assertFalse($result);
-    }
-
-    /**
      * Test get max discount - returns highest discount.
      * @covers ::get_max_discount()
      */
     public function test_get_max_discount(): void {
         $this->resetAfterTest();
-        config::make()->discount_behavior = instance::B_MAX;
 
         $now = timedate::time();
 
-        // Create instance with multiple offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
+        // Test 1: Instance with no offers.
+        $instance = new \stdClass();
+        $instance->courseid = 1;
+        $instance->customtext3 = null;
+        $user = $this->getDataGenerator()->create_user();
+        $offerhelper = new offers($instance, $user->id);
+        $maxdiscount = $offerhelper->get_max_discount();
+        $this->assertEquals(0, $maxdiscount);
+
+        config::make()->discount_behavior = instance::B_MAX;
+
+        // Test 2: Multiple offers instance.
+        $instance = new \stdClass();
+        $instance->courseid = 1;
         $instance->customtext3 = json_encode([
             (object)[
                 'type'     => offers::TIME,
@@ -176,65 +88,41 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
-
-        $user        = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $offerhelper = new offers($instance, $user->id);
-
-        // Get max discount - should be 25 (highest).
-        $maxdiscount = $offerhelper->get_max_discount();
-        $this->assertEquals(25, $maxdiscount);
+        $maxdiscount2 = $offerhelper->get_max_discount();
+        $this->assertEquals(25, $maxdiscount2);
 
         config::make()->discount_behavior = instance::B_SUM;
-
-        $maxdiscount = $offerhelper->get_max_discount();
-        $this->assertEquals(50, $maxdiscount);
+        $maxdiscount3 = $offerhelper->get_max_discount();
+        $this->assertEquals(50, $maxdiscount3);
 
         config::make()->discount_behavior = instance::B_SEQ;
-        $maxdiscount                      = $offerhelper->get_max_discount();
-        // This should be First discount 25, remain value is 75%.
-        // Second discount 15, Apply the discount to 75% = 11.25,
-        // so total discount 25 + 11.25 = 36.25, remain value = 63.75
-        // Third discount 10, Apply the discount to 63.75%.
-        // so the total discount 36.25 + 6.375 = 42.625, remain value = 57.375.
-        $this->assertEquals(42.625, $maxdiscount);
-    }
+        $maxdiscount4 = $offerhelper->get_max_discount();
+        // First discount 25, remain 75%. Second 15 on 75% = 11.25, total 36.25, remain 63.75.
+        // Third 10 on 63.75% = 6.375, total 42.625.
+        $this->assertEquals(42.625, $maxdiscount4);
 
-    /**
-     * Test get available discounts.
-     * @covers ::get_available_discounts()
-     */
-    public function test_get_available_discounts(): void {
-        $this->resetAfterTest();
+        $offersraw = [
+            time_offer::mock_offer($this->getDataGenerator(), 20),
+            time_offer::mock_offer($this->getDataGenerator(), 30),
+            time_offer::mock_offer($this->getDataGenerator(), 10),
+        ];
+        $instance->customtext3 = json_encode($offersraw);
+        $offersobj = new offers($instance, $user->id);
 
-        $now = timedate::time();
+        // B_MAX: highest discount.
+        config::make()->discount_behavior = instance::B_MAX;
+        $this->assertEquals(30, $offersobj->get_max_discount());
 
-        // Create instance with one valid and one expired offer.
-        $instance = testing::get_generator()->create_instance(cost: 80);
+        // B_SUM: total, capped 100.
+        config::make()->discount_behavior = instance::B_SUM;
+        $this->assertEquals(60, $offersobj->get_max_discount());
 
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 20,
-            ],
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - 3 * DAYSECS,
-                'to'       => $now - DAYSECS,
-                'discount' => 30,
-            ],
-        ]);
-        $instance->update();
-
-        $user = $this->getDataGenerator()->create_user();
-
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts - only valid one.
-        $discounts = $offerhelper->get_available_discounts();
-        $this->assertCount(1, $discounts);
-        $this->assertContains(20.0, $discounts);
+        // B_SEQ: sequential application.
+        config::make()->discount_behavior = instance::B_SEQ;
+        $expectedseq = 1 - (1 - 0.30) * (1 - 0.20) * (1 - 0.10); // 49.4%
+        $this->assertEqualsWithDelta($expectedseq * 100, $offersobj->get_max_discount(), 0.1);
     }
 
     /**
@@ -242,14 +130,44 @@ final class offers_test extends \advanced_testcase {
      * @covers ::get_sum_discounts()
      */
     public function test_get_sum_discounts(): void {
+        global $DB;
         $this->resetAfterTest();
 
         $now = timedate::time();
 
-        // Create instance with multiple valid time-based offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
+        // Test 1: Empty offers array.
+        $instance1 = new \stdClass();
+        $instance1->courseid = 1;
+        $instance1->customtext3 = json_encode([]);
+        $user1 = $this->getDataGenerator()->create_user();
+        $offerhelper1 = new offers($instance1, $user1->id);
+        $discounts1 = $offerhelper1->get_available_discounts();
+        $maxdiscount1 = $offerhelper1->get_max_discount();
+        $sum1 = $offerhelper1->get_sum_discounts();
+        $this->assertEmpty($discounts1);
+        $this->assertEquals(0, $maxdiscount1);
+        $this->assertEquals(0, $sum1);
+
+        // Test 2: Expired offers only.
+        $instance2 = new \stdClass();
+        $instance2->courseid = 1;
+        $instance2->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - 3 * DAYSECS,
+                'to'       => $now - DAYSECS,
+                'discount' => 50,
+            ],
+        ]);
+        $user2 = $this->getDataGenerator()->create_user();
+        $offerhelper2 = new offers($instance2, $user2->id);
+        $sum2 = $offerhelper2->get_sum_discounts();
+        $this->assertEquals(0, $sum2);
+
+        // Test 3: Multiple valid time offers (20+30=50).
+        $instance3 = new \stdClass();
+        $instance3->courseid = 1;
+        $instance3->customtext3 = json_encode([
             (object)[
                 'type'     => offers::TIME,
                 'from'     => $now - DAYSECS,
@@ -263,28 +181,15 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 30,
             ],
         ]);
+        $user3 = $this->getDataGenerator()->create_user();
+        $offerhelper3 = new offers($instance3, $user3->id);
+        $sum3 = $offerhelper3->get_sum_discounts();
+        $this->assertEquals(50, $sum3);
 
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get sum discounts - 20 + 30 = 50.
-        $sum = $offerhelper->get_sum_discounts();
-        $this->assertEquals(50, $sum);
-    }
-
-    /**
-     * Test sum discounts capped at 100.
-     * @covers ::get_sum_discounts()
-     */
-    public function test_get_sum_discounts_capped(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create instance with high discounts.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
+        // Test 4: High discounts (capped at 100).
+        $instance4 = new \stdClass();
+        $instance4->courseid = 1;
+        $instance4->customtext3 = json_encode([
             (object)[
                 'type'     => offers::TIME,
                 'from'     => $now - DAYSECS,
@@ -298,13 +203,10 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 60,
             ],
         ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get sum discounts - should be capped at 100.
-        $sum = $offerhelper->get_sum_discounts();
-        $this->assertEquals(100, $sum);
+        $user4 = $this->getDataGenerator()->create_user();
+        $offerhelper4 = new offers($instance4, $user4->id);
+        $sum4 = $offerhelper4->get_sum_discounts();
+        $this->assertEquals(100, $sum4);
     }
 
     /**
@@ -316,10 +218,26 @@ final class offers_test extends \advanced_testcase {
 
         $now = timedate::time();
 
-        // Create instance with multiple valid offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
+        // Test 1: Only expired offers.
+        $instance1 = new \stdClass();
+        $instance1->courseid = 1;
+        $instance1->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - 3 * DAYSECS,
+                'to'       => $now - DAYSECS,
+                'discount' => 50,
+            ],
+        ]);
+        $user1 = $this->getDataGenerator()->create_user();
+        $offerhelper1 = new offers($instance1, $user1->id);
+        $maxvalid1 = $offerhelper1->get_max_valid_discount();
+        $this->assertEquals(0, $maxvalid1);
+
+        // Test 2: Mixed valid/expired offers (max valid = 40).
+        $instance2 = new \stdClass();
+        $instance2->courseid = 1;
+        $instance2->customtext3 = json_encode([
             (object)[
                 'type'     => offers::TIME,
                 'from'     => $now - DAYSECS,
@@ -339,922 +257,322 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 80,
             ],
         ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get max valid discount - should be 40 (highest valid).
-        $maxvalid = $offerhelper->get_max_valid_discount();
-        $this->assertEquals(40, $maxvalid);
-    }
-
-    /**
-     * Test get detailed offers.
-     * @covers ::get_detailed_offers()
-     */
-    public function test_get_detailed_offers(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create a course first.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create instance with time-based offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 25,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get detailed offers.
-        $detailed = $offerhelper->get_detailed_offers();
-        $this->assertNotEmpty($detailed);
+        $user2 = $this->getDataGenerator()->create_user();
+        $offerhelper2 = new offers($instance2, $user2->id);
+        $maxvalid2 = $offerhelper2->get_max_valid_discount();
+        $this->assertEquals(40, $maxvalid2);
     }
 
     /**
      * Test offers with no offers configured.
      * @covers ::get_raw_offers()
      */
-    public function test_no_offers(): void {
+    public function test_get_raw_offers(): void {
+        global $PAGE;
         $this->resetAfterTest();
 
-        // Create instance with no offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = null;
+        $course1 = $this->getDataGenerator()->create_course();
+        $course2 = $this->getDataGenerator()->create_course();
 
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
+        $user1 = $this->getDataGenerator()->create_user();
+        $this->setUser($user1);
+        // Test no offers case.
+        $instance1 = new stdClass();
+        $instance1->courseid = $course1->id;
+        $instance1->customtext3 = null;
+        $offerhelper1 = new offers($instance1, $user1->id);
 
-        // Get raw offers - should be empty.
-        $rawoffers = $offerhelper->get_raw_offers();
-        $this->assertEmpty($rawoffers);
+        $rawoffers1 = $offerhelper1->get_raw_offers();
+        $this->assertEmpty($rawoffers1);
 
-        // Max discount should be 0.
-        $maxdiscount = $offerhelper->get_max_discount();
-        $this->assertEquals(0, $maxdiscount);
+        $maxdiscount1 = $offerhelper1->get_max_discount();
+        $this->assertEquals(0, $maxdiscount1);
+
+        $instance = testing::get_generator()->create_instance($course2->id, false, 500);
+        $rawoffers = [];
+        $classes = offers::get_offer_classes();
+        $discount = 0;
+        $sum = 0;
+        $seq = 0;
+
+        $PAGE->set_course($course2);
+
+        foreach ($classes as $class) {
+            if (!method_exists($class, 'mock_offer')) {
+                continue;
+            }
+            $discount += 5;
+            $sum += $discount;
+            $y = 0;
+
+            do {
+                $mocked = $class::mock_offer($this->getDataGenerator(), $discount);
+                $y++;
+
+                if ($y > 5) {
+                    var_dump($mocked);
+                    continue 2;
+                }
+            } while ((new $class($mocked, $course2->id, $user1->id))->is_hidden());
+            $rawoffers[] = $mocked;
+        }
+        $instance->offersrules = json_encode($rawoffers);
+
+        $offers = new offers($instance, $user1->id);
+        $rawoffers2 = $offers->get_raw_offers();
+        $this->assertCount(\count($rawoffers), $rawoffers2);
+        $this->assertNotEmpty($rawoffers2);
+
+        config::make()->discount_behavior = instance::B_MAX;
+        $maxdiscount2 = $offers->get_max_discount();
+        $this->assertEquals($discount, $maxdiscount2);
+
+        config::make()->discount_behavior = instance::B_SUM;
+        $maxdiscount2 = $offers->get_max_discount();
+        $this->assertEquals(min($sum, 100), $maxdiscount2);
+
+        config::make()->discount_behavior = instance::B_SEQ;
+        $maxdiscount2 = $offers->get_max_discount();
+        $seq = $discount;
+
+        for ($i = 0; $discount > 0; $i++) {
+            $discount -= 5;
+            $seq += $discount - $discount * $seq / 100;
+        }
+        $this->assertEquals($seq, $maxdiscount2);
     }
 
     /**
      * Test course enrollment count offer validation - valid.
-     * @covers ::validate_course_enrol_count()
+     * @covers ::get_available_discounts()
      */
-    public function test_validate_course_enrol_count_valid(): void {
+    public function test_get_available_discounts(): void {
         global $DB;
         $this->resetAfterTest();
 
-        // Create courses in same category.
-        $cat     = $this->getDataGenerator()->create_category();
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
+        $now = timedate::time();
+        $this->getDataGenerator()->create_custom_profile_field([
+            'datatype'  => 'text',
+            'name'      => 'Test Custom Field',
+            'shortname' => 'testcustomfield',
+        ]);
 
-        $user = $this->getDataGenerator()->create_user();
+        // Test 1: Time-based offers (valid + expired).
+        $instance1 = testing::get_generator()->create_instance(cost: 80);
+        $instance1->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
+                'discount' => 20,
+            ],
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - 3 * DAYSECS,
+                'to'       => $now - DAYSECS,
+                'discount' => 30,
+            ],
+        ]);
+        $instance1->update();
+        $user1 = $this->getDataGenerator()->create_user();
+        $offerhelper1 = new offers($instance1, $user1->id);
+        $discounts1 = $offerhelper1->get_available_discounts();
+        $this->assertCount(1, $discounts1);
+        $this->assertContains(20.0, $discounts1);
 
-        // Enroll user in course1.
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
-
-        // Create instance for course2 with course enrollment count offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course2->id;
-        $instance->customtext3 = json_encode([
+        // Test 2: COURSE_ENROL_COUNT offer (valid).
+        $cat1 = $this->getDataGenerator()->create_category();
+        $course19 = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
+        $course20 = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
+        $user19 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user19->id, $course19->id);
+        $instance19 = new \stdClass();
+        $instance19->courseid = $course20->id;
+        $instance19->customtext3 = json_encode([
             (object)[
                 'type'     => offers::COURSE_ENROL_COUNT,
                 'number'   => 1,
                 'discount' => 15,
             ],
         ]);
+        $offerhelper19 = new offers($instance19, $user19->id);
+        $discounts19 = $offerhelper19->get_available_discounts();
+        $this->assertNotEmpty($discounts19);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because user is enrolled in 1 course in category.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test course enrollment count offer - not enough courses.
-     * @covers ::validate_course_enrol_count()
-     */
-    public function test_validate_course_enrol_count_not_enough(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create courses in same category.
-        $cat     = $this->getDataGenerator()->create_category();
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Don't enroll user in any course.
-
-        // Create instance for course2 with course enrollment count offer requiring 2 courses.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course2->id;
-        $instance->customtext3 = json_encode([
+        // Test 3: COURSE_ENROL_COUNT requiring 2 (invalid).
+        $cat2 = $this->getDataGenerator()->create_category();
+        $course21 = $this->getDataGenerator()->create_course(['category' => $cat2->id]);
+        $course22 = $this->getDataGenerator()->create_course(['category' => $cat2->id]);
+        $user20 = $this->getDataGenerator()->create_user();
+        $instance20 = new \stdClass();
+        $instance20->courseid = $course22->id;
+        $instance20->customtext3 = json_encode([
             (object)[
                 'type'     => offers::COURSE_ENROL_COUNT,
                 'number'   => 2,
                 'discount' => 15,
             ],
         ]);
+        $offerhelper20 = new offers($instance20, $user20->id);
+        $discounts20 = $offerhelper20->get_available_discounts();
+        $this->assertEmpty($discounts20);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should not have valid discount because user is not enrolled in enough courses.
-        $this->assertEmpty($discounts);
-    }
-
-    /**
-     * Test OTHER_CATEGORY_COURSES offer - valid with enough courses.
-     * @covers ::validate_category_enrol_count()
-     */
-    public function test_validate_other_category_courses_valid(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create two categories.
-        $cat1 = $this->getDataGenerator()->create_category();
-        $cat2 = $this->getDataGenerator()->create_category();
-
-        // Create courses in cat2.
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat2->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat2->id]);
-
-        // Create course in cat1 (the target course).
-        $targetcourse = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Enroll user in both courses in cat2.
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
-        $this->getDataGenerator()->enrol_user($user->id, $course2->id);
-
-        // Create instance with OTHER_CATEGORY_COURSES offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = $targetcourse->id;
-        $instance->customtext3 = json_encode([
+        // Test 4: OTHER_CATEGORY_COURSES (valid).
+        $cat23 = $this->getDataGenerator()->create_category();
+        $cat24 = $this->getDataGenerator()->create_category();
+        $course23 = $this->getDataGenerator()->create_course(['category' => $cat24->id]);
+        $course24 = $this->getDataGenerator()->create_course(['category' => $cat24->id]);
+        $targetcourse23 = $this->getDataGenerator()->create_course(['category' => $cat23->id]);
+        $user21 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user21->id, $course23->id);
+        $this->getDataGenerator()->enrol_user($user21->id, $course24->id);
+        $instance21 = new stdClass();
+        $instance21->courseid = $targetcourse23->id;
+        $instance21->customtext3 = json_encode([
             (object)[
                 'type'     => offers::OTHER_CATEGORY_COURSES,
-                'cat'      => $cat2->id,
+                'cat'      => $cat24->id,
                 'courses'  => 2,
                 'discount' => 20,
             ],
         ]);
+        $offerhelper21 = new offers($instance21, $user21->id);
+        $discounts21 = $offerhelper21->get_available_discounts();
+        $this->assertNotEmpty($discounts21);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because user is enrolled in 2 courses in cat2.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test OTHER_CATEGORY_COURSES offer - not enough courses.
-     * @covers ::validate_category_enrol_count()
-     */
-    public function test_validate_other_category_courses_not_enough(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create two categories.
-        $cat1 = $this->getDataGenerator()->create_category();
-        $cat2 = $this->getDataGenerator()->create_category();
-
-        // Create only one course in cat2.
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat2->id]);
-
-        // Create course in cat1 (the target course).
-        $targetcourse = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Enroll user in only one course in cat2.
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
-
-        // Create instance requiring 2 courses but only 1 available.
-        $instance              = new \stdClass();
-        $instance->courseid    = $targetcourse->id;
-        $instance->customtext3 = json_encode([
+        // Test 5: OTHER_CATEGORY_COURSES insufficient courses (invalid).
+        $cat25 = $this->getDataGenerator()->create_category();
+        $cat26 = $this->getDataGenerator()->create_category();
+        $course25 = $this->getDataGenerator()->create_course(['category' => $cat26->id]);
+        $targetcourse25 = $this->getDataGenerator()->create_course(['category' => $cat25->id]);
+        $user22 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user22->id, $course25->id);
+        $instance22 = new \stdClass();
+        $instance22->courseid = $targetcourse25->id;
+        $instance22->customtext3 = json_encode([
             (object)[
                 'type'     => offers::OTHER_CATEGORY_COURSES,
-                'cat'      => $cat2->id,
+                'cat'      => $cat26->id,
                 'courses'  => 2,
                 'discount' => 20,
             ],
         ]);
+        $offerhelper22 = new offers($instance22, $user22->id);
+        $discounts22 = $offerhelper22->get_available_discounts();
+        $this->assertEmpty($discounts22);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should not have valid discount.
-        $this->assertEmpty($discounts);
-    }
-
-    /**
-     * Test OTHER_CATEGORY_COURSES offer - category doesn't exist.
-     * @covers ::validate_category_enrol_count()
-     */
-    public function test_validate_other_category_courses_invalid_category(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Create instance with non-existent category.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 6: Non-existent category.
+        $course26 = $this->getDataGenerator()->create_course();
+        $user23 = $this->getDataGenerator()->create_user();
+        $instance23 = new \stdClass();
+        $instance23->courseid = $course26->id;
+        $instance23->customtext3 = json_encode([
             (object)[
                 'type'     => offers::OTHER_CATEGORY_COURSES,
-                'cat'      => 99999, // Non-existent category.
+                'cat'      => 99999,
                 'courses'  => 1,
                 'discount' => 20,
             ],
         ]);
+        $offerhelper23 = new offers($instance23, $user23->id);
+        $discounts23 = $offerhelper23->get_available_discounts();
+        $this->assertEmpty($discounts23);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should not have valid discount - category doesn't exist.
-        $this->assertEmpty($discounts);
-    }
-
-    /**
-     * Test COURSES_ENROL_SAME_CAT (ce) offer - user enrolled in required courses.
-     * @covers ::validate_courses_enrollments_same_cat()
-     */
-    public function test_validate_courses_enrol_same_cat_all_valid(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create a category.
-        $cat = $this->getDataGenerator()->create_category();
-
-        // Create multiple courses in the category.
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course3 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        // Create target course.
-        $targetcourse = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Enroll user in course1 and course2.
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
-        $this->getDataGenerator()->enrol_user($user->id, $course2->id);
-
-        // Create instance with COURSES_ENROL_SAME_CAT offer - requires ALL courses.
-        $instance              = testing::get_generator()->create_instance($targetcourse->id, false);
-        $instance->customtext3 = json_encode([
+        // Test 7: COURSES_ENROL_SAME_CAT ALL condition (initially invalid).
+        $cat27 = $this->getDataGenerator()->create_category();
+        $course27 = $this->getDataGenerator()->create_course(['category' => $cat27->id]);
+        $course28 = $this->getDataGenerator()->create_course(['category' => $cat27->id]);
+        $course29 = $this->getDataGenerator()->create_course(['category' => $cat27->id]);
+        $targetcourse27 = $this->getDataGenerator()->create_course(['category' => $cat27->id]);
+        $user24 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user24->id, $course27->id);
+        $this->getDataGenerator()->enrol_user($user24->id, $course28->id);
+        $instance24 = testing::get_generator()->create_instance($targetcourse27->id, false);
+        $instance24->customtext3 = json_encode([
             (object)[
                 'type'      => offers::COURSES_ENROL_SAME_CAT,
-                'courses'   => [$course1->id, $course2->id, $course3->id],
+                'courses'   => [$course27->id, $course28->id, $course29->id],
                 'condition' => 'all',
                 'discount'  => 25,
             ],
         ]);
+        $instance24->update();
+        $offerhelper24 = new offers($instance24, $user24->id);
+        $discounts24 = $offerhelper24->get_available_discounts();
+        $this->assertEmpty($discounts24);
 
-        $instance->update();
+        // Now enroll in course29 (now valid).
+        $this->getDataGenerator()->enrol_user($user24->id, $course29->id);
+        $instance26 = new instance($instance24, $user24->id);
+        $offerhelper26 = new offers($instance26, $user24->id);
+        $discounts26 = $offerhelper26->get_available_discounts();
+        $this->assertTrue(count($discounts26) > 0);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts - should NOT have because user only has 2 of 3 courses.
-        $discounts = $offerhelper->get_available_discounts();
-        $this->assertEmpty($discounts);
-
-        // Now enroll in course3.
-        $this->getDataGenerator()->enrol_user($user->id, $course3->id);
-
-        $instance = new instance($instance, $user->id);
-        // Create new instance to refresh.
-        $offerhelper = new offers($instance, $user->id);
-        $discounts   = $offerhelper->get_available_discounts();
-
-        // Should have valid discount now.
-        $this->assertTrue(\count($discounts) > 0);
-    }
-
-    /**
-     * Test COURSES_ENROL_SAME_CAT with 'any' condition.
-     * @covers ::validate_courses_enrollments_same_cat()
-     */
-    public function test_validate_courses_enrol_same_cat_any_valid(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create a category.
-        $cat = $this->getDataGenerator()->create_category();
-
-        // Create multiple courses in the category.
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course3 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        // Create target course.
-        $targetcourse = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Enroll user in only course1.
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
-
-        $this->setUser($user);
-        // Create instance with 'any' condition.
-        $instance              = testing::get_generator()->create_instance($targetcourse->id, false, 100);
-        $instance->customtext3 = json_encode([
+        // Test 8: COURSES_ENROL_SAME_CAT ANY condition (valid).
+        $cat30 = $this->getDataGenerator()->create_category();
+        $course30 = $this->getDataGenerator()->create_course(['category' => $cat30->id]);
+        $course31 = $this->getDataGenerator()->create_course(['category' => $cat30->id]);
+        $course32 = $this->getDataGenerator()->create_course(['category' => $cat30->id]);
+        $targetcourse30 = $this->getDataGenerator()->create_course(['category' => $cat30->id]);
+        $user25 = $this->getDataGenerator()->create_user();
+        $this->getDataGenerator()->enrol_user($user25->id, $course30->id);
+        $this->setUser($user25);
+        $instance25 = testing::get_generator()->create_instance($targetcourse30->id, false, 100);
+        $instance25->customtext3 = json_encode([
             (object)[
                 'type'      => offers::COURSES_ENROL_SAME_CAT,
-                'courses'   => [$course1->id, $course2->id, $course3->id],
+                'courses'   => [$course30->id, $course31->id, $course32->id],
                 'condition' => 'any',
                 'discount'  => 25,
             ],
         ]);
-        $instance->update();
+        $instance25->update();
+        $offerhelper25 = new offers($instance25, $user25->id);
+        $discounts25 = $offerhelper25->get_available_discounts();
+        $this->assertTrue(count($discounts25) > 0);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts - should have because user has at least 1 course.
-        $discounts = $offerhelper->get_available_discounts();
-        $this->assertTrue(count($discounts) > 0);
-    }
-
-    /**
-     * Test COURSES_ENROL_SAME_CAT with no enrollments.
-     * @covers ::validate_courses_enrollments_same_cat()
-     */
-    public function test_validate_courses_enrol_same_cat_no_enrollment(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create a category.
-        $cat = $this->getDataGenerator()->create_category();
-
-        // Create courses in the category.
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        // Create target course.
-        $targetcourse = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Don't enroll user in any course.
-
-        // Create instance.
-        $instance              = new \stdClass();
-        $instance->courseid    = $targetcourse->id;
-        $instance->customtext3 = json_encode([
+        // Test 9: COURSES_ENROL_SAME_CAT ANY no enrollment (invalid).
+        $cat33 = $this->getDataGenerator()->create_category();
+        $course33 = $this->getDataGenerator()->create_course(['category' => $cat33->id]);
+        $course34 = $this->getDataGenerator()->create_course(['category' => $cat33->id]);
+        $targetcourse33 = $this->getDataGenerator()->create_course(['category' => $cat33->id]);
+        $user26 = $this->getDataGenerator()->create_user();
+        $instance26 = new \stdClass();
+        $instance26->courseid = $targetcourse33->id;
+        $instance26->customtext3 = json_encode([
             (object)[
                 'type'      => offers::COURSES_ENROL_SAME_CAT,
-                'courses'   => [$course1->id, $course2->id],
-                'condition' => 1,
+                'courses'   => [$course33->id, $course34->id],
+                'condition' => courses_enrol_same_cat_offer::COND_ANY,
                 'discount'  => 25,
             ],
         ]);
+        $offerhelper26 = new offers($instance26, $user26->id);
+        $discounts26 = $offerhelper26->get_available_discounts();
+        $this->assertEmpty($discounts26);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts - should NOT have.
-        $discounts = $offerhelper->get_available_discounts();
-        $this->assertEmpty($discounts);
-    }
-
-    /**
-     * Test COURSE_ENROL_COUNT with course not in any category.
-     * @covers ::validate_course_enrol_count()
-     */
-    public function test_validate_course_enrol_count_no_category(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $cat = $this->getDataGenerator()->create_category();
-        // Create a course without category (site-level course).
-        $course = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Create instance with COURSE_ENROL_COUNT offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 10: COURSE_ENROL_COUNT with categorized course.
+        $cat9 = $this->getDataGenerator()->create_category();
+        $course9 = $this->getDataGenerator()->create_course(['category' => $cat9->id]);
+        $user9 = $this->getDataGenerator()->create_user();
+        $instance9 = new \stdClass();
+        $instance9->courseid = $course9->id;
+        $instance9->customtext3 = json_encode([
             (object)[
                 'type'     => offers::COURSE_ENROL_COUNT,
                 'number'   => 1,
                 'discount' => 15,
             ],
         ]);
-
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should not have valid discount - course has no category.
-        $this->assertEmpty($discounts);
-    }
-
-    /**
-     * Test detailed offers for OTHER_CATEGORY_COURSES.
-     * @covers ::get_detailed_offers()
-     */
-    public function test_get_detailed_offers_other_category(): void {
-        $this->resetAfterTest();
-
-        // Create categories.
-        $cat1 = $this->getDataGenerator()->create_category();
-        $cat2 = $this->getDataGenerator()->create_category();
-
-        // Create target course in cat1.
-        $course = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
-
-        // Create instance with OTHER_CATEGORY_COURSES offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::OTHER_CATEGORY_COURSES,
-                'cat'      => $cat2->id,
-                'courses'  => 2,
-                'discount' => 20,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get detailed offers.
-        $detailed = $offerhelper->get_detailed_offers();
-
-        // Should have one offer description.
-        $this->assertCount(1, $detailed);
-    }
-
-    /**
-     * Test detailed offers for COURSES_ENROL_SAME_CAT.
-     * @covers ::get_detailed_offers()
-     */
-    public function test_get_detailed_offers_courses_same_cat(): void {
-        $this->resetAfterTest();
-
-        // Create a category.
-        $cat = $this->getDataGenerator()->create_category();
-
-        // Create courses.
-        $course1      = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2      = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $targetcourse = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        // Create instance with COURSES_ENROL_SAME_CAT offer.
-        $instance              = new \stdClass();
-        $instance->courseid    = $targetcourse->id;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'      => offers::COURSES_ENROL_SAME_CAT,
-                'courses'   => [$course1->id, $course2->id],
-                'condition' => 1,
-                'discount'  => 15,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get detailed offers.
-        $detailed = $offerhelper->get_detailed_offers();
-
-        // Should have one offer description with courses list.
-        $this->assertCount(1, $detailed);
-    }
-
-    /**
-     * Test COURSE_ENROL_COUNT with zero number.
-     * @covers ::validate_course_enrol_count()
-     */
-    public function test_validate_course_enrol_count_zero(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create a category and courses.
-        $cat     = $this->getDataGenerator()->create_category();
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        // Enroll user.
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
-
-        // Create instance with 0 required courses (invalid).
-        $instance              = new \stdClass();
-        $instance->courseid    = $course2->id;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::COURSE_ENROL_COUNT,
-                'number'   => 0,
-                'discount' => 15,
-            ],
-        ]);
-
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts - should NOT have (0 is invalid).
-        $discounts = $offerhelper->get_available_discounts();
-        $this->assertEmpty($discounts);
-    }
-
-    /**
-     * Test OTHER_CATEGORY_COURSES with same category as target course.
-     * @covers ::validate_category_enrol_count()
-     */
-    public function test_validate_other_category_same_as_target(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        // Create a category.
-        $cat = $this->getDataGenerator()->create_category();
-
-        // Create courses in the category.
-        $course1 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-        $course2 = $this->getDataGenerator()->create_course(['category' => $cat->id]);
-
-        $user = $this->getDataGenerator()->create_user();
-
-        $this->setUser($user);
-
-        // Use same category as target course.
-        $instance              = testing::get_generator()->create_instance($course2->id, false, 100);
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::OTHER_CATEGORY_COURSES,
-                'cat'      => $cat->id,
-                'courses'  => 2,
-                'discount' => 20,
-            ],
-        ]);
-
-        $instance->update();
-
-        // Enroll in course1 (which is in the same category as course2).
-        $this->getDataGenerator()->enrol_user($user->id, $course1->id);
-        $this->getDataGenerator()->enrol_user($user->id, $course2->id);
-
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts - should NOT count course2 itself.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should be empty because the query excludes the target course.
-        $this->assertTrue(count($discounts) === 0);
-    }
-
-    /**
-     * Test with instance created from database.
-     * @covers ::__construct()
-     */
-    public function test_instance_from_database(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create a course and get the wallet instance.
-        $course   = $this->getDataGenerator()->create_course();
-        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-
-        // Add offers to instance.
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 20,
-            ],
-        ]);
-
-        $DB->update_record('enrol', $instance);
-
-        // Reload instance.
-        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Verify offers loaded.
-        $rawoffers = $offerhelper->get_raw_offers();
-        $this->assertCount(1, $rawoffers);
-        $this->assertEquals(20, $rawoffers[0]->discount);
-    }
-
-    /**
-     * Test format offers descriptions.
-     * @covers ::format_offers_descriptions()
-     */
-    public function test_format_offers_descriptions(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create instance with offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 25,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Format descriptions.
-        $formatted = $offerhelper->format_offers_descriptions();
-        $this->assertNotEmpty($formatted);
-    }
-
-    /**
-     * Test get_offer_options static method.
-     * @covers ::get_offer_options()
-     */
-    public function test_get_offer_options(): void {
-        $this->resetAfterTest();
-
-        // Test the static method returns array with expected keys.
-        $reflection = new \ReflectionClass(offers::class);
-        $method     = $reflection->getMethod('get_offer_options');
-        if ((float)(PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION) < 8.1) {
-            $method->setAccessible(true);
-        }
-
-        $options = $method->invoke(null);
-
-        $this->assertIsArray($options);
-        $this->assertArrayHasKey('', $options);
-        $this->assertArrayHasKey(offers::TIME, $options);
-        $this->assertArrayHasKey(offers::COURSE_ENROL_COUNT, $options);
-        $this->assertArrayHasKey(offers::OTHER_CATEGORY_COURSES, $options);
-        $this->assertArrayHasKey(offers::COURSES_ENROL_SAME_CAT, $options);
-    }
-
-    /**
-     * Test render_form_fragment for time-based offer.
-     * @covers ::render_form_fragment()
-     */
-    public function test_render_form_fragment_time(): void {
-        $this->resetAfterTest();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Test rendering form fragment for time offer.
-        $html = offers::render_form_fragment(offers::TIME, 1, $course->id);
-
-        $this->assertIsString($html);
-        $this->assertStringContainsString('offer_group_1', $html);
-        $this->assertStringContainsString('offer_time_discount_1', $html);
-    }
-
-    /**
-     * Test render_form_fragment for course enrollment count offer.
-     * @covers ::render_form_fragment()
-     */
-    public function test_render_form_fragment_nc(): void {
-        $this->resetAfterTest();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Test rendering form fragment for nc offer.
-        $html = offers::render_form_fragment(offers::COURSE_ENROL_COUNT, 1, $course->id);
-
-        $this->assertIsString($html);
-        $this->assertStringContainsString('offer_group_1', $html);
-    }
-
-    /**
-     * Test fname method.
-     * @covers ::fname()
-     */
-    public function test_fname(): void {
-        $this->resetAfterTest();
-
-        // Test the fname method via reflection.
-        $reflection = new \ReflectionClass(offers::class);
-        $method     = $reflection->getMethod('fname');
-        if ((float)(PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION) < 8.1) {
-            $method->setAccessible(true);
-        }
-
-        // Test different combinations.
-        $result = $method->invoke(null, 'time', 'discount', 1);
-        $this->assertEquals('offer_time_discount_1', $result);
-
-        $result = $method->invoke(null, 'time', 'from', 2);
-        $this->assertEquals('offer_time_from_2', $result);
-
-        $result = $method->invoke(null, 'pf', 'value', 3);
-        $this->assertEquals('offer_pf_value_3', $result);
-
-        $result = $method->invoke(null, 'time', '', 4);
-        $this->assertEquals('offer_time_4', $result);
-    }
-
-    /**
-     * Test add_form_fragment adds elements to form.
-     * @covers ::add_form_fragment()
-     */
-    public function test_add_form_fragment(): void {
-        $this->resetAfterTest();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create a mock MoodleQuickForm.
-        $mform = new MoodleQuickForm('TestingForm', 'post', qualified_me());
-
-        $elementscount1 = count($mform->_elements);
-        // Call the static method.
-        offers::add_form_fragment(offers::TIME, 1, $course->id, $mform);
-        $elementscount2 = count($mform->_elements);
-
-        // Verify the method was called.
-        $this->assertTrue($elementscount2 - $elementscount1 > 4);
-    }
-
-    /**
-     * Test get_courses_with_offers static method.
-     * @covers ::get_courses_with_offers()
-     */
-    public function test_get_courses_with_offers(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Get the wallet instance and add offers.
-        global $DB;
-        $instance              = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 20,
-            ],
-        ]);
-        $instance->cost = 0; // Free course.
-        $DB->update_record('enrol', $instance);
-
-        // Get courses with offers.
-        $courses = offers::get_courses_with_offers();
-
-        // Should return courses with offers.
-        $this->assertIsArray($courses);
-    }
-
-    /**
-     * Test get_detailed_offers with availableonly flag.
-     * @covers ::get_detailed_offers()
-     */
-    public function test_get_detailed_offers_available_only(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create instance with expired and valid offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 25,
-            ],
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - 3 * DAYSECS,
-                'to'       => $now - DAYSECS,
-                'discount' => 50,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get detailed offers - available only.
-        $detailed = $offerhelper->get_detailed_offers(true);
-
-        // Should only have one offer (the valid one).
-        $this->assertCount(1, $detailed);
-    }
-
-    /**
-     * Test empty offers array handling.
-     * @covers ::get_available_discounts()
-     */
-    public function test_empty_offers(): void {
-        $this->resetAfterTest();
-
-        // Create instance with empty customtext3.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts - should be empty.
-        $discounts = $offerhelper->get_available_discounts();
-        $this->assertEmpty($discounts);
-
-        // Max discount should be 0.
-        $maxdiscount = $offerhelper->get_max_discount();
-        $this->assertEquals(0, $maxdiscount);
-
-        // Sum should be 0.
-        $sum = $offerhelper->get_sum_discounts();
-        $this->assertEquals(0, $sum);
-    }
-
-    /**
-     * Test constant values exist.
-     * @coversNothing
-     */
-    public function test_constants_exist(): void {
-        $this->assertEquals('time', offers::TIME);
-        $this->assertEquals('pf', offers::PROFILE_FIELD);
-        $this->assertEquals('geo', offers::GEO_LOCATION);
-        $this->assertEquals('otherc', offers::OTHER_CATEGORY_COURSES);
-        $this->assertEquals('ce', offers::COURSES_ENROL_SAME_CAT);
-        $this->assertEquals('nc', offers::COURSE_ENROL_COUNT);
-    }
-
-    /**
-     * Test offer types constants.
-     * @coversNothing
-     */
-    public function test_offer_type_constants(): void {
-        // Verify all offer type constants.
-        $this->assertNotEmpty(offers::TIME);
-        $this->assertNotEmpty(offers::PROFILE_FIELD);
-        $this->assertNotEmpty(offers::GEO_LOCATION);
-        $this->assertNotEmpty(offers::OTHER_CATEGORY_COURSES);
-        $this->assertNotEmpty(offers::COURSES_ENROL_SAME_CAT);
-        $this->assertNotEmpty(offers::COURSE_ENROL_COUNT);
-    }
-
-    /**
-     * Test multiple offers with different types.
-     * @covers ::get_available_discounts()
-     */
-    public function test_multiple_offer_types(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create instance with multiple types of offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        $offerhelper9 = new offers($instance9, $user9->id);
+        $discounts9 = $offerhelper9->get_available_discounts();
+        $this->assertEmpty($discounts9);
+
+        // Test 11: Mixed offer types.
+        $course10 = $this->getDataGenerator()->create_course();
+        $instance10 = new \stdClass();
+        $instance10->courseid = $course10->id;
+        $instance10->customtext3 = json_encode([
             (object)[
                 'type'     => offers::TIME,
                 'from'     => $now - DAYSECS,
@@ -1268,182 +586,18 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 20,
             ],
         ]);
+        $user10 = $this->getDataGenerator()->create_user();
+        $offerhelper10 = new offers($instance10, $user10->id);
+        $discounts10 = $offerhelper10->get_available_discounts();
+        $this->assertCount(1, $discounts10);
+        $this->assertContains(10.0, $discounts10);
 
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have one valid discount (the first time offer).
-        $this->assertCount(1, $discounts);
-        $this->assertContains(10.0, $discounts);
-    }
-
-    /**
-     * Test get_detailed_offers with unavailable offer returns empty when availableonly true.
-     * @covers ::get_detailed_offers()
-     */
-    public function test_get_detailed_offers_all_returns_expired(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create a course.
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create instance with only expired offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - 3 * DAYSECS,
-                'to'       => $now - DAYSECS,
-                'discount' => 50,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get detailed offers - available only - should be empty.
-        $detailed = $offerhelper->get_detailed_offers(true);
-        $this->assertEmpty($detailed);
-
-        // Get all detailed offers - should have the expired offer.
-        $detailed = $offerhelper->get_detailed_offers(false);
-        $this->assertNotEmpty($detailed);
-    }
-
-    /**
-     * Test offers constructor with default user.
-     * @covers ::__construct()
-     */
-    public function test_constructor_default_user(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create an instance.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - DAYSECS,
-                'to'       => $now + DAYSECS,
-                'discount' => 20,
-            ],
-        ]);
-
-        // Create and set user.
-        $user = $this->getDataGenerator()->create_user();
-        $this->setUser($user);
-
-        // Create offer helper without passing userid - should use current user.
-        $offerhelper = new offers($instance);
-
-        // Get raw offers.
-        $rawoffers = $offerhelper->get_raw_offers();
-        $this->assertCount(1, $rawoffers);
-    }
-
-    /**
-     * Test get_max_discount with no offers.
-     * @covers ::get_max_discount()
-     */
-    public function test_get_max_discount_no_offers(): void {
-        $this->resetAfterTest();
-
-        // Create instance with no offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = null;
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Max discount should be 0.
-        $maxdiscount = $offerhelper->get_max_discount();
-        $this->assertEquals(0, $maxdiscount);
-    }
-
-    /**
-     * Test get_sum_discounts with no valid discounts.
-     * @covers ::get_sum_discounts()
-     */
-    public function test_get_sum_discounts_no_valid(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create instance with only expired offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - 3 * DAYSECS,
-                'to'       => $now - DAYSECS,
-                'discount' => 50,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Sum should be 0.
-        $sum = $offerhelper->get_sum_discounts();
-        $this->assertEquals(0, $sum);
-    }
-
-    /**
-     * Test get_max_valid_discount with no valid discounts.
-     * @covers ::get_max_valid_discount()
-     */
-    public function test_get_max_valid_discount_no_valid(): void {
-        $this->resetAfterTest();
-
-        $now = timedate::time();
-
-        // Create instance with only expired offers.
-        $instance              = new \stdClass();
-        $instance->courseid    = 1;
-        $instance->customtext3 = json_encode([
-            (object)[
-                'type'     => offers::TIME,
-                'from'     => $now - 3 * DAYSECS,
-                'to'       => $now - DAYSECS,
-                'discount' => 50,
-            ],
-        ]);
-
-        $user        = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance, $user->id);
-
-        // Max valid should be 0.
-        $maxvalid = $offerhelper->get_max_valid_discount();
-        $this->assertEquals(0, $maxvalid);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - standard field with IS_EQUAL_TO operator.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_standard_isequalto(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create user with specific firstname.
-        $user = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-
-        // Create instance with profile field offer using standard field.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 12: Profile field firstname equals (valid).
+        $course11 = $this->getDataGenerator()->create_course();
+        $user11 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
+        $instance11 = new \stdClass();
+        $instance11->courseid = $course11->id;
+        $instance11->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'firstname',
@@ -1452,33 +606,16 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper11 = new offers($instance11, $user11->id);
+        $discounts11 = $offerhelper11->get_available_discounts();
+        $this->assertNotEmpty($discounts11);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because firstname matches.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - standard field with IS_EQUAL_TO - no match.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_standard_isequalto_no_match(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create user with different firstname.
-        $user = $this->getDataGenerator()->create_user(['firstname' => 'Jane']);
-
-        // Create instance with profile field offer expecting different value.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 13: Profile field firstname mismatch (invalid).
+        $course12 = $this->getDataGenerator()->create_course();
+        $user12 = $this->getDataGenerator()->create_user(['firstname' => 'Jane']);
+        $instance12 = new \stdClass();
+        $instance12->courseid = $course12->id;
+        $instance12->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'firstname',
@@ -1487,33 +624,16 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper12 = new offers($instance12, $user12->id);
+        $discounts12 = $offerhelper12->get_available_discounts();
+        $this->assertEmpty($discounts12);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should NOT have valid discount because firstname doesn't match.
-        $this->assertEmpty($discounts);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - standard field with CONTAINS operator.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_standard_contains(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create user with firstname containing 'ohn'.
-        $user = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-
-        // Create instance with profile field offer using contains.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 14: Profile field contains (valid).
+        $course13 = $this->getDataGenerator()->create_course();
+        $user13 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
+        $instance13 = new \stdClass();
+        $instance13->courseid = $course13->id;
+        $instance13->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'firstname',
@@ -1522,33 +642,16 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper13 = new offers($instance13, $user13->id);
+        $discounts13 = $offerhelper13->get_available_discounts();
+        $this->assertNotEmpty($discounts13);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because firstname contains 'ohn'.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - standard field with STARTS_WITH operator.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_standard_startswith(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create user with firstname starting with 'Jo'.
-        $user = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-
-        // Create instance with profile field offer using startswith.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 15: Profile field starts with (valid).
+        $course14 = $this->getDataGenerator()->create_course();
+        $user14 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
+        $instance14 = new \stdClass();
+        $instance14->courseid = $course14->id;
+        $instance14->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'firstname',
@@ -1557,33 +660,16 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper14 = new offers($instance14, $user14->id);
+        $discounts14 = $offerhelper14->get_available_discounts();
+        $this->assertNotEmpty($discounts14);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because firstname starts with 'Jo'.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - standard field with ENDS_WITH operator.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_standard_endswith(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create user with firstname ending with 'hn'.
-        $user = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-
-        // Create instance with profile field offer using endswith.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 16: Profile field ends with (valid).
+        $course15 = $this->getDataGenerator()->create_course();
+        $user15 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
+        $instance15 = new \stdClass();
+        $instance15->courseid = $course15->id;
+        $instance15->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'firstname',
@@ -1592,33 +678,16 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper15 = new offers($instance15, $user15->id);
+        $discounts15 = $offerhelper15->get_available_discounts();
+        $this->assertNotEmpty($discounts15);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because firstname ends with 'hn'.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - standard field with IS_EMPTY operator.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_standard_isempty(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create user with empty idnumber.
-        $user = $this->getDataGenerator()->create_user(['idnumber' => '']);
-
-        // Create instance with profile field offer using isempty.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 17: Profile field idnumber empty (valid).
+        $course16 = $this->getDataGenerator()->create_course();
+        $user16 = $this->getDataGenerator()->create_user(['idnumber' => '']);
+        $instance16 = new \stdClass();
+        $instance16->courseid = $course16->id;
+        $instance16->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'idnumber',
@@ -1626,33 +695,16 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper16 = new offers($instance16, $user16->id);
+        $discounts16 = $offerhelper16->get_available_discounts();
+        $this->assertNotEmpty($discounts16);
 
-        $offerhelper = new offers($instance, $user->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because idnumber is empty.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - standard field with IS_NOT_EMPTY operator.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_standard_isnotempty(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course = $this->getDataGenerator()->create_course();
-
-        // Create user with non-empty idnumber.
-        $user = $this->getDataGenerator()->create_user(['idnumber' => '12345']);
-
-        // Create instance with profile field offer using isnotempty.
-        $instance              = new \stdClass();
-        $instance->courseid    = $course->id;
-        $instance->customtext3 = json_encode([
+        // Test 18: Profile field idnumber not empty (valid).
+        $course17 = $this->getDataGenerator()->create_course();
+        $user17 = $this->getDataGenerator()->create_user(['idnumber' => '12345']);
+        $instance17 = new \stdClass();
+        $instance17->courseid = $course17->id;
+        $instance17->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'idnumber',
@@ -1660,90 +712,59 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper17 = new offers($instance17, $user17->id);
+        $discounts17 = $offerhelper17->get_available_discounts();
+        $this->assertNotEmpty($discounts17);
 
-        $offerhelper = new offers($instance, $user->id);
+        // Test 19: Custom profile field equals (valid).
+        $course37 = $this->getDataGenerator()->create_course();
+        $course38 = $this->getDataGenerator()->create_course();
+        $course39 = $this->getDataGenerator()->create_course();
+        $course40 = $this->getDataGenerator()->create_course();
+        $course41 = $this->getDataGenerator()->create_course();
+        $course42 = $this->getDataGenerator()->create_course();
+        $course43 = $this->getDataGenerator()->create_course();
 
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because idnumber is not empty.
-        $this->assertNotEmpty($discounts);
-    }
-
-    /**
-     * Test PROFILE_FIELD offer - custom profile field.
-     * @covers ::validate_profile_field_offer()
-     */
-    public function test_validate_profile_field_custom(): void {
-        global $DB;
-        $this->resetAfterTest();
-
-        $course1 = $this->getDataGenerator()->create_course();
-        $course2 = $this->getDataGenerator()->create_course();
-        $course3 = $this->getDataGenerator()->create_course();
-        $course4 = $this->getDataGenerator()->create_course();
-        $course5 = $this->getDataGenerator()->create_course();
-        $course6 = $this->getDataGenerator()->create_course();
-        $course7 = $this->getDataGenerator()->create_course();
-
-        // Create a custom profile field (text type).
-        $this->getDataGenerator()->create_custom_profile_field([
-            'datatype'  => 'text',
-            'name'      => 'Test Custom Field',
-            'shortname' => 'testcustomfield',
+        \availability_profile\condition::wipe_static_cache();
+        $user28 = $this->getDataGenerator()->create_user(['profile_field_testcustomfield' => 'SpecialValue']);
+        $user29 = $this->getDataGenerator()->create_user(['profile_field_testcustomfield' => 'NotSpecialValue']);
+        $instance28 = testing::get_generator()->create_instance($course37->id, false, 100);
+        $instance28->customtext3 = json_encode([profile_field_offer::mock_offer(
+            $this->getDataGenerator(),
+            15,
+            'testcustomfield',
+            null,
+            profile_field_offer::PFOP_IS_EQUAL_TO,
+            'SpecialValue'
+        ),
         ]);
-
-        // Create user and set custom field value.
-        $user1 = $this->getDataGenerator()->create_user(['profile_field_testcustomfield' => 'SpecialValue']);
-        $user2 = $this->getDataGenerator()->create_user(['profile_field_testcustomfield' => 'NotSpecialValue']);
-
-        // Create instance with profile field offer using custom field.
-        $instance1              = testing::get_generator()->create_instance($course1->id, false, 100);
-        $instance1->customtext3 = json_encode([
-            [
-                'type'     => offers::PROFILE_FIELD,
-                'cf'       => 'testcustomfield',
-                'op'       => profile_field_offer::PFOP_IS_EQUAL_TO,
-                'value'    => 'SpecialValue',
-                'discount' => 15,
-            ],
-        ]);
-        $instance1->update();
-        $instance1->set_user($user1);
-
-        $offerhelper = new offers($instance1, $user1->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because custom field matches.
-        $this->assertNotEmpty($offerhelper->get_raw_offers());
-        $this->assertIsArray($discounts);
-        $this->assertContains(
-            '15% DISCOUNT if your profile field Test Custom Field Is equal to "SpecialValue"',
-            $offerhelper->get_detailed_offers()
+        $instance28->update();
+        $instance28->set_user($user28);
+        $offerhelper28 = new offers($instance28, $user28->id);
+        $discounts28 = $offerhelper28->get_available_discounts();
+        $details28 = $offerhelper28->get_detailed_offers();
+        $raw28 = $offerhelper28->get_raw_offers();
+        $this->assertNotEmpty($raw28);
+        $this->assertIsArray($discounts28);
+        $this->assertStringContainsStringIgnoringCase(
+            '15% DISCOUNT if your profile field "Test Custom Field" Is equal to "SpecialValue"',
+            strip_tags(reset($details28)['description']),
         );
-        $this->assertTrue(\count($discounts) > 0);
-        $this->assertContainsOnly('float', $discounts);
-        $this->assertContains(15.0, $discounts);
-        $this->assertEquals(85, $instance1->get_cost_after_discount());
+        $this->assertGreaterThan(0, \count($discounts28));
+        $this->assertContainsOnly('float', $discounts28);
+        $this->assertContains(15.0, $discounts28);
+        $this->assertEquals(85, $instance28->get_cost_after_discount());
 
-        $instance1->set_user($user2);
-        $offerhelper = new offers($instance1, $user2->id);
+        $instance28->set_user($user29);
+        $offerhelper29 = new offers($instance28, $user29->id);
+        $discounts29 = $offerhelper29->get_available_discounts();
+        $this->assertEmpty($discounts29);
+        $this->assertEquals(100, $instance28->get_cost_after_discount());
 
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should not have valid discount because custom field not matches.
-        $this->assertEmpty($discounts);
-        $this->assertEquals(100, $instance1->get_cost_after_discount());
-
-        // Create user with firstname that does not contain 'xxx'.
-        $user3 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-
-        // Create instance with profile field offer using doesnotcontain.
-        $instance2              = testing::get_generator()->create_instance($course2->id, false, 200);
-        $instance2->customtext3 = json_encode([
+        // Test 20: Profile field does not contain (valid).
+        $user30 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
+        $instance30 = testing::get_generator()->create_instance($course38->id, false, 200);
+        $instance30->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'firstname',
@@ -1752,22 +773,15 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 40,
             ],
         ]);
-        $instance2->update();
+        $instance30->update();
+        $offerhelper30 = new offers($instance30, $user30->id);
+        $discounts30 = $offerhelper30->get_available_discounts();
+        $this->assertNotEmpty($discounts30);
 
-        $offerhelper = new offers($instance2, $user3->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because firstname does not contain 'xxx'.
-        $this->assertNotEmpty($discounts);
-
-        // Create user with specific email.
-        $user4 = $this->getDataGenerator()->create_user(['email' => 'john@example.com']);
-
-        // Create instance with profile field offer using email field.
-        $instance3              = testing::get_generator()->create_instance($course3->id, false, 300);
-        $instance3->customtext3 = json_encode([
+        // Test 21: Profile field email equals (valid).
+        $user31 = $this->getDataGenerator()->create_user(['email' => 'john@example.com']);
+        $instance31 = testing::get_generator()->create_instance($course39->id, false, 300);
+        $instance31->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'email',
@@ -1776,21 +790,14 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper31 = new offers($instance31, $user31->id);
+        $discounts31 = $offerhelper31->get_available_discounts();
+        $this->assertNotEmpty($discounts31);
 
-        $offerhelper = new offers($instance3, $user4->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because email matches.
-        $this->assertNotEmpty($discounts);
-
-        // Create user WITHOUT setting custom field value (should be empty).
-        $user5 = $this->getDataGenerator()->create_user();
-
-        // Create instance with profile field offer using isempty.
-        $instance4              = testing::get_generator()->create_instance($course4->id, false, 50);
-        $instance4->customtext3 = json_encode([
+        // Test 22: Custom profile field empty (valid).
+        $user32 = $this->getDataGenerator()->create_user();
+        $instance32 = testing::get_generator()->create_instance($course40->id, false, 50);
+        $instance32->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'cf'       => 'testcustomfield',
@@ -1798,22 +805,15 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
-        $instance4->update();
+        $instance32->update();
+        $offerhelper32 = new offers($instance32, $user32->id);
+        $discounts32 = $offerhelper32->get_available_discounts();
+        $this->assertNotEmpty($discounts32);
 
-        $offerhelper = new offers($instance4, $user5->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because custom field is empty.
-        $this->assertNotEmpty($discounts);
-
-        // Create user and set custom field value (should NOT be empty).
-        $user6 = $this->getDataGenerator()->create_user(['profile_field_testcustomfield' => 'HasValue']);
-
-        // Create instance with profile field offer using isnotempty.
-        $instance5              = testing::get_generator()->create_instance($course5->id, false, 150);
-        $instance5->customtext3 = json_encode([
+        // Test 23: Custom profile field not empty (valid).
+        $user33 = $this->getDataGenerator()->create_user(['profile_field_testcustomfield' => 'HasValue']);
+        $instance33 = testing::get_generator()->create_instance($course41->id, false, 150);
+        $instance33->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'cf'       => 'testcustomfield',
@@ -1821,18 +821,13 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
+        $offerhelper33 = new offers($instance33, $user33->id);
+        $discounts33 = $offerhelper33->get_available_discounts();
+        $this->assertNotEmpty($discounts33);
 
-        $offerhelper = new offers($instance5, $user6->id);
-
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
-
-        // Should have valid discount because custom field is not empty.
-        $this->assertNotEmpty($discounts);
-
-        // Create instance with profile field offer.
-        $instance6              = testing::get_generator()->create_instance($course6->id);
-        $instance6->customtext3 = json_encode([
+        // Test 24: Profile field detailed offers.
+        $instance34 = testing::get_generator()->create_instance($course42->id);
+        $instance34->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'firstname',
@@ -1841,23 +836,16 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
-        $instance6->update();
+        $instance34->update();
+        $user34 = $this->getDataGenerator()->create_user();
+        $offerhelper34 = new offers($instance34, $user34->id);
+        $detailed34 = $offerhelper34->get_detailed_offers();
+        $this->assertCount(1, $detailed34);
 
-        $user7       = $this->getDataGenerator()->create_user();
-        $offerhelper = new offers($instance6, $user7->id);
-
-        // Get detailed offers.
-        $detailed = $offerhelper->get_detailed_offers();
-
-        // Should have one offer description.
-        $this->assertCount(1, $detailed);
-
-        // Create user with specific institution.
-        $user8 = $this->getDataGenerator()->create_user(['institution' => 'Moodle University']);
-
-        // Create instance with profile field offer using institution.
-        $instance7              = testing::get_generator()->create_instance($course7->id);
-        $instance7->customtext3 = json_encode([
+        // Test 25: Profile field institution (valid).
+        $user35 = $this->getDataGenerator()->create_user(['institution' => 'Moodle University']);
+        $instance35 = testing::get_generator()->create_instance($course43->id);
+        $instance35->customtext3 = json_encode([
             (object)[
                 'type'     => offers::PROFILE_FIELD,
                 'sf'       => 'institution',
@@ -1866,13 +854,447 @@ final class offers_test extends \advanced_testcase {
                 'discount' => 15,
             ],
         ]);
-        $instance7->update();
-        $offerhelper = new offers($instance7, $user8->id);
+        $instance35->update();
+        $offerhelper35 = new offers($instance35, $user35->id);
+        $discounts35 = $offerhelper35->get_available_discounts();
+        $this->assertNotEmpty($discounts35);
+    }
 
-        // Get available discounts.
-        $discounts = $offerhelper->get_available_discounts();
+    /**
+     * Test detailed offers for OTHER_CATEGORY_COURSES.
+     * @covers ::get_detailed_offers()
+     */
+    public function test_get_detailed_offers(): void {
+        $this->resetAfterTest();
 
-        // Should have valid discount because institution matches.
-        $this->assertNotEmpty($discounts);
+        $now = timedate::time();
+
+        // Test 1: Time-based offer.
+        $course1 = $this->getDataGenerator()->create_course();
+        $instance1 = new \stdClass();
+        $instance1->courseid = $course1->id;
+        $instance1->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
+                'discount' => 25,
+            ],
+        ]);
+        $user1 = $this->getDataGenerator()->create_user();
+        $offerhelper1 = new offers($instance1, $user1->id);
+        $detailed1 = $offerhelper1->get_detailed_offers();
+        $this->assertNotEmpty($detailed1);
+
+        // Test 2: OTHER_CATEGORY_COURSES offer.
+        $cat1 = $this->getDataGenerator()->create_category();
+        $cat2 = $this->getDataGenerator()->create_category();
+        $course2 = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
+        $instance2 = new \stdClass();
+        $instance2->courseid = $course2->id;
+        $instance2->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::OTHER_CATEGORY_COURSES,
+                'cat'      => $cat2->id,
+                'courses'  => 2,
+                'discount' => 20,
+            ],
+        ]);
+        $user2 = $this->getDataGenerator()->create_user();
+        $offerhelper2 = new offers($instance2, $user2->id);
+        $detailed2 = $offerhelper2->get_detailed_offers();
+        $this->assertCount(1, $detailed2);
+
+        // Test 3: COURSES_ENROL_SAME_CAT offer.
+        $cat48 = $this->getDataGenerator()->create_category();
+        $course48 = $this->getDataGenerator()->create_course(['category' => $cat48->id]);
+        $course49 = $this->getDataGenerator()->create_course(['category' => $cat48->id]);
+        $targetcourse48 = $this->getDataGenerator()->create_course(['category' => $cat48->id]);
+        $instance37 = new \stdClass();
+        $instance37->courseid = $targetcourse48->id;
+        $instance37->customtext3 = json_encode([
+            (object)[
+                'type'      => offers::COURSES_ENROL_SAME_CAT,
+                'courses'   => [$course48->id, $course49->id],
+                'condition' => courses_enrol_same_cat_offer::COND_ALL,
+                'discount'  => 15,
+            ],
+        ]);
+        $user36 = $this->getDataGenerator()->create_user();
+        $offerhelper36 = new offers($instance37, $user36->id);
+        $detailed36 = $offerhelper36->get_detailed_offers();
+        $this->assertCount(1, $detailed36);
+
+        // Test 4: Same category exclusion.
+        $cat49 = $this->getDataGenerator()->create_category();
+        $course50 = $this->getDataGenerator()->create_course(['category' => $cat49->id]);
+        $course51 = $this->getDataGenerator()->create_course(['category' => $cat49->id]);
+        $user37 = $this->getDataGenerator()->create_user();
+        $this->setUser($user37);
+        $instance38 = testing::get_generator()->create_instance($course51->id, false, 100);
+        $instance38->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::OTHER_CATEGORY_COURSES,
+                'cat'      => $cat49->id,
+                'courses'  => 2,
+                'discount' => 20,
+            ],
+        ]);
+        $instance38->update();
+        $this->getDataGenerator()->enrol_user($user37->id, $course50->id);
+        $this->getDataGenerator()->enrol_user($user37->id, $course51->id);
+        $offerhelper38 = new offers($instance38, $user37->id);
+        $discounts38 = $offerhelper38->get_available_discounts();
+        $this->assertTrue(\count($discounts38) === 0);
+
+        // Test 5: Available only (mixed valid/expired).
+        $course5 = $this->getDataGenerator()->create_course();
+        $instance5 = new \stdClass();
+        $instance5->courseid = $course5->id;
+        $instance5->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
+                'discount' => 25,
+            ],
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - 3 * DAYSECS,
+                'to'       => $now - DAYSECS,
+                'discount' => 50,
+            ],
+        ]);
+        $user5 = $this->getDataGenerator()->create_user();
+        $offerhelper5 = new offers($instance5, $user5->id);
+        $detailed53 = $offerhelper5->get_detailed_offers(true);
+        $this->assertCount(1, $detailed53);
+
+        // Test 6: Available only expired (empty).
+        $course53 = $this->getDataGenerator()->create_course();
+        $instance53 = new \stdClass();
+        $instance53->courseid = $course53->id;
+        $instance53->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - 3 * DAYSECS,
+                'to'       => $now - DAYSECS,
+                'discount' => 50,
+            ],
+        ]);
+        $user53 = $this->getDataGenerator()->create_user();
+        $offerhelper53 = new offers($instance53, $user53->id);
+        $detailed54 = $offerhelper53->get_detailed_offers(true);
+        $this->assertEmpty($detailed54);
+        $detailed55 = $offerhelper53->get_detailed_offers(false);
+        $this->assertNotEmpty($detailed55);
+    }
+
+    /**
+     * Test format offers descriptions.
+     * @covers ::format_offers_descriptions()
+     */
+    public function test_format_offers_descriptions(): void {
+        $this->resetAfterTest();
+
+        $now = timedate::time();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $instance1 = new \stdClass();
+        $instance1->courseid = $course1->id;
+        $instance1->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
+                'discount' => 25,
+            ],
+        ]);
+        $user1 = $this->getDataGenerator()->create_user();
+        $offerhelper1 = new offers($instance1, $user1->id);
+
+        $formatted1 = $offerhelper1->format_offers_descriptions();
+        $this->assertNotEmpty($formatted1);
+    }
+
+    /**
+     * Test get_offer_options static method.
+     * @covers ::get_offer_options()
+     */
+    public function test_get_offer_options(): void {
+        $this->resetAfterTest();
+
+        $reflection = new \ReflectionClass(offers::class);
+        $method = $reflection->getMethod('get_offer_options');
+
+        if ((float)(PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION) < 8.1) {
+            $method->setAccessible(true);
+        }
+
+        $options = $method->invoke(null);
+
+        $this->assertIsArray($options);
+        $this->assertArrayHasKey('', $options);
+        $this->assertArrayHasKey(offers::TIME, $options);
+        $this->assertArrayHasKey(offers::COURSE_ENROL_COUNT, $options);
+        $this->assertArrayHasKey(offers::OTHER_CATEGORY_COURSES, $options);
+        $this->assertArrayHasKey(offers::COURSES_ENROL_SAME_CAT, $options);
+    }
+
+    public function test_get_offer_classes(): void {
+        $this->resetAfterTest();
+        $classes = offers::get_offer_classes();
+        $options = offers::get_offer_options();
+
+        foreach ($classes as $type => $class) {
+            $this->assertArrayHasKey($type, $options);
+            $this->assertTrue(class_exists($class));
+            $this->assertTrue(is_subclass_of($class, offer_item::class));
+        }
+    }
+
+    /**
+     * Test render_form_fragment for time-based offer.
+     * @covers ::render_form_fragment()
+     */
+    public function test_render_form_fragment(): void {
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+
+        $html = offers::render_form_fragment(offers::TIME, 1, $course->id);
+        $this->assertIsString($html);
+
+        $htmlinvalid = offers::render_form_fragment('doesnotexist', 1, $course->id);
+        $this->assertEquals('', $htmlinvalid);
+
+        $classes1 = offers::get_offer_classes();
+
+        foreach ($classes1 as $class1) {
+            $type1 = $class1::key();
+            $i1 = random_int(0, 25);
+            $html2 = offers::render_form_fragment($type1, $i1, $course->id);
+            $this->assertIsString($html2);
+            $name1 = $class1::get_visible_name();
+
+            $this->assertStringContainsString($name1, $html2);
+            $this->assertStringContainsString("offer_{$type1}_discount_{$i1}", $html2);
+            $this->assertMatchesRegularExpression("/offer_{$type1}\w+_{$i1}/", $html2);
+        }
+    }
+
+    /**
+     * Test fname method.
+     * @covers ::fname()
+     */
+    public function test_fname(): void {
+        $this->resetAfterTest();
+
+        $reflection = new \ReflectionClass(offers::class);
+        $method = $reflection->getMethod('fname');
+
+        if ((float)(PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION) < 8.1) {
+            $method->setAccessible(true);
+        }
+
+        $result1 = $method->invoke(null, 'time', 'discount', 1);
+        $this->assertEquals('offer_time_discount_1', $result1);
+
+        $result2 = $method->invoke(null, 'time', 'from', 2);
+        $this->assertEquals('offer_time_from_2', $result2);
+
+        $result3 = $method->invoke(null, 'pf', 'value', 3);
+        $this->assertEquals('offer_pf_value_3', $result3);
+
+        $result4 = $method->invoke(null, 'time', '', 4);
+        $this->assertEquals('offer_time_4', $result4);
+    }
+
+    /**
+     * Test add_form_fragment adds elements to form.
+     * @covers ::add_form_fragment()
+     */
+    public function test_add_form_fragment(): void {
+        $this->resetAfterTest();
+
+        $course1 = $this->getDataGenerator()->create_course();
+        $mform = new MoodleQuickForm('TestingForm', 'post', qualified_me());
+
+        $elementscount1 = count($mform->_elements);
+        $offer1 = new stdClass();
+        $offer1->type = offers::TIME;
+        offers::add_form_fragment($offer1, 1, $course1->id, $mform);
+        $elementscount2 = count($mform->_elements);
+
+        $this->assertTrue($elementscount2 - $elementscount1 > 4);
+    }
+
+    /**
+     * Test get_courses_with_offers static method.
+     * @covers ::get_courses_with_offers()
+     */
+    public function test_get_courses_with_offers(): void {
+        $this->resetAfterTest();
+
+        $now = timedate::time();
+
+        global $DB;
+        $course1 = $this->getDataGenerator()->create_course();
+        $instance1 = $DB->get_record('enrol', ['courseid' => $course1->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance1->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
+                'discount' => 20,
+            ],
+        ]);
+        $instance1->cost = 0;
+        $DB->update_record('enrol', $instance1);
+
+        $courses1 = offers::get_courses_with_offers();
+        $this->assertIsArray($courses1);
+
+        $coursewithoffer = $this->getDataGenerator()->create_course();
+        $instanceoffer = testing::get_generator()->create_instance($coursewithoffer->id, false, 100);
+        $instanceoffer->customtext3 = json_encode([time_offer::mock_offer(null, 20)]);
+        $instanceoffer->update();
+        $courses = offers::get_courses_with_offers();
+        $this->assertArrayHasKey($coursewithoffer->id, $courses);
+        $this->assertObjectHasProperty('hasoffer', $courses[$coursewithoffer->id]);
+    }
+
+    /**
+     * Test offers constructor with default user.
+     * @covers ::__construct()
+     */
+    public function test_constructor(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $now = timedate::time();
+
+        // Test 1: Default user constructor.
+        $instance1 = new \stdClass();
+        $instance1->courseid = 1;
+        $instance1->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
+                'discount' => 20,
+            ],
+        ]);
+        $user1 = $this->getDataGenerator()->create_user();
+        $this->setUser($user1);
+        $offerhelper1 = new offers($instance1);
+        $rawoffers1 = $offerhelper1->get_raw_offers();
+        $this->assertCount(1, $rawoffers1);
+
+        // Test 2: Explicit user constructor with DB instance.
+        $course2 = $this->getDataGenerator()->create_course();
+        $instance2 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance2->customtext3 = json_encode([
+            (object)[
+                'type'     => offers::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
+                'discount' => 20,
+            ],
+        ]);
+        $DB->update_record('enrol', $instance2);
+        $instance50 = $DB->get_record('enrol', ['courseid' => $course2->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $user50 = $this->getDataGenerator()->create_user();
+        $offerhelper50 = new offers($instance50, $user50->id);
+        $rawoffers50 = $offerhelper50->get_raw_offers();
+        $this->assertCount(1, $rawoffers50);
+        $this->assertEquals(20, $rawoffers50[0]->discount);
+    }
+
+    public function test_parse_data(): void {
+        $this->resetAfterTest();
+        $_POST = [
+            'offer_time_from_0'     => time() - DAYSECS,
+            'offer_time_to_0'       => time() + DAYSECS,
+            'offer_time_discount_0' => 10,
+        ];
+
+        $data = new stdClass();
+        offers::parse_data($data);
+        $this->assertObjectHasProperty('customtext3', $data);
+
+        [$k, $i, $t] = offers::analyze_element_key('offer_time_discount_0');
+        $this->assertEquals('discount', $k);
+        $this->assertEquals(0, $i);
+        $this->assertEquals('time', $t);
+
+        $_POST = [
+            'add_offer'             => offers::TIME,
+            'offer_time_from_0'     => time() - DAYSECS,
+            'offer_time_to_0'       => time() + DAYSECS,
+            'offer_time_discount_0' => 25,
+        ];
+
+        $data = new stdClass();
+        offers::parse_data($data);
+        $this->assertObjectHasProperty('customtext3', $data);
+        $offersparsed = json_decode($data->customtext3);
+        $this->assertCount(1, $offersparsed);
+        $this->assertEquals(25, $offersparsed[0]->discount);
+
+        // Validation.
+        $errors = offers::validate((array)$data);
+        $this->assertEmpty($errors);
+
+        // Invalid discount.
+        $_POST['offer_time_discount_0'] = 150;
+        $errors = offers::validate((array)$data);
+        $this->assertArrayHasKey('offer_time_discount_0', $errors);
+
+        // Depth 1: set containing a time sub-offer.
+        $_POST = [
+            'add_offer'                         => offers_set::key(),
+            'offer_set_op_0'                    => offers_set::OP_AND,
+            'offer_set_discount_0'              => 20,
+            'offer_set_offer_time_from_0_0'     => time() - DAYSECS,
+            'offer_set_offer_time_to_0_0'       => time() + DAYSECS,
+            'offer_set_offer_time_discount_0_0' => 15,
+        ];
+
+        $data2 = new stdClass();
+        offers::parse_data($data2);
+        $decoded2 = json_decode($data2->customtext3);
+        $this->assertCount(1, $decoded2);
+        $this->assertEquals(offers_set::key(), $decoded2[0]->type);
+        $this->assertCount(1, $decoded2[0]->sub);
+        $this->assertEquals(time_offer::key(), $decoded2[0]->sub[0]->type);
+
+        // Depth 2: nested set inside a set.
+        $_POST = [
+            'add_offer'                                     => offers_set::key(),
+            'offer_set_op_0'                                => offers_set::OP_OR,
+            'offer_set_discount_0'                          => 40,
+            'offer_set_offer_set_op_0_0'                    => offers_set::OP_AND,
+            'offer_set_offer_set_discount_0_0'              => 10,
+            'offer_set_offer_set_offer_time_from_0_0_0'     => time() - DAYSECS,
+            'offer_set_offer_set_offer_time_to_0_0_0'       => time() + DAYSECS,
+            'offer_set_offer_set_offer_time_discount_0_0_0' => 8,
+        ];
+
+        $data3 = new stdClass();
+        offers::parse_data($data3);
+        $decoded3 = json_decode($data3->customtext3);
+        $this->assertCount(1, $decoded3);
+        $this->assertEquals(offers_set::key(), $decoded3[0]->type);
+        $this->assertCount(1, $decoded3[0]->sub);
+        $this->assertEquals(offers_set::key(), $decoded3[0]->sub[0]->type);
+        $this->assertEquals(1, count($decoded3[0]->sub[0]->sub));
+        $this->assertEquals(time_offer::key(), $decoded3[0]->sub[0]->sub[0]->type);
+
+        $_POST = [];
+    }
+
+    public function test_get_offer_class_name(): void {
+        $this->assertNull(offers::get_offer_class_name('invalid_type'));
     }
 }

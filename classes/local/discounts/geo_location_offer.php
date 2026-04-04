@@ -18,15 +18,21 @@ namespace enrol_wallet\local\discounts;
 
 use MoodleQuickForm;
 use stdClass;
+use testing_data_generator;
 
 /**
- * Class geo_location_offer
+ * Class geo_location_offer.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class geo_location_offer extends offer_item {
+    #[\Override()]
+    public static function is_valid_structure(stdClass $offer): bool {
+        return true;
+    }
+
     #[\Override()]
     public static function key(): string {
         return 'geo';
@@ -48,17 +54,34 @@ class geo_location_offer extends offer_item {
     }
 
     #[\Override()]
-    public static function add_form_element(MoodleQuickForm $mform, int $i, int $courseid): void {
-
+    public static function add_form_element(
+        MoodleQuickForm $mform,
+        int $i,
+        int $courseid,
+        ?stdClass $offer = null,
+        ?callable $wrapper = null
+    ): void {
     }
 
     #[\Override()]
-    public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors): void {
-
+    public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors, ?callable $wrapper = null): void {
     }
 
     #[\Override()]
     public static function is_available(): bool {
         return false;
+    }
+
+    /**
+     * Not used yet.
+     * @param ?testing_data_generator $gen
+     * @return stdClass
+     */
+    public static function mock_offer(?testing_data_generator $gen = null): stdClass {
+        $offer           = new stdClass();
+        $offer->type     = static::key();
+        $offer->discount = 10;
+
+        return $offer;
     }
 }
