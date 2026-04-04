@@ -67,8 +67,11 @@ class other_category_courses_offer_test extends \advanced_testcase {
      */
     public function test_get_description(): void {
         $this->resetAfterTest();
+        $user = $this->getDataGenerator()->create_user();
+        $course = $this->getDataGenerator()->create_course();
+        $this->setUser($user);
         $offer = other_category_courses_offer::mock_offer($this->getDataGenerator(), 20, null, 2);
-        $instance = new other_category_courses_offer($offer, 1, 2);
+        $instance = new other_category_courses_offer($offer, $course->id, $user->id);
         $desc = $instance->get_description();
         $category = core_course_category::get($offer->cat);
         $this->assertStringContainsString($category->get_formatted_name(), $desc);

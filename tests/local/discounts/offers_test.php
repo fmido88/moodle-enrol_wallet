@@ -386,6 +386,8 @@ final class offers_test extends \advanced_testcase {
         $course20 = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
         $user19 = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($user19->id, $course19->id);
+
+        $this->setUser($user19);
         $instance19 = new \stdClass();
         $instance19->courseid = $course20->id;
         $instance19->customtext3 = json_encode([

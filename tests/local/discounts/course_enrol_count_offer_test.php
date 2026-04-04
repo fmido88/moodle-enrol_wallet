@@ -74,6 +74,7 @@ class course_enrol_count_offer_test extends \advanced_testcase {
         $this->resetAfterTest();
 
         $user = $this->getDataGenerator()->create_user();
+        $this->setUser($user);
         $category = $this->getDataGenerator()->create_category();
         $courses = [];
 
@@ -124,8 +125,13 @@ class course_enrol_count_offer_test extends \advanced_testcase {
      * @covers ::add_form_element
      */
     public function test_add_form_element(): void {
+        $category = $this->getDataGenerator()->create_category();
+        $course = $this->getDataGenerator()->create_course(['category' => $category->id]);
+        $user = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $this->setUser($user);
+
         $mform = new MoodleQuickForm('test', 'get', '/');
-        course_enrol_count_offer::add_form_element($mform, 0, 1);
+        course_enrol_count_offer::add_form_element($mform, 0, $course->id);
 
         $names = array_map(fn ($e) => $e->getName() ?? '', $mform->_elements);
         $this->assertContains('offer_nc_number_0', $names);

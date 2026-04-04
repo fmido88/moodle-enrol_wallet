@@ -960,6 +960,7 @@ class offers_extensive_test extends \advanced_testcase {
         $this->build();
         $this->create_enrollments();
 
+        $this->setUser($this->user);
         $data = $this->atomic_offer_provider();
 
         foreach ($data as $args) {

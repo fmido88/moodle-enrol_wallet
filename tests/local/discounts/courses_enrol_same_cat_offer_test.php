@@ -120,8 +120,14 @@ class courses_enrol_same_cat_offer_test extends \advanced_testcase {
      */
     public function test_add_form_element(): void {
         $this->resetAfterTest();
+
+        $category = $this->getDataGenerator()->create_category();
+        $course = $this->getDataGenerator()->create_course(['category' => $category->id]);
+        $user = $this->getDataGenerator()->create_and_enrol($course, 'teacher');
+        $this->setUser($user);
+
         $mform = new MoodleQuickForm('test', 'get', '/');
-        courses_enrol_same_cat_offer::add_form_element($mform, 0, 1);
+        courses_enrol_same_cat_offer::add_form_element($mform, 0, $course->id);
 
         $names = array_map(fn ($e) => $e->getName(), $mform->_elements);
         $this->assertContains('offer_ce_courses_0', $names);
