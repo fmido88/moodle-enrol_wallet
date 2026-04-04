@@ -1,6 +1,6 @@
 # Wallet Enrollment for Moodle #
 ==========
-## V 6.0.0 ##
+## V 6.0.1 ##
 - Major refactor to modern namespaced architecture for Moodle 5.0+.
 - New wallet entity classes and clean separation for instance and course calculations.
 - Added fixed-value coupons alongside percentage coupons.
