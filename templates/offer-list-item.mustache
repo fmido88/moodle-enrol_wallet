@@ -21,6 +21,9 @@
 
     Example context (json):
     {
+        "valid": true,
+        "description": "15% discount if your firstname starts with Mo"
     }
 }}
-<li {{#valid}}class="text-success"{{/valid}}>{{{description}}}</li>
+
+<span {{#valid}}class="text-success"{{/valid}}>{{{description}}}</span>

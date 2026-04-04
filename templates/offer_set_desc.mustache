@@ -21,8 +21,20 @@
 
     Example context (json):
     {
+        "issubset": false,
+        "intro": "Get the offer",
+        "list": [
+            {
+                "join": false,
+                "offer": {
+                    "valid": false,
+                    "description": "Get the offer if you have a balance of more than 500 EGP"
+                }
+            }
+        ]
     }
 }}
+
 <div class="generalbox" {{#issubset}}style="{{!
                         }}border: dashed black 1px;{{!
                         }}border-radius: 15px;{{!
@@ -37,7 +49,7 @@
                 </li>
             {{/join}}
             {{#offer}}
-                {{> enrol_wallet/offer-list-item }}
+                <li>{{> enrol_wallet/offer-list-item }}</li>
             {{/offer}}
         {{/list}}
     </ul>
