@@ -530,8 +530,8 @@ class settings {
             get_string('tellermen_heading', 'enrol_wallet'),
             get_string('tellermen_heading_desc', 'enrol_wallet')
         ));
-        $ufselects = \core_user\fields::for_name()->get_sql('u', false, '', '', false)->selects;
-        $tellermen = get_users_by_capability($context, 'enrol/wallet:creditdebit', $ufselects);
+        $ufselects = \core_user\fields::for_name()->get_sql('u')->selects;
+        $tellermen = get_users_by_capability($context, 'enrol/wallet:creditdebit', "u.id $ufselects");
         $tellermen += get_admins();
         $contactinfo = [];
 
