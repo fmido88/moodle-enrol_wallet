@@ -1,10 +1,15 @@
 # Wallet Enrollment for Moodle #
 ==========
 ## V 6.0.0 ##
-- Refactor most of the plugin code.
-- Fix and enhance calculations.
-- Fix bugs.
-- Add more phpunit tests.
+- Major refactor to modern namespaced architecture for Moodle 5.0+.
+- New wallet entity classes and clean separation for instance and course calculations.
+- Added fixed-value coupons alongside percentage coupons.
+- Added advanced conditional offers engine: time-based, profile-field, course enrolment count, and nested offer set support.
+- Improved restriction engine and repurchase flow (course restriction and category-based conditions).
+- Improved wallet balance and deduction operations with strict wallet/borrow eligibility checks.
+- Added detailed plugin settings page, UI enhancements for top-up options and balance widget.
+- Bugfix: enrol coupon submission path, enrollment state checks, and invalid cost handling (retries no-cost and no-discount states).
+- Added/expanded PHPUnit coverage for offers, discounts, transactions, referrals, privacy, and API external methods.
 
 ## V 5.6.0 ##
 - Fix free cut calculations.
