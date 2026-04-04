@@ -192,9 +192,8 @@ class other_category_courses_offer extends offer_item {
 
     #[\Override()]
     public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors, ?callable $wrapper = null): void {
-        if (!$category = core_course_category::get($offer->cat, IGNORE_MISSING)) {
+        if (!is_number($offer->cat) || $offer->cat <= 0 || !$category = core_course_category::get($offer->cat, IGNORE_MISSING)) {
             $errors[static::fname('', $i, $wrapper)] = get_string('offers_error_othercnotexist', 'enrol_wallet');
-
             return;
         }
 
