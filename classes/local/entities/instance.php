@@ -734,7 +734,7 @@ class instance extends entity implements \IteratorAggregate {
 
     /**
      * Return all discounts in all instances.
-     * @return array
+     * @return int[]
      */
     public function get_all_discounts(): array {
         global $DB;
