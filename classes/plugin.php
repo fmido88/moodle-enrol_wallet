@@ -1366,7 +1366,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             return;
         }
 
-        if (!$course = self::get_course_by_instance_id($instance->id)) {
+        if (!$course = self::get_course_by_instance_id($instance->id ?? 0)) {
             $courseid = optional_param('courseid', null, PARAM_INT);
             if (!empty($courseid) && $courseid != SITEID) {
                 $course = get_course($courseid);
@@ -1762,14 +1762,14 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Get the course object by enrol wallet instance id.
-     * @param int $instanceid
+     * @param ?int $instanceid
      * @return bool|stdClass
      */
-    public function get_course_by_instance_id($instanceid) {
-        $instance = $this->get_helper($instanceid);
-        if (empty($instance)) {
+    public function get_course_by_instance_id(?int $instanceid) {
+        if (empty($instanceid) || (!$instance = $this->get_helper($instanceid))) {
             return false;
         }
+
         return $instance->get_course();
     }
 
