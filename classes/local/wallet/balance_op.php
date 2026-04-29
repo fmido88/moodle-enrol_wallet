@@ -19,6 +19,7 @@ namespace enrol_wallet\local\wallet;
 use enrol_wallet\exception\debit_exception;
 use enrol_wallet\exception\negative_amount;
 use enrol_wallet\exception\negative_balance;
+use enrol_wallet\form\transfer_form;
 use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\catop;
@@ -193,7 +194,7 @@ class balance_op extends balance {
      * @param int        $userid
      * @param int|object $category
      */
-    public function __construct($userid = 0, $category = 0) {
+    public function __construct(int $userid = 0, int|object $category = 0) {
         parent::__construct($userid, $category);
 
         if (empty($category)) {
@@ -211,7 +212,7 @@ class balance_op extends balance {
      * @param  float $amount
      * @return void
      */
-    protected function cut_from_main($amount) {
+    protected function cut_from_main(float $amount): void {
         $refundable    = $this->details->refundable;
         $nonrefundable = $this->details->nonrefundable;
         $free          = $this->details->freegift;
@@ -243,7 +244,7 @@ class balance_op extends balance {
      * Cut balance from all categories and main.
      * @param float $remain
      */
-    private function total_cut($remain) {
+    private function total_cut(float $remain): void {
         if (!empty($this->details->catbalance)) {
             foreach ($this->details->catbalance as $id => $detail) {
                 $balance = $detail->balance;
@@ -277,7 +278,7 @@ class balance_op extends balance {
      * @param bool  $refundable
      * @param bool  $free
      */
-    protected function add_to_main($amount, $refundable, $free = false) {
+    protected function add_to_main(float $amount, bool $refundable, bool $free = false): void {
         if ($refundable) {
             $this->details->refundable += $amount;
         } else {
@@ -293,7 +294,7 @@ class balance_op extends balance {
      * @param string $reason Description for the reason of resetting.
      * @return void
      */
-    public function reset_balance($reason = '') {
+    public function reset_balance(string $reason = ''): void {
         global $DB, $USER;
         $oldbalance = $this->get_valid_balance();
 
@@ -353,7 +354,7 @@ class balance_op extends balance {
      * @throws \moodle_exception
      * @return bool              true on success and false in failure.
      */
-    public function debit($amount, $for = self::USER, $thingid = 0, $desc = '', $neg = false) {
+    public function debit(float $amount, string $for = self::USER, int $thingid = 0, string $desc = '', bool $neg = false): bool {
         global $DB, $USER;
 
         negative_amount::check($amount);
@@ -434,7 +435,7 @@ class balance_op extends balance {
         }
 
         $testfallback = false;
-        if (PHPUNIT_TEST && defined('ENROL_WALLET_TESTFALLBACK')) {
+        if (PHPUNIT_TEST && \defined('ENROL_WALLET_TESTFALLBACK')) {
             $testfallback = true;
         }
 
@@ -477,7 +478,7 @@ class balance_op extends balance {
      * @param  string $desc    extra description
      * @return string
      */
-    private function get_debit_description($for, $thingid, $desc) {
+    private function get_debit_description(string $for, int $thingid, string $desc) {
         global $DB, $USER;
 
         $a = ['amount' => $this->amount];
@@ -571,7 +572,9 @@ class balance_op extends balance {
      * @param  bool   $trigger    trigger the transaction event or not.
      * @return bool
      */
-    public function credit($amount, $by = self::OTHER, $thingid = 0, $desc = '', $refundable = true, $trigger = true) {
+    public function credit(
+        float $amount,
+        string $by = self::OTHER, int $thingid = 0, string $desc = '', bool $refundable = true, bool $trigger = true): bool {
         global $DB;
 
         if (\in_array($by, [self::USER, self::C_TRANSFER, self::C_REFERRAL])) {
@@ -602,7 +605,7 @@ class balance_op extends balance {
             $wordpress    = new wordpress();
             $responsedata = $wordpress->credit($amount, $this->userid, $description, $charger);
 
-            if (is_string($responsedata)) {
+            if (\is_string($responsedata)) {
                 debugging($responsedata);
 
                 return false;
@@ -666,7 +669,7 @@ class balance_op extends balance {
      * @param  bool   $refundable
      * @return bool
      */
-    private function is_free($by, $refundable) {
+    private function is_free(string $by, bool $refundable) {
         if ($refundable) {
             return false;
         }
@@ -702,7 +705,7 @@ class balance_op extends balance {
      * @param  string $desc
      * @return string
      */
-    private function get_credit_description($by, $thingid, $desc) {
+    private function get_credit_description(string $by, int $thingid, string $desc): string {
         $description = '';
 
         switch ($by) {
@@ -752,7 +755,7 @@ class balance_op extends balance {
      * @param  int    $thingid
      * @return void
      */
-    private function set_category($op, $reason, $thingid) {
+    private function set_category(string $op, string $reason, int $thingid): void {
         global $DB;
         if ($this->source == self::WP || !empty($this->catop)) {
             return;
@@ -873,7 +876,7 @@ class balance_op extends balance {
      * @param  string $by The reason for credit.
      * @return bool
      */
-    private function apply_conditional_discount($by) {
+    private function apply_conditional_discount(string $by): bool {
         global $DB;
         $forbidden = [
             self::C_ACCOUNT_GIFT,
@@ -885,13 +888,13 @@ class balance_op extends balance {
             self::C_TRANSFER,
         ];
 
-        if (in_array($by, $forbidden)) {
+        if (\in_array($by, $forbidden)) {
             return true;
         }
 
         $amount = $this->amount;
 
-        list($rest, $condition) = discounts::get_the_rest($amount, $this->catid ?? 0);
+        [$rest, $condition] = discounts::get_the_rest($amount, $this->catid ?? 0);
 
         if (empty($rest)) {
             return true;
@@ -908,7 +911,7 @@ class balance_op extends balance {
      * @param  bool  $reset
      * @return float
      */
-    protected function get_free_cut($reset = true) {
+    protected function get_free_cut(bool $reset = true): float {
         $return = $this->freecut;
 
         if ($reset) {
@@ -923,7 +926,7 @@ class balance_op extends balance {
      * Called from enrol_self method.
      * @return void
      */
-    public function apply_cashback() {
+    public function apply_cashback(): void {
         // Now apply the cashback if enabled.
         $config = config::make();
         $cashbackenabled = $config->cashback;
@@ -960,7 +963,7 @@ class balance_op extends balance {
      * @param  bool   $refundable is the transaction is refundable
      * @return void
      */
-    private function trigger_transaction_event($type, $charger, $desc, $refundable) {
+    private function trigger_transaction_event(string $type, int $charger, string $desc, bool $refundable): void {
         if (empty($this->courseid)) {
             $context = \context_system::instance();
         } else {
@@ -990,7 +993,7 @@ class balance_op extends balance {
      * after the grace period is over.
      * @return void
      */
-    private function queue_transaction_transformation() {
+    private function queue_transaction_transformation(): void {
         $period = config::make()->refundperiod;
 
         if (empty($period)) {
@@ -1018,7 +1021,7 @@ class balance_op extends balance {
      * Used to transform a certain amount from refundable to nonrefundable.
      * @param float $amount
      */
-    public function turn_to_nonrefundable($amount) {
+    public function turn_to_nonrefundable(float $amount): void {
         if ($this->source == self::WP) {
             return;
         }
@@ -1043,15 +1046,15 @@ class balance_op extends balance {
 
     /**
      * Transfer balance to another user.
-     * @param  \stdClass                        $data  the data submited by the form.
-     * @param  \enrol_wallet\form\transfer_form $mform
+     * @param  stdClass       $data  the data submited by the form.
+     * @param  ?transfer_form $mform
      * @return string
      */
-    public function transfer_to_other($data, $mform = null) {
+    public function transfer_to_other(stdClass $data, ?transfer_form $mform = null): string {
         global $USER;
 
         if (empty($mform)) {
-            $mform = new \enrol_wallet\form\transfer_form();
+            $mform = new transfer_form();
         }
 
         $config = $mform->config;
@@ -1126,7 +1129,7 @@ class balance_op extends balance {
      * must be called only after credit or debit operations.
      * @return int|null
      */
-    public function get_transaction_id() {
+    public function get_transaction_id(): ?int {
         return $this->transactionid ?? null;
     }
 
@@ -1139,7 +1142,7 @@ class balance_op extends balance {
 
         array_push($this->savepoints, $cloned);
 
-        return clone $this;
+        return $cloned;
     }
 
     /**
@@ -1154,7 +1157,7 @@ class balance_op extends balance {
             $cloned = array_shift($this->savepoints);
         }
 
-        $cloned->update();
+        $cloned?->update();
 
         throw $e;
     }

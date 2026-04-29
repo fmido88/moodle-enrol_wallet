@@ -15,16 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Display page for coupons in moodle website.
+ * TODO describe file balances
  *
  * @package    enrol_wallet
- * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
+ * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 use core_reportbuilder\system_report_factory;
 use enrol_wallet\local\urls\reports;
-use enrol_wallet\reportbuilder\local\systemreports\coupon_usage;
+use enrol_wallet\reportbuilder\local\systemreports\balances;
 
 require_once('../../../config.php');
 
@@ -35,11 +34,11 @@ $systemcontext = context_system::instance();
 // Setup the page.
 $PAGE->set_pagelayout('admin');
 $PAGE->set_context($systemcontext);
-reports::COUPONS_USAGE->set_page_url_to_me();
-$PAGE->set_title(get_string('coupons', 'enrol_wallet'));
-$PAGE->set_heading(get_string('coupon_usage', 'enrol_wallet'));
+reports::BALANCES->set_page_url_to_me();
+$PAGE->set_title(get_string('balances', 'enrol_wallet'));
+$PAGE->set_heading(get_string('balances_report', 'enrol_wallet'));
 
-$report = system_report_factory::create(coupon_usage::class, $systemcontext);
+$report = system_report_factory::create(balances::class, $systemcontext);
 
 echo $OUTPUT->header();
 

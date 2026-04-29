@@ -533,9 +533,17 @@ final class balance_op_test extends \advanced_testcase {
             'userid'        => $user1->id,
             'refundable'    => 200,
             'nonrefundable' => 120,
-            'cat_balance'   => json_encode($catbalance),
         ];
         $DB->insert_record('enrol_wallet_balance', $record, false);
+        foreach ($catbalance as $catid => $info) {
+            $record = [
+                'userid' => $user1->id,
+                'refundable' => $info->refundable,
+                'nonrefundable' => $info->nonrefundable,
+                'catid' => $catid,
+            ];
+            $DB->insert_record('enrol_wallet_balance', $record, false);
+        }
         $op = new balance_op($user1->id);
         $this->assertEquals(320, $op->get_main_balance());
         $this->assertEquals(200, $op->get_main_refundable());
@@ -671,10 +679,17 @@ final class balance_op_test extends \advanced_testcase {
             'userid'        => $user1->id,
             'refundable'    => 200,
             'nonrefundable' => 120,
-            'cat_balance'   => json_encode($catbalance),
         ];
         $DB->insert_record('enrol_wallet_balance', $record, false);
-
+        foreach ($catbalance as $catid => $info) {
+            $record = [
+                'userid' => $user1->id,
+                'refundable' => $info->refundable,
+                'nonrefundable' => $info->nonrefundable,
+                'catid' => $catid,
+            ];
+            $DB->insert_record('enrol_wallet_balance', $record, false);
+        }
         $op = new balance_op($user1->id);
         $this->assertEquals(570, $op->get_total_balance());
         $this->assertEquals(570, $op->get_main_balance());

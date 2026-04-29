@@ -22,56 +22,20 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_reportbuilder\system_report_factory;
 use enrol_wallet\local\urls\reports;
+use enrol_wallet\output\transaction_chart;
+use enrol_wallet\reportbuilder\local\systemreports\transactions;
+use core_reportbuilder\local\filters\user as user_filter;
 
 require_once('../../../config.php');
-require_once(__DIR__.'/../lib.php');
-require_once(__DIR__.'/../locallib.php');
-require_once($CFG->libdir.'/formslib.php');
 
-global $DB, $USER;
 // Adding some security.
-require_login();
+require_login(null, false);
+
+$pagesize  = optional_param('pagesize', 50, PARAM_INT);
 
 $systemcontext = context_system::instance();
-$viewall = has_capability('enrol/wallet:transaction', $systemcontext);
-
-$sort      = optional_param('tsort', '', PARAM_ALPHA);
-$userid    = (!$viewall) ? $USER->id : optional_param('userid', '', PARAM_INT);
-$datefrom  = optional_param_array('datefrom', [], PARAM_INT);
-$dateto    = optional_param_array('dateto', [], PARAM_INT);
-$ttype     = optional_param('ttype', '', PARAM_TEXT);
-$value     = optional_param('value', '', PARAM_FLOAT);
-$pagesize  = optional_param('pagesize', 50, PARAM_INT);
-$limitfrom = optional_param('page', 0, PARAM_INT);
-
-// Page parameters.
-$urlparams = [
-    'tsort'   => $sort,
-    'pagesize' => $pagesize,
-    'page'    => $limitfrom,
-    'userid'  => $userid,
-    'ttype'   => $ttype,
-    'value'   => $value,
-];
-if (!empty($datefrom)) {
-    foreach ($datefrom as $key => $v) {
-        $urlparam["datafrom[$key]"] = $v;
-    }
-}
-
-if (!empty($dateto)) {
-    foreach ($dateto as $key => $v) {
-        $urlparam["dateto[$key]"] = $v;
-    }
-}
-
-// Unset empty params.
-foreach ($urlparams as $key => $val) {
-    if (empty($val)) {
-        unset($urlparams[$key]);
-    }
-}
 
 // Setup the page.
 $title = get_string('transactions', 'enrol_wallet');
@@ -79,36 +43,41 @@ $PAGE->set_context($systemcontext);
 $PAGE->set_title($title);
 $PAGE->set_heading($title);
 
-$baseurl = reports::TRANSACTIONS->url();
-$thisurl = reports::TRANSACTIONS->url($urlparams);
+reports::TRANSACTIONS->set_page_url_to_me(['pagesize' => $pagesize]);
 
-$PAGE->set_url($thisurl);
+$report = system_report_factory::create(transactions::class, $systemcontext);
+
+$report->set_default_per_page($pagesize);
+
+$canviewall = has_capability("enrol/wallet:transaction", \core\context\system::instance());
+$conditionvalues = $canviewall ? [] : ["user:userselect_operator" => user_filter::USER_CURRENT];
+$report->set_condition_values($conditionvalues);
+
+if ($canviewall && ($userid = optional_param('userid', null, PARAM_INT))) {
+    $filtervalues = [
+        "user:userselect_operator" => user_filter::USER_SELECT,
+        "user:userselect_value" => [$userid],
+    ];
+    $report->set_filter_values($filtervalues);
+}
+
+$charts = (new transaction_chart($report))->get_output($PAGE->get_renderer('core'));
 
 echo $OUTPUT->header();
 
-// -------------------------------------------------------------------------------------------------------
+echo $charts;
 
-// Create the filtration form.
-
-$customdata = ['viewall' => $viewall, 'context' => $systemcontext];
-$mform = new enrol_wallet\form\transactions_filter(null, $customdata, 'get');
-$filterdata = $mform->get_data();
-// -------------------------------------------------------------------------------------------------
-
-// Setup the transactions table.
-$table = new enrol_wallet\table\transactions($USER->id, $filterdata);
-$table->define_baseurl($thisurl);
-
-// -------------------------------------------------------------------------------------------
-
-// Display the filtration form.
-$mform->display();
-
-echo $OUTPUT->single_button($baseurl, get_string('clear_filter', 'enrol_wallet'));
+// Transaction per page.
+$limits = [];
+for ($i = 50; $i <= 2000; $i += 50) {
+    $limits[$i] = $i;
+}
 
 echo $OUTPUT->heading($title, 3);
 
-// Display the table.
-$table->out($pagesize, true);
+echo html_writer::tag('span', get_string('transaction_perpage', 'enrol_wallet'));
+echo $OUTPUT->single_select(reports::TRANSACTIONS->url(), 'pagesize', $limits, $pagesize, []);
+
+echo $report->output();
 
 echo $OUTPUT->footer();

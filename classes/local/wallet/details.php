@@ -16,53 +16,57 @@
 
 namespace enrol_wallet\local\wallet;
 
+use ArrayIterator;
 use core\exception\coding_exception;
+use IteratorAggregate;
+use stdClass;
 
 /**
  * Balance details object.
  *
- * @property float $mainrefundable Alias to main refundable balance
- * @property float $refund Alias to main refundable balance
- * @property float $mainnonrefundable Alias to main non-refundable balance
- * @property float $mainnonrefund Alias to main non-refundable balance
- * @property float $norefund Alias to main non-refundable balance
- * @property float $mainbalance Main balance
- * @property float $balance Main balance
- * @property float $mainfree Alias to free gift (main free)
- * @property float $main_free  Alias to free gift (main free)
- * @property float $free Alias to free gift (main free)
- * @property float $total Total balance
+ * @property float $mainrefundable      Alias to main refundable balance
+ * @property float $refund              Alias to main refundable balance
+ * @property float $mainnonrefundable   Alias to main non-refundable balance
+ * @property float $mainnonrefund       Alias to main non-refundable balance
+ * @property float $norefund            Alias to main non-refundable balance
+ * @property float $mainbalance         Main balance
+ * @property float $balance             Main balance
+ * @property float $mainfree            Alias to free gift (main free)
+ * @property float $main_free           Alias to free gift (main free)
+ * @property float $free                Alias to free gift (main free)
+ * @property float $total               Total balance
  * @property float $total_nonrefundable Alias to total non-refundable balance
- * @property float $totalnonrefundable Total non-refundable balance
- * @property float $total_refundable Alias to total refundable balance
- * @property float $totalrefundable Total refundable balance
- * @property float $total_free Total free points
- * @property float $totalfree Total free points
- * @property float $valid Valid balance can be used from the main and category balance.
- * @property float $valid_nonrefundable  Valid non-refundable balance
- * @property float $validnonrefundable Valid non-refundable balance
- * @property float $valid_refundable Valid refundable balance
- * @property float $validrefundable Valid refundable balance
- * @property float $valid_free Valid free points
- * @property float $validfree Valid free points
+ * @property float $totalnonrefundable  Total non-refundable balance
+ * @property float $total_refundable    Alias to total refundable balance
+ * @property float $totalrefundable     Total refundable balance
+ * @property float $total_free          Total free points
+ * @property float $totalfree           Total free points
+ * @property float $valid               Valid balance can be used from the main and category balance.
+ * @property float $valid_nonrefundable Valid non-refundable balance
+ * @property float $validnonrefundable  Valid non-refundable balance
+ * @property float $valid_refundable    Valid refundable balance
+ * @property float $validrefundable     Valid refundable balance
+ * @property float $valid_free          Valid free points
+ * @property float $validfree           Valid free points
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class details {
+class details implements IteratorAggregate {
     /**
      * Cat balances objects.
      * @var catdetails[]
      */
     public array $catbalance = [];
+
     /**
      * Helper to calculate balances.
-     * @param float $refundable
-     * @param float $nonrefundable
-     * @param float $freegift
-     * @param int[] $catids
-     * @param catdetails[] $catbalance
+     * @param float        $refundable
+     * @param float        $nonrefundable
+     * @param float        $freegift
+     * @param int[]        $catids
+     * @param catdetails[]|stdClass[] $catbalance // All category balances.
      */
     public function __construct(
         /** @var float the main refundable value. */
@@ -73,21 +77,23 @@ class details {
         public float $freegift,
         /** @var int[] categories ids that this object belongs to. */
         public array $catids = [],
-        array $catbalance = []
+        array &$catbalance = []
     ) {
         foreach ($catbalance as $id => $obj) {
             $this->catbalance[$id] = new catdetails(
                 $obj->refundable,
                 $obj->nonrefundable,
                 $obj->free ?? 0,
+                $obj->recordid ?? null
             );
         }
+        $catbalance =& $this->catbalance;
     }
 
     /**
-     * Calculate the total (valid) type of balance balance
-     * @param string $name balance, nonrefundable, refundable, free
-     * @param bool $total true to get the total, false for only valid
+     * Calculate the total (valid) type of balance balance.
+     * @param  string           $name  balance, nonrefundable, refundable, free
+     * @param  bool             $total true to get the total, false for only valid
      * @throws coding_exception
      * @return float
      */
@@ -97,6 +103,7 @@ class details {
         }
 
         $value = $this->$name;
+
         foreach ($this->catbalance as $id => $obj) {
             if (!isset($obj->$name)) {
                 throw new coding_exception("The property $name not exists in the class " . $obj::class);
@@ -109,13 +116,14 @@ class details {
 
         return $value;
     }
+
     /**
      * Magic getter.
-     * @param string $name
+     * @param  string           $name
      * @throws coding_exception
      * @return float
      */
-    public function __get($name) {
+    public function __get(string $name): float {
         switch ($name) {
             case 'mainrefundable':
             case 'refund':
@@ -173,12 +181,13 @@ class details {
                 throw new coding_exception("The property $name not exists in the class " . self::class);
         }
     }
+
     /**
      * Check if a magic property is existed.
-     * @param string $name
+     * @param  string $name
      * @return bool
      */
-    public function __isset($name) {
+    public function __isset(string $name): bool {
         switch ($name) {
             case 'mainrefundable':
             case 'refund':
@@ -220,18 +229,50 @@ class details {
             case 'valid_free':
             case 'validfree':
                 return true;
+
             default:
                 return false;
         }
     }
+
+    /**
+     * Don't allow unsetting.
+     * @param  string $name
+     *
+     * @throws coding_exception
+     */
+    public function __unset(string $name) {
+        throw new coding_exception("Cannot unset the property $name");
+    }
+
     /**
      * Cannot set a calculated value.
-     * @param string $name
-     * @param string $value
+     * @param  string $name
+     * @param  mixed  $value
+     *
      * @throws coding_exception
-     * @return never
      */
-    public function __set($name, $value) {
+    public function __set(string $name, mixed $value) {
         throw new coding_exception("Cannot set a value to property $name");
+    }
+
+    #[\Override()]
+    public function getIterator(): \Traversable {
+        $properties = [
+            'mainrefundable'     => $this->refundable,
+            'mainnonrefundable'  => $this->nonrefundable,
+            'mainbalance'        => $this->mainbalance,
+            'mainfree'           => $this->mainfree,
+            'totalbalance'       => $this->balance,
+            'totalnonrefundable' => $this->totalnonrefundable,
+            'totalrefundable'    => $this->totalrefundable,
+            'totalfree'          => $this->totalfree,
+            'validbalance'       => $this->valid,
+            'validnonrefundable' => $this->validrefundable,
+            'validrefundable'    => $this->validrefundable,
+            'validfree'          => $this->vaildfree,
+        ];
+
+        return new ArrayIterator($properties);
     }
 }

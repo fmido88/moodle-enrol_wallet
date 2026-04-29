@@ -526,5 +526,77 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025070300, 'enrol', 'wallet');
     }
 
+    if ($oldversion < 2026042300) {
+        // Define key kuserid (foreign) to be dropped form enrol_wallet_balance.
+        $table = new xmldb_table('enrol_wallet_balance');
+        $key = new xmldb_key('kuserid', XMLDB_KEY_FOREIGN_UNIQUE, ['userid'], 'user', ['id']);
+
+        // Launch drop key kuserid.
+        $dbman->drop_key($table, $key);
+
+        $key = new xmldb_key('kuserid', XMLDB_KEY_FOREIGN, ['userid'], 'user', ['id']);
+
+        // Launch add key kuserid.
+        $dbman->add_key($table, $key);
+
+        $field = new xmldb_field('catid', XMLDB_TYPE_INTEGER, '10', null, XMLDB_NOTNULL, null, '0', 'freegift');
+
+        // Conditionally launch add field catid.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        $key = new xmldb_key('kcatid', XMLDB_KEY_FOREIGN, ['catid'], 'course_categories', ['id']);
+
+        // Launch add key kcatid.
+        $dbman->add_key($table, $key);
+
+        $key = new xmldb_key('kusercat', XMLDB_KEY_UNIQUE, ['userid', 'catid']);
+
+        // Launch add key kusercat.
+        $dbman->add_key($table, $key);
+
+        $records = $DB->get_records('enrol_wallet_balance');
+        $tr = $DB->start_delegated_transaction();
+        try {
+            core_php_time_limit::raise();
+            raise_memory_limit(MEMORY_UNLIMITED);
+
+            foreach ($records as $record) {
+                if (empty($record->cat_balance)) {
+                    continue;
+                }
+                $catblances = (array)json_decode($record->cat_balance);
+                foreach ($catblances as $catid => $info) {
+                    $catr = new stdClass();
+                    $catr->catid = $catid;
+                    $catr->userid = $record->userid;
+                    $catr->timecreated = $record->timecreated;
+                    $catr->timemodified = $record->timemodified;
+                    $catr->refundable = $info->refundable;
+                    $catr->nonrefundable = $info->nonrefundable;
+                    $catr->freegift = $info->free;
+                    $DB->insert_record('enrol_wallet_balance', $catr);
+                }
+                $record->catid = 0;
+                $DB->update_record('enrol_wallet_balance', $record);
+            }
+        } catch (\Throwable $e) {
+            $tr->rollback($e);
+        }
+
+        $tr->allow_commit();
+
+        $field = new xmldb_field('cat_balance');
+
+        // Conditionally launch drop field cat_balance.
+        if ($dbman->field_exists($table, $field)) {
+            $dbman->drop_field($table, $field);
+        }
+
+        // Wallet savepoint reached.
+        upgrade_plugin_savepoint(true, 2026042300, 'enrol', 'wallet');
+    }
+
     return true;
 }

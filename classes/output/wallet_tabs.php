@@ -25,9 +25,10 @@ use core\output\renderable;
 use core\output\renderer_base;
 use core\output\templatable;
 use core\url;
+use core_reportbuilder\system_report_factory;
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\reports;
-use enrol_wallet\table\transactions;
+use enrol_wallet\reportbuilder\local\systemreports\transactions;
 
 /**
  * Prepare wallets home page taps.
@@ -153,22 +154,24 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Get topup options template data.
-     * @param  renderer_base $output
+     * @param  renderer_base                                                                                      $output
      * @return array{display: bool, haswarn: bool, items: array, policy: mixed, topup: bool}|array{display: bool}
      */
     public function export_topup(renderer_base $output) {
         $topup = new topup_options();
 
         $context = $topup->export_for_template($output);
+
         if (!$context['display']) {
             return [];
         }
+
         return $context;
     }
 
     /**
      * Render charger form.
-     * @param null|renderer_base $ignore
+     * @param  null|renderer_base $ignore
      * @return string
      */
     public function render_charge($ignore = null) {
@@ -177,7 +180,7 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Render transaction table part.
-     * @param renderer_base $output
+     * @param  renderer_base $output
      * @return string
      */
     public function render_transactions(renderer_base $output) {
@@ -189,23 +192,23 @@ class wallet_tabs implements renderable, templatable {
         }
 
         $transactionurl = reports::TRANSACTIONS->url();
-        $class          = ['class' => 'btn btn-primary'];
+        $class = ['class' => 'btn btn-primary'];
 
         $out = html_writer::link($transactionurl, get_string('transactions_details', 'enrol_wallet'), $class);
 
-        $table = new transactions('wallet-page-transactions-table', (object)['userid' => $this->userid]);
-        $table->define_baseurl($url);
+        $report = system_report_factory::create(transactions::class, $this->context);
+        $report->set_condition_values([
+            'user:userselect_operator' => \core_reportbuilder\local\filters\user::USER_CURRENT,
+        ]);
 
-        ob_start();
-        $table->out(15, true);
-        $out .= ob_get_clean();
+        $out .= $report->output();
 
         return $out;
     }
 
     /**
      * Render referral page content.
-     * @param null|renderer_base $ignore
+     * @param  null|renderer_base $ignore
      * @return bool|string
      */
     public function render_referral($ignore = null) {
@@ -221,7 +224,7 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Render transfer balance to other form.
-     * @param renderer_base $output
+     * @param  renderer_base $output
      * @return bool|string
      */
     public function render_transfer(renderer_base $output) {
@@ -240,7 +243,7 @@ class wallet_tabs implements renderable, templatable {
 
     /**
      * Render the offers content.
-     * @param null|renderer_base $ignore
+     * @param  null|renderer_base $ignore
      * @return string
      */
     public function render_offers($ignore = null) {
@@ -257,9 +260,11 @@ class wallet_tabs implements renderable, templatable {
         $pages = [];
 
         $active = 'balance';
+
         if ($output->get_page()->has_set_url()) {
             $url = $output->get_page()->url;
             $anchor = $url->get_encoded_anchor();
+
             if (!empty($anchor)) {
                 $active = ltrim($anchor, '#link');
             }
@@ -281,14 +286,14 @@ class wallet_tabs implements renderable, templatable {
 
             if (method_exists($this, $exportmethod)) {
                 $page["is{$key}"] = true;
-                $page['context']  = $this->$exportmethod($output);
+                $page['context'] = $this->$exportmethod($output);
 
                 if (empty($page['context'])) {
                     continue;
                 }
             } else if (method_exists($this, $rendermethod)) {
                 $page['prerendered'] = true;
-                $page['content']     = $this->$rendermethod($output);
+                $page['content'] = $this->$rendermethod($output);
 
                 if (empty($page['content'])) {
                     continue;

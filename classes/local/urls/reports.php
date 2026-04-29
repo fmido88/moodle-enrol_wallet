@@ -32,4 +32,6 @@ enum reports: string {
     case COUPONS_USAGE = 'reports/couponusage.php';
     // Wallet transactions report.
     case TRANSACTIONS = 'reports/transaction.php';
+    // Balance report.
+    case BALANCES = 'reports/balances.php';
 }

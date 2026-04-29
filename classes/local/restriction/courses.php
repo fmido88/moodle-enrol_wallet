@@ -18,6 +18,7 @@ namespace enrol_wallet\local\restriction;
 
 use context;
 use context_course;
+use core_collator;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\options;
 use MoodleQuickForm;
@@ -62,7 +63,8 @@ class courses {
                 }
             }
 
-            $coursesnames = '(' . implode(', ', $notenrolled) . ')';
+            core_collator::asort($notenrolled);
+            $coursesnames = '(' . implode(',<br>', $notenrolled) . ')';
             // In case that the course creator choose a higher number than the selected courses.
             $limit = min($total, $instance->customint7);
             if ($restrict && $count < $limit) {
@@ -71,6 +73,7 @@ class courses {
         }
         return false;
     }
+
     /**
      * Adding another course restriction options to enrolment edit form.
      * @param \MoodleQuickForm $mform

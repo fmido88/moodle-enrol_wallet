@@ -361,7 +361,7 @@ class profile_field_offer extends offer_item {
         $offer->discount = $discount ?? random_int(1, 99);
 
         if ($sf === null && $cf === null) {
-            $fields = ['shortname', 'email', 'firstname', 'lastname', 'country', 'city', 'address'];
+            $fields = ['username', 'email', 'firstname', 'lastname', 'country', 'city', 'address'];
             $randkey = array_rand($fields);
             $sf = $fields[$randkey];
         }

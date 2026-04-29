@@ -31,6 +31,7 @@ defined('MOODLE_INTERNAL') || die();
 $context = context_system::instance();
 
 $captransactions = has_capability('enrol/wallet:transaction', $context);
+$capviewbalance  = has_capability('enrol/wallet:viewotherbalance', $context);
 $capcredit       = has_capability('enrol/wallet:creditdebit', $context);
 $capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
 $capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
@@ -105,6 +106,14 @@ if ($captransactions) {
     $url = reports::TRANSACTIONS->url();
     $pagename = get_string('transactions', 'enrol_wallet');
     $page = new admin_externalpage('wallettransactions', $pagename, $url, 'enrol/wallet:transaction', false, $context);
+    $ADMIN->add('enrol_wallet_settings', $page);
+}
+
+if ($capviewbalance) {
+    // Page for report balance.
+    $url = reports::BALANCES->url();
+    $pagename = get_string('balances', 'enrol_wallet');
+    $page = new admin_externalpage('walletbalances', $pagename, $url, 'enrol/wallet:viewotherbalance', false, $context);
     $ADMIN->add('enrol_wallet_settings', $page);
 }
 

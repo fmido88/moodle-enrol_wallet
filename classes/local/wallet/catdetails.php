@@ -32,6 +32,7 @@ class catdetails {
      * @param float $refundable
      * @param float $nonrefundable
      * @param float $free
+     * @param ?int  $recordid
      */
     public function __construct(
         /** @var float the category refundable balance. */
@@ -39,19 +40,22 @@ class catdetails {
         /** @var float the category non-refundable balance. */
         public float $nonrefundable,
         /** @var float the category free points. */
-        public float $free
+        public float $free,
+        /** @var ?int the category balance record id */
+        public ?int $recordid = null
     ) {
     }
 
     /**
      * Get a simple object of this class with only fields to be saved in database.
-     * @return object{refundable: float, nonrefundable: float, free: float}
+     * @return object{refundable: float, nonrefundable: float, free: float, recordid: ?int}
      */
     public function get_object(): object {
         return (object)[
             'refundable'    => $this->refundable,
             'nonrefundable' => $this->nonrefundable,
             'free'          => $this->free,
+            'recordid'      => $this->recordid,
         ];
     }
     /**

@@ -94,7 +94,7 @@ class options {
      * @param int $courseid Current course id of exceptions.
      * @return array<string>
      */
-    public static function get_courses_options($courseid): array {
+    public static function get_courses_options(int $courseid): array {
         global $DB;
         // Adding restriction upon another course enrolment.
         // Prepare the course selector.
@@ -168,10 +168,10 @@ class options {
     /**
      * Returns the list of currencies that the payment subsystem supports and therefore we can work with.
      *
-     * @param int $account The payment account id if exist.
+     * @param ?int $account The payment account id if exist.
      * @return array[currencycode => currencyname]
      */
-    public static function get_possible_currencies($account = null): array {
+    public static function get_possible_currencies(?int $account = null): array {
         $codes = [];
         if (class_exists('\core_payment\helper')) {
             $codes = \core_payment\helper::get_supported_currencies();
@@ -200,10 +200,10 @@ class options {
      * Gets a list of roles that this user can assign for the course as the default for wallet enrolment.
      *
      * @param context $context the context.
-     * @param integer $defaultrole the id of the role that is set as the default for wallet enrolment
+     * @param int $defaultrole the id of the role that is set as the default for wallet enrolment
      * @return array index is the role id, value is the role name
      */
-    public static function extend_assignable_roles($context, $defaultrole): array {
+    public static function extend_assignable_roles(context $context, int $defaultrole): array {
         global $DB;
 
         $roles = get_assignable_roles($context, ROLENAME_BOTH);

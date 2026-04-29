@@ -67,7 +67,7 @@ class catop {
      * @param object|int $categoryorid the category or its id.
      * @param details    $details
      */
-    public function __construct(int|object $categoryorid, details $details) {
+    public function __construct(int|object $categoryorid, details &$details) {
         if (\is_object($categoryorid)) {
             $this->catid = $categoryorid->id;
 
@@ -90,7 +90,7 @@ class catop {
             throw new \moodle_exception('error');
         }
 
-        $this->details = $details->catbalance;
+        $this->details =& $details->catbalance;
 
         $this->compute_cat_balance();
     }
@@ -160,7 +160,7 @@ class catop {
      * @param  bool  $reset If to reset the amount to 0
      * @return float
      */
-    public function get_free_cut($reset = true): float {
+    public function get_free_cut(bool $reset = true): float {
         $free = $this->freecut;
 
         if ($reset) {
@@ -184,7 +184,7 @@ class catop {
      * @param bool  $refundable If the amount is refundable or not.
      * @param bool  $free       If this amount is due to a free gift or so.
      */
-    public function add($amount, $refundable = true, $free = false): void {
+    public function add(float $amount, bool $refundable = true, bool $free = false): void {
         $catobj = $this->details[$this->catid] ?? new catdetails(0, 0, 0);
 
         if ($refundable) {
@@ -206,7 +206,7 @@ class catop {
      * @param  float $amount the amount to be deducted.
      * @return float The remained value to be cut.
      */
-    public function deduct($amount): float {
+    public function deduct(float $amount): float {
         negative_amount::check($amount);
         $parents = $this->parents;
 
@@ -227,7 +227,7 @@ class catop {
      * Reset all the cat balances of the user to zero.
      * @return void
      */
-    public function reset_all_balances() {
+    public function reset_all_balances(): void {
         foreach ($this->parents as $id) {
             $this->reset_cat_balance($id);
         }
@@ -238,12 +238,12 @@ class catop {
      * @param int $id Category id.
      * @return void
      */
-    private function reset_cat_balance(int $id) {
+    private function reset_cat_balance(int $id): void {
         if (!isset($this->details[$id])) {
             return;
         }
 
-        $this->details[$id] = new catdetails(0, 0, 0);
+        $this->details[$id] = new catdetails(0, 0, 0, $this->details[$id]->recordid ?? null);
     }
 
     /**
@@ -252,7 +252,7 @@ class catop {
      * @param  int   $id     the id of the category.
      * @return float the remain amount to be deducted.
      */
-    private function single_cut($amount, $id): float {
+    private function single_cut(float $amount, int $id): float {
         negative_amount::check($amount);
 
         if (!isset($this->details[$id])) {
@@ -261,8 +261,8 @@ class catop {
 
         $refundable    = $this->details[$id]->refundable;
         $nonrefundable = $this->details[$id]->nonrefundable;
-
-        $free = $this->details[$id]->free;
+        $recordid      = $this->details[$id]->recordid ?? null;
+        $free          = $this->details[$id]->free;
 
         if ($refundable >= $amount) {
             $refundable -= $amount;
@@ -286,7 +286,7 @@ class catop {
             $this->freecut += $freecut;
         }
 
-        $this->details[$id] = new catdetails($refundable, $nonrefundable, $newfree ?? $free ?? 0);
+        $this->details[$id] = new catdetails($refundable, $nonrefundable, $newfree ?? $free ?? 0, $recordid);
 
         return $remain;
     }

@@ -65,6 +65,7 @@ final class instance_test extends \advanced_testcase {
         $fielddata = (object)[
             'name'      => 'discount',
             'shortname' => 'discount',
+            'datatype'  => 'text',
         ];
         $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
 

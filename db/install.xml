@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="enrol/wallet/db" VERSION="20241003" COMMENT="XMLDB file for Moodle enrol/wallet"
+<XMLDB PATH="enrol/wallet/db" VERSION="20260425" COMMENT="XMLDB file for Moodle enrol/wallet"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -146,13 +146,15 @@
         <FIELD NAME="refundable" TYPE="number" LENGTH="25" NOTNULL="true" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="The main refundable balance"/>
         <FIELD NAME="nonrefundable" TYPE="number" LENGTH="25" NOTNULL="false" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="The nonrefundable main balance"/>
         <FIELD NAME="freegift" TYPE="number" LENGTH="25" NOTNULL="false" DEFAULT="0" SEQUENCE="false" DECIMALS="5" COMMENT="free balance added from gift or so"/>
-        <FIELD NAME="cat_balance" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="The category balance details, json data keyed with category id"/>
+        <FIELD NAME="catid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timecreated" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
         <FIELD NAME="timemodified" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-        <KEY NAME="kuserid" TYPE="foreign-unique" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="kuserid" TYPE="foreign" FIELDS="userid" REFTABLE="user" REFFIELDS="id"/>
+        <KEY NAME="kcatid" TYPE="foreign" FIELDS="catid" REFTABLE="course_categories" REFFIELDS="id"/>
+        <KEY NAME="kusercat" TYPE="unique" FIELDS="userid, catid"/>
       </KEYS>
     </TABLE>
     <TABLE NAME="enrol_wallet_overrides" COMMENT="Overriding the restrictions">

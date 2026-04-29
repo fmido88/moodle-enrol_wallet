@@ -68,4 +68,14 @@ class renderer extends plugin_renderer_base {
         $data = $widget->export_for_template($this);
         return $this->render_from_template('enrol_wallet/topup_options', $data);
     }
+
+    /**
+     * Render the transaction statistical chart.
+     * @param transaction_chart $widget
+     * @return string
+     */
+    public function render_transaction_chart(transaction_chart $widget) {
+        $corerenderer = $this->get_page()->get_renderer('core');
+        return $widget->get_output($corerenderer);
+    }
 }

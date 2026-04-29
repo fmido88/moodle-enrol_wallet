@@ -25,6 +25,7 @@
 
 namespace enrol_wallet\output;
 
+use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\testing;
 // Todo: we must make sure that each renderable object
 // is actually renderable.
@@ -69,7 +70,11 @@ final class output_classes_test extends \advanced_testcase {
 
         // Test export_for_template method.
         $renderer = helper::get_wallet_renderer();
-        $data     = $tabs->export_for_template($renderer);
+
+        // Avoid notice.
+        pages::WALLET->set_page_url_to_me();
+
+        $data = $tabs->export_for_template($renderer);
         $this->assertIsArray($data);
 
         // Todo: check that all tabs appear to admin

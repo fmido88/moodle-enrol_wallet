@@ -17,16 +17,15 @@
 namespace enrol_wallet\local\wallet;
 
 use enrol_wallet\local\config;
-use enrol_wallet\local\utils\timedate;
-use enrol_wallet\local\wallet\catop as operations;
-use enrol_wallet\wordpress;
-use enrol_wallet\local\entities\section;
-use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\entities\cm;
+use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\entities\section;
+use enrol_wallet\local\utils\timedate;
+use enrol_wallet\wordpress;
 use stdClass;
 
 /**
- * Class balance
+ * Class balance.
  *
  * @package    enrol_wallet
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -37,54 +36,65 @@ class balance {
      * Source of wallet is moodle.
      */
     public const MOODLE = 1;
+
     /**
      * Source of wallet is wordpress.
      */
     public const WP = 0;
+
     /**
      * The balance table name.
      * @var string
      */
     private const BALANCE_T = 'enrol_wallet_balance';
+
     /**
      * The transaction table name.
      */
     private const TRANSACTION_T = 'enrol_wallet_transactions';
+
     /**
      * The current source of wallet.
      * @var int
      */
     protected int $source;
+
     /**
      * The current userid.
      * @var int
      */
     protected $userid;
+
     /**
      * The current category id.
      * @var int
      */
     protected $catid;
+
     /**
-     * category operation helper class
-     * @var operations
+     * category operation helper class.
+     * @var catop
      */
     protected $catop;
+
     /**
-     * The whole balance details
+     * The whole balance details.
      * @var details
      */
     public details $details;
+
     /**
      * The id of the record in the database.
      * @var int
      */
     protected $recordid;
+
     /**
      * The valid balance for the user.
      * @var float
      */
     public $valid;
+
     /**
      * If category balance is available in this site.
      * @var bool
@@ -94,7 +104,7 @@ class balance {
     /**
      * Balance helper object to get all balance data of a given user.
      * use enrol_wallet\util\balance_op for operations like credit or debit.
-     * @param int $userid
+     * @param int        $userid
      * @param int|object $category the category id.
      */
     public function __construct(int $userid = 0, int|object $category = 0) {
@@ -102,6 +112,7 @@ class balance {
 
         $config = config::make();
         $source = $config->walletsource;
+
         if (\in_array($source, [null, false], true)) {
             $source = self::MOODLE;
         }
@@ -142,6 +153,7 @@ class balance {
     public function get_user() {
         return \core_user::get_user($this->userid);
     }
+
     /**
      * Get the category id at which this balance util belongs to.
      * @return int
@@ -149,6 +161,7 @@ class balance {
     public function get_catid(): int {
         return $this->catid ?? 0;
     }
+
     /**
      * Return the valid balance as string.
      * @return string
@@ -166,7 +179,7 @@ class balance {
         global $DB;
 
         if ($this->source == self::WP) {
-            $wordpress = new wordpress;
+            $wordpress = new wordpress();
             $response = $wordpress->get_user_balance($this->userid);
 
             if (!is_numeric($response)) {
@@ -177,15 +190,14 @@ class balance {
                 $mainbalance = (float)$response;
                 $mainnonrefund = $this->get_nonrefund_from_transactions();
             }
-
         } else if ($this->source == self::MOODLE) {
-
             // Get the balance from the last transaction.
             $sort = 'timecreated DESC,id DESC';
             $params = ['userid' => $this->userid];
-            $select = "userid = :userid";
+            $select = 'userid = :userid';
+
             if ($DB->get_manager()->field_exists(self::TRANSACTION_T, 'category')) {
-                $select .= " AND (category IS NULL OR category = 0)";
+                $select .= ' AND (category IS NULL OR category = 0)';
             }
             $records = $DB->get_records_select(self::TRANSACTION_T, $select, $params, $sort, 'balance, norefund', 0, 1);
             $record = reset($records);
@@ -198,6 +210,7 @@ class balance {
         }
 
         $catids = [];
+
         if (!empty($this->catop)) {
             $catids = $this->catop->get_catids();
         }
@@ -205,8 +218,7 @@ class balance {
             $mainbalance - $mainnonrefund,
             $mainnonrefund,
             0,
-            $catids,
-            []
+            $catids
         );
     }
 
@@ -236,23 +248,24 @@ class balance {
     }
 
     /**
-     * Get the record for the table enrol_wallet_balance
+     * Get the record for the table enrol_wallet_balance.
      * @return \stdClass
      */
     private function get_record(): stdClass {
         global $DB;
         $userid = $this->userid;
 
-        $record = $DB->get_record(self::BALANCE_T, ['userid' => $userid]);
+        $record = $DB->get_record(self::BALANCE_T, ['userid' => $userid, 'catid' => 0]);
 
         if (empty($record)) {
             $this->set_main_balance();
 
-            $record = new \stdClass;
+            $record = new \stdClass();
             $record->userid = $userid;
             $record->refundable = $this->details->refundable;
             $record->nonrefundable = $this->details->nonrefundable;
             $record->freegift = $this->details->mainfree;
+            $record->catid = 0;
             $record->timecreated = timedate::time();
             $record->timemodified = timedate::time();
             $record->id = $DB->insert_record(self::BALANCE_T, $record);
@@ -263,17 +276,28 @@ class balance {
     }
 
     /**
+     * Return the categories balance records.
+     * @return array
+     */
+    private function get_categories_records(): array {
+        global $DB;
+
+        $params = ['userid' => $this->userid];
+
+        return $DB->get_records_select(self::BALANCE_T, 'userid = :userid AND catid > 0', $params);
+    }
+
+    /**
      * Update the record in the database.
      */
     protected function update_record() {
         global $DB;
-        $record = new \stdClass;
-        $record->id = $this->recordid;
+        $record = new \stdClass();
         $record->refundable = $this->details->mainrefundable;
         $record->nonrefundable = $this->details->mainnonrefund;
         $record->freegift = $this->details->mainfree;
         $record->timemodified = timedate::time();
-        $record->cat_balance = $this->format_cat_balance();
+        $record->catid = 0;
 
         if (empty($this->recordid)) {
             unset($record->id);
@@ -281,25 +305,42 @@ class balance {
             $record->timecreated = timedate::time();
             $this->recordid = $DB->insert_record(self::BALANCE_T, $record);
         } else {
+            $record->id = $this->recordid;
             $DB->update_record(self::BALANCE_T, $record);
         }
+
+        $this->update_category_records();
     }
 
     /**
-     * Format the details of the category balance as json object to be saved
-     * in the database
-     * @return string
+     * Update all category records.
+     * @return void
      */
-    private function format_cat_balance(): string {
-        $catbalance = [];
-        foreach ($this->details->catbalance as $id => $obj) {
-            $catbalance[$id] = $obj->get_object();
+    private function update_category_records() {
+        global $DB;
+
+        foreach ($this->details->catbalance as $id => &$obj) {
+            $record = new stdClass();
+            $record->userid = $this->userid;
+            $record->refundable = $obj->refundable;
+            $record->nonrefundable = $obj->nonrefundable;
+            $record->freegift = $obj->free;
+            $record->catid = $id;
+            $record->timecreated = timedate::time();
+            $recordid = $obj->recordid ?: $DB->get_field(self::BALANCE_T, 'id', ['userid' => $this->userid, 'catid' => $id]);
+            if ($recordid) {
+                $record->id = $recordid;
+                $DB->update_record(self::BALANCE_T, $record);
+            } else {
+                $record->timecreated = timedate::time();
+                $recordid = $DB->insert_record(self::BALANCE_T, $record);
+            }
+            $obj->recordid ??= $recordid;
         }
-        return json_encode($catbalance);
     }
 
     /**
-     * Get all balance details for a given user
+     * Get all balance details for a given user.
      */
     private function set_balance_details() {
         if ($this->source == self::WP) {
@@ -308,26 +349,37 @@ class balance {
 
         $record = $this->get_record();
         $catids = [];
+
         if (!empty($this->catop)) {
             $catids = $this->catop->get_catids();
         }
 
         $catbalance = [];
 
-        if (!empty($record->cat_balance)) {
-            $catbalance = (array)json_decode($record->cat_balance);
+        if ($catrecords = $this->get_categories_records()) {
+            foreach ($catrecords as $crecord) {
+                $catbalance[$crecord->catid] = (object)[
+                    'refundable'    => $crecord->refundable,
+                    'nonrefundable' => $crecord->nonrefundable,
+                    'free'          => $crecord->freegift,
+                    'recordid'      => $crecord->id,
+                ];
+            }
         }
-        $this->details = new details($record->refundable,
-                                    $record->nonrefundable,
-                                    $record->freegift ?? 0,
-                                    $catids,
-                                    $catbalance);
+
+        $this->details = new details(
+            $record->refundable,
+            $record->nonrefundable,
+            $record->freegift ?? 0,
+            $catids,
+            $catbalance
+        );
 
         // The id of the record to be saved in the cache.
         $this->recordid = $record->id;
 
         if (!empty($this->catid) && $this->catid > 0) {
-            $this->catop = new operations($this->catid, $this->details);
+            $this->catop = new catop($this->catid, $this->details);
             $this->details->catids = $this->catop->get_catids();
         }
     }
@@ -338,7 +390,7 @@ class balance {
      */
     protected function update(bool $recordandcache = true) {
         if (!empty($this->catop)) {
-            $this->details->catbalance = $this->catop->details;
+            $this->details->catbalance =& $this->catop->details;
         }
 
         if (!$recordandcache) {
@@ -377,6 +429,7 @@ class balance {
      */
     public function get_balance_details(): details {
         $this->check();
+
         return $this->details;
     }
 
@@ -386,6 +439,7 @@ class balance {
      */
     public function get_total_balance(): float {
         $this->check();
+
         return $this->details->total;
     }
 
@@ -395,6 +449,7 @@ class balance {
      */
     public function get_total_nonrefundable(): float {
         $this->check();
+
         return $this->details->totalnonrefundable;
     }
 
@@ -404,6 +459,7 @@ class balance {
      */
     public function get_total_refundable(): float {
         $this->check();
+
         return $this->details->totalrefundable;
     }
 
@@ -413,6 +469,7 @@ class balance {
      */
     public function get_main_balance(): float {
         $this->check();
+
         if (!$this->catenabled) {
             return $this->get_total_balance();
         }
@@ -426,9 +483,11 @@ class balance {
      */
     public function get_main_nonrefundable(): float {
         $this->check();
+
         if (!$this->catenabled) {
             return $this->get_total_nonrefundable();
         }
+
         return $this->details->mainnonrefund;
     }
 
@@ -438,9 +497,11 @@ class balance {
      */
     public function get_main_refundable(): float {
         $this->check();
+
         if (!$this->catenabled) {
             return $this->get_total_refundable();
         }
+
         return $this->details->mainrefundable;
     }
 
@@ -451,6 +512,7 @@ class balance {
      */
     public function get_valid_balance(): float {
         $this->check();
+
         if (!$this->catenabled) {
             return $this->get_total_balance();
         }
@@ -465,6 +527,7 @@ class balance {
      */
     public function get_valid_nonrefundable(): float {
         $this->check();
+
         if (!$this->catenabled) {
             return $this->get_total_nonrefundable();
         }
@@ -478,6 +541,7 @@ class balance {
      */
     public function get_main_free(): float {
         $this->check();
+
         return $this->details->mainfree;
     }
 
@@ -488,15 +552,17 @@ class balance {
      */
     public function get_total_free(): float {
         $this->check();
+
         return $this->details->totalfree;
     }
 
     /**
-     * Get the free balance in main and category passed in construction
+     * Get the free balance in main and category passed in construction.
      * @return float
      */
     public function get_valid_free(): float {
         $this->check();
+
         if (!$this->catenabled) {
             return $this->get_total_free();
         }
@@ -506,54 +572,59 @@ class balance {
 
     /**
      * Return a balance for certain category.
-     * @param int $catid
+     * @param  int   $catid
      * @return float
      */
     public function get_cat_balance($catid): float {
         $this->check();
+
         if (!isset($this->details->catbalance[$catid])) {
             return 0;
         }
         $details = $this->details->catbalance[$catid];
+
         return $details->balance;
     }
 
     /**
      * Create a balance util helper class to obtain balance data of a given user
      * by providing the enrol_wallet instance or its id.
-     * @param int|\stdClass $instance
-     * @param int $userid 0 means the current user.
+     * @param  int|\stdClass $instance
+     * @param  int           $userid   0 means the current user.
      * @return static
      */
     public static function create_from_instance($instance, $userid = 0): static {
         $util = new instance($instance, $userid);
         $category = $util->get_course_category();
+
         return new static($userid, $category);
     }
 
     /**
      * Create a balance util helper class to obtain balance data of a given user
      * by providing the course module record or its id.
-     * @param int|\stdClass $cm
-     * @param int $userid 0 means the current user.
+     * @param  int|\stdClass $cm
+     * @param  int           $userid 0 means the current user.
      * @return static
      */
     public static function create_from_cm($cm, $userid = 0): static {
         $util = new cm($cm, $userid);
         $category = $util->get_course_category();
+
         return new static($userid, $category);
     }
 
     /**
      * Create a balance util helper class to obtain balance data of a given user
      * by providing the section record or its id.
-     * @param int|\stdClass $section
-     * @param int $userid 0 means the current user.
+     * @param  int|\stdClass $section
+     * @param  int           $userid  0 means the current user.
      * @return static
      */
     public static function create_from_section($section, $userid = 0): static {
         $util = new section($section, $userid);
         $category = $util->get_course_category();
+
         return new static($userid, $category);
     }
 }
