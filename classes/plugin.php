@@ -410,6 +410,10 @@ class enrol_wallet_plugin extends enrol_plugin {
         // Get the final cost after discount (if there is no discount it return the full cost).
         $costafter = $instance->get_cost_after_discount();
 
+        if (null === $costafter) {
+            return false;
+        }
+
         $charge = $charge && ($costafter >= 0.01);
         if ($charge) {
             $canborrow = enrol_wallet_is_borrow_eligible($user->id);
@@ -418,6 +422,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             if (!$op->debit($costafter, balance_op::D_ENROL_INSTANCE, $instance->id, '', $canborrow)) {
                 $e = new moodle_exception('cannotdeductbalance', 'enrol_wallet');
                 $op->fallback($e);
+                return false;
             }
         }
 
@@ -448,9 +453,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         \core\notification::success(get_string('youenrolledincourse', 'enrol'));
 
         // Mark coupon as used (this is for percentage discount coupons only).
-        if ($couponutil = $instance->get_coupon_helper()) {
-            $couponutil->mark_coupon_used();
-        }
+        $instance->post_purchase($costafter);
 
         $instance->reset_static_cache();
 
@@ -821,7 +824,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Get the instance class
      * @param \stdClass|int $instance
      * @param int $userid
-     * @return instance|stdClass
+     * @return instance
      */
     protected function get_helper(int|stdClass $instance, int $userid = 0): stdClass {
         global $USER;
@@ -839,9 +842,9 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         if (empty($this->instance)
             || ($this->instance->id != $instanceid)
-            || $userid != $this->instance->userid) {
+            || $userid != $this->instance->get_userid()) {
 
-            if ($instance instanceof instance && $userid == $instance->userid) {
+            if ($instance instanceof instance && $userid == $instance->get_userid()) {
                 $this->instance = $instance;
                 return $instance;
             }
@@ -1805,7 +1808,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             return $this->costafter[$instance->id];
         }
 
-        if (!($instance instanceof instance) || $instance->userid != $userid) {
+        if (!($instance instanceof instance) || $instance->get_userid() != $userid) {
             $instance = $this->get_helper($instance, $userid);
         }
 
