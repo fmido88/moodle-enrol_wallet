@@ -29,7 +29,15 @@ namespace enrol_wallet\local\discounts;
 use core\exception\coding_exception;
 use enrol_wallet\hook\extend_offer_types;
 use enrol_wallet\local\config;
-use enrol_wallet\local\entities\instance;
+use enrol_wallet\local\discounts\offers\course_enrol_count_offer;
+use enrol_wallet\local\discounts\offers\courses_enrol_same_cat_offer;
+use enrol_wallet\local\discounts\offers\geo_location_offer;
+use enrol_wallet\local\discounts\offers\offer_item;
+use enrol_wallet\local\discounts\offers\offers_set;
+use enrol_wallet\local\discounts\offers\other_category_courses_offer;
+use enrol_wallet\local\discounts\offers\profile_field_offer;
+use enrol_wallet\local\discounts\offers\time_offer;
+use enrol_wallet\local\utils\discount;
 use enrol_wallet\local\utils\timedate;
 use stdClass;
 
@@ -38,7 +46,6 @@ global $CFG;
 require_once($CFG->libdir . '/formslib.php');
 
 use core_course_category;
-use html_writer;
 use MoodleQuickForm;
 
 /**
@@ -52,6 +59,7 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class offers {
+    use discount;
     /**
      * Offers codes
      * time - time based offers
@@ -141,13 +149,13 @@ class offers {
             !empty($instance->customtext3)                             => (array)json_decode($instance->customtext3),
             !empty($instance->offers) && \is_string($instance->offers) => (array)json_decode($instance->offers),
             !empty($instance->offers) && \is_array($instance->offers)  => $instance->offers,
-            default => []
+            default                                                    => []
         };
 
         if (!self::is_valid_structure($offers)) {
             ob_start();
             var_dump($offers);
-            $error = "Invalid offers structure: " . ob_get_clean();
+            $error = 'Invalid offers structure: ' . ob_get_clean();
             PHPUNIT_TEST ? throw new coding_exception($error) : debugging($error, DEBUG_DEVELOPER);
             $offers = [];
         }
@@ -156,7 +164,7 @@ class offers {
 
     /**
      * Validate the whole structures.
-     * @param array $offers
+     * @param  array $offers
      * @return bool
      */
     protected static function is_valid_structure(array $offers): bool {
@@ -170,15 +178,19 @@ class offers {
             }
 
             $class = self::get_offer_class_name($offer->type);
+
             if (!$class) {
                 continue;
             }
+
             if (!$class::is_valid_structure($offer)) {
                 return false;
             }
         }
+
         return true;
     }
+
     /**
      * Get list of all available offer item classes.
      * @return offer_item[]|string[]
@@ -236,14 +248,17 @@ class offers {
 
         return new $class($offer, $this->instance->courseid, $this->userid);
     }
+
     /**
      * Get instances of all offer items.
      * @return offer_item[]
      */
     public function get_offers_items(): array {
         $classes = [];
+
         foreach ($this->offers as $offer) {
             $class = $this->get_offer_item($offer);
+
             if (!$class) {
                 continue;
             }
@@ -252,6 +267,7 @@ class offers {
 
         return $classes;
     }
+
     /**
      * Get the raw discount rules,.
      * @return array of objects
@@ -288,7 +304,7 @@ class offers {
             }
             $descriptions[] = [
                 'description' => $discription,
-                'valid' => $class->validate_offer(),
+                'valid'       => $class->validate_offer(),
             ];
         }
 
@@ -334,6 +350,7 @@ class offers {
 
         foreach ($this->offers as $obj) {
             $class = $this->get_offer_item($obj);
+
             if (!$class || $class->is_hidden()) {
                 // Nothing the user could do to obtain this offer
                 // so don't add it to max discount he can get.
@@ -348,15 +365,11 @@ class offers {
 
         $behavior = (int)config::instance()->discount_behavior;
 
-        if ($behavior === instance::B_MAX) {
-            return max($discounts);
-        }
-
-        if ($behavior === instance::B_SUM) {
-            return min(array_sum($discounts), 100);
-        }
-
-        return self::calculate_sequential($discounts);
+        return match ($behavior) {
+            self::B_MAX => self::calculate_max_discount($discounts, true),
+            self::B_SUM => self::calculate_sum_discount($discounts, true),
+            self::B_SEQ => self::calculate_sequential_discount($discounts, true),
+        };
     }
 
     /**
@@ -368,11 +381,7 @@ class offers {
             $this->discounts = $this->get_available_discounts();
         }
 
-        if (empty($this->discounts)) {
-            return 0;
-        }
-
-        return max($this->discounts);
+        return self::calculate_max_discount($this->discounts, true);
     }
 
     /**
@@ -384,17 +393,7 @@ class offers {
             $this->discounts = $this->get_available_discounts();
         }
 
-        if (empty($this->discounts)) {
-            return 0;
-        }
-
-        $sum = 0;
-
-        foreach ($this->discounts as $d) {
-            $sum += $d;
-        }
-
-        return min($sum, 100);
+        return self::calculate_sum_discount($this->discounts, true);
     }
 
     /**
@@ -406,17 +405,13 @@ class offers {
             $this->discounts = $this->get_available_discounts();
         }
 
-        if (empty($this->discounts)) {
-            return 0;
-        }
-
-        $discounts = fullclone($this->discounts);
-        return self::calculate_sequential($discounts);
+        return self::calculate_sequential_discount($this->discounts, true);
     }
 
     /**
      * Calculate sequential discount from array of discount values.
      * @param array $discounts
+     * @deprecated Use calculate_sequential_discount if needed.
      * @return float|int
      */
     protected static function calculate_sequential(array $discounts): float {
@@ -427,14 +422,17 @@ class offers {
         $discounts = array_reverse($discounts);
 
         $seq = 0;
+
         foreach ($discounts as $d) {
             $d /= 100;
             // Original value (100%)
             // - The value after discount (100% - current discount) * the next discounted value (100% - next discount).
             $seq = 1 - (1 - $seq) * (1 - $d);
         }
+
         return min(1, $seq) * 100;
     }
+
     /**
      * Return array with available valid discounts for the passed user.
      * @return float[]
@@ -602,9 +600,9 @@ class offers {
     /**
      * This is not used anymore, just keep it for now for
      * phpunit testing.
-     * @param string $type
-     * @param string $key
-     * @param int $inc
+     * @param  string $type
+     * @param  string $key
+     * @param  int    $inc
      * @return string
      */
     public static function fname(string $type, string $key, int $inc) {
@@ -727,6 +725,7 @@ class offers {
             $class::clean_submitted_value($k, $value);
             $class::pre_save_submitted_data($offers, $i, $k, $value);
         }
+
         return array_values($offers);
     }
 
