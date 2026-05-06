@@ -16,7 +16,7 @@
 
 namespace enrol_wallet\hook;
 
-use enrol_wallet\local\discounts\offer_item;
+use enrol_wallet\local\discounts\offers\offer_item;
 
 /**
  * Extend the offers available.
@@ -50,10 +50,12 @@ class extend_offer_types {
             debugging("Class $classname does not exist. Cannot add to offer types.");
             return;
         }
+
         if (!is_subclass_of($classname, offer_item::class)) {
             debugging("Class $classname is not a subclass of offer_item. Cannot add to offer types.");
             return;
         }
+
         $key = $classname::key();
         if (isset($this->classes[$key])) {
             debugging("Offer type with key '$key' already exists. Cannot add class $classname.");

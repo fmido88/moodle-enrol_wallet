@@ -70,7 +70,7 @@ class discount_rules {
 
     /**
      * Get all site and categories discount rules.
-     * @return array[\stdClass]
+     * @return \stdClass[]
      */
     public static function get_all_available_discount_rules(): array {
         $enabled = (bool)config::instance()->conditionaldiscount_apply;
@@ -117,7 +117,7 @@ class discount_rules {
      * @param bool $current if set true it will return the valid rules only in this time.
      * @return array[int] of categories id, 0 for site level.
      */
-    public static function get_all_categories_with_discounts($current = true): array {
+    public static function get_all_categories_with_discounts(bool $current = true): array {
         global $DB;
         $select = '';
         $params = [];
@@ -150,7 +150,7 @@ class discount_rules {
      * @param  int      $catid  the id of the category, 0 means site level.
      * @return ?float[] with two elements the rest of the amount and the condition applied.
      */
-    public static function get_the_rest($amount, $catid = 0): array {
+    public static function get_the_rest(float $amount, int $catid = 0): array {
         global $DB;
         $enabled = config::instance()->conditionaldiscount_apply;
         $percentdiscount = 0;
@@ -234,7 +234,7 @@ class discount_rules {
      * @param  int   $catid
      * @return float
      */
-    public static function get_applied_discount($amount, $catid): float {
+    public static function get_applied_discount(float $amount, int $catid): float {
         $discount = 0;
         $records = self::get_current_discount_rules($catid);
 
@@ -253,7 +253,7 @@ class discount_rules {
      *                       in specific category
      * @return string
      */
-    public static function get_the_discount_line($catid = 0): string {
+    public static function get_the_discount_line(int $catid = 0): string {
         return helper::get_wallet_renderer()->render(new discount_line($catid));
     }
 
