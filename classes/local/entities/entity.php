@@ -17,9 +17,11 @@
 namespace enrol_wallet\local\entities;
 
 use context;
+use core_collator;
 use core_course_category;
-use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
+use enrol_wallet\local\discounts\discount\discount_base;
+use enrol_wallet\local\utils\discount;
 use stdClass;
 
 /**
@@ -30,6 +32,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 abstract class entity extends stdClass {
+    use discount;
     /**
      * The course which the instance belong to.
      * @var int
@@ -49,6 +52,11 @@ abstract class entity extends stdClass {
     protected coupons $couponutil;
 
     /**
+     * The all discounts in this instance.
+     * @var float[]
+     */
+    protected array $discounts;
+    /**
      * The id of the user.
      * @var int
      */
@@ -58,8 +66,18 @@ abstract class entity extends stdClass {
      * The id of the entity.
      * @var int
      */
-    protected int $id;
-
+    public readonly int $id;
+    /**
+     * If the instance class in dirty state and the cached values
+     * of $costafter could be cleared.
+     * @var bool
+     */
+    protected bool $dirty = false;
+    /**
+     * Discount classes.
+     * @var discount_base[]
+     */
+    protected array $discountclasses;
     /**
      * Create a new enrol wallet instance helper class.
      * store the cost after discount.
@@ -80,7 +98,7 @@ abstract class entity extends stdClass {
      * @param int|stdClass $user
      * @return void
      */
-    public function set_user(int|stdClass $user = 0) {
+    public function set_user(int|stdClass $user = 0): void {
         global $USER;
         $this->userid = match(true) {
             empty($user)      => $USER->id,
@@ -88,6 +106,15 @@ abstract class entity extends stdClass {
             default           => $user,
         };
     }
+
+    /**
+     * Getter for user id.
+     * @return int
+     */
+    public function get_userid(): int {
+        return $this->userid;
+    }
+
     /**
      * Get the course that the instance belongs to.
      * @return \stdClass
@@ -119,6 +146,15 @@ abstract class entity extends stdClass {
     }
 
     /**
+     * Get the discount calculation get_behavior.
+     * Should be one of the constants B_MAX, B_SUM, B_SEQ.
+     * @return int
+     */
+    public function get_behavior(): int {
+        return self::B_MAX;
+    }
+
+    /**
      * Return a visible formatted name of the entity.
      * @return void
      */
@@ -144,88 +180,66 @@ abstract class entity extends stdClass {
 
     /**
      * Get the cost of the entity after calculate the discount.
-     * @param  ?float $cost
+     * @param  ?float $cost // Must be supplied in case of cm or section.
      * @return ?float
      */
     public function get_cost_after_discount(?float $cost = null): ?float {
-        return $this->calculate_discount($cost);
+        $this->calculate_discount($cost);
+        return $this->costafter;
     }
 
     /**
      * Get the coupons area describe this entity, one of constants coupons::AREA_.
      * @return void
      */
-    abstract protected static function get_coupon_area(): int;
+    abstract public static function get_coupon_area(): int;
 
     /**
-     * Calculate and return the discount due to profile field.
-     * @return float from 0 to 1
+     * Get the available discount classes.
+     * @param float $originalcost
+     * @return discount_base[]
      */
-    protected function get_profile_field_discount(): float {
-        global $DB;
-        $discount = 0;
-
-        // Check if the discount according to custom profile field in enabled.
-        if (!$fieldid = config::make()->discount_field) {
-            return $discount;
+    final protected function get_discount_classes(float $originalcost): array {
+        $this->check_dirty();
+        if (isset($this->discountclasses)) {
+            return $this->discountclasses;
         }
 
-        // Check the data in the discount field.
-        $data = $DB->get_field('user_info_data', 'data', ['userid' => $this->userid, 'fieldid' => $fieldid]);
-
-        if (empty($data)) {
-            return $discount;
-        }
-
-        // If the user has free access to courses return 0 cost.
-        if (stripos(strtolower($data), 'free') !== false) {
-            $discount = 1;
-            // If there is a word no in the data means no discount.
-        } else if (stripos(strtolower($data), 'no') !== false) {
-            $discount = 0;
-        } else {
-            // Get the integer from the data.
-            preg_match('/\d+/', $data, $matches);
-
-            if (isset($matches[0]) && \intval($matches[0]) <= 100) {
-                // Cannot allow discount more than 100%.
-                $discount = \intval($matches[0]) / 100;
+        $this->discountclasses = [];
+        $all = [
+            'coupon',
+            'offers',
+            'profile',
+            'repurchase',
+            'hook',
+        ];
+        foreach ($all as $name) {
+            $class = "enrol_wallet\\local\\discounts\\discount\\$name";
+            if (!class_exists($class) || !$class::is_available($this)) {
+                continue;
             }
+            $this->discountclasses[$name] = new $class($this, $originalcost);
         }
-
-        return min(1, $discount);
+        return $this->discountclasses;
     }
 
     /**
-     * Calculate and return discount due to discount coupon.
-     * @param float  $originalcost
-     * @return float from 0 to 1
+     * Calculate and return discounts of all types.
+     * @param float $originalcost
+     * @return float[]
      */
-    protected function get_coupon_discount(float $originalcost): float {
-        // Check if there is a discount coupon first.
-        $couponutil = $this->get_coupon_helper();
-
-        $discount = 0;
-
-        if (!empty($couponutil)) {
-            if ($couponutil->is_valid()) {
-                $discount = match($couponutil->get_type(false)) {
-                    coupons::DISCOUNT      => min($couponutil->get_value() / 100, 1),
-                    coupons::FIXEDDISCOUNT => ($originalcost > 0)
-                                                ? max(0, min($couponutil->get_value() / $originalcost, 1)) : 0,
-                    default => 0,
-                };
-            } else if ($error = $couponutil->get_error()) {
-                static $warned = false;
-
-                if (!$warned) {
-                    $warned = true;
-                    \core\notification::error($error);
-                }
-            }
+    protected function get_discounts(float $originalcost): array {
+        $this->check_dirty();
+        if (isset($this->discounts)) {
+            return $this->discounts;
         }
-
-        return $discount;
+        $discounts = [];
+        $classes = $this->get_discount_classes($originalcost);
+        foreach ($classes as $name => $class) {
+            $discounts[$name] = $class->get_percentage_discount();
+        }
+        $this->discounts = $discounts;
+        return $discounts;
     }
 
     /**
@@ -235,17 +249,49 @@ abstract class entity extends stdClass {
      *                     We check this cost against all costs in availability tree
      * @return float
      */
-    protected function calculate_discount(float $cost): float {
-        $coupondiscount  = $this->get_coupon_discount($cost);
-        $profilediscount = $this->get_profile_field_discount();
-        $discount        = max(1, $coupondiscount + $profilediscount);
-        $this->costafter = $cost * (1 - $discount);
+    final protected function calculate_discount(float $cost): float {
+        $discounts = $this->get_discounts($cost);
+        $discount = match($this->get_behavior()) {
+            self::B_MAX => $this->calculate_max_discount($discounts),
+            self::B_SEQ => $this->calculate_sequential_discount($discounts),
+            self::B_SUM => $this->calculate_sum_discount($discounts),
+        };
 
-        return $this->costafter;
+        $this->costafter = $cost - $cost * $discount;
+        return $discount;
+    }
+    /**
+     * Check if the cached values of cost after discount need to be cleared first.
+     * @return bool
+     */
+    public function is_dirty(): bool {
+        return $this->dirty;
     }
 
     /**
+     * Mark as dirty to clear the cached values of cost after discount.
+     * @return void
+     */
+    public function mark_as_dirty(): void {
+        $this->dirty = true;
+    }
+
+    /**
+     * Check if the instance is dirty and hence clear
+     * caches.
+     * @return void
+     */
+    protected function check_dirty(): void {
+        if ($this->is_dirty()) {
+            unset($this->costafter);
+            unset($this->discounts);
+            unset($this->discountclasses);
+            $this->dirty = false;
+        }
+    }
+    /**
      * Get the coupon helper class for he code used for discount if existed.
+     * @deprecated Please use the coupons offers class to get the coupons class
      * @return coupons|null
      */
     public function get_coupon_helper(): ?coupons {
@@ -260,5 +306,17 @@ abstract class entity extends stdClass {
         }
 
         return null;
+    }
+
+    /**
+     * Must be called after successful purchase with discount.
+     * @param float $originalcost
+     * @return void
+     */
+    public function post_purchase(float $originalcost): void {
+        $classes = $this->get_discount_classes($originalcost);
+        foreach ($classes as $class) {
+            $class->after_process();
+        }
     }
 }

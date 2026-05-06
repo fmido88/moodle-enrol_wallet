@@ -51,7 +51,7 @@ class cm extends entity {
      * @param int $cmid The enrol wallet instance or its id.
      * @param int $userid the id of the user, 0 means the current user.
      */
-    public function __construct($cmid, $userid = 0) {
+    public function __construct(int $cmid, int $userid = 0) {
         global $DB;
         $this->cm = $DB->get_record('course_modules', ['id' => $cmid]);
 
@@ -81,7 +81,7 @@ class cm extends entity {
      * Get the coupon area.
      * @return int
      */
-    protected static function get_coupon_area(): int {
+    public static function get_coupon_area(): int {
         return coupons::AREA_CM;
     }
     /**
@@ -110,6 +110,6 @@ class cm extends entity {
             debugging("The cost passes to get_cost_after_discount() is not in the cost list.", DEBUG_DEVELOPER);
             return null;
         }
-        return $this->calculate_discount($cost);
+        return parent::get_cost_after_discount($cost);
     }
 }

@@ -35,7 +35,6 @@ global $CFG;
 require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 
 use enrol_wallet\local\coupons\coupons;
-use enrol_wallet\local\discounts\offers;
 use enrol_wallet_plugin as wallet;
 
 /**
@@ -93,29 +92,8 @@ use enrol_wallet_plugin as wallet;
  * @property string $customtext4                Not used.
  * @property int    $timecreated                The time at which the instance was created.
  * @property int    $timemodified               The time at which the instance was modified.
- * @property-read \stdClass $instance The enrol wallet instance object.
- * @property-read float $costafter The cost after calculating discounts.
- * @property-read coupons $couponutil The coupon helper class object.
- * @property-read int $userid The id of the user we need to calculate the discount for.
  */
 class instance extends entity implements \IteratorAggregate {
-    /**
-     * Calculate the cost after discount sequentially.
-     * @var int
-     */
-    public const B_SEQ = 1;
-
-    /**
-     * Apply the sum of discounts.
-     * @var int
-     */
-    public const B_SUM = 2;
-
-    /**
-     * Apply max discount.
-     * @var int
-     */
-    public const B_MAX = 0;
 
     /**
      * The enrol wallet instance.
@@ -124,23 +102,10 @@ class instance extends entity implements \IteratorAggregate {
     public stdClass $instance;
 
     /**
-     * The all discounts in this instance.
-     * @var float[]
-     */
-    private array $discounts = [];
-
-    /**
      * Caching instances.
      * @var array
      */
     protected static array $cached = [];
-
-    /**
-     * If the instance class in dirty state and the cached values
-     * of $costafter could be cleared.
-     * @var bool
-     */
-    private bool $dirty = false;
 
     /**
      * Check if this instance as no cost set.
@@ -177,7 +142,7 @@ class instance extends entity implements \IteratorAggregate {
      * Return the coupon area const value AREA_ENROL.
      * @return int
      */
-    protected static function get_coupon_area(): int {
+    public static function get_coupon_area(): int {
         return coupons::AREA_ENROL;
     }
 
@@ -217,18 +182,16 @@ class instance extends entity implements \IteratorAggregate {
     public function __set($name, $value) {
         if (property_exists($this, $name)) {
             $this->$name = $value;
-        }
-
-        if (property_exists($this->instance, $name)) {
+        } else if (property_exists($this->instance, $name)) {
             $this->instance->$name = $value;
-            $this->$name           = $value;
+            $this->$name = $value;
         } else {
             // If the property is not found in the instance object, try to get it from the field map.
             $fieldname = $this->get_instance_field_map($name);
 
             if ($fieldname) {
                 $this->instance->$fieldname = $value;
-                $this->$fieldname           = $value;
+                $this->$fieldname = $value;
             } else {
                 debugging('Invalid property: ' . $name . ' in instance helper class', DEBUG_ALL);
             }
@@ -318,9 +281,12 @@ class instance extends entity implements \IteratorAggregate {
      * for multiple callings.
      * @return void
      */
-    private function set_static_cache(): void {
+    protected function set_static_cache(): void {
+        if (!isset($this->costafter) || !isset($this->discounts)) {
+            return;
+        }
         $cache            = new \stdClass();
-        $cache->costafter = $this->get_cost_after_discount() ?? null;
+        $cache->costafter = $this->get_cost_after_discount();
         $cache->discounts = $this->discounts;
 
         self::$cached[$this->id . '-' . $this->userid] = $cache;
@@ -447,100 +413,26 @@ class instance extends entity implements \IteratorAggregate {
     }
 
     /**
-     * Calculate and return discount due to repurchasing the course.
-     * @return float from 0 to 1
-     */
-    private function get_repurchase_discount(): float {
-        global $DB;
-        $userid     = $this->userid;
-        $instanceid = $this->instance->id;
-        $discount   = 0;
-
-        if ($ue = $DB->get_record('user_enrolments', ['enrolid' => $instanceid, 'userid' => $userid])) {
-            $config = config::make();
-
-            if (!empty($ue->timeend) && $config->repurchase) {
-                if ($first = $config->repurchase_firstdis) {
-                    $discount   = min($first / 100, 1);
-                    $second     = $config->repurchase_seconddis;
-                    $timepassed = $ue->timemodified > $ue->timecreated + $ue->timeend - $ue->timestart;
-
-                    if ($second && $ue->modifierid == $userid && $timepassed) {
-                        $discount = max($second / 100, $discount);
-                    }
-                }
-            }
-        }
-
-        return min($discount, 1);
-    }
-
-    /**
-     * Calculate and return the discount due to offers.
-     * @return float from 0 to 1
-     */
-    private function get_offers_discount(): float {
-        $offers   = new offers($this->instance, $this->userid);
-        $discount = 0;
-
-        switch ((int)config::make()->discount_behavior) {
-            case self::B_SUM:
-                $discount = $offers->get_sum_discounts();
-                break;
-
-            case self::B_MAX:
-                $discount = $offers->get_max_valid_discount();
-                break;
-
-            case self::B_SEQ:
-            default:
-                $discount = $this->calculate_sequential_discount($offers->get_available_discounts(), true);
-        }
-
-        return min(1, $discount / 100);
-    }
-
-    /**
-     * Calculate, store and return all types of discounts.
-     * @return array
-     */
-    private function calculate_discounts(): array {
-        $this->discounts = [
-            'coupons'    => $this->get_coupon_discount($this->cost),
-            'profile'    => $this->get_profile_field_discount(),
-            'repurchase' => $this->get_repurchase_discount(),
-            'offers'     => $this->get_offers_discount(),
-        ];
-
-        return $this->discounts;
-    }
-
-    /**
-     * Getter for dicounts values (no details).
-     * @return float[]
-     */
-    public function get_discounts(): array {
-        return $this->discounts;
-    }
-
-    /**
      * Get percentage discount for a user from custom profile field and coupon code.
      * and then calculate the cost of the course after discount.
      * @return void
      */
-    private function calculate_cost_after_discount(): void {
+    protected function calculate_cost_after_discount(): void {
         $instance = $this->instance;
         $cost     = $instance->cost;
 
         if (!is_numeric($cost) || $cost < 0) {
             $this->nocost = true;
+            $this->discounts = [];
             return;
         }
+        $this->nocost = false;
 
         $cost = (float)$cost;
 
-        if ($cost == 0) {
+        if ($cost === 0.0) {
             $this->costafter = $cost;
+            $this->discounts = [];
             return;
         }
 
@@ -553,70 +445,11 @@ class instance extends entity implements \IteratorAggregate {
             return;
         }
 
-        $discounts = $this->calculate_discounts();
-        $discount  = 0;
-
-        $behavior = (int)config::make()->discount_behavior;
-        switch ($behavior) {
-            case self::B_SUM:
-                foreach ($discounts as $d) {
-                    $discount += $d;
-                }
-                break;
-            case self::B_MAX:
-                $discount = max($discounts);
-                break;
-            case self::B_SEQ:
-                $discount = $this->calculate_sequential_discount($discounts);
-                break;
-            default:
-                $discount = max($discounts);
-                debugging("Unsupported configuration 'discount_behavior' $behavior", DEBUG_DEVELOPER);
-        }
-
-        $discount        = min(1, $discount);
-        $this->costafter = $cost * (1 - $discount);
+        $this->calculate_discount($cost);
     }
-
-    /**
-     * sequentially calculate discount.
-     * @param  array $discounts
-     * @param  bool  $percentage
-     * @return float
-     */
-    private function calculate_sequential_discount(array $discounts, bool $percentage = false): float {
-        \core_collator::asort($discounts, \core_collator::SORT_NUMERIC);
-        $discounts = array_reverse($discounts);
-
-        $discount = 0;
-
-        foreach ($discounts as $d) {
-            $d        = $percentage ? $d / 100 : $d;
-            $discount = 1 - (1 - $discount) * (1 - $d);
-        }
-        $discount = min(1, $discount);
-
-        if ($percentage) {
-            return $discount * 100;
-        }
-
-        return $discount;
-    }
-
-    /**
-     * Check if the cached values of cost after discount need to be cleared first.
-     * @return bool
-     */
-    public function is_dirty(): bool {
-        return $this->dirty;
-    }
-
-    /**
-     * Mark as dirty to clear the cached values of cost after discount.
-     * @return void
-     */
-    public function mark_as_dirty(): void {
-        $this->dirty = true;
+    #[\Override()]
+    public function get_behavior(): int {
+        return (int)config::make()->discount_behavior;
     }
 
     /**
@@ -627,8 +460,8 @@ class instance extends entity implements \IteratorAggregate {
     protected function check_dirty(): void {
         if ($this->is_dirty()) {
             self::reset_static_cache();
+            parent::check_dirty();
             $this->calculate_cost_after_discount();
-            $this->dirty = false;
         }
     }
     /**

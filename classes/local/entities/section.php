@@ -73,7 +73,7 @@ class section extends entity {
      * Return the coupon area.
      * @return int
      */
-    protected static function get_coupon_area(): int {
+    public static function get_coupon_area(): int {
         return coupons::AREA_SECTION;
     }
     /**
@@ -122,6 +122,6 @@ class section extends entity {
             debugging("The cost passes to get_cost_after_discount() is not in the cost list.", DEBUG_DEVELOPER);
             return null;
         }
-        return $this->calculate_discount($cost);
+        return parent::get_cost_after_discount($cost);
     }
 }
