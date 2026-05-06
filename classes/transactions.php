@@ -25,11 +25,10 @@ namespace enrol_wallet;
 
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
-use enrol_wallet\local\coupons\coupons;
 
 /**
  * Functions to handle all wallet transactions and coupons operations.
- * @deprecated
+ * @deprecated use balance_op class for operations, balance class for retrieving balance details.
  */
 class transactions {
 
@@ -126,91 +125,6 @@ class transactions {
         $op = new balance_op($userid);
 
         return (float)$op->get_valid_nonrefundable();
-    }
-
-    /** Getting the value of the coupon.
-     *  Apply the coupon value when using it.
-     *  We apply the code automatic if it is fixed value coupon.
-     * @param string $coupon the coupon code to check.
-     * @param int $userid
-     * @param int $instanceid
-     * @param bool $apply Apply for fixed values only.
-     * @param int $cmid
-     * @param int $sectionid
-     * @return array|string the value of the coupon and its type in array or string represent the error if the code is not valid
-     */
-    public static function get_coupon_value($coupon, $userid, $instanceid = 0, $apply = false, $cmid = 0, $sectionid = 0) {
-        return coupons::get_coupon_value($coupon, $userid, $apply, $instanceid, $cmid, $sectionid);
-    }
-
-    /**
-     * Apply the coupon for enrolment or topping up the wallet.
-     * @param array $coupondata
-     * @param int $userid
-     * @param int $instanceid
-     * @return void
-     */
-    public static function apply_coupon($coupondata, $userid, $instanceid) {
-        $coupon = new coupons($coupondata['code'], $userid);
-        if (!empty($instanceid)) {
-            $area = coupons::AREA_ENROL;
-            $areaid = $instanceid;
-        } else {
-            $area = coupons::AREA_TOPUP;
-            $areaid = 0;
-        }
-        return $coupon->apply_coupon($area, $areaid);
-    }
-
-    /**
-     * Check if the coupon is valid to be used in this area.
-     * returns string on error and true if valid.
-     * @param array $coupondata code, value, type, courses, category
-     * @param array $area the area at which the coupon applied (instanceid, cmid, sectionid)
-     * @return bool|string
-     */
-    public static function validate_coupon($coupondata, $area = []) {
-        global $DB, $USER;
-
-        if (is_string($coupondata)) {
-            return $coupondata;
-        }
-        $coupons = new coupons($coupondata['code']);
-        if (!empty($area['instanceid'])) {
-            $areatype = coupons::AREA_ENROL;
-            $areaid = $area['instanceid'];
-        } else if (!empty($area['cmid'])) {
-            $areatype = coupons::AREA_CM;
-            $areaid = $area['cmid'];
-        } else if (!empty($area['sectionid'])) {
-            $areatype = coupons::AREA_SECTION;
-            $areaid = $area['sectionid'];
-        } else {
-            $areatype = coupons::AREA_TOPUP;
-            $areaid = 0;
-        }
-        return $coupons->validate_coupon($areatype, $areaid);
-    }
-    /**
-     * Called when the coupon get used and mark it as used.
-     * @param string $coupon the coupon code.
-     * @param int $userid
-     * @param int $instanceid
-     * @param string $type percent or fixed.
-     * @param float $value the value of the coupon
-     * @return void
-     */
-    public static function mark_coupon_used($coupon, $userid, $instanceid = 0, $type = '', $value = '') {
-        $coupons = new coupons($coupon, $userid);
-        if (!empty($instanceid)) {
-            $area = coupons::AREA_ENROL;
-            $areaid = $instanceid;
-        } else {
-            $area = coupons::AREA_TOPUP;
-            $areaid = 0;
-        }
-        $coupons->validate_coupon($area, $areaid);
-        $coupons->mark_coupon_used();
     }
 }
 
