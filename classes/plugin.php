@@ -22,6 +22,7 @@ use enrol_wallet\form\topup_form;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
+use enrol_wallet\local\coupons\types\base as type_base;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\restriction\cohorts;
 use enrol_wallet\local\restriction\courses;
@@ -50,31 +51,6 @@ use enrol_wallet\deleteselectedusers_operation;
  * @copyright 2025 Mohammad Farouk <phun.for.physics@gmail.com>
  */
 class enrol_wallet_plugin extends enrol_plugin {
-
-    /**
-     * If coupons disabled.
-     */
-    public const WALLET_NOCOUPONS = coupons::NOCOUPONS;
-    /**
-     * If only fixed value coupons enabled.
-     */
-    public const WALLET_COUPONSFIXED = coupons::FIXED;
-    /**
-     * If only percentage discount coupons enabled.
-     */
-    public const WALLET_COUPONSDISCOUNT = coupons::DISCOUNT;
-    /**
-     * If all coupons enabled.
-     */
-    public const WALLET_COUPONSALL = coupons::ALL;
-    /**
-     * If enrol coupons available.
-     */
-    public const WALLET_COUPONSENROL = coupons::ENROL;
-    /**
-     * If category coupons available.
-     */
-    public const WALLET_COUPONCAT = coupons::CATEGORY;
     /**
      * If the user has insufficient balance.
      */
@@ -335,25 +311,8 @@ class enrol_wallet_plugin extends enrol_plugin {
         $credit = $cost;
         if (!empty($coupons)) {
             foreach ($coupons as $coupon) {
-                $coupontype = coupons::type_to_int($coupon->type);
-                switch ($coupontype) {
-                    case coupons::FIXED:
-                    case coupons::CATEGORY:
-                        $credit -= $coupon->value;
-                        break;
-                    case coupons::DISCOUNT:
-                        $credit -= ($cost * $coupon->value / 100);
-                        break;
-                    case coupons::ENROL:
-                        $credit -= $cost;
-                        break;
-                    case coupons::FIXEDDISCOUNT:
-                        $discount = $cost - max(0, $cost - $coupon->value);
-                        $credit -= $discount;
-                        break;
-                    default:
-                        break;
-                }
+                $coupon = type_base::make($coupon);
+                $credit -= $coupon->get_discounted_value($credit);
             }
         }
 

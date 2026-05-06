@@ -18,8 +18,16 @@ namespace enrol_wallet\local\coupons;
 
 use context_course;
 use enrol_wallet\local\config;
-use enrol_wallet\local\coupons\coupons;
-use enrol_wallet\local\coupons\generator;
+use enrol_wallet\local\coupons\types\base as type_base;
+use enrol_wallet\local\coupons\types\category;
+use enrol_wallet\local\coupons\types\enrol;
+use enrol_wallet\local\coupons\types\fixed;
+use enrol_wallet\local\coupons\types\fixeddis;
+use enrol_wallet\local\coupons\types\percent;
+use enrol_wallet\local\coupons\areas\cm as area_cm;
+use enrol_wallet\local\coupons\areas\enrol as area_enrol;
+use enrol_wallet\local\coupons\areas\section as area_section;
+use enrol_wallet\local\coupons\areas\topup as area_topup;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
@@ -248,35 +256,35 @@ final class coupons_test extends \advanced_testcase {
         $coupons = new coupons('fixed1');
         $this->assertFalse($coupons->is_enabled_type());
 
-        $this->set_config(coupons::DISCOUNT);
+        $this->set_config(percent::TYPE);
         $coupons = new coupons('fixed1');
         $this->assertFalse($coupons->is_enabled_type());
 
-        $this->set_config(coupons::NOCOUPONS);
+        $this->set_config(type_base::NOCOUPONS);
         $coupons = new coupons('fixed1');
         $this->assertFalse($coupons->is_enabled_type());
 
-        $this->set_config([coupons::DISCOUNT, coupons::ENROL, coupons::CATEGORY]);
+        $this->set_config([percent::TYPE, enrol::TYPE, category::TYPE]);
         $coupons = new coupons('fixed1');
         $this->assertFalse($coupons->is_enabled_type());
 
-        $this->set_config([coupons::DISCOUNT, coupons::ALL]);
+        $this->set_config([percent::TYPE, type_base::enable_all_types(false)]);
         $coupons = new coupons('fixed1');
         $this->assertTrue($coupons->is_enabled_type());
 
-        $this->set_config([coupons::FIXED, coupons::NOCOUPONS]);
+        $this->set_config([category::TYPE, percent::TYPE]);
         $coupons = new coupons('fixed1');
         $this->assertFalse($coupons->is_enabled_type());
 
-        $this->set_config(coupons::FIXED);
+        $this->set_config(fixed::TYPE);
         $coupons = new coupons('fixed1');
         $this->assertTrue($coupons->is_enabled_type());
 
-        $this->set_config(coupons::ALL);
+        type_base::enable_all_types();
         $coupons = new coupons('fixed1');
         $this->assertTrue($coupons->is_enabled_type());
 
-        $this->set_config([coupons::FIXED, coupons::CATEGORY]);
+        $this->set_config([fixed::TYPE, category::TYPE]);
         $coupons = new coupons('fixed1');
         $this->assertTrue($coupons->is_enabled_type());
     }
@@ -287,15 +295,15 @@ final class coupons_test extends \advanced_testcase {
      */
     public function test_is_enabled(): void {
         $this->assertFalse(coupons::is_enabled());
-        $this->set_config(coupons::DISCOUNT);
+        $this->set_config(percent::TYPE);
         $this->assertTrue(coupons::is_enabled());
-        $this->set_config(coupons::NOCOUPONS);
+        $this->set_config(type_base::NOCOUPONS);
         $this->assertFalse(coupons::is_enabled());
-        $this->set_config(coupons::ALL);
+        type_base::enable_all_types();
         $this->assertTrue(coupons::is_enabled());
-        $this->set_config([coupons::FIXED, coupons::CATEGORY]);
+        $this->set_config([fixed::TYPE, category::TYPE]);
         $this->assertTrue(coupons::is_enabled());
-        $this->set_config([coupons::FIXED, coupons::NOCOUPONS]);
+        $this->set_config([]);
         $this->assertFalse(coupons::is_enabled());
         $this->set_config(null);
         $this->assertFalse(coupons::is_enabled());
@@ -306,7 +314,7 @@ final class coupons_test extends \advanced_testcase {
      * @covers ::validate_coupon()
      */
     public function test_validate_fixed_coupon(): void {
-        $this->set_config(coupons::ALL);
+        type_base::enable_all_types();
         // Not logged in.
         $coupons = new coupons('fixed1');
         $this->assertNotTrue($coupons->validate_coupon());
@@ -315,13 +323,13 @@ final class coupons_test extends \advanced_testcase {
         // Logged in valid coupon.
         // Valid in any area.
         $coupons = new coupons('fixed1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_TOPUP));
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons = new coupons('fixed1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons = new coupons('fixed1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+        $this->assertTrue($coupons->validate_coupon(area_cm::AREA, $this->cm1->id));
         $coupons = new coupons('fixed1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id));
+        $this->assertTrue($coupons->validate_coupon(area_section::AREA, $this->sec1->id));
 
         // Test exceeding max usage.
         $coupons = new coupons('fixed2');
@@ -381,116 +389,116 @@ final class coupons_test extends \advanced_testcase {
      */
     public function test_validate_enrol_coupon(): void {
         $this->setUser($this->u1);
-        $this->set_config([coupons::ENROL]);
-        $coupons    = new coupons('enrol1');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
+        $this->set_config([enrol::TYPE]);
+        $coupons = new coupons('enrol1');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst1->id);
         $this->assertTrue($validation);
 
-        $coupons    = new coupons('enrol1');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst5->id);
+        $coupons = new coupons('enrol1');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst5->id);
         $this->assertNotTrue($validation, $validation);
 
-        $coupons    = new coupons('enrol3');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst5->id);
+        $coupons = new coupons('enrol3');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst5->id);
         $this->assertTrue($validation);
 
-        $coupons    = new coupons('enrol1');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
+        $coupons = new coupons('enrol1');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst7->id);
         $this->assertTrue($validation);
 
         // Invalid areas.
-        $coupons    = new coupons('enrol1');
-        $validation = $coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id);
+        $coupons = new coupons('enrol1');
+        $validation = $coupons->validate_coupon(area_cm::AREA, $this->cm1->id);
         $this->assertNotTrue($validation, $validation);
 
-        $coupons    = new coupons('enrol1');
-        $validation = $coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id);
+        $coupons = new coupons('enrol1');
+        $validation = $coupons->validate_coupon(area_section::AREA, $this->sec1->id);
         $this->assertNotTrue($validation, $validation);
 
-        $coupons    = new coupons('enrol1');
-        $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
+        $coupons = new coupons('enrol1');
+        $validation = $coupons->validate_coupon(area_topup::AREA);
         $this->assertNotTrue($validation, $validation);
 
         // Invalid record.
         $coupons = new coupons('enrol4');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
 
-        // Exeeds max usage.
+        // Exceeds max usage.
         $coupons = new coupons('enrol5');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
-        $this->assertEquals(0, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
+        $this->assertEquals(0, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
         $coupons->mark_coupon_used();
-        $this->assertEquals(1, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
+        $this->assertEquals(1, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
         $coupons = new coupons('enrol5');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
         $coupons->mark_coupon_used();
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(2, $coupons->get_user_use());
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(2, $coupons->coupon->get_user_use());
         $coupons = new coupons('enrol5');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         // Exceed max usage per user.
         $coupons = new coupons('enrol6');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
-        $this->assertEquals(0, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
+        $this->assertEquals(0, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
         $coupons->mark_coupon_used();
-        $this->assertEquals(1, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
+        $this->assertEquals(1, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
         $coupons = new coupons('enrol6');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $coupons->mark_coupon_used();
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(2, $coupons->get_user_use());
-        $coupons    = new coupons('enrol6');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id);
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(2, $coupons->coupon->get_user_use());
+        $coupons = new coupons('enrol6');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst4->id);
         $this->assertNotTrue($validation);
         $coupons = new coupons('enrol6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         $this->setUser($this->u2);
 
         $coupons = new coupons('enrol6');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
         $coupons->mark_coupon_used();
         $coupons = new coupons('enrol6');
-        $this->assertEquals(3, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertEquals(3, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $coupons->mark_coupon_used();
         $coupons = new coupons('enrol6');
-        $this->assertEquals(4, $coupons->get_total_use());
-        $this->assertEquals(2, $coupons->get_user_use());
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertEquals(4, $coupons->coupon->get_total_use());
+        $this->assertEquals(2, $coupons->coupon->get_user_use());
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst4->id));
         $coupons = new coupons('enrol6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         $this->setUser($this->u3);
 
         $coupons = new coupons('enrol6');
-        $this->assertEquals(4, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertEquals(4, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
         $coupons->mark_coupon_used();
         $coupons = new coupons('enrol6');
-        $this->assertEquals(5, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertEquals(5, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $coupons = new coupons('enrol6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst4->id));
         $coupons = new coupons('enrol6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         // Not available yet.
         $coupons = new coupons('enrol7');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
         // Expired.
         $coupons = new coupons('enrol8');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
     }
 
     /**
@@ -498,57 +506,57 @@ final class coupons_test extends \advanced_testcase {
      * @covers ::validate_coupon()
      */
     public function test_validate_discount_coupon(): void {
-        $this->set_config(coupons::DISCOUNT);
+        $this->set_config(percent::TYPE);
         $coupons = new coupons('percent1');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $this->setUser($this->u1);
         $coupons = new coupons('percent1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons = new coupons('percent1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+        $this->assertTrue($coupons->validate_coupon(area_cm::AREA, $this->cm1->id));
         $coupons = new coupons('percent1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id));
+        $this->assertTrue($coupons->validate_coupon(area_section::AREA, $this->sec1->id));
         $coupons = new coupons('percent1');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_TOPUP));
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
 
         $coupons = new coupons('percent3');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons = new coupons('percent4');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
 
         // Expired.
         $coupons = new coupons('percent5');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
-        $this->assertEquals(0, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
+        $this->assertEquals(0, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
         $coupons->mark_coupon_used();
-        $this->assertEquals(1, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
+        $this->assertEquals(1, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
         $coupons = new coupons('percent5');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
         $coupons->mark_coupon_used();
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(2, $coupons->get_user_use());
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(2, $coupons->coupon->get_user_use());
         $coupons = new coupons('percent5');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         // Exceed max usage per user.
         $coupons = new coupons('percent6');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
-        $this->assertEquals(0, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
+        $this->assertEquals(0, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
         $coupons->mark_coupon_used();
-        $this->assertEquals(1, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
+        $this->assertEquals(1, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
         $coupons = new coupons('percent6');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $coupons->mark_coupon_used();
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(2, $coupons->get_user_use());
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(2, $coupons->coupon->get_user_use());
         $coupons = new coupons('percent6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst4->id));
         $coupons = new coupons('percent6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         $this->setUser($this->u2);
 
@@ -556,13 +564,13 @@ final class coupons_test extends \advanced_testcase {
         $balanceop->credit(100);
 
         $coupons = new coupons('percent6'); // 50% .
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
 
         // Check if discount coupons marked as used when the user get enrolled.
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst2->id);
-        $wallet   = new enrol_wallet_plugin();
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst2->id);
+        $wallet = new enrol_wallet_plugin();
         $instance = new instance($this->inst2);
         $this->assertEquals(10, $instance->get_cost_after_discount());
 
@@ -571,49 +579,49 @@ final class coupons_test extends \advanced_testcase {
         $this->assertEquals(90, $balance->get_total_balance());
 
         $coupons = new coupons('percent6');
-        $this->assertEquals(3, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertEquals(3, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $this->assertTrue(is_enrolled(context_course::instance($this->inst2->courseid)));
 
         $coupons->mark_coupon_used();
         $coupons = new coupons('percent6');
-        $this->assertEquals(4, $coupons->get_total_use());
-        $this->assertEquals(2, $coupons->get_user_use());
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertEquals(4, $coupons->coupon->get_total_use());
+        $this->assertEquals(2, $coupons->coupon->get_user_use());
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst4->id));
         $coupons = new coupons('percent6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         $this->setUser($this->u3);
 
         $coupons = new coupons('percent6');
-        $this->assertEquals(4, $coupons->get_total_use());
-        $this->assertEquals(0, $coupons->get_user_use());
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertEquals(4, $coupons->coupon->get_total_use());
+        $this->assertEquals(0, $coupons->coupon->get_user_use());
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
         $coupons->mark_coupon_used();
         $coupons = new coupons('percent6');
-        $this->assertEquals(5, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertEquals(5, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $coupons = new coupons('percent6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst4->id));
         $coupons = new coupons('percent6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
 
         // No available yet coupon.
         $coupons = new coupons('percent7');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
 
         // Expired coupon.
         $coupons = new coupons('percent8');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
 
         // Restricted by a category.
         $coupons = new coupons('percent9');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
 
         $coupons = new coupons('percent9');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst4->id));
     }
 
     /**
@@ -621,80 +629,80 @@ final class coupons_test extends \advanced_testcase {
      * @covers ::validate_coupon()
      */
     public function test_validate_fixed_discount_coupon(): void {
-        $this->set_config(coupons::FIXEDDISCOUNT);
+        $this->set_config(fixeddis::TYPE);
         $coupons = new coupons('fixeddiscount1');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $this->setUser($this->u1);
         $coupons = new coupons('fixeddiscount1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons = new coupons('fixeddiscount1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+        $this->assertTrue($coupons->validate_coupon(area_cm::AREA, $this->cm1->id));
         $coupons = new coupons('fixeddiscount1');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id));
+        $this->assertTrue($coupons->validate_coupon(area_section::AREA, $this->sec1->id));
         $coupons = new coupons('fixeddiscount1');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_TOPUP));
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
 
         $coupons = new coupons('fixeddiscount2');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons->mark_coupon_used();
         $this->setUser($this->u2);
         $coupons = new coupons('fixeddiscount2');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons->mark_coupon_used();
         $coupons = new coupons('fixeddiscount2');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
 
         $coupons = new coupons('fixeddiscount3');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons->mark_coupon_used();
 
         $coupons = new coupons('fixeddiscount3');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
         $coupons->mark_coupon_used();
 
         $coupons = new coupons('fixeddiscount3');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $coupons = new coupons('fixeddiscount3');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_cm::AREA, $this->cm1->id));
 
         $this->setUser($this->u1);
         $coupons = new coupons('fixeddiscount3');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons->mark_coupon_used();
 
         $coupons = new coupons('fixeddiscount3');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
         $coupons->mark_coupon_used();
 
         $coupons = new coupons('fixeddiscount3');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
         $coupons = new coupons('fixeddiscount3');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_cm::AREA, $this->cm1->id));
 
         $this->setUser($this->u3);
         $coupons = new coupons('fixeddiscount3');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
         $coupons->mark_coupon_used();
 
         $coupons = new coupons('fixeddiscount3');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst2->id));
-        $this->assertEquals(5, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst2->id));
+        $this->assertEquals(5, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
 
         $coupons = new coupons('fixeddiscount4');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
 
         $this->setUser($this->u5);
         $coupons = new coupons('fixeddiscount5');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst3->id));
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_CM, $this->cm3->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst3->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_cm::AREA, $this->cm3->id));
 
         $coupons = new coupons('fixeddiscount6');
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id));
-        $this->assertNotTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst4->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst1->id));
+        $this->assertNotTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst4->id));
         $this->assertEquals(get_course($this->inst7->courseid)->category, $this->cat4->id);
         $coupons = new coupons('fixeddiscount6');
-        $this->assertTrue($coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id));
+        $this->assertTrue($coupons->validate_coupon(area_enrol::AREA, $this->inst7->id));
     }
 
     /**
@@ -702,68 +710,68 @@ final class coupons_test extends \advanced_testcase {
      * @covers ::validate_coupons()
      */
     public function test_validate_category_coupon(): void {
-        $this->set_config(coupons::CATEGORY);
+        $this->set_config(category::TYPE);
         // Not logged in.
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst1->id);
         $this->assertNotTrue($validation);
 
         // Logged in used in the same category (valid).
         $this->setUser($this->u1->id);
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst1->id);
         $this->assertTrue($validation);
 
         // Used in a child category (valid).
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst7->id);
         $this->assertTrue($validation);
 
         // Used in parent category (not valid).
-        $coupons    = new coupons('category2');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst1->id);
+        $coupons = new coupons('category2');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst1->id);
         $this->assertNotTrue($validation);
 
         // Used in the same category (valid).
-        $coupons    = new coupons('category2');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
+        $coupons = new coupons('category2');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst7->id);
         $this->assertTrue($validation);
 
         // Valid for other areas.
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_topup::AREA);
         $this->assertTrue($validation);
 
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_SECTION, $this->sec1->id);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_section::AREA, $this->sec1->id);
         $this->assertTrue($validation);
 
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_CM, $this->cm1->id);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_cm::AREA, $this->cm1->id);
         $this->assertTrue($validation);
 
         // Different category sections and cms.
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_SECTION, $this->sec3->id);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_section::AREA, $this->sec3->id);
         $this->assertNotTrue($validation);
 
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_CM, $this->cm3->id);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_cm::AREA, $this->cm3->id);
         $this->assertNotTrue($validation);
 
         // Invalid record.
-        $coupons    = new coupons('category3');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
+        $coupons = new coupons('category3');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst7->id);
         $this->assertNotTrue($validation);
 
         config::make()->catbalance = 0;
 
-        $coupons    = new coupons('category1');
-        $validation = $coupons->validate_coupon(coupons::AREA_TOPUP);
+        $coupons = new coupons('category1');
+        $validation = $coupons->validate_coupon(area_topup::AREA);
         $this->assertNotTrue($validation);
 
-        $coupons    = new coupons('category2');
-        $validation = $coupons->validate_coupon(coupons::AREA_ENROL, $this->inst7->id);
+        $coupons = new coupons('category2');
+        $validation = $coupons->validate_coupon(area_enrol::AREA, $this->inst7->id);
         $this->assertTrue($validation);
     }
 
@@ -772,11 +780,11 @@ final class coupons_test extends \advanced_testcase {
      * @covers ::apply_coupon()
      */
     public function test_apply_fixed_coupon(): void {
-        $this->set_config(coupons::FIXED);
+        $this->set_config(fixed::TYPE);
         $coupons = new coupons('fixed1', $this->u1->id);
         $coupons->apply_coupon();
         $coupons = new coupons('fixed1', $this->u1->id);
-        $this->assertEquals(1, $coupons->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_total_use());
         $balance = new balance($this->u1->id);
         $this->assertEquals(50, $balance->get_main_balance());
         $this->assertEquals(50, $balance->get_main_nonrefundable());
@@ -784,11 +792,11 @@ final class coupons_test extends \advanced_testcase {
         $this->setUser($this->u2);
         $coupons = new coupons('fixed1');
         $coupons->apply_coupon();
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
         $coupons = new coupons('fixed1', $this->u1->id);
-        $this->assertEquals(2, $coupons->get_total_use());
-        $this->assertEquals(1, $coupons->get_user_use());
+        $this->assertEquals(2, $coupons->coupon->get_total_use());
+        $this->assertEquals(1, $coupons->coupon->get_user_use());
 
         $balance = new balance();
         $this->assertEquals(50, $balance->get_main_balance());
@@ -807,17 +815,18 @@ final class coupons_test extends \advanced_testcase {
         // Enrol area, sufficient value, credit then enrol.
         $this->setUser($this->u4);
         $coupons = new coupons('fixed1');
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst1->id);
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst1->id);
         $balance = balance::create_from_instance($this->inst1);
+
+        $this->assertTrue(is_enrolled(\context_course::instance($this->c1->id), $this->u4));
         $this->assertEquals(40, $balance->get_valid_balance());
         $this->assertEquals(40, $balance->get_valid_nonrefundable());
         $this->assertEquals(40, $balance->get_main_balance());
-        $this->assertTrue(is_enrolled(\context_course::instance($this->c1->id), $this->u4));
 
         // Enrol area, Insufficient value, credit only.
         $this->setUser($this->u5);
         $coupons = new coupons('fixed1');
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst7->id);
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst7->id);
         $balance = balance::create_from_instance($this->inst7->id);
         $this->assertEquals(50, $balance->get_valid_balance());
         $this->assertEquals(50, $balance->get_valid_nonrefundable());
@@ -827,9 +836,9 @@ final class coupons_test extends \advanced_testcase {
         // User with partial credit.
         $this->setUser($this->u6);
         $coupons = new coupons('fixed1');
-        $op      = new balance_op($this->u6->id);
+        $op = new balance_op($this->u6->id);
         $op->credit(40);
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst6->id);
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst6->id);
         $balance = balance::create_from_instance($this->inst6->id);
         $this->assertEquals(30, $balance->get_valid_balance());
         $this->assertEquals(30, $balance->get_valid_nonrefundable());
@@ -842,11 +851,11 @@ final class coupons_test extends \advanced_testcase {
      * @covers ::apply_coupon()
      */
     public function test_apply_category_coupon(): void {
-        $this->set_config(coupons::CATEGORY);
+        $this->set_config(category::TYPE);
 
         $this->setUser($this->u1);
         $coupons = new coupons('category1');
-        $coupons->apply_coupon(coupons::AREA_TOPUP);
+        $coupons->apply_coupon(area_topup::AREA);
 
         $balance = new balance($this->u1->id, $this->cat1->id);
         $this->assertEquals(0, $balance->get_main_balance());
@@ -859,9 +868,9 @@ final class coupons_test extends \advanced_testcase {
 
         $this->setUser($this->u2);
         $coupons = new coupons('category1');
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst1->id);
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst1->id);
         $balance = new balance($this->u2->id, $this->cat1->id);
-        $this->assertTrue(is_enrolled(\context_course::instance($this->c1->id), $this->u2));
+        $this->assertTrue(is_enrolled(context_course::instance($this->c1->id), $this->u2));
         $this->assertEquals(0, $balance->get_main_balance());
         $this->assertEquals(90, $balance->get_total_balance());
         $this->assertEquals(90, $balance->get_valid_balance());
@@ -869,8 +878,8 @@ final class coupons_test extends \advanced_testcase {
 
         $this->setUser($this->u3);
         $coupons = new coupons('category1');
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst4->id);
-        $this->assertFalse(is_enrolled(\context_course::instance($this->c4->id), $this->u3));
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst4->id);
+        $this->assertFalse(is_enrolled(context_course::instance($this->c4->id), $this->u3));
         $balance = new balance($this->u3->id, $this->cat1->id);
         $this->assertEquals(0, $balance->get_total_balance());
         $this->assertEquals(0, $balance->get_main_balance());
@@ -882,29 +891,29 @@ final class coupons_test extends \advanced_testcase {
      * @covers ::apply_coupon
      */
     public function test_apply_enrol_coupon(): void {
-        $this->set_config(coupons::ENROL);
+        $this->set_config(enrol::TYPE);
         $this->setUser($this->u1);
         $coupons = new coupons('enrol1');
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst1->id);
-        $this->assertTrue(is_enrolled(\context_course::instance($this->c1->id), $this->u1));
-        $this->assertFalse(is_enrolled(\context_course::instance($this->c7->id), $this->u1));
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst1->id);
+        $this->assertTrue(is_enrolled(context_course::instance($this->c1->id), $this->u1));
+        $this->assertFalse(is_enrolled(context_course::instance($this->c7->id), $this->u1));
         $balance = new balance($this->u1->id);
         $this->assertEquals(0, $balance->get_total_balance());
 
         $this->setUser($this->u2);
         $coupons = new coupons('enrol1');
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst7->id);
-        $this->assertTrue(is_enrolled(\context_course::instance($this->c7->id), $this->u2));
-        $this->assertFalse(is_enrolled(\context_course::instance($this->c1->id), $this->u2));
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst7->id);
+        $this->assertTrue(is_enrolled(context_course::instance($this->c7->id), $this->u2));
+        $this->assertFalse(is_enrolled(context_course::instance($this->c1->id), $this->u2));
         $balance = new balance($this->u1->id);
         $this->assertEquals(0, $balance->get_total_balance());
 
         $this->setUser($this->u3);
         $coupons = new coupons('enrol1');
-        $coupons->apply_coupon(coupons::AREA_ENROL, $this->inst3->id);
-        $this->assertFalse(is_enrolled(\context_course::instance($this->c3->id), $this->u3));
-        $this->assertFalse(is_enrolled(\context_course::instance($this->c1->id), $this->u3));
-        $this->assertFalse(is_enrolled(\context_course::instance($this->c7->id), $this->u3));
+        $coupons->apply_coupon(area_enrol::AREA, $this->inst3->id);
+        $this->assertFalse(is_enrolled(context_course::instance($this->c3->id), $this->u3));
+        $this->assertFalse(is_enrolled(context_course::instance($this->c1->id), $this->u3));
+        $this->assertFalse(is_enrolled(context_course::instance($this->c7->id), $this->u3));
         $balance = new balance($this->u1->id);
         $this->assertEquals(0, $balance->get_total_balance());
     }
@@ -919,18 +928,18 @@ final class coupons_test extends \advanced_testcase {
         parent::setUp();
 
         $this->resetAfterTest();
-        $this->gen    = $this->getDataGenerator();
+        $this->gen = $this->getDataGenerator();
         $this->wallet = new enrol_wallet_plugin();
 
         // Create users.
         for ($i = 1; $i <= 6; $i++) {
-            $var        = 'u' . $i;
+            $var = 'u' . $i;
             $this->$var = $this->gen->create_user();
         }
 
         // Create Categoies.
         for ($i = 1; $i <= 4; $i++) {
-            $var    = 'cat' . $i;
+            $var = 'cat' . $i;
             $record = [];
 
             if ($i == 4) {
@@ -942,7 +951,7 @@ final class coupons_test extends \advanced_testcase {
         // Create courses.
         for ($i = 1; $i <= 7; $i++) {
             $record = new \stdClass();
-            $var    = 'c' . $i;
+            $var = 'c' . $i;
 
             $record->category = match($i) {
                 1, 2 => $this->cat1->id,
@@ -956,28 +965,28 @@ final class coupons_test extends \advanced_testcase {
             // Update the enrolment instances for each course.
             $instance = $DB->get_record('enrol', ['courseid' => $this->$var->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
 
-            $instance->status      = ENROL_INSTANCE_ENABLED;
-            $instance->customint6  = 1;
-            $instance->cost        = 10 * $i;
+            $instance->status = ENROL_INSTANCE_ENABLED;
+            $instance->customint6 = 1;
+            $instance->cost = 10 * $i;
             $instance->enrolperiod = DAYSECS;
             $DB->update_record('enrol', $instance);
             $this->wallet->update_status($instance, ENROL_INSTANCE_ENABLED);
-            $inst        = 'inst' . $i;
+            $inst = 'inst' . $i;
             $this->$inst = $instance;
 
             if ($i <= 3) {
-                $record          = new \stdClass();
+                $record = new \stdClass();
                 $record->section = 1;
-                $record->course  = $this->$var->id;
-                $sec             = 'sec' . $i;
-                $this->$sec      = $this->gen->create_course_section($record);
+                $record->course = $this->$var->id;
+                $sec = 'sec' . $i;
+                $this->$sec = $this->gen->create_course_section($record);
             }
 
             if ($i <= 5) {
-                $record          = new \stdClass();
+                $record = new \stdClass();
                 $record->section = $this->$sec->id ?? null;
-                $record->course  = $this->$var->id;
-                $cm              = 'cm' . $i;
+                $record->course = $this->$var->id;
+                $cm = 'cm' . $i;
 
                 $page = $this->gen->create_module('page', $record);
 
@@ -986,55 +995,142 @@ final class coupons_test extends \advanced_testcase {
         }
 
         // Created coupons in the database.
-        $now     = timedate::time();
+        $now = timedate::time();
         $expired = $now - 2 * DAYSECS;
-        $notav   = $now + 2 * DAYSECS;
+        $notav = $now + 2 * DAYSECS;
         // Fixed coupons.
-        generator::create_coupon_record(code: 'fixed1', type: 'fixed', value: 50);
-        generator::create_coupon_record(code: 'fixed2', type: 'fixed', value: 100, maxusage: 2);
-        generator::create_coupon_record(code: 'fixed3', type: 'fixed', value: 70, maxusage: 5, maxperuser: 2);
-        generator::create_coupon_record(code: 'fixed4', type: 'fixed', value: 70, validfrom: $notav);
-        generator::create_coupon_record(code: 'fixed5', type: 'fixed', value: 50, validto: $expired);
+        generator::create_coupon_record(
+            code: 'fixed1',
+            type: fixed::get_type(),
+            value: 50
+        );
+        generator::create_coupon_record(
+            code: 'fixed2',
+            type: fixed::get_type(),
+            value: 100,
+            maxusage: 2
+        );
+        generator::create_coupon_record(
+            code: 'fixed3',
+            type: fixed::get_type(),
+            value: 70,
+            maxusage: 5,
+            maxperuser: 2
+        );
+        generator::create_coupon_record(
+            code: 'fixed4',
+            type: fixed::get_type(),
+            value: 70,
+            validfrom: $notav
+        );
+        generator::create_coupon_record(
+            code: 'fixed5',
+            type: fixed::get_type(),
+            value: 50,
+            validto: $expired
+        );
 
         // Discount coupons.
-        generator::create_coupon_record(code: 'percent1', type: 'percent', value: 20);
-        generator::create_coupon_record(code: 'percent2', type: 'percent', value: 50);
-        generator::create_coupon_record(code: 'percent3', type: 'percent', value: 100);
-        generator::create_coupon_record(code: 'percent4', type: 'percent', value: 150); // Invalid value.
-        generator::create_coupon_record(code: 'percent5', type: 'percent', value: 50, maxusage: 2);
-        generator::create_coupon_record(code: 'percent6', type: 'percent', value: 50, maxusage: 5, maxperuser: 2);
-        generator::create_coupon_record(code: 'percent7', type: 'percent', value: 50, validfrom: $notav);
-        generator::create_coupon_record(code: 'percent8', type: 'percent', value: 50, validto: $expired);
-        generator::create_coupon_record(code: 'percent9', type: 'percent', value: 50, category: $this->cat1->id);
-        generator::create_coupon_record(code: 'percent10', type: 'percent', value: 50, category: $this->cat2->id);
+        generator::create_coupon_record(
+            code: 'percent1',
+            type: percent::get_type(),
+            value: 20
+        );
+        generator::create_coupon_record(
+            code: 'percent2',
+            type: percent::get_type(),
+            value: 50
+        );
+        generator::create_coupon_record(
+            code: 'percent3',
+            type: percent::get_type(),
+            value: 100
+        );
+        generator::create_coupon_record(
+            code: 'percent4',
+            type: percent::get_type(),
+            value: 150
+        ); // Invalid value.
+        generator::create_coupon_record(
+            code: 'percent5',
+            type: percent::get_type(),
+            value: 50,
+            maxusage: 2
+        );
+        generator::create_coupon_record(
+            code: 'percent6',
+            type: percent::get_type(),
+            value: 50,
+            maxusage: 5,
+            maxperuser: 2
+        );
+        generator::create_coupon_record(
+            code: 'percent7',
+            type: percent::get_type(),
+            value: 50,
+            validfrom: $notav
+        );
+        generator::create_coupon_record(
+            code: 'percent8',
+            type: percent::get_type(),
+            value: 50,
+            validto: $expired
+        );
+        generator::create_coupon_record(
+            code: 'percent9',
+            type: percent::get_type(),
+            value: 50,
+            category: $this->cat1->id
+        );
+        generator::create_coupon_record(
+            code: 'percent10',
+            type: percent::get_type(),
+            value: 50,
+            category: $this->cat2->id
+        );
 
         // Enrol coupons.
-        generator::create_coupon_record(code: 'enrol1', type: 'enrol', courses: [$this->c1->id, $this->c7->id]);
-        generator::create_coupon_record(code: 'enrol2', type: 'enrol', courses: [$this->c2->id, $this->c3->id, $this->c4->id]);
-        generator::create_coupon_record(code: 'enrol3', type: 'enrol', courses: [$this->c5->id]);
-        generator::create_coupon_record(code: 'enrol4', type: 'enrol');
+        generator::create_coupon_record(
+            code: 'enrol1',
+            type: enrol::get_type(),
+            courses: [$this->c1->id, $this->c7->id]
+        );
+        generator::create_coupon_record(
+            code: 'enrol2',
+            type: enrol::get_type(),
+            courses: [$this->c2->id, $this->c3->id, $this->c4->id]
+        );
+        generator::create_coupon_record(
+            code: 'enrol3',
+            type: enrol::get_type(),
+            courses: [$this->c5->id]
+        );
+        generator::create_coupon_record(
+            code: 'enrol4',
+            type: enrol::get_type()
+        );
         generator::create_coupon_record(
             code: 'enrol5',
-            type: 'enrol',
+            type: enrol::get_type(),
             courses: [$this->c2->id, $this->c3->id, $this->c4->id],
             maxusage: 2
         );
         generator::create_coupon_record(
             code: 'enrol6',
-            type: 'enrol',
+            type: enrol::get_type(),
             courses: [$this->c2->id, $this->c3->id, $this->c4->id],
             maxusage: 5,
             maxperuser: 2
         );
         generator::create_coupon_record(
             code: 'enrol7',
-            type: 'enrol',
+            type: enrol::get_type(),
             courses: [$this->c2->id, $this->c3->id, $this->c4->id],
             validfrom: $notav
         );
         generator::create_coupon_record(
             code: 'enrol8',
-            type: 'enrol',
+            type: enrol::get_type(),
             courses: [$this->c2->id, $this->c3->id, $this->c4->id],
             validto: $expired
         );
@@ -1042,31 +1138,31 @@ final class coupons_test extends \advanced_testcase {
         // Category coupons.
         generator::create_coupon_record(
             code: 'category1',
-            type: 'category',
+            type: category::get_type(),
             value: 100,
             category: $this->cat1->id
         );
         generator::create_coupon_record(
             code: 'category2',
-            type: 'category',
+            type: category::get_type(),
             value: 70,
             category: $this->cat4->id
         ); // Shouldn't be valid in its parent.
         generator::create_coupon_record(
             code: 'category3',
-            type: 'category',
+            type: category::get_type(),
             value: 50
         ); // Invalid record.
         generator::create_coupon_record(
             code: 'category4',
-            type: 'category',
+            type: category::get_type(),
             value: 50,
             category: $this->cat3->id,
             maxusage: 2
         );
         generator::create_coupon_record(
             code: 'category5',
-            type: 'category',
+            type: category::get_type(),
             value: 100,
             category: $this->cat3->id,
             maxusage: 5,
@@ -1074,32 +1170,71 @@ final class coupons_test extends \advanced_testcase {
         );
         generator::create_coupon_record(
             code: 'category6',
-            type: 'category',
+            type: category::get_type(),
             value: 70,
             category: $this->cat3->id,
             validfrom: $notav
         );
         generator::create_coupon_record(
             code: 'category7',
-            type: 'category',
+            type: category::get_type(),
             value: 50,
             category: $this->cat3->id,
             validto: $expired
         );
 
-        $fixeddiscount = coupons::type_to_string(coupons::FIXEDDISCOUNT);
+        $fixeddiscount = fixeddis::get_type();
         // Fixed discount value coupons.
-        generator::create_coupon_record(code: 'fixeddiscount1', type: $fixeddiscount, value: 50);
-        generator::create_coupon_record(code: 'fixeddiscount2', type: $fixeddiscount, value: 100, maxusage: 2);
-        generator::create_coupon_record(code: 'fixeddiscount3', type: $fixeddiscount, value: 70, maxusage: 5, maxperuser: 2);
-        generator::create_coupon_record(code: 'fixeddiscount4', type: $fixeddiscount, value: 70, validfrom: $notav);
-        generator::create_coupon_record(code: 'fixeddiscount5', type: $fixeddiscount, value: 50, validto: $expired);
+        generator::create_coupon_record(
+            code: 'fixeddiscount1',
+            type: $fixeddiscount,
+            value: 50
+        );
+        generator::create_coupon_record(
+            code: 'fixeddiscount2',
+            type: $fixeddiscount,
+            value: 100,
+            maxusage: 2
+        );
+        generator::create_coupon_record(
+            code: 'fixeddiscount3',
+            type: $fixeddiscount,
+            value: 70,
+            maxusage: 5,
+            maxperuser: 2
+        );
+        generator::create_coupon_record(
+            code: 'fixeddiscount4',
+            type: $fixeddiscount,
+            value: 70,
+            validfrom: $notav
+        );
+        generator::create_coupon_record(
+            code: 'fixeddiscount5',
+            type: $fixeddiscount,
+            value: 50,
+            validto: $expired
+        );
         // For certain category.
-        generator::create_coupon_record(code: 'fixeddiscount6', type: $fixeddiscount, value: 50, category: $this->cat4->id);
+        generator::create_coupon_record(
+            code: 'fixeddiscount6',
+            type: $fixeddiscount,
+            value: 50,
+            category: $this->cat4->id
+        );
         // For certain course.
-        generator::create_coupon_record(code: 'fixeddiscount7', type: $fixeddiscount, value: 50, courses: [$this->c1->id]);
+        generator::create_coupon_record(
+            code: 'fixeddiscount7',
+            type: $fixeddiscount,
+            value: 50,
+            courses: [$this->c1->id]
+        );
         // High value.
-        generator::create_coupon_record(code: 'fixeddiscount8', type: $fixeddiscount, value: 200);
+        generator::create_coupon_record(
+            code: 'fixeddiscount8',
+            type: $fixeddiscount,
+            value: 200
+        );
     }
 
     /**

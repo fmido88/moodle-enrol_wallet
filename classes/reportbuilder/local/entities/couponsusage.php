@@ -22,7 +22,7 @@ use core_reportbuilder\local\filters\select;
 use core_reportbuilder\local\filters\user;
 use core_reportbuilder\local\report\column;
 use core_reportbuilder\local\report\filter;
-use enrol_wallet\local\coupons\coupons as couponshelper;
+use enrol_wallet\local\coupons\areas\base as area_base;
 use lang_string;
 use stdClass;
 
@@ -53,7 +53,7 @@ class couponsusage extends base {
     }
 
     /**
-     * Initialise the entity, called automatically when it is added to a report
+     * Initialise the entity, called automatically when it is added to a report.
      *
      * This is where entity defines all its columns and filters by calling:
      * - {@see add_column}
@@ -82,7 +82,7 @@ class couponsusage extends base {
         $columns = [];
 
         $cusagealias = $this->get_table_alias('enrol_wallet_coupons_usage');
-        $columns[]   = (new column(
+        $columns[] = (new column(
             'area',
             new lang_string('couponarea', 'enrol_wallet'),
             $this->get_entity_name()
@@ -95,9 +95,16 @@ class couponsusage extends base {
                 // For old versions of the plugin where area was not set.
                 return '';
             }
-            return couponshelper::get_area_visible_name($area);
+            $class = area_base::get_class_from_area_code($area);
+
+            if (!$class) {
+                // Bad developer.
+                return '';
+            }
+
+            return $class::get_visible_name();
         });
-        $columns[]   = (new column(
+        $columns[] = (new column(
             'areaname',
             new lang_string('couponareaname', 'enrol_wallet'),
             $this->get_entity_name()
@@ -110,7 +117,15 @@ class couponsusage extends base {
                 // For old versions of the plugin where area was not set.
                 return '';
             }
-            return couponshelper::get_used_area_name($row->area, $row->instanceid, true);
+            $class = area_base::get_class_from_area_code($row->area);
+
+            if (!$class) {
+                // Bad developer.
+                return '';
+            }
+            $class = new $class($row->instanceid);
+
+            return $class->get_name(true);
         });
         $columns[] = (new column(
             'timeused',
@@ -120,9 +135,7 @@ class couponsusage extends base {
         ->add_field("{$cusagealias}.timeused")
         ->add_joins($this->get_joins())
         ->set_is_sortable(true)
-        ->set_callback(function ($time) {
-            return userdate($time);
-        });
+        ->set_callback(static fn ($time) => userdate($time));
 
         return $columns;
     }
@@ -132,7 +145,7 @@ class couponsusage extends base {
      * @return filter[]
      */
     public function get_all_filters() {
-        $filters     = [];
+        $filters = [];
         $cusagealias = $this->get_table_alias('enrol_wallet_coupons_usage');
 
         $filters[] = new filter(
@@ -151,11 +164,7 @@ class couponsusage extends base {
             "{$cusagealias}.timeused"
         );
 
-        $areaoptions = [];
-
-        foreach (couponshelper::AREAS as $str => $int) {
-            $areaoptions[$int] = couponshelper::get_area_visible_name($str);
-        }
+        $areaoptions = area_base::get_area_list();
 
         $filters[] = (new filter(
             select::class,

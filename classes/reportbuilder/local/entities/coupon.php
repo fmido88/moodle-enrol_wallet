@@ -28,7 +28,7 @@ use core_reportbuilder\local\helpers\format;
 use core_reportbuilder\local\report\action;
 use core_reportbuilder\local\report\column;
 use core_reportbuilder\local\report\filter;
-use enrol_wallet\local\coupons\coupons as couponshelper;
+use enrol_wallet\local\coupons\types\base as type_base;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\reportbuilder\local\filters\coupons_course_selector;
@@ -91,8 +91,8 @@ class coupon extends base {
      * @return column[]
      */
     public function get_all_columns() {
-        $columns      = [];
-        $canviewcode  = has_capability('enrol/wallet:viewcoupon', \context_system::instance());
+        $columns = [];
+        $canviewcode = has_capability('enrol/wallet:viewcoupon', \context_system::instance());
         $couponsalias = $this->get_table_alias('enrol_wallet_coupons');
 
         $columns[] = (new column(
@@ -133,7 +133,11 @@ class coupon extends base {
         ->add_field("{$couponsalias}.type")
         ->set_is_sortable(true)
         ->set_callback(function ($type) {
-            return couponshelper::get_type_visible_name($type);
+            if ($typebase = type_base::get_class_name_from_type($type)) {
+                return $typebase::get_visible_name();
+            }
+
+            return null;
         });
 
         $columns[] = (new column(
@@ -177,12 +181,13 @@ class coupon extends base {
         ->set_is_sortable(false)
         ->set_callback(function ($courses) {
             global $DB;
+
             if (empty($courses)) {
                 return '';
             }
 
             $courses = array_filter(array_map('trim', explode(',', $courses)));
-            $list    = [];
+            $list = [];
 
             foreach ($courses as $courseid) {
                 if (!isset(self::$courses[$courseid])) {
@@ -310,7 +315,7 @@ class coupon extends base {
      */
     public function get_all_filters() {
         $filters = [];
-        $calias  = $this->get_table_alias('enrol_wallet_coupons');
+        $calias = $this->get_table_alias('enrol_wallet_coupons');
 
         $filters[] = new filter(
             text::class,
@@ -337,8 +342,9 @@ class coupon extends base {
         );
 
         $options = [];
-        $coupontypes = array_flip(couponshelper::TYPES);
-        foreach (couponshelper::get_coupons_options() as $type => $name) {
+        $coupontypes = array_flip(type_base::get_types());
+
+        foreach (type_base::get_coupons_options() as $type => $name) {
             $options[$coupontypes[$type]] = $name;
         }
 
@@ -434,6 +440,7 @@ class coupon extends base {
         $actions = [];
 
         $systemcontext = \core\context\system::instance();
+
         if (has_capability('enrol/wallet:editcoupon', $systemcontext)) {
             $actions[] = new action(
                 url: manage::EDIT_COUPON->url(['id' => ':id', 'sesskey' => sesskey()]),

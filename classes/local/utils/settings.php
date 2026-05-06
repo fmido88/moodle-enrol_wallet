@@ -34,6 +34,7 @@ use core\output\html_writer;
 use core\plugininfo\enrol;
 use enrol_wallet\admin\admin_setting_wp_notice;
 use enrol_wallet\local\coupons\coupons;
+use enrol_wallet\local\coupons\types\base as type_base;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\manage;
@@ -428,7 +429,7 @@ class settings {
         ));
         $page->hide_if('enrol_wallet/catbalance', 'enrol_wallet/walletsource', 'eq', balance::WP);
         // Adding options to enable and disable coupons.
-        $choices = coupons::get_coupons_options();
+        $choices = type_base::get_coupons_options();
         $page->add(new admin_setting_configmulticheckbox(
             'enrol_wallet/coupons',
             get_string('couponstype', 'enrol_wallet'),

@@ -29,6 +29,7 @@ use context_course;
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\generator;
+use enrol_wallet\local\coupons\types\{fixed, fixeddis, percent, category, enrol};
 use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\wallet\balance;
 use moodle_url;
@@ -86,10 +87,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -142,10 +143,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -237,10 +238,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -295,10 +296,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -358,10 +359,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -415,10 +416,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -471,10 +472,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -520,10 +521,10 @@ final class applycoupon_form_test extends \advanced_testcase {
 
         // Enable all coupon types.
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::DISCOUNT,
-            coupons::ENROL,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            percent::TYPE,
+            enrol::TYPE,
+            category::TYPE,
         ]);
 
         // Create a user.
@@ -734,8 +735,8 @@ final class applycoupon_form_test extends \advanced_testcase {
         global $CFG, $PAGE;
         $this->resetAfterTest();
         config::make()->coupons = implode(',', [
-            coupons::FIXED,
-            coupons::CATEGORY,
+            fixed::TYPE,
+            category::TYPE,
         ]);
         // Create a user.
         $user = $this->getDataGenerator()->create_user();
@@ -756,8 +757,6 @@ final class applycoupon_form_test extends \advanced_testcase {
             value: 50.0,
             maxusage: 10
         );
-
-        $coupon = new coupons($record->code);
 
         $_POST['coupon'] = $couponcode;
         $redirect = null;

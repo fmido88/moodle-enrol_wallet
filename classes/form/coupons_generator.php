@@ -24,6 +24,8 @@
 
 namespace enrol_wallet\form;
 
+use enrol_wallet\local\coupons\types\base as type_base;
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir.'/formslib.php');
@@ -54,19 +56,20 @@ class coupons_generator extends \moodleform {
         $mform->addHelpButton('code', 'coupon_code', 'enrol_wallet');
         $mform->hideIf('code' , 'method', 'eq', 'random');
 
-        $types = [
-            'fixed'    => get_string('fixedvaluecoupon', 'enrol_wallet'),
-            'percent'  => get_string('percentdiscountcoupon', 'enrol_wallet'),
-            'enrol'    => get_string('enrolcoupon', 'enrol_wallet'),
-            'category' => get_string('categorycoupon', 'enrol_wallet'),
-        ];
+        $types = type_base::get_coupons_options(true);
         $mform->addElement('select', 'type', get_string('coupon_type', 'enrol_wallet'), $types);
         $mform->addHelpButton('type', 'coupon_type', 'enrol_wallet');
 
         $mform->addElement('text', 'value', get_string('coupon_value', 'enrol_wallet'));
         $mform->setType('value', PARAM_FLOAT);
         $mform->addHelpButton('value', 'coupon_value', 'enrol_wallet');
-        $mform->hideIf('value', 'type', 'eq', 'enrol');
+
+        $classes = type_base::get_classes();
+        foreach ($classes as $class) {
+            if (!$class::has_value()) {
+                $mform->hideIf('value', 'type', 'eq', $class::get_type());
+            }
+        }
 
         $categories = \core_course_category::get_all();
         $catoptions = [];
@@ -75,7 +78,11 @@ class coupons_generator extends \moodleform {
         }
         $mform->addElement('select', 'category',  get_string('category'),  $catoptions);
         $mform->addHelpButton('category', 'category_options', 'enrol_wallet');
-        $mform->hideIf('category', 'type', 'neq', 'category');
+        foreach ($classes as $class) {
+            if (!$class::can_specify_category()) {
+                $mform->hideIf('category', 'type', 'eq', $class::get_type());
+            }
+        }
 
         $courses = get_courses();
         $courseoptions = [];
@@ -84,7 +91,11 @@ class coupons_generator extends \moodleform {
         }
         $mform->addElement('autocomplete', 'courses', get_string('courses'), $courseoptions, ['multiple' => true]);
         $mform->addHelpButton('courses', 'courses_options', 'enrol_wallet');
-        $mform->hideIf('courses', 'type', 'neq', 'enrol');
+        foreach ($classes as $class) {
+            if (!$class::can_specify_courses()) {
+                $mform->hideIf('courses', 'type', 'eq', $class::get_type());
+            }
+        }
 
         $mform->addElement('text', 'number', get_string('coupons_number', 'enrol_wallet'));
         $mform->setType('number', PARAM_INT);
@@ -146,40 +157,8 @@ class coupons_generator extends \moodleform {
     public function validation($data, $files) {
         global $DB;
         $errors = parent::validation($data, $files);
-        $type = $data['type'];
+        type_base::validate_generator_form($data, $errors);
 
-        if (empty($data['value']) && $type != 'enrol') {
-            $errors['value'] = get_string('coupons_valueerror', 'enrol_wallet');
-        }
-
-        if ($type == 'enrol' && empty($data['courses'])) {
-            $errors['courses'] = get_string('coupons_courseserror', 'enrol_wallet');
-        }
-
-        if ($type == 'category' && empty($data['category'])) {
-            $errors['category'] = get_string('coupons_category_error', 'enrol_wallet');
-        }
-
-        if ($type == 'percent' && $data['value'] > 100) {
-            $errors['value'] = get_string('invalidpercentcoupon', 'enrol_wallet');
-        }
-
-        if ($data['method'] == 'single') {
-            if (empty($data['code'])) {
-                $errors['code'] = get_string('coupon_code_error', 'enrol_wallet');
-            } else if ($DB->record_exists('enrol_wallet_coupons', ['code' => $data['code']])) {
-                $errors['code'] = get_string('coupon_exist', 'enrol_wallet');
-            }
-        }
-
-        if ($data['method'] == 'random' && empty($data['number'])) {
-            $errors['number'] = get_string('coupon_generator_nonumber', 'enrol_wallet');
-        }
-
-        if (!empty($data['maxperuser']) && $data['maxperuser'] > $data['maxusage']) {
-            $errors['maxperuser'] = get_string('coupon_generator_peruser_gt_max', 'enrol_wallet');
-            $errors['maxusage'] = get_string('coupon_generator_peruser_gt_max', 'enrol_wallet');
-        }
         return $errors;
     }
 }

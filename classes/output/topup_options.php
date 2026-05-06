@@ -164,9 +164,16 @@ class topup_options implements templatable, renderable {
      */
     public function get_coupon_topup() {
         // Check if fixed coupons enabled.
-        $enabledcoupons = coupons::get_enabled();
-        $intersect = array_intersect($enabledcoupons, [coupons::ALL, coupons::FIXED, coupons::CATEGORY]);
-        if (empty($intersect)) {
+        $enabledtypes = \enrol_wallet\local\coupons\types\base::get_enabled_classes();
+        $hastopup = false;
+        foreach ($enabledtypes as $class) {
+            if ($class::is_topup_coupon()) {
+                $hastopup = true;
+                break;
+            }
+        }
+
+        if (!$hastopup) {
             return null;
         }
 
