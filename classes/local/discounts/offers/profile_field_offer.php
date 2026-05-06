@@ -14,10 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace enrol_wallet\local\discounts;
+namespace enrol_wallet\local\discounts\offers;
 
 use availability_profile\condition as profile_c;
 use core\exception\coding_exception;
+use enrol_wallet\local\discounts\fake_info;
 use MoodleQuickForm;
 use phpunit_util;
 use stdClass;

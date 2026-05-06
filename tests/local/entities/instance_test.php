@@ -19,6 +19,7 @@ namespace enrol_wallet\local\entities;
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\generator;
+use enrol_wallet\local\coupons\types\{fixeddis, fixed, percent, enrol, category, base as type_base};
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
@@ -96,30 +97,29 @@ final class instance_test extends \advanced_testcase {
         $op->credit(150);
 
         // Create percent discount coupon.
-        $all             = implode(',', coupons::TYPES);
-        $config->coupons = $all;
+        type_base::enable_all_types();
         generator::create_coupon_record(code: 'test1', type: 'percent', value: 50, maxusage: 1);
         generator::create_coupon_record(
             code: 'test2',
-            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            type: fixeddis::get_type(),
             value: 50,
             maxusage: 1
         );
         generator::create_coupon_record(
             code: 'test3',
-            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            type: fixeddis::get_type(),
             value: 150,
             maxusage: 1
         );
         generator::create_coupon_record(
             code: 'test4',
-            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            type: fixeddis::get_type(),
             value: 200,
             maxusage: 1
         );
         generator::create_coupon_record(
             code: 'test5',
-            type: coupons::type_to_string(coupons::FIXEDDISCOUNT),
+            type: fixeddis::get_type(),
             value: 250,
             maxusage: 1
         );
@@ -153,7 +153,7 @@ final class instance_test extends \advanced_testcase {
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(0, $costafter);
 
-        $config->coupons = coupons::DISCOUNT;
+        $config->coupons = percent::TYPE;
         coupons::set_session_coupon('test1');
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(100, $costafter);
@@ -162,7 +162,7 @@ final class instance_test extends \advanced_testcase {
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
 
-        $config->coupons = coupons::FIXEDDISCOUNT;
+        $config->coupons = fixeddis::TYPE;
         coupons::set_session_coupon('test1');
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
@@ -171,17 +171,17 @@ final class instance_test extends \advanced_testcase {
         $costafter = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(150, $costafter);
 
-        $config->coupons = coupons::FIXED . ',' . coupons::ENROL;
+        $config->coupons = fixed::TYPE . ',' . enrol::TYPE;
         $costafter       = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
 
-        $config->coupons = coupons::NOCOUPONS;
+        $config->coupons = '';
         $costafter       = $walletplugin->get_cost_after_discount($user2->id, $instance1, true);
         $this->assertEquals(200, $costafter);
         coupons::unset_session_coupon();
 
         // Create a fixed & category coupons and check that there is no discount.
-        $config->coupons = enrol_wallet_plugin::WALLET_COUPONSALL;
+        type_base::enable_all_types();
         generator::create_coupon_record(code: 'test6', type: 'fixed', value: 50, maxusage: 1);
         generator::create_coupon_record(code: 'test7', type: 'category', value: 50, category: $course1->category, maxusage: 1);
 
@@ -264,7 +264,7 @@ final class instance_test extends \advanced_testcase {
 
         // Enable the repurchase.
         $config->repurchase = 1;
-        $wallet             = new enrol_wallet_plugin();
+        $wallet = new enrol_wallet_plugin();
         $this->assertTrue($wallet->can_self_enrol($instance));
         $this->assertEquals(100, $inst->get_cost_after_discount());
 

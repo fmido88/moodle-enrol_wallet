@@ -14,11 +14,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace enrol_wallet\local\discounts;
+namespace enrol_wallet\local\discounts\offers;
 
 use HTML_QuickForm_element;
 use MoodleQuickForm;
-use MoodleQuickForm_group;
 
 /**
  * Unit tests for profile_field_offer class functionality.

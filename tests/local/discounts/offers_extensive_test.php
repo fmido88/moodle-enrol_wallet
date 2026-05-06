@@ -27,6 +27,12 @@ namespace enrol_wallet\local\discounts;
 
 use context_course;
 use enrol_wallet\local\config;
+use enrol_wallet\local\discounts\offers\course_enrol_count_offer;
+use enrol_wallet\local\discounts\offers\courses_enrol_same_cat_offer;
+use enrol_wallet\local\discounts\offers\offers_set;
+use enrol_wallet\local\discounts\offers\other_category_courses_offer;
+use enrol_wallet\local\discounts\offers\profile_field_offer;
+use enrol_wallet\local\discounts\offers\time_offer;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\utils\timedate;
@@ -942,7 +948,9 @@ class offers_extensive_test extends \advanced_testcase {
         config::make()->discount_behavior = instance::B_SUM;
         $discountedcost = $instance->get_cost_after_discount();
         $expectedcost = 1000 * (100 - $offersobj->get_sum_discounts()) / 100;
-        $this->assertEqualsWithDelta($expectedcost, $discountedcost, 0.01);
+        ob_start();
+        var_dump($instance, $offersobj);
+        $this->assertEqualsWithDelta($expectedcost, $discountedcost, 0.01, ob_get_clean());
 
         $instance->mark_as_dirty();
         config::make()->discount_behavior = instance::B_MAX;

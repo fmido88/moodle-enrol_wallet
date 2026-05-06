@@ -14,9 +14,9 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace enrol_wallet\local\discounts;
+namespace enrol_wallet\local\discounts\offers;
 
-use core_text;
+use enrol_wallet\local\discounts\offers;
 use html_writer;
 use MoodleQuickForm;
 use phpunit_util;

@@ -25,6 +25,12 @@
 
 namespace enrol_wallet\local\discounts;
 
+use enrol_wallet\local\discounts\offers\courses_enrol_same_cat_offer;
+use enrol_wallet\local\discounts\offers\offer_item;
+use enrol_wallet\local\discounts\offers\offers_set;
+use enrol_wallet\local\discounts\offers\profile_field_offer;
+use enrol_wallet\local\discounts\offers\time_offer;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once("{$CFG->dirroot}/user/profile/lib.php");
