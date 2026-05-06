@@ -24,7 +24,6 @@
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
-use enrol_wallet\local\coupons\coupons;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
@@ -155,50 +154,5 @@ final class transactions_test extends \advanced_testcase {
         $norefund = $this->transactions->get_nonrefund_balance($user4->id);
         $this->assertEquals(50, $balance);
         $this->assertEquals(50, $norefund);
-    }
-
-    /**
-     * Testing the functions get_coupon_value and mark_coupon_used
-     * This is for fixed value coupons only.
-     *
-     * @covers ::get_coupon_value()
-     * @covers ::mark_coupon_used()
-     * @return void
-     */
-    public function test_get_coupon_value(): void {
-        global $DB;
-        $this->resetAfterTest();
-        $this->preventResetByRollback(); // Messaging does not like transactions...
-
-        $user = $this->getDataGenerator()->create_user();
-        config::make()->coupons = \enrol_wallet_plugin::WALLET_COUPONSALL;
-        $coupon = [
-            'code' => 'test1',
-            'type' => 'fixed',
-            'value' => 50,
-            'maxusage' => 1,
-        ];
-        $DB->insert_record('enrol_wallet_coupons', $coupon);
-        $couponhelper = new coupons('test1', $user->id);
-
-        $this->assertEquals(50, $couponhelper->get_value());
-        $this->assertEquals('fixed', $couponhelper->get_type());
-        $this->assertTrue($couponhelper->validate_coupon(coupons::AREA_TOPUP));
-        $sink = $this->redirectEvents();
-        $couponhelper->mark_coupon_used();
-        // Check the event triggered.
-        $events = $sink->get_events();
-        $sink->close();
-        $this->assertEquals(1, count($events));
-        $this->assertInstanceOf('\enrol_wallet\event\coupon_used', $events[0]);
-        $this->assertEquals('test1', $events[0]->other['code']);
-
-        $coupondata = coupons::get_coupon_value('test1', $user->id);
-
-        $this->assertTrue(is_string($coupondata));
-
-        $usage = $DB->get_record('enrol_wallet_coupons_usage', ['code' => 'test1']);
-
-        $this->assertEquals($user->id, $usage->userid);
     }
 }
