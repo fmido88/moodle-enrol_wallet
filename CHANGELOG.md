@@ -1,5 +1,20 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 6.2.0 ##
+- Create separated classes for coupons areas and coupons types to make it easier for adding or modifying them in the future.
+- Add new hooks to allow other component to define new coupon types and applying areas.
+- Refactor discounts and its classes for how to apply discounts to enrol instances and by availability made it much more flexible and easy to modify in the future.
+- Add new hook to add discounts upon purchase by other components.
+- Final deprecation of coupons related methods in transactions class.
+
+## V 6.1.0 ##
+- Refactor transaction report table to use system report instead for better filtering.
+- Add new report for balances through the whole site.
+- Add charts for credit and debit transaction for visual statistics.
+
+## V 6.0.2 ##
+- Fix double instance creation bug.
+
 ## V 6.0.1 ##
 - Major refactor to modern namespaced architecture for Moodle 5.0+.
 - New wallet entity classes and clean separation for instance and course calculations.
