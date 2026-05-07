@@ -26,6 +26,7 @@ namespace enrol_wallet\local\coupons;
 
 use core\exception\coding_exception;
 use enrol_wallet\local\config;
+use enrol_wallet\local\coupons\areas\empty_area;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
