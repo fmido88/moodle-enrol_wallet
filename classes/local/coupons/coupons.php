@@ -38,21 +38,25 @@ use enrol_wallet_plugin as wallet;
 class coupons {
     /**
      * Applying coupon on enrol area.
+     * @deprecated Please use coupons\areas\enrol::AREA
      */
     public const AREA_ENROL = areas\enrol::AREA;
 
     /**
      * Applying coupon on cm (for availability_wallet).
+     * @deprecated Please use coupons\areas\cm::AREA
      */
     public const AREA_CM = areas\cm::AREA;
 
     /**
      * Applying coupon on section (for availability_wallet).
+     * @deprecated Please use coupons\areas\section::AREA
      */
     public const AREA_SECTION = areas\section::AREA;
 
     /**
      * Applying coupon in topping up form.
+     * @deprecated Please use coupons\areas\topup::AREA
      */
     public const AREA_TOPUP = areas\topup::AREA;
 

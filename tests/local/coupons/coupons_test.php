@@ -317,7 +317,7 @@ final class coupons_test extends \advanced_testcase {
         type_base::enable_all_types();
         // Not logged in.
         $coupons = new coupons('fixed1');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
 
         $this->setUser($this->u1);
         // Logged in valid coupon.
@@ -333,54 +333,54 @@ final class coupons_test extends \advanced_testcase {
 
         // Test exceeding max usage.
         $coupons = new coupons('fixed2');
-        $this->assertTrue($coupons->validate_coupon());
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons->mark_coupon_used();
         $this->setUser($this->u2);
         $coupons = new coupons('fixed2');
-        $this->assertTrue($coupons->validate_coupon());
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons->mark_coupon_used();
         $coupons = new coupons('fixed2');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
         $this->setUser($this->u3);
         $coupons = new coupons('fixed2');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
         $this->setUser($this->u1);
         $coupons = new coupons('fixed2');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
 
         // Exceeding max usage per user.
         $coupons = new coupons('fixed3');
-        $this->assertTrue($coupons->validate_coupon());
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons->mark_coupon_used();
         $coupons = new coupons('fixed3');
-        $this->assertTrue($coupons->validate_coupon());
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons->mark_coupon_used();
         $coupons = new coupons('fixed3');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
 
         $this->setUser($this->u2);
         $coupons = new coupons('fixed3');
-        $this->assertTrue($coupons->validate_coupon());
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons->mark_coupon_used();
         $coupons = new coupons('fixed3');
-        $this->assertTrue($coupons->validate_coupon());
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons->mark_coupon_used();
         $coupons = new coupons('fixed3');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
 
         $this->setUser($this->u3);
         $coupons = new coupons('fixed3');
-        $this->assertTrue($coupons->validate_coupon());
+        $this->assertTrue($coupons->validate_coupon(area_topup::AREA));
         $coupons->mark_coupon_used();
         $coupons = new coupons('fixed3');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
 
         // Not available yet coupon.
         $coupons = new coupons('fixed4');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
         // Expired coupon.
         $coupons = new coupons('fixed5');
-        $this->assertNotTrue($coupons->validate_coupon());
+        $this->assertNotTrue($coupons->validate_coupon(area_topup::AREA));
     }
 
     /**
