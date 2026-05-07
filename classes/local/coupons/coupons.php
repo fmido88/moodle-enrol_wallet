@@ -110,7 +110,7 @@ class coupons {
 
         $this->set_coupon_data($code, $this->userid);
         // Default area.
-        $this->set_area(areas\topup::AREA, 0);
+        $this->area = new empty_area();
     }
 
     /**
