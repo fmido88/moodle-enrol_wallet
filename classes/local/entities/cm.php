@@ -24,11 +24,11 @@
 
 namespace enrol_wallet\local\entities;
 
-use enrol_wallet\local\coupons\coupons;
+use enrol_wallet\local\coupons\areas\cm as cmarea;
 use stdClass;
 
 /**
- * Helper class for wallet enrolment instance
+ * Helper class for wallet enrolment instance.
  * @package enrol_wallet
  */
 class cm extends entity {
@@ -48,7 +48,7 @@ class cm extends entity {
      * Create a new enrol wallet instance helper class.
      * store the cost after discount.
      *
-     * @param int $cmid The enrol wallet instance or its id.
+     * @param int $cmid   The enrol wallet instance or its id.
      * @param int $userid the id of the user, 0 means the current user.
      */
     public function __construct(int $cmid, int $userid = 0) {
@@ -62,6 +62,7 @@ class cm extends entity {
             $this->set_costs($conditions);
         }
     }
+
     /**
      * Get the cm context.
      * @return \core\context\module
@@ -77,13 +78,15 @@ class cm extends entity {
     public function get_name(): string {
         return $this->get_context()->get_context_name(false);
     }
+
     /**
      * Get the coupon area.
      * @return int
      */
     public static function get_coupon_area(): int {
-        return coupons::AREA_CM;
+        return cmarea::AREA;
     }
+
     /**
      * Set all available costs for this cm, considering multiple conditions may be applied.
      * @param \stdClass $conditions the availability tree.
@@ -101,15 +104,17 @@ class cm extends entity {
     /**
      * Calculate percentage discount for a user from custom profile field and coupon code.
      * and then return the cost of the cm after discount.
-     * @param ?float $cost The cost passed in the availability_wallet process
-     *                    We check this cost against all costs in availability tree
+     * @param  ?float     $cost The cost passed in the availability_wallet process
+     *                          We check this cost against all costs in availability tree
      * @return float|null
      */
     public function get_cost_after_discount(?float $cost = null): ?float {
         if (!\in_array($cost, $this->costs)) {
-            debugging("The cost passes to get_cost_after_discount() is not in the cost list.", DEBUG_DEVELOPER);
+            debugging('The cost passes to get_cost_after_discount() is not in the cost list.', DEBUG_DEVELOPER);
+
             return null;
         }
+
         return parent::get_cost_after_discount($cost);
     }
 }

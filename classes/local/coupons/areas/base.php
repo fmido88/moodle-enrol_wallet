@@ -166,7 +166,7 @@ abstract class base {
      * @param  int              $catid
      * @return cat_entity|mixed
      */
-    public function get_cat_entity(int $catid) {
+    final public function get_cat_entity(int $catid) {
         if (!isset(self::$catentities[$catid])) {
             self::$catentities[$catid] = new cat_entity($catid);
         }
@@ -176,6 +176,7 @@ abstract class base {
 
     /**
      * Return the area as string.
+     * Important to be override if the area added by hook.
      * @return string
      */
     public static function get_area(): string {
@@ -186,10 +187,11 @@ abstract class base {
 
     /**
      * Get the class name from given area code.
-     * @param  int              $area
+     * @param  int $area
+     *
      * @return base|string|null
      */
-    public static function get_class_from_area_code(int $area): ?string {
+    final public static function get_class_from_area_code(int $area): ?string {
         $classes = self::get_classes();
 
         foreach ($classes as $class) {

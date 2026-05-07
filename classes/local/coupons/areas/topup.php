@@ -17,6 +17,7 @@
 namespace enrol_wallet\local\coupons\areas;
 
 use enrol_wallet\local\coupons\types\base as type_base;
+use enrol_wallet\local\entities\entity;
 use enrol_wallet\local\wallet\balance_op;
 use stdClass;
 
@@ -55,7 +56,7 @@ class topup extends base {
     }
 
     #[\Override()]
-    public function get_entity(int $userid = 0): \enrol_wallet\local\entities\entity|null {
+    public function get_entity(int $userid = 0): ?entity {
         return null;
     }
 

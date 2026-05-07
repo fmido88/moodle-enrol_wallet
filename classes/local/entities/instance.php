@@ -25,17 +25,16 @@
 namespace enrol_wallet\local\entities;
 
 use enrol_wallet\local\config;
+use enrol_wallet\local\coupons\areas\enrol as enrolarea;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet_plugin;
+use enrol_wallet_plugin as wallet;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
 global $CFG;
 require_once($CFG->dirroot . '/enrol/wallet/lib.php');
-
-use enrol_wallet\local\coupons\coupons;
-use enrol_wallet_plugin as wallet;
 
 /**
  * Helper class for wallet enrolment instance.
@@ -94,7 +93,6 @@ use enrol_wallet_plugin as wallet;
  * @property int    $timemodified               The time at which the instance was modified.
  */
 class instance extends entity implements \IteratorAggregate {
-
     /**
      * The enrol wallet instance.
      * @var stdClass
@@ -143,7 +141,7 @@ class instance extends entity implements \IteratorAggregate {
      * @return int
      */
     public static function get_coupon_area(): int {
-        return coupons::AREA_ENROL;
+        return enrolarea::AREA;
     }
 
     /**
@@ -285,7 +283,7 @@ class instance extends entity implements \IteratorAggregate {
         if (!isset($this->costafter) || !isset($this->discounts)) {
             return;
         }
-        $cache            = new \stdClass();
+        $cache = new \stdClass();
         $cache->costafter = $this->get_cost_after_discount();
         $cache->discounts = $this->discounts;
 
@@ -314,8 +312,8 @@ class instance extends entity implements \IteratorAggregate {
 
         if ($activeonly) {
             $sql .= ' AND ue.status = :status AND (ue.timeend = 0 OR ue.timeend > :timenow1) AND ue.timestart < :timenow2';
-            $now                = timedate::time();
-            $params['status']   = ENROL_USER_ACTIVE;
+            $now = timedate::time();
+            $params['status'] = ENROL_USER_ACTIVE;
             $params['timenow1'] = $now;
             $params['timenow2'] = $now;
         }
@@ -326,13 +324,14 @@ class instance extends entity implements \IteratorAggregate {
     /**
      * Check if the user has a wallet enrollment in
      * a given course.
-     * @param int $courseid
-     * @param int $userid
-     * @param bool $activeonly
+     * @param  int  $courseid
+     * @param  int  $userid
+     * @param  bool $activeonly
      * @return bool
      */
     public static function is_enrolled_by_wallet(int $courseid, int $userid = 0, bool $activeonly = true) {
         global $DB, $USER;
+
         if ($userid <= 0) {
             $userid = (int)$USER->id;
         }
@@ -344,21 +343,22 @@ class instance extends entity implements \IteratorAggregate {
                   AND e.enrol = :wallet
                   AND e.courseid = :courseid';
         $params = [
-            'wallet'  => 'wallet',
-            'userid'  => $userid,
+            'wallet'   => 'wallet',
+            'userid'   => $userid,
             'courseid' => $courseid,
         ];
 
         if ($activeonly) {
             $sql .= ' AND ue.status = :status AND (ue.timeend = 0 OR ue.timeend > :timenow1) AND ue.timestart < :timenow2';
-            $now                = timedate::time();
-            $params['status']   = ENROL_USER_ACTIVE;
+            $now = timedate::time();
+            $params['status'] = ENROL_USER_ACTIVE;
             $params['timenow1'] = $now;
             $params['timenow2'] = $now;
         }
 
         return $DB->record_exists_sql($sql, $params);
     }
+
     /**
      * Get the user enrollments records for this instance.
      * @return array
@@ -419,11 +419,12 @@ class instance extends entity implements \IteratorAggregate {
      */
     protected function calculate_cost_after_discount(): void {
         $instance = $this->instance;
-        $cost     = $instance->cost;
+        $cost = $instance->cost;
 
         if (!is_numeric($cost) || $cost < 0) {
             $this->nocost = true;
             $this->discounts = [];
+
             return;
         }
         $this->nocost = false;
@@ -433,6 +434,7 @@ class instance extends entity implements \IteratorAggregate {
         if ($cost === 0.0) {
             $this->costafter = $cost;
             $this->discounts = [];
+
             return;
         }
 
@@ -447,6 +449,7 @@ class instance extends entity implements \IteratorAggregate {
 
         $this->calculate_discount($cost);
     }
+
     #[\Override()]
     public function get_behavior(): int {
         return (int)config::make()->discount_behavior;
@@ -464,6 +467,7 @@ class instance extends entity implements \IteratorAggregate {
             $this->calculate_cost_after_discount();
         }
     }
+
     /**
      * Update the instance record in the database.
      * @return bool
@@ -475,18 +479,20 @@ class instance extends entity implements \IteratorAggregate {
         $done = $plugin->update_instance($record, $record);
         $this->instance = $DB->get_record('enrol', ['id' => $this->id]);
         $this->mark_as_dirty();
+
         return $done;
     }
 
     /**
      * Set the userid to calculate the discount for.
-     * @param int|stdClass $user
+     * @param  int|stdClass $user
      * @return void
      */
     public function set_user(int|stdClass $user = 0): void {
         parent::set_user($user);
         $this->mark_as_dirty();
     }
+
     /**
      * Get the cost of the enrol instance after discount.
      * @param  ?float     $unused
@@ -519,6 +525,7 @@ class instance extends entity implements \IteratorAggregate {
         $this->check_dirty();
 
         $costafter = $this->get_cost_after_discount();
+
         if ($costafter === null) {
             return false;
         }
@@ -543,6 +550,7 @@ class instance extends entity implements \IteratorAggregate {
     public function get_rounded_discount(): int {
         $this->check_dirty();
         $costafter = $this->get_cost_after_discount();
+
         if ($costafter === null) {
             return 0;
         }
@@ -554,7 +562,7 @@ class instance extends entity implements \IteratorAggregate {
         $difference = $this->instance->cost - $costafter;
 
         if ($difference <= 0) {
-            $costs      = $this->get_all_costs();
+            $costs = $this->get_all_costs();
             $difference = max($costs) - $costafter;
         }
 
@@ -575,7 +583,7 @@ class instance extends entity implements \IteratorAggregate {
         $discounts = [];
 
         foreach ($instances as $instance) {
-            $helper      = new static($instance);
+            $helper = new static($instance);
             $discounts[] = $helper->get_rounded_discount();
         }
 
@@ -589,11 +597,11 @@ class instance extends entity implements \IteratorAggregate {
     public function get_all_costs(): array {
         global $DB;
         $instances = $DB->get_records('enrol', ['courseid' => $this->courseid]);
-        $costs     = [];
+        $costs = [];
 
         foreach ($instances as $instance) {
-            $wallet    = new wallet($instance);
-            $cost      = $wallet->get_cost_after_discount($this->userid, $instance);
+            $wallet = new wallet($instance);
+            $cost = $wallet->get_cost_after_discount($this->userid, $instance);
             $enrolstat = $wallet->can_self_enrol($instance);
 
             if (in_array($enrolstat, [true, wallet::INSUFFICIENT_BALANCE, wallet::INSUFFICIENT_BALANCE_DISCOUNTED], true)) {
@@ -610,7 +618,7 @@ class instance extends entity implements \IteratorAggregate {
      */
     public function get_the_cheapest_instance_id(): ?int {
         $costs = $this->get_all_costs();
-        $min   = min($costs);
+        $min = min($costs);
 
         foreach ($costs as $id => $cost) {
             if ($cost == $min) {

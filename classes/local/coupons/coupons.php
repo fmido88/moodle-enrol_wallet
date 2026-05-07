@@ -30,7 +30,6 @@ use enrol_wallet\local\coupons\areas\empty_area;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
-use enrol_wallet_plugin as wallet;
 
 /**
  * Class to handle coupons operations.
