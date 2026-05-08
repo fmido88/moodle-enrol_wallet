@@ -443,7 +443,10 @@ class coupon extends base {
 
         if (has_capability('enrol/wallet:editcoupon', $systemcontext)) {
             $actions[] = new action(
-                url: manage::EDIT_COUPON->url(['id' => ':id', 'sesskey' => sesskey()]),
+                url: manage::EDIT_COUPON->url([
+                    'id'      => ':id',
+                    'sesskey' => sesskey(),
+                ]),
                 icon: new pix_icon('i/edit', get_string('edit')),
                 title: new lang_string('edit')
             );

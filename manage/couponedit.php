@@ -28,30 +28,10 @@ use enrol_wallet\local\urls\reports;
 
 require_once('../../../config.php');
 
-require_login();
+require_login(null, false);
 require_capability('enrol/wallet:editcoupon', context_system::instance());
 
-$edit = optional_param('edit', false, PARAM_BOOL);
-$defaultdata = [
-    'id'         => required_param('id', PARAM_INT),
-    'code'       => required_param('code', PARAM_TEXT),
-    'type'       => required_param('type', PARAM_TEXT),
-    'category'   => optional_param('category', '', PARAM_INT),
-    'value'      => optional_param('value', 0, PARAM_FLOAT),
-    'maxusage'   => optional_param('maxusage', 1, PARAM_INT),
-    'maxperuser' => optional_param('maxperuser', 0, PARAM_INT),
-    'usetimes'   => optional_param('usetimes', 0, PARAM_INT),
-    'validfrom'  => optional_param('validfrom', 0, PARAM_INT),
-    'validto'    => optional_param('validto', 0, PARAM_INT),
-];
-if ($edit) {
-    $defaultdata['courses'] = optional_param('courses', '', PARAM_INT);
-} else {
-    $courses = optional_param_array('courses', '', PARAM_INT);
-    if (!empty($courses)) {
-        $defaultdata['courses'] = implode(',', $courses);
-    }
-}
+$id = required_param('id', PARAM_INT);
 
 // Setup the page.
 $PAGE->set_context(context_system::instance());
@@ -59,9 +39,9 @@ manage::EDIT_COUPON->set_page_url_to_me();
 $PAGE->set_title(get_string('coupon_edit_title', 'enrol_wallet'));
 $PAGE->set_heading(get_string('coupon_edit_heading', 'enrol_wallet'));
 
-$mform = new coupons_edit(null, $defaultdata);
+$form = new coupons_edit(null, ['id' => $id]);
 
-if ($data = $mform->get_data()) {
+if ($data = $form->get_data()) {
     global $DB;
 
     $id            = $data->id;
@@ -126,22 +106,10 @@ if ($data = $mform->get_data()) {
     if (!empty($usetimesreset)) {
         $coupondata['usetimes'] = 0;
     }
-    // Check if there is another code similar to this one.
-    $params = [
-        'id'   => $id,
-        'code' => $code,
-    ];
-    $select = 'code = :code AND id != :id';
-    $notvalid = $DB->record_exists_select('enrol_wallet_coupons', $select, $params);
 
-    if ($notvalid) {
-        $msg = get_string('coupon_exist', 'enrol_wallet');
-        $notify = 'warning';
-    } else {
-        $done = $DB->update_record('enrol_wallet_coupons', (object)$coupondata);
-        $msg = ($done) ? get_string('coupon_update_success', 'enrol_wallet') : get_string('coupon_update_failed', 'enrol_wallet');
-        $notify = ($done) ? 'success' : 'error';
-    }
+    $done = $DB->update_record('enrol_wallet_coupons', (object)$coupondata);
+    $msg = $done ? get_string('coupon_update_success', 'enrol_wallet') : get_string('coupon_update_failed', 'enrol_wallet');
+    $notify = $done ? 'success' : 'error';
 
     $url = reports::COUPONS->url();
     redirect($url, $msg, null, $notify);
@@ -149,6 +117,6 @@ if ($data = $mform->get_data()) {
 
 echo $OUTPUT->header();
 
-$mform->display();
+$form->display();
 
 echo $OUTPUT->footer();

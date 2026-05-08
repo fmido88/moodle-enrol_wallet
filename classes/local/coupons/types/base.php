@@ -625,15 +625,22 @@ abstract class base {
      */
     final public static function validate_generator_form(array $data, array &$errors): void {
         global $DB;
-        if ($data['method'] === 'single') {
+        if (\in_array($data['method'], ['single', 'edit'], true)) {
+            $params = [
+                'code' => $data['code'],
+            ];
+            $select = 'code = :code';
+            if ($data['method'] === 'edit') {
+                $params['id'] = $data['id'];
+                $select .= " AND id != :id";
+            }
+
             if (empty($data['code'])) {
                 $errors['code'] = get_string('coupon_code_error', 'enrol_wallet');
-            } else if ($DB->record_exists('enrol_wallet_coupons', ['code' => $data['code']])) {
+            } else if ($DB->record_exists_select('enrol_wallet_coupons', $select, $params)) {
                 $errors['code'] = get_string('coupon_exist', 'enrol_wallet');
             }
-        }
-
-        if ($data['method'] === 'random' && empty($data['number'])) {
+        } else if ($data['method'] === 'random' && empty($data['number'])) {
             $errors['number'] = get_string('coupon_generator_nonumber', 'enrol_wallet');
         }
 
