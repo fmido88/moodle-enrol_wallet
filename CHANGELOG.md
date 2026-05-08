@@ -1,5 +1,8 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 6.2.1 ##
+- Fix coupon edit error.
+
 ## V 6.2.0 ##
 - Create separated classes for coupons areas and coupons types to make it easier for adding or modifying them in the future.
 - Add new hooks to allow other component to define new coupon types and applying areas.
