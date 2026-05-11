@@ -179,8 +179,8 @@ class coupons {
 
         // First check if this type is enabled in the website.
         if (!$this->is_enabled_type()) {
-            $identifier = $this->coupon->get_type() . 'coupondisabled';
-            $this->error = get_string($identifier, 'enrol_wallet');
+            $name = $this->coupon->get_visible_name();
+            $this->error = get_string('coupon_disabled', 'enrol_wallet', $name);
             $this->valid = false;
 
             return false;
