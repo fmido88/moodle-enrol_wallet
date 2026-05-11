@@ -317,11 +317,11 @@ class courses_enrol_same_cat_offer extends offer_item {
         if ($courses === null) {
             $courses = [];
             // To be used in test.
-            if ($PAGE->course->id = SITEID) {
+            if ($PAGE->course->id == SITEID) {
                 $offer->gen_cat = $gen->create_category();
                 $cat = $offer->gen_cat->id;
             } else {
-                $cat = $PAGE->course->id;
+                $cat = $PAGE->course->category;
             }
 
             for ($i = 0; $i < 7; $i++) {
