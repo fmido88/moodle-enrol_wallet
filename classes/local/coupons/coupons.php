@@ -330,6 +330,10 @@ class coupons {
             $this->set_area($area, $areaid);
         }
 
+        if ($this->coupon instanceof null_type) {
+            return !empty($this->error) ? $this->error : get_string('coupon_notexist', 'enrol_wallet');
+        }
+
         if (!$this->check_enabled() || !$this->validate_record()) {
             return $this->error;
         }
