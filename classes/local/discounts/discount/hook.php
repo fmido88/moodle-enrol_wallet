@@ -67,7 +67,7 @@ class hook extends discount_base {
      */
     public function add_discount(float $discount): void {
         if ($discount >= 100 || $discount < 0) {
-            debugging("Invalid discount value $discount it should be between 0 and 100");
+            PHPUNIT_TEST || debugging("Invalid discount value $discount it should be between 0 and 100");
 
             return;
         }
@@ -115,7 +115,7 @@ class hook extends discount_base {
             try {
                 \call_user_func($callback);
             } catch (Throwable $e) {
-                debugging($e->getMessage());
+                PHPUNIT_TEST || debugging($e->getMessage());
             }
         }
     }

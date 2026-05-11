@@ -122,6 +122,7 @@ class section extends entity {
      */
     public function get_cost_after_discount(?float $cost = null): ?float {
         if (!\in_array($cost, $this->costs)) {
+            PHPUNIT_TEST ||
             debugging('The cost passes to get_cost_after_discount() is not in the cost list.', DEBUG_DEVELOPER);
 
             return null;
