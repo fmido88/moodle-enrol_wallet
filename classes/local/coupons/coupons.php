@@ -309,9 +309,9 @@ class coupons {
      * returns string on error and true if valid.
      * @param  ?int        $area   code, value, type, courses, category
      * @param  int         $areaid the area at which the coupon applied (instanceid, cmid, sectionid)
-     * @return bool|string
+     * @return true|string
      */
-    public function validate_coupon(?int $area = null, int $areaid = 0): true|string {
+    public function validate_coupon(?int $area = null, int $areaid = 0): bool|string {
         if ($this->is_same_area_input($area, $areaid) && !empty($this->error)) {
             return $this->error;
         }
