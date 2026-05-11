@@ -20,7 +20,7 @@ use enrol_wallet\local\config;
 use enrol_wallet\local\entities\entity;
 
 /**
- * Class profile
+ * Class profile.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>

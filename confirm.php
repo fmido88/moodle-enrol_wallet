@@ -28,8 +28,8 @@ use enrol_wallet\output\helper;
 
 define('NO_DEBUG_DISPLAY', true);
 
-require_once(__DIR__.'/../../config.php');
-require_once(__DIR__.'/lib.php');
+require_once(__DIR__ . '/../../config.php');
+require_once(__DIR__ . '/lib.php');
 
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\wallet\balance;
@@ -37,8 +37,8 @@ use enrol_wallet\local\wallet\balance;
 require_login(null, false);
 
 $instanceid = required_param('instance', PARAM_INT);
-$courseid   = required_param('id', PARAM_INT);
-$confirm    = optional_param('confirm', false, PARAM_BOOL);
+$courseid = required_param('id', PARAM_INT);
+$confirm = optional_param('confirm', false, PARAM_BOOL);
 
 $params = [
     'instance' => $instanceid,
@@ -58,7 +58,7 @@ if (is_enrolled($context, null, '', true)) {
 }
 
 $helper = new instance($instanceid);
-$wallet = new enrol_wallet_plugin;
+$wallet = new enrol_wallet_plugin();
 $instance = $helper->get_instance();
 $cost = $helper->get_cost_after_discount();
 $course = get_course($courseid);
@@ -72,7 +72,7 @@ if (
     || $courseid == SITEID
     || $instance->courseid != $course->id
     || !$canselfenrol
-    ) {
+) {
     $msg = get_string('confirm_enrol_error', 'enrol_wallet');
     redirect($courseurl, $msg, null, 'error');
 }
@@ -83,7 +83,7 @@ if (!$course->visible && !has_capability('moodle/course:viewhiddencourses', cont
 
 // Do not allow enrols when in login-as session.
 if (\core\session\manager::is_loggedinas() && $USER->loginascontext->contextlevel == CONTEXT_COURSE) {
-    throw new \moodle_exception('loginasnoenrol', '', $CFG->wwwroot.'/course/view.php?id='.$USER->loginascontext->instanceid);
+    throw new \moodle_exception('loginasnoenrol', '', $CFG->wwwroot . '/course/view.php?id=' . $USER->loginascontext->instanceid);
 }
 
 // Check if user has access to the category where the course is located.
@@ -121,9 +121,10 @@ $config = config::make();
 // Display refund policy if enabled.
 $refund = $config->unenrolrefund;
 $policy = $config->unenrolrefundpolicy;
+
 if (!empty($refund) && !empty($policy)) {
     $period = $config->unenrolrefundperiod;
-    $period = (!empty($period)) ? $period / DAYSECS : '('.get_string('unlimited').')';
+    $period = (!empty($period)) ? $period / DAYSECS : '(' . get_string('unlimited') . ')';
 
     $fee = $config->unenrolrefundfee;
     $fee = !(empty($fee)) ? $fee : 0;

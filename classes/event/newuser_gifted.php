@@ -32,7 +32,6 @@ namespace enrol_wallet\event;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class newuser_gifted extends \core\event\base {
-
     // For more information about the Events API, please visit:
     // https://docs.moodle.org/dev/Event_2.
     /**
@@ -59,11 +58,10 @@ class newuser_gifted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        $a = new \stdClass;
+        $a = new \stdClass();
         $a->userid = $this->userid;
         $a->amount = $this->other['amount'];
 
         return get_string('event_newuser_gifted_desc', 'enrol_wallet', $a);
-
     }
 }

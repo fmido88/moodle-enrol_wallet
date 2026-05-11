@@ -30,7 +30,6 @@ use enrol_wallet_plugin;
  * Sync enrollments task.
  */
 class sync_enrolments extends \core\task\scheduled_task {
-
     /**
      * Name for this task.
      *
@@ -48,5 +47,4 @@ class sync_enrolments extends \core\task\scheduled_task {
         $trace = new \text_progress_trace();
         $enrol->sync($trace);
     }
-
 }

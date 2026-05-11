@@ -33,12 +33,12 @@ use enrol_wallet\local\wallet\balance_op as op;
  * Send expiry notifications task.
  */
 class turn_non_refundable extends \core\task\adhoc_task {
-
     /**
      * Category id corresponding to transformation.
      * @var int
      */
     private $catid;
+
     /**
      * Name for this task.
      *
@@ -53,9 +53,9 @@ class turn_non_refundable extends \core\task\adhoc_task {
      */
     public function execute() {
         if (!PHPUNIT_TEST) {
-            $trace = new \text_progress_trace;
+            $trace = new \text_progress_trace();
         } else {
-            $trace = new \null_progress_trace;
+            $trace = new \null_progress_trace();
         }
 
         $trace->output('Starting the task...');
@@ -71,9 +71,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
             $this->apply_transformation($userid, $transform, $trace);
 
             $trace->output('Transformation done...');
-
         } else {
-
             $trace->output('Transformation validation failed...');
         }
 
@@ -83,8 +81,8 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
     /**
      * Check if transformation is valid or not.
-     * @param object $data custom data of the task
-     * @param \progress_trace $trace
+     * @param  object             $data  custom data of the task
+     * @param  \progress_trace    $trace
      * @return false|float|string false if not valid, float for the amount to be transform and string in test.
      */
     public function check_transform_validation($data, $trace) {
@@ -95,23 +93,29 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         if (!empty($this->catid)) {
             $category = \core_course_category::get($this->catid, IGNORE_MISSING, true);
+
             if (!$category) {
                 $output = 'Category not found...';
                 $trace->output($output);
+
                 if (!PHPUNIT_TEST) {
                     return false;
                 }
+
                 return $output;
             }
         }
 
         $user = \core_user::get_user($userid, 'id, deleted');
+
         if (!$user || !empty($user->deleted)) {
             $output = 'User not found...';
             $trace->output($output);
+
             if (!PHPUNIT_TEST) {
                 return false;
             }
+
             return $output;
         }
 
@@ -131,26 +135,29 @@ class turn_non_refundable extends \core\task\adhoc_task {
         $period = config::make()->refundperiod;
 
         if ($norefund >= $balance) {
-            $output = 'Non refundable amount grater than or equal user\'s balance'."\n";
+            $output = 'Non refundable amount grater than or equal user\'s balance' . "\n";
             $trace->output($output);
+
             if (!PHPUNIT_TEST) {
                 return false;
             }
+
             return $output;
         }
 
         // Get all transactions in this time.
-        $where = "userid = :userid AND type = :type AND timecreated >= :checktime";
+        $where = 'userid = :userid AND type = :type AND timecreated >= :checktime';
         $params = [
             'userid'    => $userid,
             'type'      => 'debit',
             'checktime' => timedate::time() - $period,
         ];
+
         if (!empty($this->catid)) {
-            $where .= " AND category = :catid";
+            $where .= ' AND category = :catid';
             $params['catid'] = $this->catid;
         } else {
-            $where .= " AND (category IS NULL OR category = 0)";
+            $where .= ' AND (category IS NULL OR category = 0)';
         }
 
         $records = $DB->get_records_select('enrol_wallet_transactions', $where, $params, 'id DESC', 'id, amount');
@@ -160,6 +167,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         }
 
         $debit = 0;
+
         // Check how much the user spent in this period.
         foreach ($records as $record) {
             $debit += $record->amount;
@@ -167,25 +175,26 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         // Check if the user spent more than the amount of the transform transaction.
         if ($amount <= $debit) {
-            $output = 'user spent this amount in the grace period already...'."\n";
+            $output = 'user spent this amount in the grace period already...' . "\n";
             $trace->output($output);
+
             if (!PHPUNIT_TEST) {
                 return false;
-            } else {
-                return $output;
             }
-        } else {
 
-            $transform = $amount - $debit;
-            return $transform;
+            return $output;
         }
+
+        $transform = $amount - $debit;
+
+        return $transform;
     }
 
     /**
-     * Apply transformation
-     * @param int $userid user's id
-     * @param float $transform the amount that should be transformed to nonrefundable
-     * @param \progress_trace $trace
+     * Apply transformation.
+     * @param  int             $userid    user's id
+     * @param  float           $transform the amount that should be transformed to nonrefundable
+     * @param  \progress_trace $trace
      * @return void
      */
     public function apply_transformation($userid, $transform, $trace) {
@@ -197,9 +206,10 @@ class turn_non_refundable extends \core\task\adhoc_task {
 
         // If refunding is disable, transform all balance to non-refundable.
         $refundenabled = config::make()->enablerefund;
+
         if (empty($refundenabled)) {
             $transform = $balance;
-            $trace->output('Refunding is disabled in this website, all of user\'s balance will transform...'."\n");
+            $trace->output('Refunding is disabled in this website, all of user\'s balance will transform...' . "\n");
         }
 
         $op->turn_to_nonrefundable($transform);
@@ -216,7 +226,7 @@ class turn_non_refundable extends \core\task\adhoc_task {
         ];
         $DB->insert_record('enrol_wallet_transactions', $recorddata);
 
-        $trace->output("User with id $userid now has a ".
-                    $recorddata['norefund']." nonrefundabel balance in his\her wallet out of $balance total balance...\n");
+        $trace->output("User with id $userid now has a " .
+                    $recorddata['norefund'] . " nonrefundabel balance in his\her wallet out of $balance total balance...\n");
     }
 }

@@ -17,10 +17,9 @@
 namespace enrol_wallet\local\entities;
 
 use core_course_category;
-use enrol_wallet\local\entities\instance;
 
 /**
- * Class helper
+ * Class helper.
  *
  * @package    enrol_wallet
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
@@ -29,13 +28,13 @@ use enrol_wallet\local\entities\instance;
 class category {
     /**
      * The category object.
-     * @var core_course_category $category
+     * @var core_course_category
      */
     protected core_course_category $category;
 
     /**
      * The id of the category.
-     * @var int $catid
+     * @var int
      */
     protected int $catid;
 
@@ -50,7 +49,6 @@ class category {
      * @param object|int $categoryorid the category or its id.
      */
     public function __construct($categoryorid) {
-
         if (is_number($categoryorid)) {
             $this->catid = $categoryorid;
             $this->category = core_course_category::get($categoryorid, IGNORE_MISSING, true);
@@ -76,22 +74,25 @@ class category {
     public function get_category(): ?core_course_category {
         return $this->category ?? null;
     }
+
     /**
      * Get the parents of the current category INCLUDING the category itself.
      * @return string[] of names of the categories keyed by the category id.
      */
     public function get_parents(): array {
         $all = [];
+
         foreach ($this->parents as $catid) {
             $catname = core_course_category::get($catid)->get_formatted_name();
             $all[$catid] = $catname;
         }
+
         return $all;
     }
 
     /**
      * Check if the passed category id is this category itself or one of its children.
-     * @param int $catid the category id to check with this one.
+     * @param  int  $catid the category id to check with this one.
      * @return bool
      */
     public function is_belong_to_this(int $catid): bool {
@@ -104,6 +105,7 @@ class category {
         }
 
         $ids = $this->category->get_all_children_ids();
+
         if (\in_array($catid, $ids)) {
             return true;
         }
@@ -113,16 +115,17 @@ class category {
 
     /**
      * Check if the given course module is belonging to this category.
-     * @param int $cmid
+     * @param  int  $cmid
      * @return bool
      */
     public function is_child_cm(int $cmid): bool {
         global $DB;
-        $sql = "SELECT cm.id, c.category
+        $sql = 'SELECT cm.id, c.category
                 FROM {course_modules} cm
                 JOIN {course} c ON cm.course = c.id
-                WHERE cm.id = :cmid";
+                WHERE cm.id = :cmid';
         $params = ['cmid' => $cmid];
+
         if ($record = $DB->get_record_sql($sql, $params)) {
             if ($this->is_belong_to_this($record->category)) {
                 return true;
@@ -134,16 +137,17 @@ class category {
 
     /**
      * Check if this course section is belonging to this category.
-     * @param int $sectionid
+     * @param  int  $sectionid
      * @return bool
      */
     public function is_child_section(int $sectionid): bool {
         global $DB;
-        $sql = "SELECT cs.id, c.category
+        $sql = 'SELECT cs.id, c.category
                 FROM {course_sections} cs
                 JOIN {course} c ON cs.course = c.id
-                WHERE cs.id = :sectionid";
+                WHERE cs.id = :sectionid';
         $params = ['sectionid' => $sectionid];
+
         if ($record = $DB->get_record_sql($sql, $params)) {
             if ($this->is_belong_to_this($record->category)) {
                 return true;
@@ -154,17 +158,18 @@ class category {
     }
 
     /**
-     * Check if the enrol wallet instance is belonging to this category
-     * @param int $instanceid
+     * Check if the enrol wallet instance is belonging to this category.
+     * @param  int  $instanceid
      * @return bool
      */
     public function is_child_instance(int $instanceid): bool {
         global $DB;
-        $sql = "SELECT e.id, c.category
+        $sql = 'SELECT e.id, c.category
                 FROM {enrol} e
                 JOIN {course} c ON e.courseid = c.id
-                WHERE e.id = :instanceid";
+                WHERE e.id = :instanceid';
         $params = ['instanceid' => $instanceid];
+
         if ($record = $DB->get_record_sql($sql, $params)) {
             if ($this->is_belong_to_this($record->category)) {
                 return true;
@@ -175,20 +180,21 @@ class category {
     }
 
     /**
-     * Create category balance operations class from enrol wallet instance
-     * @param int|\stdClass $instanceorid the enrol wallet instance of its id.
-     * @param int $userid
+     * Create category balance operations class from enrol wallet instance.
+     * @param  int|\stdClass $instanceorid the enrol wallet instance of its id.
+     * @param  int           $userid
      * @return static
      */
     public static function create_from_instance($instanceorid, $userid = 0): static {
         $helper = new instance($instanceorid, $userid);
         $category = $helper->get_course_category();
+
         return new static($category);
     }
 
     /**
      * Create an instance of category balance operation from course object or its id.
-     * @param int|\stdClass $courseorid
+     * @param  int|\stdClass $courseorid
      * @return static
      */
     public static function create_from_course($courseorid): static {
@@ -199,6 +205,7 @@ class category {
         } else {
             throw new \moodle_exception('invalidcourseid');
         }
+
         return new static($course->category);
     }
 }

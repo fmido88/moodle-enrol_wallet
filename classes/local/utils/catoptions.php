@@ -21,14 +21,15 @@
  * @copyright 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet\local\utils;
 
-use enrol_wallet\local\entities\instance;
 use core_course_category;
+use enrol_wallet\local\entities\instance;
 use stdClass;
 
 /**
- * Class methods to get all the categories options to be displayed in forms
+ * Class methods to get all the categories options to be displayed in forms.
  * @package enrol_wallet
  */
 class catoptions {
@@ -37,16 +38,19 @@ class catoptions {
      * @var core_course_category|null
      */
     protected $category = null;
+
     /**
-     * The category id
+     * The category id.
      * @var int
      */
     protected $catid = 0;
+
     /**
-     * The parents of the passed category
+     * The parents of the passed category.
      * @var array[int]
      */
     public $parents = [];
+
     /**
      * Initialize the options with an optional parameter $category or $categoryid
      * it wil be helpful to get all categories corresponding to the passed one
@@ -90,11 +94,12 @@ class catoptions {
 
     /**
      * Return an array on parents names keyed with their ids
-     * including the category itself
+     * including the category itself.
      * @return array[string]
      */
     public function get_parents_options() {
         $catoptions = [0 => get_string('site')];
+
         foreach ($this->parents as $catid) {
             $catname = core_course_category::get($catid)->get_formatted_name();
             $catoptions[$catid] = $catname;
@@ -105,17 +110,19 @@ class catoptions {
 
     /**
      * Get all the categories in the site in nested name form
-     * return array keyed with categories ids
+     * return array keyed with categories ids.
      * @return array[string]
      */
     public static function get_all_categories_options() {
         $catoptions = [];
         $allcats = \core_course_category::get_all();
+
         foreach ($allcats as $catid => $cat) {
             $catoptions[$catid] = $cat->get_nested_name(false);
         }
         asort($catoptions, SORT_STRING | SORT_FLAG_CASE);
         $catoptions = [0 => get_string('site')] + $catoptions;
+
         return $catoptions;
     }
 
@@ -132,6 +139,7 @@ class catoptions {
             'time2' => $now,
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
+
         if (!empty($this->catid)) {
             [$in, $catparams] = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
             $select .= " AND category $in";
@@ -146,7 +154,7 @@ class catoptions {
 
     /**
      * Get categories options with discounts only.
-     * It will be filtered to contain only the current one, its parents and site level
+     * It will be filtered to contain only the current one, its parents and site level.
      *
      * @return array[string] array of categories nested name keyed with their ids.
      */
@@ -158,6 +166,7 @@ class catoptions {
             'time2' => $now,
         ];
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
+
         if (!empty($this->catid)) {
             list($in, $catparams) = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
             $select .= " AND category $in";
@@ -166,6 +175,7 @@ class catoptions {
         $select .= ' AND (category IS NULL OR category = 0)';
         $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params, 'category ASC', 'id, category');
         $options = [];
+
         foreach ($records as $record) {
             if (empty($record->category)) {
                 if (isset($options[0])) {
@@ -174,9 +184,11 @@ class catoptions {
                 $options[0] = get_string('site');
                 continue;
             }
+
             if (isset($options[$record->category])) {
                 continue;
             }
+
             if ($record->category == $this->catid) {
                 $options[$record->category] = $this->category->get_nested_name(false);
             } else {
@@ -185,6 +197,7 @@ class catoptions {
             }
         }
         ksort($options, SORT_NUMERIC);
+
         return $options;
     }
 
@@ -203,6 +216,7 @@ class catoptions {
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         $records = $DB->get_records_select('enrol_wallet_cond_discount', $select, $params, 'category ASC', 'id, category');
         $options = [];
+
         foreach ($records as $record) {
             if (empty($record->category)) {
                 if (isset($options[0])) {
@@ -217,6 +231,7 @@ class catoptions {
             }
 
             $cat = core_course_category::get($record->category, IGNORE_MISSING);
+
             if (!$cat) {
                 continue;
             }
@@ -225,11 +240,13 @@ class catoptions {
         }
 
         ksort($options, SORT_NUMERIC);
+
         return $options;
     }
+
     /**
      * Construct the class from enrol wallet instance id.
-     * @param int|stdClass $instanceid
+     * @param  int|stdClass $instanceid
      * @return static
      */
     public static function create_from_instance_id(int|stdClass $instanceid = 0): static {
@@ -237,6 +254,7 @@ class catoptions {
             return new static();
         }
         $instancehelper = new instance($instanceid);
+
         return new static($instancehelper->get_course_category());
     }
 }

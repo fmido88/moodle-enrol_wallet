@@ -31,15 +31,16 @@ defined('MOODLE_INTERNAL') || die();
 $context = context_system::instance();
 
 $captransactions = has_capability('enrol/wallet:transaction', $context);
-$capviewbalance  = has_capability('enrol/wallet:viewotherbalance', $context);
-$capcredit       = has_capability('enrol/wallet:creditdebit', $context);
-$capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
-$capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
+$capviewbalance = has_capability('enrol/wallet:viewotherbalance', $context);
+$capcredit = has_capability('enrol/wallet:creditdebit', $context);
+$capbulkedit = has_capability('enrol/wallet:bulkedit', $context);
+$capcouponview = has_capability('enrol/wallet:viewcoupon', $context);
 $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
-$capcouponedit   = has_capability('enrol/wallet:editcoupon', $context);
+$capcouponedit = has_capability('enrol/wallet:editcoupon', $context);
 
 $config = config::make();
 $ismoodle = false;
+
 if (isset($config->walletsource)) {
     $ismoodle = $config->walletsource == enrol_wallet\local\wallet\balance::MOODLE;
 }
@@ -50,55 +51,68 @@ if (isset($config->walletsource)) {
 // Working on solution.
 if ($captransactions || $capbulkedit || $capcouponview || $capcouponcreate || $capcredit) {
     // Adding new admin category.
-    $ADMIN->add('modules', new admin_category('enrol_wallet_settings',
-    get_string('bulkfolder', 'enrol_wallet'), false));
+    $ADMIN->add('modules', new admin_category(
+        'enrol_wallet_settings',
+        get_string('bulkfolder', 'enrol_wallet'),
+        false
+    ));
 }
 
 if ($capcouponcreate && $ismoodle) {
     // Adding page to generate coupons.
-    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_coupongenerate',
-                                                get_string('coupon_generation', 'enrol_wallet'),
-                                                manage::GENERATE_COUPON->url(),
-                                                'enrol/wallet:createcoupon',
-                                                false,
-                                                $context));
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage(
+        'enrol_wallet_coupongenerate',
+        get_string('coupon_generation', 'enrol_wallet'),
+        manage::GENERATE_COUPON->url(),
+        'enrol/wallet:createcoupon',
+        false,
+        $context
+    ));
 }
 
 if ($capcouponcreate && $capcouponedit && $ismoodle) {
     // Adding page to upload coupons.
-    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_uploadcoupons',
-                                                get_string('upload_coupons', 'enrol_wallet'),
-                                                manage::UPLOAD_COUPONS->url(),
-                                                'enrol/wallet:createcoupon',
-                                                false,
-                                                $context));
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage(
+        'enrol_wallet_uploadcoupons',
+        get_string('upload_coupons', 'enrol_wallet'),
+        manage::UPLOAD_COUPONS->url(),
+        'enrol/wallet:createcoupon',
+        false,
+        $context
+    ));
 }
 
 if ($capcouponview && $ismoodle) {
     // Adding page to view coupons.
-    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_coupontable',
-                                                get_string('coupon_table', 'enrol_wallet'),
-                                                reports::COUPONS->url(),
-                                                'enrol/wallet:viewcoupon',
-                                                false,
-                                                $context));
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage(
+        'enrol_wallet_coupontable',
+        get_string('coupon_table', 'enrol_wallet'),
+        reports::COUPONS->url(),
+        'enrol/wallet:viewcoupon',
+        false,
+        $context
+    ));
     // Adding page to view coupons usage.
-    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_couponusage',
-                                                get_string('coupon_usage', 'enrol_wallet'),
-                                                reports::COUPONS_USAGE->url(),
-                                                'enrol/wallet:viewcoupon',
-                                                false,
-                                                $context));
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage(
+        'enrol_wallet_couponusage',
+        get_string('coupon_usage', 'enrol_wallet'),
+        reports::COUPONS_USAGE->url(),
+        'enrol/wallet:viewcoupon',
+        false,
+        $context
+    ));
 }
 
 if ($capcredit) {
     // Adding page to charge wallets of other users.
-    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_charging',
-                                                get_string('chargingoptions', 'enrol_wallet'),
-                                                manage::CHARGE->url(),
-                                                'enrol/wallet:creditdebit',
-                                                false,
-                                                $context));
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage(
+        'enrol_wallet_charging',
+        get_string('chargingoptions', 'enrol_wallet'),
+        manage::CHARGE->url(),
+        'enrol/wallet:creditdebit',
+        false,
+        $context
+    ));
 }
 
 if ($captransactions) {
@@ -121,19 +135,23 @@ if ($capbulkedit) {
     // Adding new page to bulk edit all user enrolments.
     $bulkeditor = get_string('bulkeditor', 'enrol_wallet');
 
-    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_bulkedit',
-                                                                $bulkeditor,
-                                                                manage::BULKENROLMENTS->url(),
-                                                                "enrol/wallet:bulkedit",
-                                                                false,
-                                                                $context));
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage(
+        'enrol_bulkedit',
+        $bulkeditor,
+        manage::BULKENROLMENTS->url(),
+        'enrol/wallet:bulkedit',
+        false,
+        $context
+    ));
 
     // Adding page to bulk edit all instances.
     $walletbulk = get_string('walletbulk', 'enrol_wallet');
-    $ADMIN->add('enrol_wallet_settings', new admin_externalpage('enrol_wallet_bulkedit',
-                                                                $walletbulk,
-                                                                manage::BULKINSTANCES->url(),
-                                                                "enrol/wallet:bulkedit",
-                                                                false,
-                                                                $context));
+    $ADMIN->add('enrol_wallet_settings', new admin_externalpage(
+        'enrol_wallet_bulkedit',
+        $walletbulk,
+        manage::BULKINSTANCES->url(),
+        'enrol/wallet:bulkedit',
+        false,
+        $context
+    ));
 }

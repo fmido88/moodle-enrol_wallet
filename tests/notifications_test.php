@@ -21,10 +21,10 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 use enrol_wallet\local\utils\timedate;
-use enrol_wallet\notifications;
 
 /**
  * Wallet transactions notifications test.
@@ -35,7 +35,7 @@ use enrol_wallet\notifications;
  */
 final class notifications_test extends \advanced_testcase {
     /**
-     * Test transaction_notifications
+     * Test transaction_notifications.
      * @covers ::transaction_notify()
      * @return void
      */
@@ -48,12 +48,12 @@ final class notifications_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
 
         $data = [
-            'userid' => $user->id,
-            'type' => 'credit',
-            'amount' => 150,
-            'balbefore' => 200,
-            'balance' => 350,
-            'descripe' => '',
+            'userid'      => $user->id,
+            'type'        => 'credit',
+            'amount'      => 150,
+            'balbefore'   => 200,
+            'balance'     => 350,
+            'descripe'    => '',
             'timecreated' => timedate::time(),
         ];
         $sink = $this->redirectMessages();
@@ -61,12 +61,12 @@ final class notifications_test extends \advanced_testcase {
         $messages = $sink->get_messages();
         $this->assertEquals(1, count($messages));
         $a = (object)[
-            'type' => 'credit',
-            'amount' => 150,
-            'before' => 200,
+            'type'    => 'credit',
+            'amount'  => 150,
+            'before'  => 200,
             'balance' => 350,
-            'desc' => '',
-            'time' => userdate($data['timecreated']),
+            'desc'    => '',
+            'time'    => userdate($data['timecreated']),
         ];
         $messagebody = get_string('messagebody_credit', 'enrol_wallet', $a);
         $this->assertStringContainsString($messagebody, $messages[0]->fullmessage);

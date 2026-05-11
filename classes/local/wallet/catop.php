@@ -90,7 +90,7 @@ class catop {
             throw new \moodle_exception('error');
         }
 
-        $this->details =& $details->catbalance;
+        $this->details = &$details->catbalance;
 
         $this->compute_cat_balance();
     }
@@ -103,6 +103,7 @@ class catop {
     protected function get_details_object(): details {
         return new details(0, 0, 0, $this->get_catids(), $this->details);
     }
+
     /**
      * Return categories ids (this category id and parents).
      * @return int[]
@@ -117,17 +118,17 @@ class catop {
     public function compute_cat_balance() {
         $details = $this->details;
 
-        $ids     = array_keys($details);
+        $ids = array_keys($details);
         $commons = array_intersect($ids, $this->parents);
 
-        $refund   = 0;
+        $refund = 0;
         $norefund = 0;
-        $free     = 0;
+        $free = 0;
 
         foreach ($commons as $id) {
-            $refund   += $details[$id]->refundable;
+            $refund += $details[$id]->refundable;
             $norefund += $details[$id]->nonrefundable;
-            $free     += $details[$id]->free ?? 0;
+            $free += $details[$id]->free ?? 0;
         }
     }
 
@@ -233,9 +234,10 @@ class catop {
         }
         $this->compute_cat_balance();
     }
+
     /**
      * Reset a cat balance for a user to zero.
-     * @param int $id Category id.
+     * @param  int  $id Category id.
      * @return void
      */
     private function reset_cat_balance(int $id): void {
@@ -259,24 +261,24 @@ class catop {
             return $amount;
         }
 
-        $refundable    = $this->details[$id]->refundable;
+        $refundable = $this->details[$id]->refundable;
         $nonrefundable = $this->details[$id]->nonrefundable;
-        $recordid      = $this->details[$id]->recordid ?? null;
-        $free          = $this->details[$id]->free;
+        $recordid = $this->details[$id]->recordid ?? null;
+        $free = $this->details[$id]->free;
 
         if ($refundable >= $amount) {
             $refundable -= $amount;
             $remain = 0;
         } else {
             $nonrefundable = $nonrefundable - $amount + $refundable;
-            $newfree       = $free - $amount + $refundable;
+            $newfree = $free - $amount + $refundable;
 
             $refundable = 0;
 
             if ($nonrefundable >= 0) {
                 $remain = 0;
             } else {
-                $remain        = abs($nonrefundable);
+                $remain = abs($nonrefundable);
                 $nonrefundable = 0;
             }
 

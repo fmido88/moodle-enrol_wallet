@@ -85,6 +85,7 @@ abstract class base {
      */
     final protected static function get_classes(): array {
         static $classes;
+
         if (isset($classes)) {
             return $classes;
         }
@@ -187,7 +188,7 @@ abstract class base {
 
     /**
      * Get the class name from given area code.
-     * @param  int $area
+     * @param int $area
      *
      * @return base|string|null
      */

@@ -21,14 +21,13 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2026051000;
-$plugin->requires  = 2025041400; // Require moodle 5.0 .
+$plugin->version = 2026051000;
+$plugin->requires = 2025041400; // Require moodle 5.0 .
 $plugin->component = 'enrol_wallet';
-$plugin->release   = '6.2.2';
-$plugin->maturity  = MATURITY_STABLE;
+$plugin->release = '6.2.2';
+$plugin->maturity = MATURITY_STABLE;
 $plugin->dependencies = [
     'enrol_manual' => ANY_VERSION,
 ];

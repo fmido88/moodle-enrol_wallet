@@ -29,8 +29,8 @@ use enrol_wallet\local\utils\timedate;
 use enrol_wallet\task\generate_coupons;
 
 require_once('../../../config.php');
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
+require_once($CFG->libdir . '/formslib.php');
 // Adding some security.
 require_login();
 
@@ -49,6 +49,7 @@ $mform = new coupons_generator();
 
 if ($options = $mform->get_data()) {
     $method = $options->method;
+
     if ($method == 'single') {
         $options->number = 1;
         $options->length = '';
@@ -59,13 +60,14 @@ if ($options = $mform->get_data()) {
 
     if (!empty($options->characters)) {
         $characters = $options->characters;
-        $options->lower  = isset($characters['lower']) ? $characters['lower'] : false;
-        $options->upper  = isset($characters['upper']) ? $characters['upper'] : false;
+        $options->lower = isset($characters['lower']) ? $characters['lower'] : false;
+        $options->upper = isset($characters['upper']) ? $characters['upper'] : false;
         $options->digits = isset($characters['digits']) ? $characters['digits'] : false;
     }
 
     if (!empty($options->validto)) {
         $validto = $options->validto;
+
         if (is_array($validto)) {
             $options->to = mktime(
                 $validto['hour'],
@@ -78,13 +80,14 @@ if ($options = $mform->get_data()) {
         } else {
             $options->to = $validto;
         }
-
     } else {
         $options->to = 0;
     }
     unset($options->validto);
+
     if (!empty($options->validfrom)) {
         $validfrom = $options->validfrom;
+
         if (is_array($validfrom)) {
             $options->from = mktime(
                 $validfrom['hour'],
@@ -97,7 +100,6 @@ if ($options = $mform->get_data()) {
         } else {
             $options->from = $validfrom;
         }
-
     } else {
         $options->from = 0;
     }

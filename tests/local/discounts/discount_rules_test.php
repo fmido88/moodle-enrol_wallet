@@ -30,7 +30,6 @@ use enrol_wallet\local\utils\timedate;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class discount_rules_test extends \advanced_testcase {
-
     /**
      * Test get_current_discount_rules method.
      * @covers ::get_current_discount_rules()
@@ -67,17 +66,17 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 3: Create multiple rules at site level.
         $rule2 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 200,
-            'percent' => 15,
+            'cond'     => 200,
+            'percent'  => 15,
             'timefrom' => 0,
-            'timeto' => 0,
+            'timeto'   => 0,
         ]);
         $rule3 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 500,
-            'percent' => 20,
+            'cond'     => 500,
+            'percent'  => 20,
             'timefrom' => 0,
-            'timeto' => 0,
+            'timeto'   => 0,
         ]);
         $rules = discount_rules::get_current_discount_rules();
         $this->assertCount(3, $rules);
@@ -86,10 +85,10 @@ final class discount_rules_test extends \advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
         $rule4 = testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 50,
-            'percent' => 5,
+            'cond'     => 50,
+            'percent'  => 5,
             'timefrom' => 0,
-            'timeto' => 0,
+            'timeto'   => 0,
         ]);
 
         // Test 5: Get rules for specific category - should include category rules.
@@ -104,10 +103,10 @@ final class discount_rules_test extends \advanced_testcase {
         $future = timedate::time() + 1000;
         $rule5 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 300,
-            'percent' => 25,
+            'cond'     => 300,
+            'percent'  => 25,
             'timefrom' => $future,
-            'timeto' => $future + 1000,
+            'timeto'   => $future + 1000,
         ]);
         $rules = discount_rules::get_current_discount_rules();
         $this->assertCount(3, $rules); // Should still be 3, excluding future rule.
@@ -116,10 +115,10 @@ final class discount_rules_test extends \advanced_testcase {
         $past = timedate::time() - 1000;
         $rule6 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 400,
-            'percent' => 30,
+            'cond'     => 400,
+            'percent'  => 30,
             'timefrom' => $past - 1000,
-            'timeto' => $past,
+            'timeto'   => $past,
         ]);
         $rules = discount_rules::get_current_discount_rules();
         $this->assertCount(3, $rules); // Should still be 3, excluding past rule.
@@ -128,10 +127,10 @@ final class discount_rules_test extends \advanced_testcase {
         $now = timedate::time();
         $rule7 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 600,
-            'percent' => 35,
+            'cond'     => 600,
+            'percent'  => 35,
             'timefrom' => $now - 100,
-            'timeto' => $now + 100,
+            'timeto'   => $now + 100,
         ]);
         $rules = discount_rules::get_current_discount_rules();
         $this->assertCount(4, $rules); // Should include the new valid rule.
@@ -139,10 +138,11 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 10: Verify rules are sorted by cond DESC, percent DESC.
         $rules = discount_rules::get_current_discount_rules(0);
         $values = array_values($rules);
+
         for ($i = 0; $i < count($values) - 1; $i++) {
             $this->assertTrue(
                 $values[$i]->cond >= $values[$i + 1]->cond,
-                "Rules should be sorted by cond DESC"
+                'Rules should be sorted by cond DESC'
             );
         }
     }
@@ -176,19 +176,19 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 3: Create rules and verify they're returned.
         $rule1 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 10,
+            'cond'     => 100,
+            'percent'  => 10,
         ]);
         $rule2 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 200,
-            'percent' => 15,
+            'cond'     => 200,
+            'percent'  => 15,
         ]);
         $category = $this->getDataGenerator()->create_category();
         $rule3 = testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 50,
-            'percent' => 5,
+            'cond'     => 50,
+            'percent'  => 5,
         ]);
 
         $rules = discount_rules::get_all_available_discount_rules();
@@ -196,10 +196,11 @@ final class discount_rules_test extends \advanced_testcase {
 
         // Test 4: Verify sorting - category ASC, cond DESC, percent DESC.
         $values = array_values($rules);
+
         for ($i = 0; $i < count($values) - 1; $i++) {
             $this->assertTrue(
                 $values[$i]->category <= $values[$i + 1]->category,
-                "Rules should be sorted by category ASC"
+                'Rules should be sorted by category ASC'
             );
         }
     }
@@ -224,8 +225,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 2: Create site-level rule (category = 0).
         $rule1 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 10,
+            'cond'     => 100,
+            'percent'  => 10,
         ]);
         $categories = discount_rules::get_all_categories_with_discounts(true);
         $this->assertCount(1, $categories);
@@ -237,13 +238,13 @@ final class discount_rules_test extends \advanced_testcase {
 
         $rule2 = testing::get_generator()->create_discount_rule([
             'category' => $cat1->id,
-            'cond' => 50,
-            'percent' => 5,
+            'cond'     => 50,
+            'percent'  => 5,
         ]);
         $rule3 = testing::get_generator()->create_discount_rule([
             'category' => $cat2->id,
-            'cond' => 75,
-            'percent' => 8,
+            'cond'     => 75,
+            'percent'  => 8,
         ]);
 
         $categories = discount_rules::get_all_categories_with_discounts(true);
@@ -280,8 +281,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 2: Create rules but amount doesn't meet condition.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 200,
-            'percent' => 10,
+            'cond'     => 200,
+            'percent'  => 10,
         ]);
         $result = discount_rules::get_the_rest(100);
         $this->assertEquals([null, null], $result);
@@ -294,13 +295,13 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 4: Multiple rules - should return best discount.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 5,
+            'cond'     => 100,
+            'percent'  => 5,
         ]);
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 500,
-            'percent' => 20,
+            'cond'     => 500,
+            'percent'  => 20,
         ]);
         $result = discount_rules::get_the_rest(600);
         $this->assertNotNull($result[0]);
@@ -309,8 +310,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 5: Discount close to 100% (max allowed is 99.99).
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 50,
-            'percent' => 99.99, // Maximum allowed value.
+            'cond'     => 50,
+            'percent'  => 99.99, // Maximum allowed value.
         ]);
         $result = discount_rules::get_the_rest(100);
         $this->assertNotNull($result[0]);
@@ -318,8 +319,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 6: Percent equals 100 - should skip (not acceptable).
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 30,
-            'percent' => 99.9,
+            'cond'     => 30,
+            'percent'  => 99.9,
         ]);
         $result = discount_rules::get_the_rest(50);
         $this->assertNotNull($result[0]);
@@ -328,8 +329,8 @@ final class discount_rules_test extends \advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
         testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 100,
-            'percent' => 15,
+            'cond'     => 100,
+            'percent'  => 15,
         ]);
         $result = discount_rules::get_the_rest(150, $category->id);
         $this->assertNotNull($result[0]);
@@ -360,8 +361,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Create rule FIRST before testing.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 10,
+            'cond'     => 100,
+            'percent'  => 10,
         ]);
 
         // Test 1: With discount rule - amount meets condition (100 >= 100), applies 10% discount.
@@ -391,8 +392,8 @@ final class discount_rules_test extends \advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
         testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 50,
-            'percent' => 25,
+            'cond'     => 50,
+            'percent'  => 25,
         ]);
         $result = discount_rules::get_the_before(100, $category->id);
         // Formula: 100 * (1 - 25/100) = 100 * 0.75 = 75.
@@ -461,8 +462,8 @@ final class discount_rules_test extends \advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
         testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 50,
-            'percent' => 25,
+            'cond'     => 50,
+            'percent'  => 25,
         ]);
         $result = discount_rules::get_the_after(75, $category->id);
         // Formula: 75 / (1 - 25/100) = 75 / 0.75 = 100.
@@ -503,8 +504,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 2: Amount doesn't meet condition.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 200,
-            'percent' => 10,
+            'cond'     => 200,
+            'percent'  => 10,
         ]);
         $result = discount_rules::get_applied_discount(100, 0);
         $this->assertEquals(0.0, $result);
@@ -516,13 +517,13 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 4: Multiple rules - should return highest discount.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 5,
+            'cond'     => 100,
+            'percent'  => 5,
         ]);
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 500,
-            'percent' => 20,
+            'cond'     => 500,
+            'percent'  => 20,
         ]);
         $result = discount_rules::get_applied_discount(600, 0);
         $this->assertEquals(20.0, $result);
@@ -535,8 +536,8 @@ final class discount_rules_test extends \advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
         testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 50,
-            'percent' => 15,
+            'cond'     => 50,
+            'percent'  => 15,
         ]);
         $result = discount_rules::get_applied_discount(100, $category->id);
         $this->assertEquals(15.0, $result);
@@ -549,8 +550,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 8: Exact condition match.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 25,
+            'cond'     => 100,
+            'percent'  => 25,
         ]);
         $result = discount_rules::get_applied_discount(100, 0);
         $this->assertEquals(25.0, $result);
@@ -575,8 +576,8 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 2: With rules - should return rendered HTML.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 10,
+            'cond'     => 100,
+            'percent'  => 10,
         ]);
         $result = discount_rules::get_the_discount_line(0);
         $this->assertIsString($result);
@@ -586,8 +587,8 @@ final class discount_rules_test extends \advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
         testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 50,
-            'percent' => 5,
+            'cond'     => 50,
+            'percent'  => 5,
         ]);
         $result = discount_rules::get_the_discount_line($category->id);
         $this->assertIsString($result);
@@ -613,9 +614,9 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 2: Create non-bundle rules - should not be returned.
         testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 100,
-            'percent' => 10,
-            'bundle' => null,
+            'cond'     => 100,
+            'percent'  => 10,
+            'bundle'   => null,
         ]);
         $bundles = discount_rules::get_bundles_records();
         $this->assertEmpty($bundles);
@@ -623,15 +624,15 @@ final class discount_rules_test extends \advanced_testcase {
         // Test 3: Create bundle rules (bundle is numeric in the database).
         $bundle1 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 200,
-            'percent' => 15,
-            'bundle' => 1, // Numeric, not string!
+            'cond'     => 200,
+            'percent'  => 15,
+            'bundle'   => 1, // Numeric, not string!
         ]);
         $bundle2 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 500,
-            'percent' => 20,
-            'bundle' => 2,
+            'cond'     => 500,
+            'percent'  => 20,
+            'bundle'   => 2,
         ]);
         $bundles = discount_rules::get_bundles_records();
         $this->assertCount(2, $bundles);
@@ -640,9 +641,9 @@ final class discount_rules_test extends \advanced_testcase {
         $category = $this->getDataGenerator()->create_category();
         $bundle3 = testing::get_generator()->create_discount_rule([
             'category' => $category->id,
-            'cond' => 100,
-            'percent' => 25,
-            'bundle' => 3,
+            'cond'     => 100,
+            'percent'  => 25,
+            'bundle'   => 3,
         ]);
         $bundles = discount_rules::get_bundles_records();
         $this->assertCount(3, $bundles);
@@ -651,11 +652,11 @@ final class discount_rules_test extends \advanced_testcase {
         $now = timedate::time();
         $bundle4 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 300,
-            'percent' => 30,
-            'bundle' => 4,
+            'cond'     => 300,
+            'percent'  => 30,
+            'bundle'   => 4,
             'timefrom' => $now - 100,
-            'timeto' => $now + 100,
+            'timeto'   => $now + 100,
         ]);
         $bundles = discount_rules::get_bundles_records();
         $this->assertCount(4, $bundles);
@@ -664,11 +665,11 @@ final class discount_rules_test extends \advanced_testcase {
         $future = timedate::time() + 1000;
         $bundle5 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 400,
-            'percent' => 35,
-            'bundle' => 5,
+            'cond'     => 400,
+            'percent'  => 35,
+            'bundle'   => 5,
             'timefrom' => $future,
-            'timeto' => $future + 1000,
+            'timeto'   => $future + 1000,
         ]);
         $bundles = discount_rules::get_bundles_records();
         $this->assertCount(4, $bundles); // Should still be 4, excluding future bundle.
@@ -677,11 +678,11 @@ final class discount_rules_test extends \advanced_testcase {
         $past = timedate::time() - 1000;
         $bundle6 = testing::get_generator()->create_discount_rule([
             'category' => 0,
-            'cond' => 450,
-            'percent' => 40,
-            'bundle' => 6,
+            'cond'     => 450,
+            'percent'  => 40,
+            'bundle'   => 6,
             'timefrom' => $past - 1000,
-            'timeto' => $past,
+            'timeto'   => $past,
         ]);
         $bundles = discount_rules::get_bundles_records();
         $this->assertCount(4, $bundles); // Should still be 4, excluding past bundle.

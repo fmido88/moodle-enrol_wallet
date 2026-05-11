@@ -151,7 +151,7 @@ class charger_form extends \moodleform {
 
         if ($balance->catenabled) {
             $categorytitle = get_string('category');
-            $catoptions    = catoptions::get_all_categories_options();
+            $catoptions = catoptions::get_all_categories_options();
             $mform->addElement('select', 'category', $categorytitle, $catoptions);
         } else {
             $mform->addElement('hidden', 'category');
@@ -164,9 +164,9 @@ class charger_form extends \moodleform {
 
         if (!empty($cdenabled)) {
             // Empty div used by js to display the calculated final value.
-            $enter      = get_string('entervalue', 'enrol_wallet');
+            $enter = get_string('entervalue', 'enrol_wallet');
             $attributes = ['data-holder' => 'calculated-value', 'style' => 'font-weight: 700;'];
-            $html       = \html_writer::div($enter, 'alert alert-warning', $attributes);
+            $html = \html_writer::div($enter, 'alert alert-warning', $attributes);
             $mform->addElement('html', $html);
         }
 
@@ -175,7 +175,7 @@ class charger_form extends \moodleform {
         $mform->addElement('text', 'reason', get_string('transactionreason', 'enrol_wallet'));
         $mform->setType('reason', PARAM_TEXT);
 
-        $buttons   = [];
+        $buttons = [];
         $buttons[] = $mform->createElement('submit', 'submit', get_string('submit'));
         $buttons[] = $mform->createElement('button', 'displaybalance', get_string('showbalance', 'enrol_wallet'));
         $mform->addGroup($buttons);
@@ -225,9 +225,9 @@ class charger_form extends \moodleform {
                 return $errors;
             }
 
-            $value  = $data['value'] ?? '';
+            $value = $data['value'] ?? '';
             $userid = $data['userlist'] ?? 0;
-            $catid  = $data['category'] ?? 0;
+            $catid = $data['category'] ?? 0;
 
             // No value.
             if (empty($value) && !\in_array($op, ['balance', 'reset'], true)) {
@@ -241,7 +241,7 @@ class charger_form extends \moodleform {
 
             if (empty($data['neg']) && empty($errors)) {
                 $balance = new balance($userid, $catid);
-                $before  = $balance->get_valid_balance();
+                $before = $balance->get_valid_balance();
 
                 if ($op === 'debit' && $value > $before) {
                     // Cannot deduct more than the user's balance.
@@ -271,18 +271,18 @@ class charger_form extends \moodleform {
         }
 
         $data = (array)$data;
-        $op   = $data['op'] ?? '';
+        $op = $data['op'] ?? '';
 
         if (!empty($op) && $op != 'result') {
-            $value  = $data['value'] ?? '';
+            $value = $data['value'] ?? '';
             $userid = $data['userlist'];
-            $catid  = $data['category'] ?? 0;
+            $catid = $data['category'] ?? 0;
             $reason = $data['reason'] ?? '';
 
             $charger = $USER->id;
 
             $operations = new balance_op($userid, $catid);
-            $before     = $operations->get_total_balance();
+            $before = $operations->get_total_balance();
 
             switch ($op) {
                 case 'reset':
@@ -310,7 +310,7 @@ class charger_form extends \moodleform {
                     break;
             }
 
-            $after  = $operations->get_total_balance();
+            $after = $operations->get_total_balance();
             $params = [
                 'before' => $before,
                 'after'  => ($op == 'balance') ? $before : $after,
@@ -336,9 +336,9 @@ class charger_form extends \moodleform {
 
         $result = $params['result'] ?? $this->optional_param('result', false, PARAM_TEXT);
         $before = $params['before'] ?? $this->optional_param('before', '', PARAM_FLOAT);
-        $after  = $params['after'] ?? $this->optional_param('after', '', PARAM_FLOAT);
+        $after = $params['after'] ?? $this->optional_param('after', '', PARAM_FLOAT);
         $userid = $params['userid'] ?? $this->optional_param('userid', '', PARAM_INT);
-        $err    = $params['err'] ?? $this->optional_param('error', '', PARAM_TEXT);
+        $err = $params['err'] ?? $this->optional_param('error', '', PARAM_TEXT);
 
         $info = '';
 
@@ -346,7 +346,7 @@ class charger_form extends \moodleform {
             $info .= get_string('ch_result_error', 'enrol_wallet', $err);
             $type = 'error';
         } else {
-            $user     = \core_user::get_user($userid);
+            $user = \core_user::get_user($userid);
             $userfull = $user->firstname . ' ' . $user->lastname . ' (' . $user->email . ')';
             // Display the result to the user.
             $info .= get_string('ch_result_before', 'enrol_wallet', $before);

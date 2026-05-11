@@ -26,13 +26,10 @@
 namespace enrol_wallet\privacy;
 
 use context_course;
-use core_payment_generator;
 use core_privacy\local\metadata\collection;
-use enrol_wallet\local\config;
 use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\payment\item;
-use enrol_wallet\privacy\provider;
 
 /**
  * Privacy provider tests.
@@ -43,7 +40,6 @@ use enrol_wallet\privacy\provider;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class provider_test extends \core_privacy\tests\provider_testcase {
-
     /**
      * Test get_metadata returns correct collection.
      * @covers ::get_metadata()

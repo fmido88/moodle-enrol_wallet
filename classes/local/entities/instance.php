@@ -31,11 +31,6 @@ use enrol_wallet_plugin;
 use enrol_wallet_plugin as wallet;
 use stdClass;
 
-defined('MOODLE_INTERNAL') || die();
-
-global $CFG;
-require_once($CFG->dirroot . '/enrol/wallet/lib.php');
-
 /**
  * Helper class for wallet enrolment instance.
  * @package enrol_wallet
@@ -82,7 +77,7 @@ require_once($CFG->dirroot . '/enrol/wallet/lib.php');
  * @property float  $awardcondition             The condition for award (percentage) (alias for customdec1).
  * @property float  $customdec2                 The award value per each raw mark above the condition.
  * @property float  $awardvalue                 The award value per each raw mark above the condition (alias for customdec2).
- * todo Add special class to handle awards and its behavior
+ *                                              Todo Add special class to handle awards and its behavior
  * @property string $customtext1                The welcome email content.
  * @property string $welcomemessage             The welcome email content (alias for customtext1).
  * @property string $customtext2                The restriction rules in JSON format.
@@ -90,7 +85,8 @@ require_once($CFG->dirroot . '/enrol/wallet/lib.php');
  * @property string $customtext3                The offers rules in JSON format.
  * @property string $offersrules                The offers rules in JSON format (alias for customtext3).
  * @property string $customtext4                Not used.
- * todo Use this field for localized configurations as borrow, cashback and more options for awards.
+ *                                              Todo Use this field for localized configurations as borrow,
+ *                                              cashback and more options for awards.
  * @property int    $timecreated                The time at which the instance was created.
  * @property int    $timemodified               The time at which the instance was modified.
  */

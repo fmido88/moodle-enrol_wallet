@@ -16,17 +16,17 @@
 
 namespace enrol_wallet\form;
 
-use enrol_wallet\local\config;
-use enrol_wallet\local\wallet\balance;
 use core_course_category;
 use core_user;
+use enrol_wallet\local\config;
+use enrol_wallet\local\wallet\balance;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Class transfer_form
+ * Class transfer_form.
  *
  * @package    enrol_wallet
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
@@ -38,21 +38,25 @@ class transfer_form extends \moodleform {
      * @var bool
      */
     public $parent;
+
     /**
      * The balance helper class.
      * @var balance
      */
     protected $balance;
+
     /**
      * The min condition for transfer.
      * @var float
      */
     public $condition;
+
     /**
      * If the transfer configurations.
      * @var \stdClass
      */
     public $config;
+
     /**
      * Form definition.
      */
@@ -61,6 +65,7 @@ class transfer_form extends \moodleform {
 
         $config = config::instance();
         $transferenabled = (bool)$config->transfer_enabled;
+
         if (empty($transferenabled)) {
             return;
         }
@@ -72,6 +77,7 @@ class transfer_form extends \moodleform {
         ];
 
         $isparent = false;
+
         if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
             require_once("$CFG->dirroot/auth/parent/lib.php");
             $isparent = auth_parent_is_parent($USER);
@@ -95,14 +101,17 @@ class transfer_form extends \moodleform {
             $mform->addElement('static', 'mainbalance', get_string('mainbalance', 'enrol_wallet'), $mainbalance);
 
             $details = $this->balance->get_balance_details();
+
             if (!empty($details->catbalance)) {
                 $options = [0 => get_string('site')];
+
                 foreach ($details->catbalance as $id => $obj) {
                     $category = core_course_category::get($id, IGNORE_MISSING, true);
+
                     if (!empty($category)) {
                         $name = $category->get_nested_name(false);
                         $catbalance = $obj->balance ?? $obj->refundable + $obj->nonrefundable;
-                        $mform->addElement('static', 'cat'.$id, $name, number_format($catbalance, 2));
+                        $mform->addElement('static', 'cat' . $id, $name, number_format($catbalance, 2));
                         $options[$id] = $name;
                     }
                 }
@@ -116,12 +125,12 @@ class transfer_form extends \moodleform {
 
         if ($isparent) {
             $options = [];
+
             foreach (auth_parent_get_children($USER) as $childid) {
                 $child = core_user::get_user($childid);
                 $options[$child->email] = fullname($child);
             }
-            $mform->addElement('select',  'email',  get_string('user'),  $options);
-
+            $mform->addElement('select', 'email', get_string('user'), $options);
         } else {
             $mform->addElement('text', 'email', get_string('email'));
             $mform->setType('email', PARAM_EMAIL);
@@ -131,13 +140,17 @@ class transfer_form extends \moodleform {
         $mform->setType('amount', PARAM_FLOAT);
 
         $percentfee = $this->config->transferpercent;
+
         if (!empty($percentfee) && !$isparent) {
             $a = ['fee' => $percentfee];
             $a['from'] = get_string($this->config->transferfee_from, 'enrol_wallet');
 
-            $mform->addElement('static', 'feedesc',
-                                get_string('transferpercent', 'enrol_wallet'),
-                                get_string('transferfee_desc', 'enrol_wallet', $a));
+            $mform->addElement(
+                'static',
+                'feedesc',
+                get_string('transferpercent', 'enrol_wallet'),
+                get_string('transferfee_desc', 'enrol_wallet', $a)
+            );
         }
 
         $mform->addElement('submit', 'confirm', get_string('confirm'));
@@ -151,8 +164,8 @@ class transfer_form extends \moodleform {
      * returns of "element_name"=>"error_description" if there are errors,
      * or an empty array if everything is OK (true allowed for backwards compatibility too).
      *
-     * @param array $data array of data
-     * @param array $files array of files
+     * @param  array $data  array of data
+     * @param  array $files array of files
      * @return array array of errors
      */
     public function validation($data, $files) {
@@ -160,6 +173,7 @@ class transfer_form extends \moodleform {
 
         if (!$this->config->transfer_enabled) {
             $elements = array_keys($this->_form->_elements);
+
             foreach ($elements as $element) {
                 $errors[$element] = get_string('transfer_notenabled', 'enrol_wallet');
             }
@@ -171,6 +185,7 @@ class transfer_form extends \moodleform {
         }
 
         $condition = $this->config->mintransfer;
+
         // No amount or invalid amount.
         if (empty($data['amount']) || $data['amount'] < 0) {
             $errors['amount'] = get_string('charger_novalue', 'enrol_wallet');
@@ -192,10 +207,12 @@ class transfer_form extends \moodleform {
         }
 
         $receiver = \core_user::get_user_by_email($data['email'], 'id, deleted, suspended');
+
         // No active user found with this email.
         if (empty($receiver) || !empty($receiver->deleted) || !empty($receiver->suspended)) {
             $errors['email'] = get_string('usernotfound', 'enrol_wallet', $data['email']);
         }
+
         return $errors;
     }
 
@@ -218,6 +235,7 @@ class transfer_form extends \moodleform {
         }
 
         $feefrom = $this->config->transferfee_from;
+
         if ($feefrom == 'sender') {
             $debit = $amount + $fee;
             $credit = $amount;

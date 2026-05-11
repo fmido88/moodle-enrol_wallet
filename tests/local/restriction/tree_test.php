@@ -16,8 +16,6 @@
 
 namespace enrol_wallet\local\restriction;
 
-use enrol_wallet\local\restriction\tree;
-
 /**
  * Tests for Wallet enrolment.
  *
@@ -34,8 +32,8 @@ final class tree_test extends \advanced_testcase {
      */
     public function test_constructor(): void {
         $this->resetAfterTest();
-        $course    = $this->getDataGenerator()->create_course();
-        $cm        = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
+        $course = $this->getDataGenerator()->create_course();
+        $cm = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
         $structure = (object)[
             'op'   => tree::OP_OR,
             'show' => true,

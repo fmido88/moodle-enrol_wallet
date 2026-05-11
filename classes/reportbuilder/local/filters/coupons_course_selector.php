@@ -29,7 +29,7 @@ use core_reportbuilder\local\helpers\database;
 class coupons_course_selector extends course_selector {
     /**
      * return the filter sql.
-     * @param array $values
+     * @param  array               $values
      * @return array<array|string> [$sql, $params]
      */
     public function get_sql_filter(array $values): array {
@@ -37,17 +37,20 @@ class coupons_course_selector extends course_selector {
 
         $fieldsql = $this->filter->get_field_sql();
         $courseids = $values["{$this->name}_values"] ?? [];
+
         if (empty($courseids)) {
             return ['', []];
         }
 
         $clauses = [];
         $params = [];
+
         foreach ($courseids as $cid) {
             $param = database::generate_param_name();
+
             if ($DB->sql_regex_supported()) {
                 $clauses[] = "$fieldsql " . $DB->sql_regex() . " :$param";
-                $params[$param] = "(^|,)" . preg_quote($cid) . "(,|$)";
+                $params[$param] = '(^|,)' . preg_quote($cid) . '(,|$)';
             } else {
                 $fieldname = $DB->sql_concat("','", $fieldsql, "','");
                 $clauses[] = $DB->sql_like($fieldname, ":$param", false);

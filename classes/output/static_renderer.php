@@ -56,7 +56,7 @@ class static_renderer {
 
     /**
      * Coupons urls.
-     * @param bool $array if set to true will return array of urls with labels.
+     * @param  bool                                    $array if set to true will return array of urls with labels.
      * @return array{label: string, url: url[]}|string
      */
     public static function coupons_urls($array = false) {
@@ -73,6 +73,7 @@ class static_renderer {
         $cangeneratecoupon = has_capability('enrol/wallet:createcoupon', $context);
         $caneditcoupon = has_capability('enrol/wallet:editcoupon', $context);
         $out = [];
+
         // Check if the user can view and generate coupons.
         if ($canviewcoupons) {
             $out[] = [
@@ -87,14 +88,14 @@ class static_renderer {
 
             if ($cangeneratecoupon) {
                 $out[] = [
-                    'url' => manage::GENERATE_COUPON->out(),
+                    'url'   => manage::GENERATE_COUPON->out(),
                     'label' => get_string('coupon_generation', 'enrol_wallet'),
                 ];
             }
 
             if ($cangeneratecoupon && $caneditcoupon) {
                 $out[] = [
-                    'url' => manage::UPLOAD_COUPONS->out(),
+                    'url'   => manage::UPLOAD_COUPONS->out(),
                     'label' => get_string('upload_coupons', 'enrol_wallet'),
                 ];
             }
@@ -104,16 +105,16 @@ class static_renderer {
             return $out;
         }
 
-        $out = array_map(function($entry) {
+        $out = array_map(function ($entry) {
             return html_writer::link($entry['url'], $entry['label']);
         }, $out);
 
-        return implode("<br>", $out);
+        return implode('<br>', $out);
     }
 
     /**
      * Wallet administration links.
-     * @param ?context $coursecontext
+     * @param  ?context                                                             $coursecontext
      * @return array{adminlinks: array{url: url, label: string}, isadmintabs: bool}
      */
     public static function get_admins_links(?context $coursecontext = null) {
@@ -130,6 +131,7 @@ class static_renderer {
         }
         // phpcs:enable moodle.PHP.ForbiddenGlobalUse.BadGlobal
         $links = [];
+
         if (has_capability('moodle/site:config', $context)) {
             $links[] = [
                 'url'   => new url('/admin/settings.php', ['section' => 'enrolsettingswallet']),
@@ -137,7 +139,7 @@ class static_renderer {
             ];
         }
 
-        if (has_all_capabilities(['enrol/wallet:config', 'enrol/wallet:manage'] , $context)) {
+        if (has_all_capabilities(['enrol/wallet:config', 'enrol/wallet:manage'], $context)) {
             $links[] = [
                 'url'   => manage::CONDITIONAL_DISCOUNT->url(),
                 'label' => get_string('conditionaldiscount_link_desc', 'enrol_wallet'),
@@ -148,7 +150,7 @@ class static_renderer {
 
         if (has_capability('enrol/wallet:bulkedit', $context)) {
             $links[] = [
-                'url' => manage::BULKENROLMENTS->url(),
+                'url'   => manage::BULKENROLMENTS->url(),
                 'label' => get_string('bulkeditor', 'enrol_wallet'),
             ];
 

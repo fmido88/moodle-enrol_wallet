@@ -32,7 +32,6 @@ namespace enrol_wallet\event;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class transactions_triggered extends \core\event\base {
-
     // For more information about the Events API, please visit:
     // https://docs.moodle.org/dev/Event_2.
     /**
@@ -59,25 +58,25 @@ class transactions_triggered extends \core\event\base {
      * @return string
      */
     public function get_description() {
-
-        $a = new \stdClass;
+        $a = new \stdClass();
         $a->relateduserid = $this->relateduserid;
         $a->userid = $this->userid;
         $a->amount = $this->other['amount'];
         $a->reason = $this->other['desc'];
 
         $type = $this->other['type'];
+
         if ($type == 'debit') {
             return get_string('event_transaction_debit_description', 'enrol_wallet', $a);
+        }
 
-        } else if ($type == 'credit') {
+        if ($type == 'credit') {
             $refundable = clean_param($this->other['refundable'], PARAM_BOOL);
             $a->refundable = $refundable ? 'refundable' : 'not refundable';
 
             return get_string('event_transaction_credit_description', 'enrol_wallet', $a);
-        } else {
-            return null;
         }
 
+        return null;
     }
 }

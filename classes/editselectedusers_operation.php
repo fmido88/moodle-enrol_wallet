@@ -34,7 +34,6 @@ use enrol_wallet\local\utils\timedate;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
-
     /**
      * Returns the title to display for this bulk operation.
      *
@@ -56,22 +55,24 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
      * Processes the bulk operation request for the given userids with the provided properties.
      *
      * @param \course_enrolment_manager $manager
-     * @param array $users
-     * @param \stdClass $properties The data returned by the form.
+     * @param array                     $users
+     * @param \stdClass                 $properties The data returned by the form.
      */
     public function process(\course_enrolment_manager $manager, array $users, \stdClass $properties) {
         global $DB, $USER;
 
-        if (!has_capability("enrol/wallet:manage", $manager->get_context())) {
+        if (!has_capability('enrol/wallet:manage', $manager->get_context())) {
             return false;
         }
 
         // Get all of the user enrolment id's.
         $ueids = [];
         $instances = [];
+
         foreach ($users as $user) {
             foreach ($user->enrolments as $enrolment) {
                 $ueids[] = $enrolment->id;
+
                 if (!array_key_exists($enrolment->id, $instances)) {
                     $instances[$enrolment->id] = $enrolment;
                 }
@@ -93,6 +94,7 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
         list($ueidsql, $params) = $DB->get_in_or_equal($ueids, SQL_PARAMS_NAMED);
 
         $updatesql = [];
+
         if ($status == ENROL_USER_ACTIVE || $status == ENROL_USER_SUSPENDED) {
             $updatesql[] = 'status = :status';
             $params['status'] = (int)$status;
@@ -134,11 +136,11 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
                     // Trigger event.
                     $event = \core\event\user_enrolment_updated::create(
                         [
-                            'objectid' => $enrolment->id,
-                            'courseid' => $enrolment->courseid,
-                            'context' => \context_course::instance($enrolment->courseid),
+                            'objectid'      => $enrolment->id,
+                            'courseid'      => $enrolment->courseid,
+                            'context'       => \context_course::instance($enrolment->courseid),
                             'relateduserid' => $user->id,
-                            'other' => ['enrol' => 'wallet'],
+                            'other'         => ['enrol' => 'wallet'],
                         ]
                     );
                     $event->trigger();
@@ -146,6 +148,7 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
             }
             // Delete cached course contacts for this course because they may be affected.
             \cache::make('core', 'coursecontacts')->delete($manager->get_context()->instanceid);
+
             return true;
         }
 
@@ -156,8 +159,8 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
      * Returns a enrol_bulk_enrolment_operation extension form to be used
      * in collecting required information for this operation to be processed.
      *
-     * @param string|\moodle_url|null $defaultaction
-     * @param mixed $defaultcustomdata
+     * @param  string|\moodle_url|null              $defaultaction
+     * @param  mixed                                $defaultcustomdata
      * @return \enrol_wallet\editselectedusers_form
      */
     public function get_form($defaultaction = null, $defaultcustomdata = null) {

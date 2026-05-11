@@ -32,7 +32,6 @@ namespace enrol_wallet\event;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class cashback_applied extends \core\event\base {
-
     // For more information about the Events API, please visit:
     // https://docs.moodle.org/dev/Event_2.
     /**
@@ -59,11 +58,11 @@ class cashback_applied extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        $a = new \stdClass;
-        $a->userid   = $this->userid;
+        $a = new \stdClass();
+        $a->userid = $this->userid;
         $a->courseid = $this->courseid;
         $a->original = $this->other['original'];
-        $a->amount   = $this->other['amount'];
+        $a->amount = $this->other['amount'];
 
         return get_string('event_cashback_desc', 'enrol_wallet', $a);
     }

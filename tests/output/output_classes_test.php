@@ -27,6 +27,7 @@ namespace enrol_wallet\output;
 
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\testing;
+
 // Todo: we must make sure that each renderable object
 // is actually renderable.
 /**
@@ -89,7 +90,7 @@ final class output_classes_test extends \advanced_testcase {
     public function test_payment_info(): void {
         $this->resetAfterTest();
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         // Get the wallet instance.
@@ -102,7 +103,7 @@ final class output_classes_test extends \advanced_testcase {
 
         // Test export_for_template method.
         $renderer = helper::get_wallet_renderer();
-        $data     = $paymentinfo->export_for_template($renderer);
+        $data = $paymentinfo->export_for_template($renderer);
         $this->assertIsArray($data);
         // Todo: Assert the data returned from the export
         // and the rendered html.
@@ -125,7 +126,7 @@ final class output_classes_test extends \advanced_testcase {
 
         // Test export_for_template method.
         $renderer = helper::get_wallet_renderer();
-        $data     = $discountline->export_for_template($renderer);
+        $data = $discountline->export_for_template($renderer);
         $this->assertIsArray($data);
     }
 
@@ -143,7 +144,7 @@ final class output_classes_test extends \advanced_testcase {
 
         // Test export_for_template method.
         $renderer = helper::get_wallet_renderer();
-        $data     = $bundles->export_for_template($renderer);
+        $data = $bundles->export_for_template($renderer);
         $this->assertIsArray($data);
         // Todo: add some bundles (Site and categories) and assert that these
         // data return in export and existed in the rendered string.

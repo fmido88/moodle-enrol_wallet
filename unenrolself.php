@@ -34,6 +34,7 @@ $course = $DB->get_record('course', ['id' => $instance->courseid], '*', MUST_EXI
 $context = context_course::instance($course->id, MUST_EXIST);
 
 require_login();
+
 if (!is_enrolled($context)) {
     redirect(new moodle_url('/'));
 }

@@ -32,7 +32,6 @@ namespace enrol_wallet\event;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class coupon_used extends \core\event\base {
-
     // For more information about the Events API, please visit:
     // https://docs.moodle.org/dev/Event_2.
     /**
@@ -59,9 +58,9 @@ class coupon_used extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        $a = new \stdClass;
+        $a = new \stdClass();
         $a->userid = $this->userid;
-        $a->code   = $this->other['code'];
+        $a->code = $this->other['code'];
 
         return get_string('event_coupon_desc', 'enrol_wallet', $a);
     }

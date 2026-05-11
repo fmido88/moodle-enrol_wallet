@@ -21,6 +21,7 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 use enrol_wallet\local\wallet\balance;
@@ -31,11 +32,11 @@ use enrol_wallet\local\wallet\balance_op;
  * @deprecated use balance_op class for operations, balance class for retrieving balance details.
  */
 class transactions {
-
     /**
      * If the wallet source is from wordpress site.
      */
     public const SOURCE_WORDPRESS = balance::WP;
+
     /**
      * If the wallet source is from this moodle site.
      */
@@ -43,17 +44,18 @@ class transactions {
 
     /**
      * Function needed to topup the wallet in the corresponding wordpress website or internal moodle wallet system.
-     * @param float $amount
-     * @param int $userid
-     * @param string $description the description of this transaction.
-     * @param string|int $charger the user id who charged this amount.
-     * @param bool $refundable If this transaction is refundable or not.
-     * @param bool $trigger Trigger the transaction event or not.
+     * @param  float      $amount
+     * @param  int        $userid
+     * @param  string     $description the description of this transaction.
+     * @param  string|int $charger     the user id who charged this amount.
+     * @param  bool       $refundable  If this transaction is refundable or not.
+     * @param  bool       $trigger     Trigger the transaction event or not.
      * @return int|string the id of transaction record or error string.
      * @deprecated
      */
     public static function payment_topup($amount, $userid, $description = '', $charger = '', $refundable = true, $trigger = true) {
         $util = new balance_op($userid);
+
         if (!empty($cahrger)) {
             $by = balance_op::USER;
             $thingid = $charger;
@@ -62,30 +64,32 @@ class transactions {
             $thingid = 0;
         }
         $util->credit($amount, $by, $thingid, $description, $refundable, $trigger);
+
         return $util->get_transaction_id();
     }
 
     /** Function to deduct the credit from wallet balance.
-     * @param int $userid
-     * @param float $amount
+     * @param int    $userid
+     * @param float  $amount
      * @param string $coursename the name of the course.
-     * @param int $charger the id of the charger user.
-     * @param string $other another description.
-     * @param int $courseid
-     * @param bool $neg Allow negative balance.
+     * @param int    $charger    the id of the charger user.
+     * @param string $other      another description.
+     * @param int    $courseid
+     * @param bool   $neg        Allow negative balance.
      * @deprecated
      * @return mixed
      */
     public static function debit(
-                                $userid,
-                                float $amount,
-                                $coursename = '',
-                                $charger = '',
-                                $other = '',
-                                $courseid = 0,
-                                $neg = false
-                                ) {
+        $userid,
+        float $amount,
+        $coursename = '',
+        $charger = '',
+        $other = '',
+        $courseid = 0,
+        $neg = false
+    ) {
         $util = new balance_op($userid);
+
         if (!empty($coursename) && !empty($courseid)) {
             $for = balance_op::D_ENROL_COURSE;
             $thingid = $courseid;
@@ -98,6 +102,7 @@ class transactions {
         }
 
         $util->debit($amount, $for, $thingid, $other, $neg);
+
         return $util->get_transaction_id();
     }
 
@@ -105,19 +110,20 @@ class transactions {
      * Get the balance available to user from wp-site or moodle.
      * return the user balance, or false|string in case of error.
      *
-     * @param int $userid
+     * @param  int                $userid
      * @return float|false|string
      * @deprecated
      */
     public static function get_user_balance($userid) {
         $util = new balance($userid);
+
         return $util->get_valid_balance();
     }
 
     /**
      * Get the nonrefundable balance.
      *
-     * @param int $userid
+     * @param  int   $userid
      * @return float
      * @deprecated
      */
@@ -127,4 +133,3 @@ class transactions {
         return (float)$op->get_valid_nonrefundable();
     }
 }
-

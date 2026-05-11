@@ -26,17 +26,16 @@ namespace enrol_wallet\local\coupons\uploadcoupon;
 
 defined('MOODLE_INTERNAL') || die;
 
-require_once($CFG->dirroot.'/admin/tool/uploaduser/locallib.php');
+require_once($CFG->dirroot . '/admin/tool/uploaduser/locallib.php');
 
 /**
- * Validates and processes files for uploading a course enrolment methods CSV file
+ * Validates and processes files for uploading a course enrolment methods CSV file.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class processor {
-
     /** @var \csv_import_reader */
     protected $cir;
 
@@ -50,10 +49,10 @@ class processor {
     protected $allowed;
 
     /**
-     * Constructor, sets the CSV file reader
+     * Constructor, sets the CSV file reader.
      *
-     * @param \csv_import_reader $cir import reader object
-     * @param string $allowed What operation is allowed (all, updated, create)
+     * @param \csv_import_reader $cir     import reader object
+     * @param string             $allowed What operation is allowed (all, updated, create)
      */
     public function __construct(\csv_import_reader $cir, $allowed = 'all') {
         $this->cir = $cir;
@@ -65,7 +64,7 @@ class processor {
     }
 
     /**
-     * Processes the file to handle the enrolment methods
+     * Processes the file to handle the enrolment methods.
      *
      * Opens the file, loops through each row. Cleans the values in each column,
      * checks that the operation is valid and the methods exist. If all is well,
@@ -75,14 +74,15 @@ class processor {
      *
      * @see open_file()
      * @uses enrol_meta_sync() Meta plugin function for syncing users
-     * @return string A report of successes and failures.
      *
-     * @param object $tracker the output tracker to use.
+     * @param  object $tracker the output tracker to use.
+     * @return string A report of successes and failures.
      * @return void
      */
     public function execute($tracker = null) {
         global $DB;
         $context = \context_system::instance();
+
         if (!has_capability('enrol/wallet:createcoupon', $context)
          || !has_capability('enrol/wallet:editcoupon', $context)) {
             return;
@@ -125,7 +125,7 @@ class processor {
             $total++;
             // Prepare reporting message strings.
             $messagerow = [];
-            $coupondata = new \stdClass;
+            $coupondata = new \stdClass();
             // Read in and process one data line from the CSV file.
             $data = $this->parse_line($line);
 
@@ -144,6 +144,7 @@ class processor {
             }
 
             $id = !empty($data['id']) ? $data['id'] : null;
+
             if (!empty($id)) {
                 $coupondata->id = $id;
             }
@@ -155,18 +156,23 @@ class processor {
             $coupondata->value = $value;
 
             $type = $data['type'] ?? null;
+
             if (empty($type) && !empty($value)) {
                 $type = 'fixed';
             }
+
             if (!empty($type)) {
                 $coupondata->type = $type;
             }
             $category = $data['category'] ?? null;
+
             if ($type == 'category' && !is_number($category)) {
                 $categoryid = $DB->get_field('course_categories', 'id', ['name' => $category]);
+
                 if (empty($categoryid)) {
                     $categoryid = $DB->get_field('course_categories', 'id', ['idnumber' => $category]);
                 }
+
                 if (!empty($categoryid)) {
                     $category = $categoryid;
                 } else {
@@ -176,15 +182,19 @@ class processor {
             $coupondata->category = $category;
 
             $courses = $data['courses'] ?? 0;
+
             if (!empty($courses) && $type == 'enrol') {
                 $shortnames = explode('/', $courses);
                 $courses = [];
+
                 if ($shortnames) {
                     foreach ($shortnames as $shortname) {
                         $courseid = $DB->get_field('course', 'id', ['shortname' => $shortname]);
+
                         if (!$courseid) {
                             $courseid = $DB->get_field('course', 'id', ['idnumber' => $shortname]);
                         }
+
                         if ($courseid) {
                             $courses[] = $courseid;
                         }
@@ -192,6 +202,7 @@ class processor {
                     $courses = implode(',', $courses);
                 }
             }
+
             if (!empty($courses)) {
                 $coupondata->courses = $courses;
             }
@@ -203,12 +214,14 @@ class processor {
             $coupondata->maxperuser = $maxperuser;
 
             $validfrom = $data['validfrom'] ?? null;
+
             if (!empty($validfrom) && !is_number($validfrom)) {
                 $validfrom = strtotime($validfrom);
             }
             $coupondata->validfrom = $validfrom;
 
             $validto = $data['validto'] ?? null;
+
             if (!empty($validto) && !is_number($validto)) {
                 $validto = strtotime($validto);
             }
@@ -236,6 +249,7 @@ class processor {
                 $tracker->output($messagerow, false);
                 continue;
             }
+
             // Check if there is a code.
             if (empty('code')) {
                 $errors++;
@@ -243,6 +257,7 @@ class processor {
                 $tracker->output($messagerow, false);
                 continue;
             }
+
             // Check if there is no value.
             if (empty($value) && $type != 'enrol') {
                 $errors++;
@@ -281,6 +296,7 @@ class processor {
 
             if (!empty($id)) {
                 $oldrecord = $DB->get_record('enrol_wallet_coupons', ['id' => $id, 'code' => $code]);
+
                 if (!$oldrecord) {
                     $errors++;
                     $messagerow['result'] = get_string('coupon_invalidid', 'enrol_wallet');
@@ -298,6 +314,7 @@ class processor {
                     }
                 }
                 $coupondata->id = $oldrecord->id;
+
                 if ($DB->update_record('enrol_wallet_coupons', $coupondata)) {
                     $updated++;
                     $messagerow['result'] = get_string('coupon_update_success', 'enrol_wallet');
@@ -317,6 +334,7 @@ class processor {
                         }
                     }
                 }
+
                 if ($DB->insert_record('enrol_wallet_coupons', $coupondata)) {
                     $created++;
                     $messagerow['result'] = get_string('coupons_generation_success', 'enrol_wallet', 1);
@@ -341,13 +359,14 @@ class processor {
     }
 
     /**
-     * Parse a line to return an array(column => value)
+     * Parse a line to return an array(column => value).
      *
-     * @param array $line returned by csv_import_reader
+     * @param  array $line returned by csv_import_reader
      * @return array
      */
     protected function parse_line($line) {
         $data = [];
+
         foreach ($line as $keynum => $value) {
             if (!isset($this->columns[$keynum])) {
                 // This should not happen.
@@ -357,6 +376,7 @@ class processor {
             $key = $this->columns[$keynum];
             $data[$key] = $value;
         }
+
         return $data;
     }
 
@@ -380,15 +400,18 @@ class processor {
     protected function validate() {
         if (empty($this->columns)) {
             throw new \moodle_exception('cannotreadtmpfile', 'error');
-        } else if (count($this->columns) < 3) { // At lest code and value columns.
+        }
+
+        if (count($this->columns) < 3) { // At lest code and value columns.
             throw new \moodle_exception('csvfewcolumns', 'error');
         }
     }
+
     /**
-     * Write contents to a file for debugging purposes
+     * Write contents to a file for debugging purposes.
      *
-     * @param string $content text to save
-     * @param string $prefix file prefix
+     * @param  string $content text to save
+     * @param  string $prefix  file prefix
      * @return void
      */
     public function debug_write(string $content, string $prefix) {
@@ -401,9 +424,9 @@ class processor {
     }
 
     /**
-     * Delete temporary files if debugging disabled
+     * Delete temporary files if debugging disabled.
      *
-     * @param string $filename name of file to be deleted
+     * @param  string $filename name of file to be deleted
      * @return void
      */
     public function debug_unlink($filename) {

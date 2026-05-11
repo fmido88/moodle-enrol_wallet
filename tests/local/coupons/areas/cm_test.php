@@ -21,7 +21,6 @@ use enrol_wallet\local\coupons\areas\cm as area_cm;
 use enrol_wallet\local\coupons\generator;
 use enrol_wallet\local\coupons\types\enrol as type_enrol;
 use enrol_wallet\local\coupons\types\fixed;
-use enrol_wallet\local\utils\testing;
 
 /**
  * Tests for the coupon course module area.
@@ -34,12 +33,16 @@ use enrol_wallet\local\utils\testing;
 final class cm_test extends \advanced_testcase {
     /** @var object Category record */
     private object $category;
+
     /** @var object Course record */
     private object $course;
+
     /** @var object Course section record */
     private object $section;
+
     /** @var object Course module record */
     private object $cm;
+
     /** @var \testing_data_generator Data generator */
     private \testing_data_generator $gen;
 
@@ -80,18 +83,18 @@ final class cm_test extends \advanced_testcase {
         $this->assertTrue($cm->is_valid_for_type(fixed::make(generator::create_coupon_record(type: 'fixed', value: 25))));
 
         $this->assertFalse($cm->is_valid_for_type(type_enrol::make((object)[
-            'code' => 'ENROL0',
-            'type' => 'enrol',
-            'value' => 0,
-            'courses' => 1,
-            'category' => 0,
-            'maxusage' => 0,
-            'maxperuser' => 0,
-            'usetimes' => 0,
-            'validfrom' => 0,
-            'validto' => 0,
+            'code'        => 'ENROL0',
+            'type'        => 'enrol',
+            'value'       => 0,
+            'courses'     => 1,
+            'category'    => 0,
+            'maxusage'    => 0,
+            'maxperuser'  => 0,
+            'usetimes'    => 0,
+            'validfrom'   => 0,
+            'validto'     => 0,
             'timecreated' => time(),
-            'lastuse' => 0,
+            'lastuse'     => 0,
         ])));
 
         $url = new \core\url('/test');

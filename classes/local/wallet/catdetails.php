@@ -26,7 +26,6 @@ use core\exception\coding_exception;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class catdetails {
-
     /**
      * A single category balance details object.
      * @param float $refundable
@@ -58,9 +57,10 @@ class catdetails {
             'recordid'      => $this->recordid,
         ];
     }
+
     /**
      * Magic getter.
-     * @param string $name
+     * @param  string           $name
      * @throws coding_exception
      * @return float
      */
@@ -68,21 +68,23 @@ class catdetails {
         if ($name === 'balance') {
             return $this->refundable + $this->nonrefundable;
         }
+
         throw new coding_exception("Non recognized property $name");
     }
 
     /**
      * Check if a magic property is existed.
-     * @param string $name
+     * @param  string $name
      * @return bool
      */
     public function __isset($name): bool {
         return $name === 'balance';
     }
+
     /**
      * Cannot set a calculated value.
-     * @param string $name
-     * @param string $value
+     * @param  string           $name
+     * @param  string           $value
      * @throws coding_exception
      * @return never
      */

@@ -16,7 +16,6 @@
 
 namespace enrol_wallet\local\restriction;
 
-use context;
 use context_course;
 use core_collator;
 use enrol_wallet\local\entities\instance;
@@ -25,7 +24,7 @@ use MoodleQuickForm;
 use stdClass;
 
 /**
- * Class courses
+ * Class courses.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -35,17 +34,19 @@ class courses {
     /**
      * Check if there is restriction according to other courses enrolment.
      * Return false if not restricted and string with required courses names in case if restricted.
-     * @param instance|stdClass $instance
+     * @param  instance|stdClass $instance
      * @return false|string
      */
     public static function is_restricted(instance|stdClass $instance): false|string {
         global $DB;
+
         if (!empty($instance->customchar3) && !empty($instance->customint7)) {
             $courses = explode(',', $instance->customchar3);
             $restrict = false;
             $count = 0;
             $total = 0;
             $notenrolled = [];
+
             foreach ($courses as $courseid) {
                 if (!$DB->record_exists('course', ['id' => $courseid])) {
                     continue;
@@ -53,6 +54,7 @@ class courses {
 
                 $total++;
                 $coursectx = context_course::instance($courseid);
+
                 if (!is_enrolled($coursectx)) {
                     $restrict = true;
                     // The user is not enrolled in the required course.
@@ -67,25 +69,29 @@ class courses {
             $coursesnames = '(' . implode(',<br>', $notenrolled) . ')';
             // In case that the course creator choose a higher number than the selected courses.
             $limit = min($total, $instance->customint7);
+
             if ($restrict && $count < $limit) {
                 return $coursesnames;
             }
         }
+
         return false;
     }
 
     /**
      * Adding another course restriction options to enrolment edit form.
-     * @param \MoodleQuickForm $mform
-     * @param stdClass $instance
+     * @param  \MoodleQuickForm $mform
+     * @param  stdClass         $instance
      * @return void
      */
     public static function add_to_edit_form(MoodleQuickForm $mform, stdClass $instance) {
         $coursesoptions = options::get_courses_options($instance->courseid);
+
         if (!empty($coursesoptions)) {
             $count = count($coursesoptions);
 
             $options = [];
+
             for ($i = 0; $i <= $count; $i++) {
                 $options[$i] = $i;
             }
@@ -105,6 +111,7 @@ class courses {
             $select->setMultiple(true);
             $mform->addHelpButton('courserestriction', 'coursesrestriction', 'enrol_wallet');
             $mform->hideIf('courserestriction', 'customint7', 'eq', 0);
+
             if (!empty($instance->customchar3)) {
                 $mform->setDefault('courserestriction', explode(',', $instance->customchar3));
             }
@@ -120,7 +127,7 @@ class courses {
 
         if (!empty($coursesoptions)) {
             // Add some js code to set the value of customchar3 element for the restriction course enrolment.
-            $js = <<<JS
+            $js = <<<'JS'
                     function restrictByCourse() {
                         var textelement = document.getElementById("wallet_customchar3");
                         var courseArray = document.getElementById("wallet_courserestriction").selectedOptions;
@@ -132,7 +139,7 @@ class courses {
                         textelement.value = selectedValues.join(",");
                     }
                 JS;
-            $mform->addElement('html', '<script>'.$js.'</script>');
+            $mform->addElement('html', '<script>' . $js . '</script>');
         }
     }
 }

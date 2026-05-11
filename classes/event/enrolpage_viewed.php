@@ -32,7 +32,6 @@ namespace enrol_wallet\event;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrolpage_viewed extends \core\event\base {
-
     // For more information about the Events API, please visit:
     // https://docs.moodle.org/dev/Event_2.
     /**
@@ -58,8 +57,7 @@ class enrolpage_viewed extends \core\event\base {
      * @return string
      */
     public function get_description() {
-
-        $a = new \stdClass;
+        $a = new \stdClass();
         $a->userid = $this->userid;
         $a->courseid = $this->courseid;
 
@@ -73,6 +71,7 @@ class enrolpage_viewed extends \core\event\base {
     public static function create_and_trigger($instance) {
         global $USER;
         static $viewed = false;
+
         if (!$viewed) {
             $context = \context_course::instance($instance->courseid);
             $data['contextid'] = $context->id;

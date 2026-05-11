@@ -24,7 +24,6 @@
 
 namespace enrol_wallet\local\restriction;
 
-use enrol_wallet\local\utils\timedate;
 use enrol_wallet_plugin;
 
 /**
@@ -44,11 +43,12 @@ class info extends \core_availability\info {
     /**
      * Constructs with item details.
      * @param \stdClass $instance the enrol wallet instance.
-     * @param \stdClass $course the course object.
+     * @param \stdClass $course   the course object.
      */
     public function __construct($instance, $course = null) {
         $this->wallet = enrol_get_plugin('wallet');
         $this->instance = $instance;
+
         if (empty($course)) {
             $course = $this->wallet->get_course_by_instance_id($instance->id);
         }
@@ -127,8 +127,10 @@ class info extends \core_availability\info {
         if (!empty($this->modinfo)) {
             return $this->modinfo;
         }
+
         return get_fast_modinfo($this->course);
     }
+
     /**
      * Gets the cm object. Intended for use by conditions.
      *
@@ -155,17 +157,21 @@ class info extends \core_availability\info {
      * This function displays debugging() messages if the availability
      * information is invalid.
      *
-     * @param string $information String describing restrictions in HTML format
-     * @param bool $grabthelot Performance hint: if true, caches information
-     *   required for all course-modules, to make the front page and similar
-     *   pages work more quickly (works only for current user)
-     * @param int $userid If set, specifies a different user ID to check availability for
-     * @param \course_modinfo|null $modinfo Usually leave as null for default. Specify when
-     *   calling recursively from inside get_fast_modinfo()
-     * @return bool True if this item is available to the user, false otherwise
+     * @param  string               $information String describing restrictions in HTML format
+     * @param  bool                 $grabthelot  Performance hint: if true, caches information
+     *                                           required for all course-modules, to make the front page and similar
+     *                                           pages work more quickly (works only for current user)
+     * @param  int                  $userid      If set, specifies a different user ID to check availability for
+     * @param  \course_modinfo|null $modinfo     Usually leave as null for default. Specify when
+     *                                           calling recursively from inside get_fast_modinfo()
+     * @return bool                 True if this item is available to the user, false otherwise
      */
-    public function is_available(&$information, $grabthelot = false, $userid = 0,
-                                $modinfo = null) {
+    public function is_available(
+        &$information,
+        $grabthelot = false,
+        $userid = 0,
+        $modinfo = null
+    ) {
         global $USER, $DB;
 
         // Default to no information.
@@ -192,6 +198,7 @@ class info extends \core_availability\info {
         } catch (\coding_exception $e) {
             $this->warn_about_invalid_availability($e);
             $this->modinfo = null;
+
             return false;
         }
 
@@ -211,15 +218,16 @@ class info extends \core_availability\info {
         }
 
         $this->modinfo = null;
+
         return $isavaliable;
     }
 
     /**
      * {@inheritDoc}
      * Override to check grades in modules in other courses and include the name of the course.
-     * @param \core_availability_multiple_messages|string $inforenderable Info string or renderable
-     * @param int|\stdClass $courseorid
-     * @return string Correctly formatted info string
+     * @param  \core_availability_multiple_messages|string $inforenderable Info string or renderable
+     * @param  int|\stdClass                               $courseorid
+     * @return string                                      Correctly formatted info string
      */
     public static function format_info($inforenderable, $courseorid) {
         global $OUTPUT;
@@ -240,48 +248,60 @@ class info extends \core_availability\info {
         // Handle CMNAME tags.
         $modinfo = get_fast_modinfo($courseorid);
         $context = \context_course::instance($modinfo->courseid);
-        $info = preg_replace_callback('~<AVAILABILITY_CMNAME_([0-9]+)/>~',
-                function($matches) use($modinfo, $context) {
-                    $cm = $modinfo->get_cm($matches[1]);
-                    $coursename = $cm->get_course()->fullname;
-                    $modname = $coursename . ': '. $cm->get_name();
-                    if ($cm->has_view() && $cm->get_user_visible()) {
-                        // Help student by providing a link to the module which is preventing availability.
-                        return \html_writer::link($cm->get_url(), format_string($modname, true, ['context' => $context]));
-                    } else {
-                        return format_string($modname, true, ['context' => $context]);
-                    }
-                }, $info);
-        $info = preg_replace_callback('~<AVAILABILITY_FORMAT_STRING>(.*?)</AVAILABILITY_FORMAT_STRING>~s',
-                function($matches) use ($context) {
-                    $decoded = htmlspecialchars_decode($matches[1], ENT_NOQUOTES);
-                    return format_string($decoded, true, ['context' => $context]);
-                }, $info);
-        $info = preg_replace_callback('~<AVAILABILITY_CALLBACK type="([a-z0-9_]+)">(.*?)</AVAILABILITY_CALLBACK>~s',
-                function($matches) use ($modinfo, $context) {
+        $info = preg_replace_callback(
+            '~<AVAILABILITY_CMNAME_([0-9]+)/>~',
+            function ($matches) use ($modinfo, $context) {
+                $cm = $modinfo->get_cm($matches[1]);
+                $coursename = $cm->get_course()->fullname;
+                $modname = $coursename . ': ' . $cm->get_name();
 
-                    // Find the class, it must have already been loaded by now.
-                    $fullclassname = 'availability_' . $matches[1] . '\condition';
-                    if (!class_exists($fullclassname, false)) {
-                        return '<!-- Error finding class ' . $fullclassname .' -->';
-                    }
-                    // Load the parameters.
-                    $params = [];
-                    $encodedparams = preg_split('~<P/>~', $matches[2], 0);
-                    foreach ($encodedparams as $encodedparam) {
-                        $params[] = htmlspecialchars_decode($encodedparam, ENT_NOQUOTES);
-                    }
-                    $formatedname = $fullclassname::get_description_callback_value($modinfo, $context, $params);
-                    if ($matches[1] !== 'grade') {
-                        return $formatedname;
-                    } else {
-                        global $DB;
-                        $gradeitem = $DB->get_record('grade_items', ['id' => $matches[2]]);
-                        $coursename = get_course($gradeitem->courseid)->fullname;
-                        return $formatedname . ' - ' . $coursename;
+                if ($cm->has_view() && $cm->get_user_visible()) {
+                    // Help student by providing a link to the module which is preventing availability.
+                    return \html_writer::link($cm->get_url(), format_string($modname, true, ['context' => $context]));
+                }
 
-                    }
-                }, $info);
+                return format_string($modname, true, ['context' => $context]);
+            },
+            $info
+        );
+        $info = preg_replace_callback(
+            '~<AVAILABILITY_FORMAT_STRING>(.*?)</AVAILABILITY_FORMAT_STRING>~s',
+            function ($matches) use ($context) {
+                $decoded = htmlspecialchars_decode($matches[1], ENT_NOQUOTES);
+
+                return format_string($decoded, true, ['context' => $context]);
+            },
+            $info
+        );
+        $info = preg_replace_callback(
+            '~<AVAILABILITY_CALLBACK type="([a-z0-9_]+)">(.*?)</AVAILABILITY_CALLBACK>~s',
+            function ($matches) use ($modinfo, $context) {
+                // Find the class, it must have already been loaded by now.
+                $fullclassname = 'availability_' . $matches[1] . '\condition';
+
+                if (!class_exists($fullclassname, false)) {
+                    return '<!-- Error finding class ' . $fullclassname . ' -->';
+                }
+                // Load the parameters.
+                $params = [];
+                $encodedparams = preg_split('~<P/>~', $matches[2], 0);
+
+                foreach ($encodedparams as $encodedparam) {
+                    $params[] = htmlspecialchars_decode($encodedparam, ENT_NOQUOTES);
+                }
+                $formatedname = $fullclassname::get_description_callback_value($modinfo, $context, $params);
+
+                if ($matches[1] !== 'grade') {
+                    return $formatedname;
+                }
+                global $DB;
+                $gradeitem = $DB->get_record('grade_items', ['id' => $matches[2]]);
+                $coursename = get_course($gradeitem->courseid)->fullname;
+
+                return $formatedname . ' - ' . $coursename;
+            },
+            $info
+        );
 
         return $info;
     }
@@ -289,14 +309,15 @@ class info extends \core_availability\info {
     /**
      * {@inheritDoc}
      * Override to use our own tree.
-     * @param string $availability Availability string in JSON format
-     * @param boolean $lax If true, throw exceptions only for invalid structure
-     * @return tree Availability tree
+     * @param  string            $availability Availability string in JSON format
+     * @param  bool              $lax          If true, throw exceptions only for invalid structure
      * @throws \coding_exception If data is not valid JSON format
+     * @return tree              Availability tree
      */
     protected function decode_availability($availability, $lax) {
         // Decode JSON data.
         $structure = json_decode($availability);
+
         if ($structure === null) {
             throw new \coding_exception('Invalid availability text', $availability);
         }

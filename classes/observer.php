@@ -15,53 +15,54 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Observers for enrol_wallet
+ * Observers for enrol_wallet.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\referral\hold;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\utils\timedate;
-use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
 
 /**
  * Observer class for enrol_wallet.
- *
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class observer {
-
     /**
      * This is a callback function after a user completed a course with an instance of wallet enrollment.
      * the student will be awarded with a certain amount according to its grade also if exceeds a certain grade.
      *
-     * @param \core\event\course_completed $event
+     * @param  \core\event\course_completed $event
      * @return void
      */
     public static function wallet_completion_awards(\core\event\course_completed $event) {
         global $CFG, $DB;
         $siteaward = config::make()->awardssite;
+
         if (empty($siteaward)) {
             return;
         }
 
         $userid = $event->relateduserid;
         $courseid = $event->courseid;
+
         // If the user already rewarded for this course, ignore the event.
         if ($DB->record_exists('enrol_wallet_awards', ['userid' => $userid, 'courseid' => $courseid])) {
             return;
         }
 
-        require_once($CFG->dirroot.'/grade/querylib.php');
+        require_once($CFG->dirroot . '/grade/querylib.php');
         require_once($CFG->libdir . '/gradelib.php');
 
         $grades = grade_get_course_grade($userid, $courseid);
@@ -78,6 +79,7 @@ class observer {
         $instances = enrol_get_instances($courseid, true);
         $instance = null;
         $ta = 0; // Estimated Total award (Just for check and not used again).
+
         foreach ($instances as $inst) {
             // Check for multiple wallet instances and get the higher award available.
             // Check if awards enabled in this instance & if the condition applied and the student deserve the award.
@@ -103,6 +105,7 @@ class observer {
 
         // Calculating the total award.
         $award = ($percentage - $condition) * $maxgrade * $awardper / 100;
+
         if ($award <= 0) {
             return;
         }
@@ -110,7 +113,7 @@ class observer {
         $course = get_course($courseid);
         $coursename = $course->shortname;
 
-        $a = new \stdClass;
+        $a = new \stdClass();
         $a->courseshortname = $coursename;
         $a->amount = $award;
         $a->usergrade = $usergrade;
@@ -124,12 +127,12 @@ class observer {
 
         // Insert the record.
         $data = [
-            'userid'   => $userid,
-            'courseid' => $courseid,
-            'grade'    => $usergrade,
-            'maxgrade' => $maxgrade,
-            'percent'  => $percentage,
-            'amount'   => $award,
+            'userid'      => $userid,
+            'courseid'    => $courseid,
+            'grade'       => $usergrade,
+            'maxgrade'    => $maxgrade,
+            'percent'     => $percentage,
+            'amount'      => $award,
             'timecreated' => timedate::time(),
         ];
         $id = $DB->insert_record('enrol_wallet_awards', $data);
@@ -141,7 +144,7 @@ class observer {
             'relateduserid' => $userid,
             'objectid'      => $id,
             'courseid'      => $courseid,
-            'other' => [
+            'other'         => [
                 'grade'  => number_format($percentage, 2),
                 'amount' => $award,
             ],
@@ -152,7 +155,7 @@ class observer {
 
     /** This is a callback function when user created,
      * and send him a gift on his wallet if the setting is enabled.
-     * @param \core\event\user_created $event
+     * @param  \core\event\user_created $event
      * @return void
      */
     public static function wallet_gifting_new_user(\core\event\user_created $event) {
@@ -161,13 +164,15 @@ class observer {
         $config = config::make();
         // First check if we gifting new users.
         $giftenabled = $config->newusergift;
+
         if (!empty($giftenabled)) {
-            $time   = $event->timecreated;
+            $time = $event->timecreated;
             $giftvalue = $config->newusergiftvalue;
             $balanceop = new balance_op($userid);
             $balance = $balanceop->get_main_balance();
+
             if (!is_numeric($balance) || $balance == 0) {
-                $a = new \stdClass;
+                $a = new \stdClass();
                 $a->userid = $userid;
                 $a->time = userdate($time);
                 $a->amount = $giftvalue;
@@ -181,7 +186,7 @@ class observer {
                     'userid'        => $userid,
                     'relateduserid' => $userid,
                     'objectid'      => $id,
-                    'other' => [
+                    'other'         => [
                         'amount' => $giftvalue,
                     ],
                 ];
@@ -196,16 +201,15 @@ class observer {
      * The conditional discount acts like this, for example a discount 25% for 200 cost
      * the user pay 150 then this function credit him by 50.
      *
-     * @param \enrol_wallet\event\transactions_triggered $event
+     * @param  \enrol_wallet\event\transactions_triggered $event
      * @return void
      */
     public static function conditional_discount_charging(\enrol_wallet\event\transactions_triggered $event) {
-
     }
 
     /**
      * Release referral gift after making sure that the referred user is an active user and enrolled in a course already.
-     * @param \core\event\user_enrolment_created $event
+     * @param  \core\event\user_enrolment_created $event
      * @return void
      */
     public static function release_referral_gift(\core\event\user_enrolment_created $event) {
@@ -219,11 +223,13 @@ class observer {
         // Check if referral system is enabled.
 
         $enabled = $config->referral_enabled;
+
         if (!$enabled) {
             return;
         }
 
         $plugins = explode(',', $config->referral_plugins);
+
         if (empty($plugins) || !\in_array($enrolmethod, $plugins, true)) {
             return;
         }
@@ -257,7 +263,7 @@ class observer {
      * This is a callback function after a user is logged in successfully
      * to login user in wordpress website.
      *
-     * @param \core\event\user_loggedin $event
+     * @param  \core\event\user_loggedin $event
      * @return void
      */
     public static function login_to_wordpress(\core\event\user_loggedin $event) {
@@ -265,11 +271,13 @@ class observer {
         $userid = $event->userid;
         $config = config::make();
         $walletsource = $config->walletsource;
+
         if ($walletsource != balance::WP) {
             return;
         }
 
         $user = \core_user::get_user($userid);
+
         if (!$user || isguestuser($user) || !empty($user->deleted) || !empty($user->suspended)) {
             return;
         }
@@ -277,19 +285,22 @@ class observer {
         // Double check that is the same user.
         $usernameevent = $event->other['username'];
         $username = $user->username;
+
         if ($username != $usernameevent) {
             return;
         }
 
         $wordpressurl = $config->wordpress_url;
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
-        $allowed      = $config->wordpressloggins;
+        $allowed = $config->wordpressloggins;
+
         if (empty($allowed) || empty($wordpressurl)) {
             return;
         }
 
         // Clone the old wantsurl.
         $params = [];
+
         if (isset($SESSION->wantsurl)) {
             $params['wantsurl'] = $SESSION->wantsurl;
             unset($SESSION->wantsurl);
@@ -306,13 +317,14 @@ class observer {
      * This is a callback function after a user is logged out successfully
      * to logout user from wordpress website.
      *
-     * @param \core\event\user_loggedout $event
+     * @param  \core\event\user_loggedout $event
      * @return void
      */
     public static function logout_from_wordpress(\core\event\user_loggedout $event) {
         global  $redirect;
         $config = config::make();
         $walletsource = $config->walletsource;
+
         if ($walletsource != balance::WP) {
             return;
         }
@@ -320,6 +332,7 @@ class observer {
         $wordpressurl = $config->wordpress_url;
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
         $allowed = $config->wordpressloggins;
+
         if (empty($allowed) || empty($wordpressurl)) {
             return;
         }
@@ -333,6 +346,7 @@ class observer {
         }
 
         $params = [];
+
         if (!empty($redirect)) {
             $params['redirect'] = $redirect;
         }
@@ -344,4 +358,3 @@ class observer {
         $redirect = actions::WP_LOGIN->url($params);
     }
 }
-

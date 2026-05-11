@@ -25,34 +25,42 @@ namespace enrol_wallet\form;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
-/** Enrollment form.
- *
+/**
+ * Enrollment form.
+ * @package enrol_wallet
+ * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class coupons_upload extends \moodleform {
-
     /**
-     * definition
+     * definition.
      * @return void
      */
     public function definition() {
         $mform = $this->_form;
         global $CFG;
         // Heading.
-        $mform->addElement('html', '<p>'.get_string('upload_coupons_help', 'enrol_wallet').'</p>');
+        $mform->addElement('html', '<p>' . get_string('upload_coupons_help', 'enrol_wallet') . '</p>');
 
         // Insert a File picker element.
-        $mform->addElement('filepicker', 'csvfile', get_string('file'), null,
-        [
-            'maxbytes' => $CFG->maxbytes,
-            'accepted_types' => 'csv',
-        ]);
+        $mform->addElement(
+            'filepicker',
+            'csvfile',
+            get_string('file'),
+            null,
+            [
+                'maxbytes'       => $CFG->maxbytes,
+                'accepted_types' => 'csv',
+            ]
+        );
         $mform->addHelpButton('csvfile', 'csvfile', 'enrol_wallet');
         $mform->addRule('csvfile', null, 'required', null, 'client');
 
         $choices = \csv_import_reader::get_delimiter_list();
         $mform->addElement('select', 'delimiter_name', get_string('csvdelimiter', 'tool_uploadcourse'), $choices);
+
         if (array_key_exists('cfg', $choices)) {
             $mform->setDefault('delimiter_name', 'cfg');
         } else if (get_string('listsep', 'langconfig') == ';') {
@@ -79,16 +87,18 @@ class coupons_upload extends \moodleform {
      * returns of "element_name"=>"error_description" if there are errors,
      * or an empty array if everything is OK (true allowed for backwards compatibility too).
      *
-     * @param array $data array of data
-     * @param array $files array of files
+     * @param  array $data  array of data
+     * @param  array $files array of files
      * @return array array of errors
      */
     public function validation($data, $files) {
         global $DB;
         $errors = parent::validation($data, $files);
+
         if (empty($data['csvfile'])) {
             $errors['csvfile'] = get_string('uploadcsvfilerequired', 'enrol_wallet');
         }
+
         return $errors;
     }
 }

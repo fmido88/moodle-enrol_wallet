@@ -36,9 +36,10 @@ $return = optional_param('return', '/', PARAM_LOCALURL);
 $return = new moodle_url($return);
 
 $offerspath = pages::OFFERS->get_relative_path();
-$content = '-'.get_string('offers', 'enrol_wallet')."|$offerspath||".current_language();
+$content = '-' . get_string('offers', 'enrol_wallet') . "|$offerspath||" . current_language();
 
 $all = $CFG->custommenuitems;
+
 if (stristr($all, $content)) {
     redirect($return);
 }

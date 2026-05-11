@@ -31,7 +31,7 @@ abstract class discount_base {
      * and user.
      *
      * @param entity $entity
-     * @param float $cost
+     * @param float  $cost
      */
     public function __construct(
         /** @var entity The entity to apply the discount for. */
@@ -64,7 +64,7 @@ abstract class discount_base {
     }
 
     /**
-     * Get the absolute discount (value to be subtracted from the original cost)
+     * Get the absolute discount (value to be subtracted from the original cost).
      * @return float|int
      */
     final public function get_absolute_discount(): float {
@@ -75,7 +75,7 @@ abstract class discount_base {
         $original = $this->get_original_cost();
         $percent = $this->get_percentage_discount();
 
-        return ($original * $percent / 100);
+        return $original * $percent / 100;
     }
 
     /**
@@ -96,10 +96,11 @@ abstract class discount_base {
 
     /**
      * If this discount is available for the given entity or not.
-     * @param entity $entity
+     * @param  entity $entity
      * @return void
      */
     abstract public static function is_available(entity $entity): bool;
+
     /**
      * Calculate and return the percentage discount value.
      * @return void

@@ -28,21 +28,23 @@ use core\url;
 trait base {
     /**
      * Get the url of the page.
-     * @param array $params
+     * @param  array $params
      * @return url
      */
     public function url($params = []): url {
         return new url($this->get_relative_path(), $params);
     }
+
     /**
      * Return the url of the page as string.
-     * @param array $params
-     * @param bool $escape
+     * @param  array  $params
+     * @param  bool   $escape
      * @return string
      */
     public function out($params = [], $escape = false): string {
         return $this->url($params)->out($escape);
     }
+
     /**
      * Get the url relative path to wwwroot.
      * @return string
@@ -50,6 +52,7 @@ trait base {
     public function get_relative_path(): string {
         return "/enrol/wallet/{$this->value}";
     }
+
     /**
      * Get the full directory of the page file.
      * @return string
@@ -58,18 +61,20 @@ trait base {
         global $CFG;
         $path = $this->get_relative_path();
         $dir = $CFG->dirroot . $path;
+
         return str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $dir);
     }
 
     /**
      * Set the page url to this url.
-     * @param array $params
+     * @param  array $params
      * @return url
      */
     public function set_page_url_to_me($params = []): url {
         global $PAGE;
         $url = $this->url($params);
         $PAGE->set_url($url);
+
         return $url;
     }
 }

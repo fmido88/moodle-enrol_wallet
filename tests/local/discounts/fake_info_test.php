@@ -17,7 +17,7 @@
 namespace enrol_wallet\local\discounts;
 
 /**
- * Tests for Wallet enrolment
+ * Tests for Wallet enrolment.
  *
  * @package    enrol_wallet
  * @category   test
@@ -37,6 +37,7 @@ final class fake_info_test extends \advanced_testcase {
         $fakeinfo = new fake_info();
         $this->assertInstanceOf(\core_availability\info::class, $fakeinfo);
     }
+
     /**
      * Test the most probably called methods and just
      * make sure that non will throw errors.

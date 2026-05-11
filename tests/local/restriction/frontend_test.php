@@ -35,7 +35,7 @@ namespace enrol_wallet\local\restriction;
  */
 final class frontend_test extends \advanced_testcase {
     /**
-     * Test no errors for include_availability_javascript
+     * Test no errors for include_availability_javascript.
      * @covers ::include_availability_javascript()
      * @return void
      */

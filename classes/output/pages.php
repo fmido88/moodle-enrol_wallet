@@ -16,31 +16,29 @@
 
 namespace enrol_wallet\output;
 
-use enrol_wallet\local\referral\code;
-use enrol_wallet\local\referral\hold;
-use moodle_url;
-use html_table;
-use html_writer;
-use MoodleQuickForm;
-use DOMDocument;
-use core_user;
-use single_button;
 use core_course_category;
-use enrol_wallet\local\wallet\balance;
-use enrol_wallet\local\wallet\balance_op;
+use core_user;
+use DOMDocument;
+use enrol_wallet\local\config;
 use enrol_wallet\local\discounts\discount_rules;
 use enrol_wallet\local\discounts\offers;
-use enrol_wallet\local\config;
+use enrol_wallet\local\referral\code;
+use enrol_wallet\local\referral\hold;
+use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+use html_table;
+use html_writer;
+use moodle_url;
+use MoodleQuickForm;
+use single_button;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir.'/tablelib.php');
-require_once($CFG->libdir.'/formslib.php');
-
-
+require_once($CFG->libdir . '/tablelib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Class pages
+ * Class pages.
  *
  * @package    enrol_wallet
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
@@ -48,14 +46,16 @@ require_once($CFG->libdir.'/formslib.php');
  */
 class pages {
     /**
-     * Output the content of referral page
+     * Output the content of referral page.
      * @param int $userid
      */
     public static function process_referral_page($userid = 0) {
         global $DB, $USER, $CFG, $OUTPUT, $SITE;
         $config = config::make();
+
         if (!(bool)$config->referral_enabled) {
             echo get_string('referral_not_enabled', 'enrol_wallet');
+
             return;
         }
 
@@ -67,9 +67,11 @@ class pages {
 
         if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
             require_once("$CFG->dirroot/auth/parent/auth.php");
-            $authparent = new \auth_plugin_parent;
+            $authparent = new \auth_plugin_parent();
+
             if ($authparent->is_parent($user)) {
                 echo get_string('referral_noparents', 'enrol_wallet');
+
                 return;
             }
         }
@@ -115,16 +117,18 @@ class pages {
 
         $output .= html_writer::start_div('wrapper referral-page-past-invites');
         $output .= $OUTPUT->heading(get_string('referral_past', 'enrol_wallet'));
+
         if (!empty($refusers)) {
-            $table = new html_table;
+            $table = new html_table();
             $headers = [
                 get_string('user'),
                 get_string('status'),
                 get_string('referral_amount', 'enrol_wallet'),
                 get_string('referral_timecreated', 'enrol_wallet'),
-                get_string('referral_timereleased' , 'enrol_wallet'),
+                get_string('referral_timereleased', 'enrol_wallet'),
             ];
             $table->data[] = $headers;
+
             foreach ($refusers as $data) {
                 $referred = core_user::get_user_by_username($data->referred);
                 $status = empty($data->released) ? get_string('referral_hold', 'enrol_wallet')
@@ -147,10 +151,10 @@ class pages {
         $mform = new MoodleQuickForm('referral_info', 'get', null);
 
         $mform->addElement('static', 'refurl', get_string('referral_url', 'enrol_wallet'), $signup->out(false));
-        $mform->addHelpButton('refurl',  'referral_url',  'enrol_wallet');
+        $mform->addHelpButton('refurl', 'referral_url', 'enrol_wallet');
 
         $mform->addElement('static', 'refcode', get_string('referral_code', 'enrol_wallet'), $exist->code);
-        $mform->addHelpButton('refcode',  'referral_code',  'enrol_wallet');
+        $mform->addHelpButton('refcode', 'referral_code', 'enrol_wallet');
 
         $mform->addElement('text', 'refamount', get_string('referral_amount', 'enrol_wallet'));
         $mform->addHelpButton('refamount', 'referral_amount', 'enrol_wallet');
@@ -161,14 +165,14 @@ class pages {
         $mform->setType('disable', PARAM_INT);
         $mform->setConstant('disable', 0);
 
-        $mform->disabledIf('refamount',  'disable',  'neq',  1);
+        $mform->disabledIf('refamount', 'disable', 'neq', 1);
 
         if (!empty($maxref)) {
             $mform->addElement('text', 'refremain', get_string('referral_remain', 'enrol_wallet'));
             $mform->setType('refremain', PARAM_INT);
             $mform->addHelpButton('refremain', 'referral_remain', 'enrol_wallet');
             $mform->setConstant('refremain', $maxref - $exist->usetimes);
-            $mform->disabledIf('refremain',  'disable',  'neq',  1);
+            $mform->disabledIf('refremain', 'disable', 'neq', 1);
         }
 
         echo $output;
@@ -180,13 +184,14 @@ class pages {
 
     /**
      * Return a confirmation message for charging another user wallet.
-     * @param array|stdClass $data the submitted data.
-     * @param moodle_url $returnurl
-     * @param moodle_url $pageurl
+     * @param  array|stdClass $data      the submitted data.
+     * @param  moodle_url     $returnurl
+     * @param  moodle_url     $pageurl
      * @return string
      */
     public static function get_charger_confirm($data, $returnurl, $pageurl = null) {
         global $OUTPUT;
+
         if (!has_capability('enrol/wallet:creditdebit', \context_system::instance())) {
             return '';
         }
@@ -199,7 +204,7 @@ class pages {
         $confirmurl->param('confirm', true);
         $confirmurl->param('return', $returnurl->out_as_local_url());
         $confirmbutton = new single_button($confirmurl, get_string('confirm'), 'post');
-        $cancelbutton  = new single_button($returnurl, get_string('cancel'), 'post');
+        $cancelbutton = new single_button($returnurl, get_string('cancel'), 'post');
 
         if (!empty($data['category'])) {
             $category = core_course_category::get($data['category'], IGNORE_MISSING, true);
@@ -221,21 +226,26 @@ class pages {
         $a['category'] = !(empty($category)) ? $category->get_nested_name(false) : get_string('site');
 
         $negativewarn = false;
+
         switch ($data['op']) {
             case 'debit':
                 $a['after'] = ($userbalance - $data['value']);
+
                 if ($a['after'] < 0) {
                     $negativewarn = true;
                 }
                 $msg = get_string('confirm_debit', 'enrol_wallet', $a);
                 break;
+
             case 'credit':
                 $msg = get_string('confirm_credit', 'enrol_wallet', $a);
                 [$extra, $condition] = discount_rules::get_the_rest($data['value'], $data['category']);
+
                 if (!empty($extra)) {
-                    $msg .= '<br>'.get_string('confirm_additional_credit', 'enrol_wallet', $extra);
+                    $msg .= '<br>' . get_string('confirm_additional_credit', 'enrol_wallet', $extra);
                 }
                 break;
+
             default:
                 $msg = '';
         }
@@ -255,7 +265,7 @@ class pages {
 
     /**
      * Out the content of transfer page.
-     * @param moodle_url|string $url The return page url usually current page url.
+     * @param  moodle_url|string $url The return page url usually current page url.
      * @return void
      */
     public static function process_transfer_page($url) {
@@ -266,11 +276,11 @@ class pages {
         $mform = new \enrol_wallet\form\transfer_form();
 
         if ($data = $mform->get_data()) {
-
-            $catid  = $data->category;
+            $catid = $data->category;
             $op = new balance_op(0, $catid);
 
             $msg = $op->transfer_to_other($data, $mform);
+
             if (stristr($msg, 'error')) {
                 $type = 'error';
             } else {
@@ -278,7 +288,6 @@ class pages {
             }
             // All done.
             redirect($url, $msg, null, $type);
-
         } else {
             $mform->display();
         }
@@ -298,17 +307,17 @@ class pages {
         $free = '';
         $withoffers = '';
 
-        $dom = new DOMDocument("1.0", "UTF-8");
-        $injected = new DOMDocument("1.0", "UTF-8");
+        $dom = new DOMDocument('1.0', 'UTF-8');
+        $injected = new DOMDocument('1.0', 'UTF-8');
         libxml_use_internal_errors(true);
 
         foreach ($courses as $course) {
-
             $coursebox = $renderer->course_info_box($course);
             $coursebox = mb_encode_numericentity($coursebox, [0x80, 0x10FFFF, 0, ~0], 'UTF-8');
             $dom->loadHTML($coursebox);
 
             $fragment = $dom->createDocumentFragment();
+
             foreach ($course->offers as $offer) {
                 $offer = html_writer::div($offer, 'card-body');
                 $offer = mb_encode_numericentity($offer, [0x80, 0x10FFFF, 0, ~0], 'UTF-8');
@@ -333,20 +342,23 @@ class pages {
         $out = '';
 
         $rules = discount_rules::get_the_discount_line(-1);
+
         if (!empty($rules)) {
             $out .= $OUTPUT->heading(get_string('topupoffers', 'enrol_wallet'));
             $out .= $OUTPUT->box(get_string('topupoffers_desc', 'enrol_wallet'));
             $out .= $rules;
-            $out .= "<hr/>";
+            $out .= '<hr/>';
         }
 
         $config = config::make();
+
         if (!empty($config->cashback)) {
             $cashbackvalue = (float)$config->cashbackpercent;
+
             if ($cashbackvalue > 0 && $cashbackvalue <= 100) {
                 $out .= $OUTPUT->heading(get_string('cashback', 'enrol_wallet'));
                 $out .= $OUTPUT->box(get_string('cashback_desc', 'enrol_wallet', $cashbackvalue));
-                $out .= "<hr/>";
+                $out .= '<hr/>';
             }
         }
 
@@ -356,20 +368,21 @@ class pages {
             $text = get_string('clickhere');
             $link = html_writer::link($url, $text);
             $out .= $OUTPUT->box(get_string('referral_site_desc', 'enrol_wallet') . $link);
-            $out .= "<hr/>";
+            $out .= '<hr/>';
         }
 
         if (!empty($free)) {
             $out .= $OUTPUT->heading(get_string('freecourses', 'enrol_wallet'));
             $out .= html_writer::div($free, 'courses courses-flex-cards');
-            $out .= "<hr/>";
+            $out .= '<hr/>';
         }
 
         if (!empty($withoffers)) {
             $out .= $OUTPUT->heading(get_string('courseswithdiscounts', 'enrol_wallet'));
             $out .= html_writer::div($withoffers, 'courses courses-flex-cards');
-            $out .= "<hr/>";
+            $out .= '<hr/>';
         }
+
         return $out;
     }
 }

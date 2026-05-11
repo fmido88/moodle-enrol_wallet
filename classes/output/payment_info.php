@@ -21,67 +21,74 @@
  * @copyright 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet\output;
 
 use core\context;
+use core_payment\helper as payment_helper;
 use enrol_wallet\local\config;
+use enrol_wallet\local\entities\instance as helper;
 use enrol_wallet\local\utils\payment;
-use enrol_wallet\local\utils\timedate;
+use enrol_wallet\local\wallet\balance;
 use enrol_wallet\payment\item;
+use enrol_wallet\payment\service_provider;
 use renderable;
+use renderer_base;
 use stdClass;
 use templatable;
-use renderer_base;
-use enrol_wallet\local\entities\instance as helper;
-use enrol_wallet\local\wallet\balance;
-use enrol_wallet\payment\service_provider;
-use core_payment\helper as payment_helper;
-use context_course;
+
 /**
  * Ready the payment info data and payment button to render.
  */
 class payment_info implements renderable, templatable {
     /**
-     * The cost after discount
+     * The cost after discount.
      * @var float
      */
     protected $costafter;
+
     /**
-     * The current user valid balance
+     * The current user valid balance.
      * @var float
      */
     protected $userbalance;
+
     /**
      * The cost of the instance to be payed.
      * @var float
      */
     protected $cost;
+
     /**
-     * The currency of the instance
+     * The currency of the instance.
      * @var string
      */
     protected $currency;
 
     /**
-     * The course object
+     * The course object.
      * @var \stdClass
      */
     protected stdClass $course;
+
     /**
-     * The context
+     * The context.
      * @var \context_course
      */
     protected context $context;
+
     /**
      * The currency of the wallet.
      * @var string
      */
     protected string $walletcurrency;
+
     /**
      * The instance id.
      * @var int
      */
     protected int $instanceid;
+
     /**
      * Payment account id.
      * @var int
@@ -94,18 +101,18 @@ class payment_info implements renderable, templatable {
      * @param \stdClass $instance the enrol wallet instance record.
      */
     public function __construct($instance) {
-        $helper  = new helper($instance);
+        $helper = new helper($instance);
         $balance = balance::create_from_instance($instance);
 
-        $this->instanceid     = $instance->id;
-        $this->cost           = $instance->cost;
-        $this->currency       = $instance->currency;
-        $this->costafter      = $helper->get_cost_after_discount();
-        $this->userbalance    = $balance->get_valid_balance();
-        $this->course         = $helper->get_course();
-        $this->context        = $helper->get_course_context();
+        $this->instanceid = $instance->id;
+        $this->cost = $instance->cost;
+        $this->currency = $instance->currency;
+        $this->costafter = $helper->get_cost_after_discount();
+        $this->userbalance = $balance->get_valid_balance();
+        $this->course = $helper->get_course();
+        $this->context = $helper->get_course_context();
         $this->walletcurrency = config::make()->currency;
-        $this->accountid      = (int)$instance->customint1;
+        $this->accountid = (int)$instance->customint1;
     }
 
     /**
@@ -116,6 +123,7 @@ class payment_info implements renderable, templatable {
         if ($this->walletcurrency == $this->currency) {
             return $this->costafter - $this->userbalance;
         }
+
         return $this->costafter;
     }
 
@@ -127,6 +135,7 @@ class payment_info implements renderable, templatable {
         if ($this->walletcurrency == $this->currency && $this->userbalance >= $this->costafter) {
             return true;
         }
+
         return false;
     }
 
@@ -135,11 +144,12 @@ class payment_info implements renderable, templatable {
      * mustache template. This means:
      * No complex types - only stdClass, array, int, string, float, bool
      * Any additional info that is required for the template is pre-calculated (e.g. capability checks).
-     * @param renderer_base $output
+     * @param  renderer_base   $output
      * @return array|\stdClass
      */
     public function export_for_template(renderer_base $output) {
         global $USER, $DB;
+
         // If user already had enough balance no need to display direct payment to the course.
         if ($this->has_enough()) {
             return [];
@@ -152,7 +162,7 @@ class payment_info implements renderable, templatable {
         $cost = $this->get_cost();
 
         if ($cost < 0.01) { // No cost.
-            return ['nocost' => '<p>'.get_string('nocost', 'enrol_wallet').'</p>'];
+            return ['nocost' => '<p>' . get_string('nocost', 'enrol_wallet') . '</p>'];
         }
 
         $item = item::create_item($cost, $this->currency, null, $this->instanceid);
@@ -161,8 +171,11 @@ class payment_info implements renderable, templatable {
             'isguestuser' => isguestuser() || !isloggedin(),
             'cost'        => payment_helper::get_cost_as_string($cost, $this->currency),
             'itemid'      => $item->get('id'),
-            'description' => get_string('purchasedescription', 'enrol_wallet',
-                                    format_string($this->course->fullname, true, ['context' => $this->context])),
+            'description' => get_string(
+                'purchasedescription',
+                'enrol_wallet',
+                format_string($this->course->fullname, true, ['context' => $this->context])
+            ),
             'successurl'  => service_provider::get_success_url('wallet', $this->instanceid)->out(false),
         ];
 

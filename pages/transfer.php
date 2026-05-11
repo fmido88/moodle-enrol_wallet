@@ -25,8 +25,8 @@
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 
-require_once(__DIR__.'/../../../config.php');
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+require_once(__DIR__ . '/../../../config.php');
+require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 
 $context = context_system::instance();
 
@@ -35,6 +35,7 @@ require_capability('enrol/wallet:transfer', $context);
 
 // Check if transfer isn't enabled in this website.
 $transferenabled = config::make()->transfer_enabled;
+
 if (empty($transferenabled)) {
     redirect(new moodle_url('/'), get_string('transfer_notenabled', 'enrol_wallet'), null, 'error');
 }

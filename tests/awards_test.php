@@ -46,7 +46,7 @@ final class awards_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         $awarddata = [
@@ -78,7 +78,7 @@ final class awards_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user    = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
 
@@ -116,8 +116,8 @@ final class awards_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user1  = $this->getDataGenerator()->create_user();
-        $user2  = $this->getDataGenerator()->create_user();
+        $user1 = $this->getDataGenerator()->create_user();
+        $user2 = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         // Create awards for different users in same course.
@@ -153,16 +153,16 @@ final class awards_test extends \advanced_testcase {
     public function test_calculate_award_amount(): void {
         $this->resetAfterTest();
 
-        $grade    = 80;
+        $grade = 80;
         $maxgrade = 100;
-        $percent  = 80;
+        $percent = 80;
 
         // Award calculation: grade percentage above threshold * amount per percentage.
         // Assuming 1% = $1 for this example.
         $threshold = 70; // Minimum grade to get award.
-        $perpct    = 1; // 1$ per percentage point above threshold.
+        $perpct = 1; // 1$ per percentage point above threshold.
 
-        $above  = $percent - $threshold;
+        $above = $percent - $threshold;
         $amount = max(0, $above * $perpct);
 
         $this->assertEquals(10, $amount); // 1 * (80 - 70) = 10.
@@ -176,7 +176,7 @@ final class awards_test extends \advanced_testcase {
         $this->resetAfterTest();
 
         $threshold = 70;
-        $perpct    = 2; // 2$ per percentage point.
+        $perpct = 2; // 2$ per percentage point.
 
         // Grade 80%.
         $amount80 = max(0, (80 - $threshold) * $perpct);
@@ -199,7 +199,7 @@ final class awards_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         // Initial balance.
@@ -255,7 +255,7 @@ final class awards_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         // Create multiple awards for same user and course (shouldn't happen in practice).
@@ -299,7 +299,7 @@ final class awards_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         // Credit award as non-refundable.
@@ -345,7 +345,7 @@ final class awards_test extends \advanced_testcase {
 
         // Calculate total.
         $awards = $DB->get_records('enrol_wallet_awards', ['userid' => $user->id]);
-        $total  = 0;
+        $total = 0;
 
         foreach ($awards as $award) {
             $total += $award->amount;
@@ -362,7 +362,7 @@ final class awards_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         $awardid = $DB->insert_record('enrol_wallet_awards', [

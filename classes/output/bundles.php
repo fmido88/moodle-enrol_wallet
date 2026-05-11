@@ -27,7 +27,7 @@ use renderer_base;
 use stdClass;
 
 /**
- * Class bundles
+ * Class bundles.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -36,22 +36,21 @@ use stdClass;
 class bundles implements renderable, templatable {
     /**
      * Export a single bundle for template.
-     * @param stdClass $record
-     * @param renderer_base $output
+     * @param  stdClass                                                                                   $record
+     * @param  renderer_base                                                                              $output
      * @return array{after: float, before: mixed, currency: mixed, description: string, discount: string}
      */
     protected function export_single_bundle(stdClass $record, renderer_base $output): array {
-
         $before = $record->bundle;
 
         $discount = discount_rules::get_applied_discount($before, $record->category ?? 0);
-        $after    = discount_rules::get_the_before($before, $record->category ?? 0, $discount);
+        $after = discount_rules::get_the_before($before, $record->category ?? 0, $discount);
 
         $desc = !empty($record->bundledesc) ? format_text($record->bundledesc, $record->descformat) : '';
 
         $config = config::make();
 
-        $data = new \stdClass;
+        $data = new \stdClass();
         $data->category = $record->category ?? 0;
         $data->value = $before;
         $data->instanceid = 0;
@@ -73,6 +72,7 @@ class bundles implements renderable, templatable {
             $context['category'] = get_string('site');
         } else {
             $category = core_course_category::get($data->category, IGNORE_MISSING);
+
             if (!$category) {
                 // The category was deleted.
                 return [];
@@ -82,11 +82,13 @@ class bundles implements renderable, templatable {
 
         $button = new single_button($topupurl, '');
         $buttoncontext = (array)$button->export_for_template($output);
+
         return $context + $buttoncontext;
     }
+
     /**
      * Export all bundles for template.
-     * @param renderer_base $output
+     * @param  renderer_base                           $output
      * @return array{bundles: array, hasbundles: bool}
      */
     public function export_for_template(renderer_base $output) {
@@ -95,6 +97,7 @@ class bundles implements renderable, templatable {
 
         foreach ($records as $record) {
             $bundle = $this->export_single_bundle($record, $output);
+
             if (!empty($bundle)) {
                 $bundles[] = $bundle;
             }

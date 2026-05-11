@@ -30,7 +30,6 @@ use enrol_wallet\local\wallet\balance_op;
  * Send expiry notifications task.
  */
 class migrate_enrollments extends \core\task\adhoc_task {
-
     /**
      * Name for this task.
      *
@@ -47,9 +46,11 @@ class migrate_enrollments extends \core\task\adhoc_task {
         $trace = new \text_progress_trace();
         $trace->output("Starting the task...\n");
         $creditplugin = enrol_get_plugin('credit');
+
         if (empty($creditplugin)) {
             $trace->output("The credit plugin is not exist...\n");
             $trace->finished();
+
             return;
         }
 
@@ -73,10 +74,12 @@ class migrate_enrollments extends \core\task\adhoc_task {
         $creditplugin = enrol_get_plugin('credit');
 
         $allusers = $DB->get_records('user', [], '', 'id');
-        $trace->output("Starting to transform credit to wallet for ".count($allusers)." users...\n");
+        $trace->output('Starting to transform credit to wallet for ' . count($allusers) . " users...\n");
         $desc = get_string('credit_wallet_transformation_desc', 'enrol_wallet');
+
         foreach ($allusers as $user) {
             $credit = $creditplugin->get_user_credits($user->id);
+
             if (empty($credit)) {
                 continue;
             }
@@ -96,35 +99,39 @@ class migrate_enrollments extends \core\task\adhoc_task {
         global $DB;
         $trace->output("Start transform enrol instances to wallet...\n");
         $params = ['wallet' => 'wallet', 'credit' => 'credit'];
-        $sql = "SELECT ce.id
+        $sql = 'SELECT ce.id
                 FROM {enrol} ce
                 JOIN {enrol} we ON (we.courseid = ce.courseid)
                 WHERE ce.enrol = :credit
-                    AND we.enrol = :wallet";
+                    AND we.enrol = :wallet';
         $todeleterecords = $DB->get_records_sql($sql, $params);
 
         $exclude = [];
+
         foreach ($todeleterecords as $record) {
             $exclude[] = $record->id;
         }
         unset($params);
+
         if (!empty($exclude)) {
             [$in, $params] = $DB->get_in_or_equal($exclude, SQL_PARAMS_NAMED);
             $params['credit'] = 'credit';
             $sql = "SELECT * FROM {enrol} e WHERE (e.id NOT $in) AND e.enrol = :credit";
         } else {
             $params['credit'] = 'credit';
-            $sql = "SELECT * FROM {enrol} e WHERE e.enrol = :credit";
+            $sql = 'SELECT * FROM {enrol} e WHERE e.enrol = :credit';
         }
 
         $records = $DB->get_records_sql($sql, $params);
 
         $wallet = enrol_get_plugin('wallet');
         $default = $wallet->get_instance_defaults();
+
         foreach ($records as $record) {
             $record->enrol = 'wallet';
             $record->cost = $record->customint7;
             unset($record->customint7);
+
             foreach ($default as $key => $value) {
                 if (!isset($record->$key) || is_null($record->$key)) {
                     $record->$key = $value;
@@ -134,6 +141,7 @@ class migrate_enrollments extends \core\task\adhoc_task {
         }
 
         $this->migrate_users_enrollments($trace);
+
         if (!empty($exclude)) {
             $DB->delete_records_select('enrol', "id $in AND enrol = :credit", $params);
         }
@@ -162,14 +170,17 @@ class migrate_enrollments extends \core\task\adhoc_task {
 
         foreach ($rs as $e) {
             $winstance = false;
+
             if (!$e->wid) {
                 // Wallet instance does not exist yet, add a new one.
                 $course = $DB->get_record('course', ['id' => $e->courseid], '*', MUST_EXIST);
+
                 if ($winstance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'])) {
                     // Already created by previous iteration.
                     $e->wid = $winstance->id;
                 } else if ($e->wid = $walletplugin->add_default_instance($course)) {
                     $winstance = $DB->get_record('enrol', ['id' => $e->wid]);
+
                     if ($e->status != ENROL_INSTANCE_ENABLED) {
                         $DB->set_field('enrol', 'status', ENROL_INSTANCE_DISABLED, ['id' => $e->wid]);
                         $winstance->status = ENROL_INSTANCE_DISABLED;
@@ -181,13 +192,13 @@ class migrate_enrollments extends \core\task\adhoc_task {
 
             if (!$winstance) {
                 // This should never happen unless transform_instance fails unexpectedly.
-                $trace->output('Failed to find wallet enrolment instance in the course with id '. $e->courseid."\n");
+                $trace->output('Failed to find wallet enrolment instance in the course with id ' . $e->courseid . "\n");
                 continue;
             }
 
             // First delete potential role duplicates.
-            $params = ['id' => $e->id, 'component' => 'enrol_'.$enrol, 'empt' => ''];
-            $sql = "SELECT ra.id
+            $params = ['id' => $e->id, 'component' => 'enrol_' . $enrol, 'empt' => ''];
+            $sql = 'SELECT ra.id
                       FROM {role_assignments} ra
                       JOIN {role_assignments} mra
                         ON (mra.contextid = ra.contextid
@@ -195,25 +206,25 @@ class migrate_enrollments extends \core\task\adhoc_task {
                             AND mra.roleid = ra.roleid
                             AND mra.component = :empt
                             AND mra.itemid = 0)
-                     WHERE ra.component = :component AND ra.itemid = :id";
+                     WHERE ra.component = :component AND ra.itemid = :id';
             $ras = $DB->get_records_sql($sql, $params);
             $ras = array_keys($ras);
             $DB->delete_records_list('role_assignments', 'id', $ras);
             unset($ras);
 
             // Migrate roles.
-            $sql = "UPDATE {role_assignments}
+            $sql = 'UPDATE {role_assignments}
                        SET itemid = 0, component = :empty
-                     WHERE itemid = :id AND component = :component";
-            $params = ['empty' => '', 'id' => $e->id, 'component' => 'enrol_'.$enrol];
+                     WHERE itemid = :id AND component = :component';
+            $params = ['empty' => '', 'id' => $e->id, 'component' => 'enrol_' . $enrol];
             $DB->execute($sql, $params);
 
             // Delete potential enrol duplicates.
             $params = ['id' => $e->id, 'wid' => $e->wid];
-            $sql = "SELECT ue.id
+            $sql = 'SELECT ue.id
                       FROM {user_enrolments} ue
                       JOIN {user_enrolments} mue ON (mue.userid = ue.userid AND mue.enrolid = :wid)
-                     WHERE ue.enrolid = :id";
+                     WHERE ue.enrolid = :id';
             $ues = $DB->get_records_sql($sql, $params);
             $ues = array_keys($ues);
             $DB->delete_records_list('user_enrolments', 'id', $ues);
@@ -221,11 +232,12 @@ class migrate_enrollments extends \core\task\adhoc_task {
 
             // Migrate to wallet enrol instance.
             $params = ['id' => $e->id, 'wid' => $e->wid];
+
             if ($e->status != ENROL_INSTANCE_ENABLED && $winstance->status == ENROL_INSTANCE_ENABLED) {
-                $status = ", status = :disabled";
+                $status = ', status = :disabled';
                 $params['disabled'] = ENROL_USER_SUSPENDED;
             } else {
-                $status = "";
+                $status = '';
             }
 
             $sql = "UPDATE {user_enrolments}
@@ -236,5 +248,4 @@ class migrate_enrollments extends \core\task\adhoc_task {
         $rs->close();
         $trace->output("All users enrollment migrated...\n");
     }
-
 }

@@ -23,7 +23,7 @@ use core_external\external_value;
 use enrol_wallet\local\entities\instance as helper;
 
 /**
- * Class instance
+ * Class instance.
  *
  * @package    enrol_wallet
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -31,22 +31,22 @@ use enrol_wallet\local\entities\instance as helper;
  */
 class instance extends external_api {
     /**
-     * Returns description of get_cost() parameters
+     * Returns description of get_cost() parameters.
      *
      * @return external_function_parameters
      */
     public static function get_cost_parameters() {
         return new external_function_parameters([
             'instanceid' => new external_value(PARAM_INT, 'The id of the enrol wallet instance'),
-            'userid' => new external_value(PARAM_INT, 'The id of the user', VALUE_DEFAULT, 0),
+            'userid'     => new external_value(PARAM_INT, 'The id of the user', VALUE_DEFAULT, 0),
         ]);
     }
 
     /**
      * Returns the cost of an instance to the given user.
      *
-     * @param int $instanceid
-     * @param int $userid
+     * @param  int   $instanceid
+     * @param  int   $userid
      * @return array
      */
     public static function get_cost($instanceid, $userid = 0) {
@@ -55,6 +55,7 @@ class instance extends external_api {
         $userid = $params['userid'];
         $instanceid = $params['instanceid'];
         $helper = new helper($instanceid, $userid);
+
         return ['cost' => $helper->get_cost_after_discount()];
     }
 

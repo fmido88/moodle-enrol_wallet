@@ -30,7 +30,6 @@ use enrol_wallet\local\utils\timedate;
  * Sync enrollments task.
  */
 class cleanup_wallet_items extends \core\task\scheduled_task {
-
     /**
      * Name for this task.
      *
@@ -51,6 +50,7 @@ class cleanup_wallet_items extends \core\task\scheduled_task {
 
         if (!$paymentexist) {
             mtrace('Payments table does not exist');
+
             return;
         }
 
@@ -60,21 +60,21 @@ class cleanup_wallet_items extends \core\task\scheduled_task {
             'area'        => 'wallettopup',
         ];
 
-        $sql = "SELECT it.*
+        $sql = 'SELECT it.*
                 FROM {enrol_wallet_items} it
            LEFT JOIN {payments} p ON p.itemid = it.id
                 WHERE (it.timecreated IS NULL OR it.timecreated < :timetocheck)
                 AND (p.paymentarea IS NULL OR p.paymentarea = :area)
                 AND (p.component IS NULL OR p.component = :component)
-                AND p.id IS NULL";
+                AND p.id IS NULL';
 
         $records = $DB->get_records_sql($sql, $params);
-        mtrace(count($records)." records found to be deleted...");
+        mtrace(count($records) . ' records found to be deleted...');
 
         foreach ($records as $record) {
             $DB->delete_records('enrol_wallet_items', ['id' => $record->id]);
         }
 
-        mtrace("Task ended.");
+        mtrace('Task ended.');
     }
 }

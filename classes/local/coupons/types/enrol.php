@@ -62,16 +62,19 @@ class enrol extends base {
     public static function has_value(): bool {
         return false;
     }
+
     #[\Override()]
     protected static function validate_type_generator_form(array $data, array &$errors): void {
         if (empty($data['courses'])) {
             $errors['courses'] = get_string('coupons_courseserror', 'enrol_wallet');
         }
     }
+
     #[\Override()]
     public static function can_specify_courses(): bool {
         return true;
     }
+
     #[\Override()]
     public function get_submission_message(area_base $area): array {
         return [

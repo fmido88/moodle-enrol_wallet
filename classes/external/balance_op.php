@@ -17,15 +17,16 @@
 namespace enrol_wallet\external;
 
 use core_external\external_api;
-use core_external\external_function_parameters;
 use core_external\external_description;
+use core_external\external_function_parameters;
 use core_external\external_single_structure;
 use core_external\external_value;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\output\helper;
 use enrol_wallet\output\wallet_balance;
+
 /**
- * Class balance_op
+ * Class balance_op.
  *
  * @package    enrol_wallet
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
@@ -33,7 +34,7 @@ use enrol_wallet\output\wallet_balance;
  */
 class balance_op extends external_api {
     /**
-     * Returns description of get_balance_details() parameters
+     * Returns description of get_balance_details() parameters.
      *
      * @return external_function_parameters
      */
@@ -42,10 +43,11 @@ class balance_op extends external_api {
             'userid' => new external_value(PARAM_INT, 'The id of the user', VALUE_DEFAULT, 0),
         ]);
     }
+
     /**
      * Returns the balance details for a single user.
      *
-     * @param int $userid
+     * @param  int   $userid
      * @return array
      */
     public static function get_balance_details($userid) {
@@ -62,6 +64,7 @@ class balance_op extends external_api {
 
         $renderable = new wallet_balance($userid);
         $renderer = helper::get_wallet_renderer($PAGE);
+
         return ['details' => $renderer->render($renderable)];
     }
 
@@ -77,7 +80,7 @@ class balance_op extends external_api {
     }
 
     /**
-     * Parameters for get_balance
+     * Parameters for get_balance.
      * @return external_function_parameters
      */
     public static function get_balance_parameters(): external_function_parameters {
@@ -107,6 +110,7 @@ class balance_op extends external_api {
      */
     public static function get_balance($userid, $catid = 0): array {
         global $USER;
+
         if (empty($userid)) {
             $userid = $USER->id;
         }
@@ -124,6 +128,7 @@ class balance_op extends external_api {
         self::validate_context($context);
 
         $balance = new balance($userid, $catid);
+
         return [
             'total'              => $balance->get_total_balance(),
             'totalfree'          => $balance->get_total_free(),
@@ -140,7 +145,7 @@ class balance_op extends external_api {
     }
 
     /**
-     * Return values of get_balance
+     * Return values of get_balance.
      * @return external_single_structure
      */
     public static function get_balance_returns(): external_single_structure {

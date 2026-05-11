@@ -34,12 +34,11 @@ use enrol_wallet\local\config;
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class frontend extends \core_availability\frontend {
-
     /**
      * Includes JavaScript for the main system and all plugins.
      *
-     * @param \stdClass $course Current course object
-     * @param array $courses other courses to check
+     * @param \stdClass $course  Current course object
+     * @param array     $courses other courses to check
      */
     public static function include_availability_javascript($course, $courses) {
         global $PAGE;
@@ -57,6 +56,7 @@ class frontend extends \core_availability\frontend {
         $componentparams = new \stdClass();
 
         $allowed = explode(',', config::make()->availability_plugins ?? '');
+
         foreach ($enabled as $plugin => $info) {
             if (!\in_array($plugin, $allowed)) {
                 continue;
@@ -70,9 +70,11 @@ class frontend extends \core_availability\frontend {
             $modules[] = 'moodle-' . $component . '-form';
 
             $jsparameters = [];
+
             if (in_array($plugin, ['completion', 'grade'])) {
                 foreach ($courses as $c) {
                     $params = $frontend->get_javascript_init_params($c);
+
                     foreach ($params as $add) {
                         if (is_array($add)) {
                             foreach ($add as $key => $value) {
@@ -89,7 +91,6 @@ class frontend extends \core_availability\frontend {
                     }
                 }
                 $jsparameters = [$jsparameters];
-
             } else {
                 $jsparameters = $frontend->get_javascript_init_params($course);
             }
@@ -107,13 +108,21 @@ class frontend extends \core_availability\frontend {
         }
 
         // Include all JS (in one call). The init function runs on DOM ready.
-        $PAGE->requires->yui_module($modules,
-                'M.core_availability.form.init', [$componentparams], null, true);
+        $PAGE->requires->yui_module(
+            $modules,
+            'M.core_availability.form.init',
+            [$componentparams],
+            null,
+            true
+        );
 
         // Include main strings.
-        $PAGE->requires->strings_for_js(['none', 'cancel', 'delete', 'choosedots'],
-                'moodle');
-        $PAGE->requires->strings_for_js(['addrestriction', 'invalid',
+        $PAGE->requires->strings_for_js(
+            ['none', 'cancel', 'delete', 'choosedots'],
+            'moodle'
+        );
+        $PAGE->requires->strings_for_js(
+            ['addrestriction', 'invalid',
                 'listheader_sign_before', 'listheader_sign_pos',
                 'listheader_sign_neg', 'listheader_single',
                 'listheader_multi_after', 'listheader_multi_before',
@@ -123,6 +132,7 @@ class frontend extends \core_availability\frontend {
                 'condition_group', 'condition_group_info', 'and', 'or',
                 'label_multi', 'label_sign', 'setheading', 'itemheading',
                 'missingplugin'],
-                'availability');
+            'availability'
+        );
     }
 }

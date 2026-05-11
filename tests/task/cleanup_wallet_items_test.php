@@ -17,7 +17,7 @@
 namespace enrol_wallet\task;
 
 /**
- * Tests for Wallet enrolment
+ * Tests for Wallet enrolment.
  *
  * @package    enrol_wallet
  * @category   test

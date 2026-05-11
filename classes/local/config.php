@@ -22,8 +22,8 @@ use stdClass;
  * Configuration getters and setters.
  * This class mainly a wrapper for get_config and set_config functions for easy documenting each config value as property.
  *
- * @property string $allowmultipleinstances Number of allowed enrol instances per course (0 means unlimited).
- * @property string $availability_plugins Availability plugins used to restrict enrolment imploded by ',' separator.
+ * @property string $allowmultipleinstances    Number of allowed enrol instances per course (0 means unlimited).
+ * @property string $availability_plugins      Availability plugins used to restrict enrolment imploded by ',' separator.
  * @property string $awardcreteria
  * @property string $awards
  * @property string $awardssite
@@ -31,12 +31,12 @@ use stdClass;
  * @property string $borrowenable
  * @property string $borrowperiod
  * @property string $borrowtrans
- * @property string $cashback If cashback is enabled or not on site level (bool).
- * @property string $cashbackpercent Percentage of cashback.
- * @property string $catbalance If category balance is enabled or not (bool).
+ * @property string $cashback                  If cashback is enabled or not on site level (bool).
+ * @property string $cashbackpercent           Percentage of cashback.
+ * @property string $catbalance                If category balance is enabled or not (bool).
  * @property string $conditionaldiscount_apply If the conditional discount is enabled or not (bool).
- * @property string $coupons Coupons types enabled on the site imploded by ',' separator.
- * @property string $currency The wallet currency.
+ * @property string $coupons                   Coupons types enabled on the site imploded by ',' separator.
+ * @property string $currency                  The wallet currency.
  * @property string $customcurrency
  * @property string $customcurrencycode
  * @property string $defaultenrol
@@ -59,8 +59,8 @@ use stdClass;
  * @property string $newusergift
  * @property string $newusergiftvalue
  * @property string $noticecondition
- * @property string $offers_nav Add offers to main navigation bar (bool).
- * @property string $paymentaccount Payment account id used to topup the wallet (int).
+ * @property string $offers_nav                Add offers to main navigation bar (bool).
+ * @property string $paymentaccount            Payment account id used to topup the wallet (int).
  * @property string $referral_amount
  * @property string $referral_enabled
  * @property string $referral_max
@@ -87,7 +87,7 @@ use stdClass;
  * @property string $unenrolrefundpolicy
  * @property string $unenrolselfenabled
  * @property string $version
- * @property string $walletsource The wallet source (wordpress or moodle).
+ * @property string $walletsource              The wallet source (wordpress or moodle).
  * @property string $wordpress_secretkey
  * @property string $wordpress_url
  * @property string $wordpressloggins
@@ -122,31 +122,35 @@ class config {
      */
     private function init_store() {
         global $SESSION;
+
         if (PHPUNIT_TEST && !isset($SESSION->enrol_wallet_teststore)) {
             // In PHPUnit tests we need the store to be cleared when resetting the data.
             $SESSION->enrol_wallet_teststore = new stdClass();
-            $this->store =& $SESSION->enrol_wallet_teststore;
+            $this->store = &$SESSION->enrol_wallet_teststore;
         } else if (!isset($this->store)) {
             $this->store = new stdClass();
         }
     }
+
     /**
      * Check if the value is stored locally.
-     * @param string $name
+     * @param  string      $name
      * @return string|null
      */
     protected function get_from_store($name) {
         $this->init_store();
+
         if (property_exists($this->store, $name)) {
             return $this->store->$name;
         }
 
         return null;
     }
+
     /**
      * Set a value to the local store.
-     * @param string $name
-     * @param string|int|float|bool|null $value
+     * @param  string                     $name
+     * @param  string|int|float|bool|null $value
      * @return void
      */
     protected function set_to_store($name, $value) {
@@ -160,6 +164,7 @@ class config {
      */
     public function __get($name) {
         $value = $this->get_from_store($name);
+
         if ($value !== null) {
             return $value;
         }
@@ -179,9 +184,10 @@ class config {
 
         return $value;
     }
+
     /**
      * Set a config value.
-     * @param string $name
+     * @param string               $name
      * @param string|int|bool|null $value
      */
     public function __set($name, $value) {
@@ -191,7 +197,7 @@ class config {
 
     /**
      * Unset a config value.
-     * @param string $name
+     * @param  string $name
      * @return void
      */
     public function __unset($name) {
@@ -202,7 +208,7 @@ class config {
 
     /**
      * Check if the config value is set.
-     * @param string $name
+     * @param  string $name
      * @return bool
      */
     public function __isset($name) {
@@ -211,37 +217,42 @@ class config {
         }
 
         $value = get_config('enrol_wallet', $name);
+
         if ($value !== false) {
             $this->set_to_store($name, $value);
+
             return true;
         }
+
         return false;
     }
 
     /**
      * Invoke the class to get or set a config value.
-     * @param string $name
-     * @param mixed $value
+     * @param  string                    $name
+     * @param  mixed                     $value
      * @return string|int|bool|null|void
      */
     public function __invoke($name, $value = null) {
         if ($value === null) {
             return $this->__get($name);
-        } else {
-            $this->__set($name, $value);
         }
+        $this->__set($name, $value);
     }
+
     /**
      * Check if a config value exists and display debug message if not.
-     * @param string $name
+     * @param  string $name
      * @return bool
      */
     protected function exists($name) {
         global $CFG;
         $exists = isset($this->$name) || property_exists($this, $name) || property_exists($this->store, $name);
+
         if (!$exists && !self::upgrading()) {
             debugging("Trying to get undefined config value $name in enrol_wallet", DEBUG_DEVELOPER);
         }
+
         return $exists;
     }
 
@@ -252,6 +263,7 @@ class config {
     public static function upgrading(): bool {
         global $CFG;
         $running = during_initial_install() || isset($CFG->upgraderunning);
+
         if ($running) {
             return true;
         }
@@ -261,23 +273,26 @@ class config {
         @include("{$CFG->dirroot}/enrol/wallet/version.php");
 
         $currentversion = get_config('enrol_wallet', 'version');
+
         return $plugin->version < $currentversion;
     }
+
     /**
      * Static getter.
-     * @param string $name
+     * @param  string               $name
      * @return string|int|bool|null
      */
     public static function get($name) {
         $config = self::instance();
         $config->exists($name);
+
         return $config->$name;
     }
 
     /**
      * Set a config value statically.
-     * @param string $name
-     * @param mixed $value
+     * @param  string $name
+     * @param  mixed  $value
      * @return void
      */
     public static function set($name, $value) {
@@ -290,10 +305,11 @@ class config {
      * Get instance of the config class.
      * @return config
      */
-    public static function make(): config {
+    public static function make(): self {
         if (!isset(self::$singleton)) {
             self::$singleton = new static();
         }
+
         return self::$singleton;
     }
 
@@ -301,7 +317,7 @@ class config {
      * Alias for make method.
      * @return config
      */
-    public static function instance(): config {
+    public static function instance(): self {
         return self::make();
     }
 }

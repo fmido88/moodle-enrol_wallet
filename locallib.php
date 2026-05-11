@@ -31,22 +31,27 @@ use enrol_wallet\output\topup_options;
 use enrol_wallet\output\wallet_balance;
 
 defined('MOODLE_INTERNAL') || die();
+
 /**
  * Enable enrol Wallet plugin.
  * @return void
  */
 function enrol_wallet_enable_plugin() {
     global $CFG;
+
     if (!enrol_is_enabled('wallet')) {
         $class = \core_plugin_manager::resolve_plugininfo_class('enrol');
+
         // This method isn't exist in 3.11.
         if (method_exists($class, 'enable_plugin')) {
             $class::enable_plugin('wallet', true);
         } else {
             $plugins = [];
+
             if (!empty($CFG->enrol_plugins_enabled)) {
                 $plugins = array_flip(explode(',', $CFG->enrol_plugins_enabled));
             }
+
             if (!array_key_exists('wallet', $plugins)) {
                 $plugins['wallet'] = 'wallet';
                 $new = implode(',', array_flip($plugins));
@@ -64,8 +69,8 @@ function enrol_wallet_enable_plugin() {
 
 /**
  * Creating a random coupon according to the options and length provided.
- * @param int $length length of the coupon
- * @param array $options characters options
+ * @param  int    $length  length of the coupon
+ * @param  array  $options characters options
  * @return string the random coupon generated.
  */
 #[Deprecated('This function is deprecated, please use coupons generator class')]
@@ -76,9 +81,9 @@ function enrol_wallet_get_random_coupon($length, $options) {
 /**
  * Generating coupons.
  *
- * @param object $options the options from coupon form.
- * @param ?progress_trace $trace
- * @return array|string array of coupon, or string of error.
+ * @param  object          $options the options from coupon form.
+ * @param  ?progress_trace $trace
+ * @return array|string    array of coupon, or string of error.
  */
 #[Deprecated('This function is deprecated, please use coupons generator class')]
 function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) {
@@ -87,12 +92,13 @@ function enrol_wallet_generate_coupons($options, ?progress_trace $trace = null) 
 
 /**
  * Display the form for charging other users.
- * @param bool $return
+ * @param  bool        $return
  * @return string|void
  */
 #[Deprecated('Use static_renderer class instead')]
 function enrol_wallet_display_charger_form($return = true) {
     $output = static_renderer::charger_form();
+
     if ($return) {
         return $output;
     }
@@ -101,36 +107,40 @@ function enrol_wallet_display_charger_form($return = true) {
 
 /**
  * Process the data submitted by the charger form.
- * @param object $data
+ * @param  object $data
  * @return bool
  */
 #[Deprecated()]
 function enrol_wallet_handle_charger_form($data) {
     $form = new charger_form();
+
     return $form->process_form_submission($data);
 }
 
 /**
  * Displaying the results after charging the wallet of other user.
- * @param array $params parameters from the charging form results.
+ * @param  array $params parameters from the charging form results.
  * @return bool
  */
 #[Deprecated()]
 function enrol_wallet_display_transaction_results($params = []) {
     $form = new charger_form();
+
     return $form->notify_result($params);
 }
 
 /**
- * Process the data from apply_coupon_form
- * @param object $data
+ * Process the data from apply_coupon_form.
+ * @param  object $data
  * @return string the redirect url.
  */
 #[Deprecated()]
 function enrol_wallet_process_coupon_data($data = null) {
     $form = new applycoupon_form();
+
     return $form->process_coupon_data($data);
 }
+
 /**
  * Display links to generate and view coupons.
  * @return string
@@ -142,18 +152,20 @@ function enrol_wallet_display_coupon_urls() {
 
 /**
  * Return html string contains information about current user wallet balance.
- * @param int $userid the user id, if not defined the id of current user used.
+ * @param  int         $userid the user id, if not defined the id of current user used.
  * @return bool|string
  */
 #[Deprecated]
 function enrol_wallet_display_current_user_balance($userid = 0) {
     global $PAGE;
+
     if (!isloggedin() || isguestuser()) {
         return '';
     }
 
     $renderable = new wallet_balance($userid);
     $renderer = $PAGE->get_renderer('enrol_wallet');
+
     return $renderer->render($renderable);
 }
 
@@ -165,13 +177,14 @@ function enrol_wallet_display_topup_options() {
     global $PAGE;
     $topup = new topup_options();
     $renderer = $PAGE->get_renderer('enrol_wallet');
+
     return $renderer->render($topup);
 }
 
 /**
  * Check the payment account id if it is valid or not.
  *
- * @param int $accountid
+ * @param  int  $accountid
  * @return bool
  */
 #[Deprecated()]
@@ -181,7 +194,7 @@ function enrol_wallet_is_valid_account($accountid) {
 
 /**
  * Check if the user is eligible to get enrolled with insufficient balance.
- * @param null|int|stdClass $userid null for current user.
+ * @param  null|int|stdClass $userid null for current user.
  * @return bool
  */
 function enrol_wallet_is_borrow_eligible($userid = null) {
@@ -189,8 +202,8 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
     $config = config::make();
 
     $enabled = $config->borrowenable;
-    $number  = $config->borrowtrans;
-    $period  = $config->borrowperiod;
+    $number = $config->borrowtrans;
+    $period = $config->borrowperiod;
 
     if (empty($enabled)) {
         return false;
@@ -219,12 +232,13 @@ function enrol_wallet_is_borrow_eligible($userid = null) {
 
     $params = [
         'period' => timedate::time() - $period,
-        'type' => 'credit',
+        'type'   => 'credit',
         'userid' => $userid,
     ];
     $where = 'timecreated >= :period AND type = :type AND userid = :userid';
-    $where .= " AND (category is NULL OR category = 0)";
+    $where .= ' AND (category is NULL OR category = 0)';
     $count = $DB->count_records_select('enrol_wallet_transactions', $where, $params);
+
     if ($count >= $number) {
         return true;
     }

@@ -26,13 +26,13 @@ namespace enrol_wallet\form;
 
 use core\exception\coding_exception;
 use core\url;
-use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\areas\base as area_base;
+use enrol_wallet\local\coupons\coupons;
 use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
  * Form to apply coupons.
@@ -48,15 +48,13 @@ class applycoupon_form extends \moodleform {
      */
     protected function get_form_identifier() {
         $data = (object)$this->_customdata;
+
         if (!empty($data->id)) {
-            $formid = $data->id.'_'.get_class($this);
-
+            $formid = $data->id . '_' . get_class($this);
         } else if (!empty($data->cmid)) {
-            $formid = $data->cmid.'_'.get_class($this);
-
+            $formid = $data->cmid . '_' . get_class($this);
         } else if (!empty($data->sectionid)) {
-            $formid = $data->sectionid.'_'.get_class($this);
-
+            $formid = $data->sectionid . '_' . get_class($this);
         } else {
             $formid = parent::get_form_identifier();
         }
@@ -73,11 +71,13 @@ class applycoupon_form extends \moodleform {
         $mform = $this->_form;
         $this->form_customdata_from_submitted_data();
         $instance = ((object)$this->_customdata)->instance ?? null;
+
         if (!isset($instance)) {
             throw new coding_exception('The enrol instance stdClass should be pass to custom data arg.');
         }
 
         $url = ((object)$this->_customdata)->url ?? $instance->url ?? '';
+
         if (empty($url) && $PAGE->has_set_url()) {
             $url = $PAGE->url;
         }
@@ -86,8 +86,10 @@ class applycoupon_form extends \moodleform {
         $cancel = optional_param('cancel', false, PARAM_BOOL);
 
         $validate = false; // Validation for percentage discount coupons only.
+
         if (!$cancel && !empty($coupon)) {
             $couponobj = new coupons($coupon);
+
             if ($couponobj->coupon->in_session_coupon()) {
                 $mockeddata = clone $instance;
                 $mockeddata->instanceid = $instance->id ?? null;
@@ -105,7 +107,6 @@ class applycoupon_form extends \moodleform {
             $coupongroup[] = $mform->createElement('html', $html);
             $coupongroup[] = $mform->createElement('cancel');
             $coupongroup[] = $mform->createElement('hidden', 'coupon');
-
         } else {
             $coupongroup[] = $mform->createElement('text', 'coupon', get_string('applycoupon', 'enrol_wallet'), '"maxlength"="50"');
             $coupongroup[] = $mform->createElement('submit', 'submitcoupon', get_string('applycoupon', 'enrol_wallet'));
@@ -155,6 +156,7 @@ class applycoupon_form extends \moodleform {
         }
 
         $error = optional_param('error', null, PARAM_TEXT);
+
         if (!empty($error)) {
             $mform->setElementError('coupon', $error);
         }
@@ -166,7 +168,7 @@ class applycoupon_form extends \moodleform {
      * If there are errors return array of errors ("fieldname"=>"error message"),
      * otherwise true if ok.
      * Server side rules do not work for uploaded files, implement serverside rules here if needed.
-     * @param array $data array of ("fieldname"=>value) of submitted data
+     * @param array $data  array of ("fieldname"=>value) of submitted data
      * @param array $files array of uploaded files "element_name"=>tmp_file_path
      */
     public function validation($data, $files) {
@@ -180,6 +182,7 @@ class applycoupon_form extends \moodleform {
         $coupon = new coupons($code);
 
         $validate = $coupon->validate_coupon($area, $areaid);
+
         if ($validate !== true) {
             $errors['applycoupon'] = $validate;
             $errors['coupons'] = $validate;
@@ -190,7 +193,7 @@ class applycoupon_form extends \moodleform {
 
     /**
      * Process submitted coupon data.
-     * @param stdClass|array $data
+     * @param  stdClass|array $data
      * @return string|url
      */
     public function process_coupon_data($data = null) {
@@ -224,12 +227,12 @@ class applycoupon_form extends \moodleform {
         $areaid = $areaclass::get_id_from_data($data);
 
         $couponutil->validate_coupon($area, $areaid);
+
         if ($error = $couponutil->get_error()) {
             $msg = get_string('coupon_applyerror', 'enrol_wallet', $error ?? '');
             $msgtype = 'error';
             // This mean that the function return error.
         } else {
-
             $redirecturl = $couponutil->area->get_redirect_url($redirecturl, $couponutil->coupon);
 
             $couponutil->apply_coupon($area, $areaid);
@@ -241,6 +244,7 @@ class applycoupon_form extends \moodleform {
         }
 
         \core\notification::add($msg, $msgtype);
+
         return $redirecturl;
     }
 
@@ -282,7 +286,7 @@ class applycoupon_form extends \moodleform {
             return;
         }
 
-        $instance = new stdClass;
+        $instance = new stdClass();
         $instance->id = $data['instanceid'];
         $instance->cmid = $data['cmid'];
         $instance->sectionid = $data['sectionid'];
@@ -290,6 +294,7 @@ class applycoupon_form extends \moodleform {
         $instance->courseid = $data['courseid'];
 
         $this->_customdata->instance = $instance;
+
         if (!isset($this->_customdata->url) && !empty($instance->url)) {
             $this->_customdata->url = $instance->url;
         }

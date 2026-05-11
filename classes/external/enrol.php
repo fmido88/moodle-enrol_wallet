@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * wallet enrol plugin external functions
+ * wallet enrol plugin external functions.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
@@ -44,7 +44,6 @@ use enrol_wallet_plugin;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol extends external_api {
-
     /**
      * Returns description of get_instance_info() parameters.
      *
@@ -52,18 +51,18 @@ class enrol extends external_api {
      */
     public static function get_instance_info_parameters() {
         return new external_function_parameters(
-                [
+            [
                     'instanceid' => new external_value(PARAM_INT, 'instance id of wallet enrolment plugin.'),
                 ]
-            );
+        );
     }
 
     /**
      * Return wallet-enrolment instance information.
      *
-     * @param int $instanceid instance id of wallet enrolment plugin.
-     * @return array instance information.
+     * @param  int              $instanceid instance id of wallet enrolment plugin.
      * @throws moodle_exception
+     * @return array            instance information.
      */
     public static function get_instance_info($instanceid) {
         global $DB, $CFG;
@@ -74,6 +73,7 @@ class enrol extends external_api {
 
         // Retrieve wallet enrolment plugin.
         $enrolplugin = enrol_get_plugin('wallet');
+
         if (empty($enrolplugin)) {
             throw new moodle_exception('invaliddata', 'error');
         }
@@ -82,11 +82,12 @@ class enrol extends external_api {
 
         $enrolinstance = $DB->get_record('enrol', ['id' => $params['instanceid']], '*', MUST_EXIST);
         $course = $DB->get_record('course', ['id' => $enrolinstance->courseid], '*', MUST_EXIST);
+
         if (!core_course_category::can_view_course_info($course) && !can_access_course($course)) {
             throw new moodle_exception('coursehidden');
         }
 
-        $instanceinfo = (array) $enrolplugin->get_enrol_info($enrolinstance);
+        $instanceinfo = (array)$enrolplugin->get_enrol_info($enrolinstance);
 
         unset($instanceinfo['requiredparam']);
 
@@ -112,7 +113,7 @@ class enrol extends external_api {
     }
 
     /**
-     * Returns description of method parameters
+     * Returns description of method parameters.
      *
      * @return external_function_parameters
      */
@@ -128,21 +129,23 @@ class enrol extends external_api {
     /**
      * wallet enrol the current user in the given course.
      *
-     * @param int $courseid id of course
-     * @param int $instanceid instance id of wallet enrolment plugin
-     * @return array of warnings and status result
+     * @param  int              $courseid   id of course
+     * @param  int              $instanceid instance id of wallet enrolment plugin
      * @throws moodle_exception
+     * @return array            of warnings and status result
      */
     public static function enrol_user($courseid, $instanceid = 0) {
         global $CFG, $USER;
 
         require_once($CFG->libdir . '/enrollib.php');
 
-        $params = self::validate_parameters(self::enrol_user_parameters(),
-                                                    [
+        $params = self::validate_parameters(
+            self::enrol_user_parameters(),
+            [
                                                         'courseid'   => $courseid,
                                                         'instanceid' => $instanceid,
-                                                    ]);
+                                                    ]
+        );
 
         $warnings = [];
 
@@ -156,6 +159,7 @@ class enrol extends external_api {
 
         // Retrieve the wallet enrolment plugin.
         $enrol = enrol_wallet_plugin::get_plugin();
+
         if (empty($enrol)) {
             throw new moodle_exception('canntenrol', 'enrol_wallet');
         }
@@ -163,8 +167,9 @@ class enrol extends external_api {
         // We can expect multiple wallet-enrolment instances.
         $instances = [];
         $enrolinstances = enrol_get_instances($course->id, true);
+
         foreach ($enrolinstances as $courseenrolinstance) {
-            if ($courseenrolinstance->enrol == "wallet") {
+            if ($courseenrolinstance->enrol == 'wallet') {
                 // Instance specified.
                 if (!empty($params['instanceid'])) {
                     if ($courseenrolinstance->id == $params['instanceid']) {
@@ -183,47 +188,49 @@ class enrol extends external_api {
 
         // Try to enrol the user in the instance/s.
         $enrolled = false;
+
         foreach ($instances as $instance) {
             $enrolstatus = $enrol->can_self_enrol($instance);
-            if ($enrolstatus === true) {
 
+            if ($enrolstatus === true) {
                 // Do the enrolment.
                 $enrol->enrol_self($instance, $USER);
                 $enrolled = true;
                 break;
-            } else {
-                $costafter = $enrol->get_cost_after_discount($USER->id, $instance);
-                $cost = $instance->cost;
-                $balance = balance::create_from_instance($instance);
-
-                $a = [
-                    'cost_before'  => $cost,
-                    'cost_after'   => $costafter,
-                    'user_balance' => $balance->get_valid_balance(),
-                ];
-                if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE) {
-                    $enrolstatus = get_string('insufficient_balance', 'enrol_wallet', $a);
-                } else if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE_DISCOUNTED) {
-                    $enrolstatus = get_string('insufficient_balance_discount', 'enrol_wallet', $a);
-                }
-
-                $warnings[] = [
-                    'item'        => 'instance',
-                    'itemid'      => $instance->id,
-                    'warningcode' => '1',
-                    'message'     => $enrolstatus,
-                ];
             }
+            $costafter = $enrol->get_cost_after_discount($USER->id, $instance);
+            $cost = $instance->cost;
+            $balance = balance::create_from_instance($instance);
+
+            $a = [
+                'cost_before'  => $cost,
+                'cost_after'   => $costafter,
+                'user_balance' => $balance->get_valid_balance(),
+            ];
+
+            if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE) {
+                $enrolstatus = get_string('insufficient_balance', 'enrol_wallet', $a);
+            } else if ($enrolstatus == \enrol_wallet_plugin::INSUFFICIENT_BALANCE_DISCOUNTED) {
+                $enrolstatus = get_string('insufficient_balance_discount', 'enrol_wallet', $a);
+            }
+
+            $warnings[] = [
+                'item'        => 'instance',
+                'itemid'      => $instance->id,
+                'warningcode' => '1',
+                'message'     => $enrolstatus,
+            ];
         }
 
         $result = [];
         $result['status'] = $enrolled;
         $result['warnings'] = $warnings;
+
         return $result;
     }
 
     /**
-     * Returns description of method result value
+     * Returns description of method result value.
      *
      * @return external_single_structure
      */

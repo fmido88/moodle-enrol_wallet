@@ -75,16 +75,19 @@ class category extends base {
     public function get_discounted_value(float $cost): float {
         return $cost - $this->value;
     }
+
     #[\Override()]
     protected static function validate_type_generator_form(array $data, array &$errors): void {
         if (empty($data['category'])) {
             $errors['category'] = get_string('coupons_category_error', 'enrol_wallet');
         }
     }
+
     #[\Override()]
     public static function can_specify_category(): bool {
         return true;
     }
+
     #[\Override()]
     public function get_submission_message(area_base $area): array {
         return [

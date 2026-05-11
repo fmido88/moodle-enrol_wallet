@@ -21,13 +21,14 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->dirroot.'/enrol/wallet/lib.php');
+require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 
 /**
  * Wallet enrolment tests.
@@ -37,7 +38,6 @@ require_once($CFG->dirroot.'/enrol/wallet/lib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class transactions_test extends \advanced_testcase {
-
     /**
      * The transactions class.
      * @var \enrol_wallet\transactions
@@ -52,8 +52,8 @@ final class transactions_test extends \advanced_testcase {
         $this->resetAfterTest(true);
 
         $this->transactions = new \enrol_wallet\transactions();
-
     }
+
     /**
      * Testing the functionalities of adding and deducting credits
      * from user's wallet.

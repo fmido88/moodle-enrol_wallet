@@ -21,42 +21,44 @@
  * @copyright 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet\output;
 
 use core\url;
+use core_course_category;
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\urls\reports;
 use enrol_wallet\local\wallet\balance;
-use renderable;
-use templatable;
-use renderer_base;
-use moodle_url;
 use html_writer;
-use core_course_category;
+use renderable;
+use renderer_base;
 use stdClass;
+use templatable;
 
 /**
  * Prepare the data to be displayed contains all details about the balance of a certain user.
  */
 class wallet_balance implements renderable, templatable {
-
     /**
      * The user that balance belongs to.
      * @var int
      */
     protected $userid;
+
     /**
      * If this user is the current user.
      * @var bool
      */
     protected $currentuser = false;
+
     /**
      * If this user is a parent
-     * according to auth_parent
+     * according to auth_parent.
      * @var bool
      */
     protected $isparent = false;
+
     /**
      * Used to calculate and prepare the payment region for enrol wallet
      * instance.
@@ -64,9 +66,10 @@ class wallet_balance implements renderable, templatable {
      */
     public function __construct($userid = 0) {
         global $USER, $CFG;
+
         if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
             require_once("$CFG->dirroot/auth/parent/auth.php");
-            $authparent = new \auth_plugin_parent;
+            $authparent = new \auth_plugin_parent();
             $this->isparent = $authparent->is_parent($USER);
         }
 
@@ -83,11 +86,10 @@ class wallet_balance implements renderable, templatable {
      * mustache template. This means:
      * No complex types - only stdClass, array, int, string, float, bool
      * Any additional info that is required for the template is pre-calculated (e.g. capability checks).
-     * @param renderer_base $output
+     * @param  renderer_base $output
      * @return \stdClass
      */
     public function export_for_template(renderer_base $output): stdClass {
-
         $helper = new balance($this->userid);
         // Get the user balance.
         $details = $helper->get_balance_details();
@@ -99,12 +101,14 @@ class wallet_balance implements renderable, templatable {
         $policy = $config->refundpolicy;
         // Prepare transaction URL to display.
         $params = [];
+
         if (!$this->currentuser) {
             $params['userid'] = $this->userid;
         }
 
         $transactionsurl = reports::TRANSACTIONS->url($params);
         $transactions = html_writer::link($transactionsurl, get_string('transactions', 'enrol_wallet'));
+
         if ($this->currentuser && !AJAX_SCRIPT) {
             // Transfer link.
             $transferenabled = $config->transfer_enabled;
@@ -120,10 +124,12 @@ class wallet_balance implements renderable, templatable {
         }
 
         $balancedetails = [];
+
         foreach ($details->catbalance as $id => $obj) {
             $category = core_course_category::get($id, IGNORE_MISSING, true);
 
-            $balancedetails[$id] = new stdClass;
+            $balancedetails[$id] = new stdClass();
+
             if (empty($category)) {
                 $balancedetails[$id]->name = get_string('unknowncategory');
             } else {
@@ -137,34 +143,37 @@ class wallet_balance implements renderable, templatable {
 
         $balancedetails = !(empty($balancedetails)) ? array_values($balancedetails) : false;
 
-        $tempctx = new stdClass;
-        $tempctx->main         = format_float($helper->get_main_refundable(), 2);
-        $tempctx->norefund     = format_float($helper->get_main_nonrefundable(), 2);
-        $tempctx->balance      = format_float($helper->get_total_balance(), 2);
-        $tempctx->hasdetails   = !empty($balancedetails);
-        $tempctx->catdetails   = $balancedetails;
-        $tempctx->currency     = $currency;
+        $tempctx = new stdClass();
+        $tempctx->main = format_float($helper->get_main_refundable(), 2);
+        $tempctx->norefund = format_float($helper->get_main_nonrefundable(), 2);
+        $tempctx->balance = format_float($helper->get_total_balance(), 2);
+        $tempctx->hasdetails = !empty($balancedetails);
+        $tempctx->catdetails = $balancedetails;
+        $tempctx->currency = $currency;
 
         if (!AJAX_SCRIPT) {
             $currenturl = qualified_me();
+
             if (!$currenturl && PHPUNIT_TEST) {
                 $currenturl = new url('/');
             }
 
             $currenturl = new url($currenturl);
             $walleturl = pages::WALLET->url();
+
             if (!$walleturl->compare($currenturl, URL_MATCH_BASE)) {
                 $walleturl->set_anchor('linkbalance');
                 $tempctx->walleturl = $walleturl->out(false);
             }
 
             $tempctx->transactions = $transactions;
-            $tempctx->transfer     = !empty($transferenabled) ? $transfer : false;
-            $tempctx->referral     = !empty($refenabled) ? $referral : false;
-            $tempctx->policy       = !empty($policy) ? $policy : false;
+            $tempctx->transfer = !empty($transferenabled) ? $transfer : false;
+            $tempctx->referral = !empty($refenabled) ? $referral : false;
+            $tempctx->policy = !empty($policy) ? $policy : false;
         }
 
         $tempctx->currentuser = $this->currentuser;
+
         return $tempctx;
     }
 }

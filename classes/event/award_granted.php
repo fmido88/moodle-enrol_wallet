@@ -32,7 +32,6 @@ namespace enrol_wallet\event;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class award_granted extends \core\event\base {
-
     // For more information about the Events API, please visit:
     // https://docs.moodle.org/dev/Event_2.
     /**
@@ -59,11 +58,12 @@ class award_granted extends \core\event\base {
      * @return string
      */
     public function get_description() {
-        $a = new \stdClass;
+        $a = new \stdClass();
         $a->userid = $this->userid;
         $a->courseid = $this->courseid;
         $a->grade = $this->other['grade'];
         $a->amount = $this->other['amount'];
+
         return get_string('event_award_desc', 'enrol_wallet', $a);
     }
 }

@@ -28,14 +28,14 @@ use enrol_wallet\local\utils\testing;
  */
 final class info_test extends \advanced_testcase {
     /**
-     * Test constructor
+     * Test constructor.
      * @covers ::__construct()
      * @return void
      */
     public function test_constructor(): void {
         $this->resetAfterTest();
         $instance = testing::get_generator()->create_instance();
-        $info     = new info($instance);
+        $info = new info($instance);
         $this->assertInstanceOf(\core_availability\info::class, $info);
         // Todo.
     }

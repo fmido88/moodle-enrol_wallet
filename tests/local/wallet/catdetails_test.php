@@ -19,7 +19,7 @@ namespace enrol_wallet\local\wallet;
 use core\exception\coding_exception;
 
 /**
- * Tests for Wallet enrolment
+ * Tests for Wallet enrolment.
  *
  * @package    enrol_wallet
  * @category   test
@@ -28,7 +28,7 @@ use core\exception\coding_exception;
  */
 final class catdetails_test extends \advanced_testcase {
     /**
-     * Testing cat details
+     * Testing cat details.
      * @covers ::__get()
      * @return void
      */

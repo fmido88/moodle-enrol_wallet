@@ -26,7 +26,7 @@ use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\manage;
 
 require_once('../../../config.php');
-require_once($CFG->dirroot.'/course/lib.php');
+require_once($CFG->dirroot . '/course/lib.php');
 
 // Adding some security.
 require_login();
@@ -49,13 +49,14 @@ $form = new MoodleQuickForm('courses', 'post', actions::BULKENROLMENTS->url());
 
 // Prepare the course selector.
 $courses = get_courses('all', 'c.sortorder ASC', 'c.id, c.fullname');
-foreach ($courses as $course) {
 
+foreach ($courses as $course) {
     if ($course->id == 1) {
         continue;
     }
 
     $category = core_course_category::get($course->category, IGNORE_MISSING, true);
+
     if (!$category) {
         continue;
     }
@@ -71,6 +72,7 @@ $select->setMultiple(true);
 // Prepare enrollment plugins selectors.
 $enrolplugins = enrol_get_plugins(true);
 $plugoptions = [];
+
 foreach ($enrolplugins as $name => $object) {
     if ($name == 'guest' || $name == 'cohort' || $name == 'category') {
         continue;
@@ -91,7 +93,7 @@ $form->addElement('select', 'status', get_string('alterstatus', 'enrol_manual'),
 $form->addElement('date_time_selector', 'timestart', get_string('altertimestart', 'enrol_manual'), ['optional' => true]);
 $form->addElement('date_time_selector', 'timeend', get_string('altertimeend', 'enrol_manual'), ['optional' => true]);
 
-$form->addElement('submit' , 'submit', get_string('submit'));
+$form->addElement('submit', 'submit', get_string('submit'));
 $form->disabledIf('submit', 'courses[]', 'noitemselected');
 $form->disabledIf('submit', 'plugins[]', 'noitemselected');
 

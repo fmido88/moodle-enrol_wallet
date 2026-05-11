@@ -28,7 +28,6 @@ use enrol_wallet\local\discounts\discount\hook;
 #[\core\attribute\tags('wallet', 'enrol', 'discount')]
 #[\core\attribute\label('Apply extra discount before purchase an item using wallet')]
 class before_discount {
-
     /**
      * Constructor.
      * @param hook $discount

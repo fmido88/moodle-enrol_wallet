@@ -25,9 +25,7 @@
 
 namespace enrol_wallet;
 
-use enrol_wallet\hooks_callbacks;
 use enrol_wallet\local\config;
-use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\wallet\balance_op;
 use moodle_page;
 
@@ -40,7 +38,6 @@ use moodle_page;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class hooks_callbacks_test extends \advanced_testcase {
-
     /**
      * Test shouldnt method.
      * @covers ::shouldnt()

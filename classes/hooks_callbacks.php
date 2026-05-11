@@ -15,9 +15,10 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace enrol_wallet;
-use core\hook\output\before_standard_top_of_body_html_generation;
-use core\hook\output\before_footer_html_generation;
+
 use core\hook\navigation\primary_extend;
+use core\hook\output\before_footer_html_generation;
+use core\hook\output\before_standard_top_of_body_html_generation;
 use core\output\pix_icon;
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
@@ -27,7 +28,7 @@ use navigation_node;
 use stdClass;
 
 /**
- * Class hooks_callbacks
+ * Class hooks_callbacks.
  *
  * @package    enrol_wallet
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -37,7 +38,7 @@ class hooks_callbacks {
     /**
      * Hook callback to inject price on the enrollment icon.
      *
-     * @param \core\hook\output\before_footer_html_generation $hook
+     * @param  \core\hook\output\before_footer_html_generation $hook
      * @return void
      */
     public static function show_price(before_footer_html_generation $hook) {
@@ -46,6 +47,7 @@ class hooks_callbacks {
         }
 
         $showprice = (bool)config::make()->showprice;
+
         if ($showprice) {
             $page = $hook->renderer->get_page();
             $page->requires->js_call_amd('enrol_wallet/overlyprice', 'init');
@@ -55,11 +57,12 @@ class hooks_callbacks {
     /**
      * Hook callback to display notice about low balance.
      *
-     * @param \core\hook\output\before_standard_top_of_body_html_generation $hook
+     * @param  \core\hook\output\before_standard_top_of_body_html_generation $hook
      * @return void
      */
     public static function low_balance_warning(before_standard_top_of_body_html_generation $hook) {
         global $SESSION;
+
         // Don't display notice for guests or logged out.
         if (self::shouldnt()) {
             return;
@@ -69,6 +72,7 @@ class hooks_callbacks {
 
         // Check if notice is enabled.
         $notice = $config->lowbalancenotice;
+
         if (empty($notice)) {
             return;
         }
@@ -76,11 +80,12 @@ class hooks_callbacks {
         if (!isset($SESSION->enrol_wallet_low_balance_notice)) {
             $lastnotice = 0;
         } else {
-            $lastnotice =& $SESSION->enrol_wallet_low_balance_notice;
+            $lastnotice = &$SESSION->enrol_wallet_low_balance_notice;
         }
 
         // One notification per hour.
-        $SESSION->enrol_wallet_low_balance_notice =& $lastnotice;
+        $SESSION->enrol_wallet_low_balance_notice = &$lastnotice;
+
         if ($lastnotice > timedate::time() - HOURSECS) {
             return;
         }
@@ -90,6 +95,7 @@ class hooks_callbacks {
 
         $op = new balance();
         $balance = $op->get_total_balance();
+
         // Todo: only notify limited times per session.
         if ($balance <= (int)$condition) {
             $lastnotice = timedate::time();
@@ -101,7 +107,7 @@ class hooks_callbacks {
     /**
      * Hook callback to extend primary navigation tabs.
      *
-     * @param primary_extend $hook
+     * @param  primary_extend $hook
      * @return void
      */
     public static function primary_navigation_tabs(primary_extend $hook) {
@@ -111,7 +117,7 @@ class hooks_callbacks {
 
     /**
      * Add my wallet to primary navigation.
-     * @param primary_extend $hook
+     * @param  primary_extend $hook
      * @return void
      */
     public static function add_my_wallet(primary_extend $hook) {
@@ -120,6 +126,7 @@ class hooks_callbacks {
         }
 
         $enabled = (bool)config::make()->mywalletnav;
+
         if (empty($enabled)) {
             return;
         }
@@ -131,10 +138,11 @@ class hooks_callbacks {
         $primaryview = $hook->get_primaryview();
         $primaryview->add($alt, $url, navigation_node::TYPE_CUSTOM, null, null, $pix);
     }
+
     /**
      * Add offers to primary navigation.
      *
-     * @param \core\hook\navigation\primary_extend $hook
+     * @param  \core\hook\navigation\primary_extend $hook
      * @return void
      */
     public static function add_offers(primary_extend $hook) {
@@ -143,6 +151,7 @@ class hooks_callbacks {
         }
 
         $enabled = (bool)config::make()->offers_nav;
+
         if (empty($enabled)) {
             return;
         }
@@ -157,7 +166,7 @@ class hooks_callbacks {
 
     /**
      * Shouldn't process the callback?
-     * @param bool $logincheck should be logged in too.
+     * @param  bool $logincheck should be logged in too.
      * @return bool
      */
     public static function shouldnt($logincheck = true): bool {
@@ -166,7 +175,7 @@ class hooks_callbacks {
         include("{$CFG->dirroot}/enrol/wallet/version.php");
         $shouldnt = get_config('enrol_wallet', 'version') < $plugin->version;
 
-        $shouldnt = $shouldnt || !class_exists("\\enrol_wallet\\local\\config");
+        $shouldnt = $shouldnt || !class_exists('\\enrol_wallet\\local\\config');
         $shouldnt = $shouldnt || during_initial_install();
         $shouldnt = $shouldnt || !empty($CFG->upgraderunning);
         $shouldnt = $shouldnt || @moodle_needs_upgrading();

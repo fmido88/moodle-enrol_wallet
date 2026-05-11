@@ -23,7 +23,6 @@
  */
 
 namespace enrol_wallet;
-use enrol_wallet\deleteselectedusers_form;
 
 /**
  * A bulk operation for the wallet enrolment plugin to delete selected users enrolments.
@@ -33,7 +32,6 @@ use enrol_wallet\deleteselectedusers_form;
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class deleteselectedusers_operation extends \enrol_bulk_enrolment_operation {
-
     /**
      * Returns the title to display for this bulk operation.
      *
@@ -57,17 +55,17 @@ class deleteselectedusers_operation extends \enrol_bulk_enrolment_operation {
      * Returns a enrol_bulk_enrolment_operation extension form to be used
      * in collecting required information for this operation to be processed.
      *
-     * @param string|\moodle_url|null $defaultaction
-     * @param mixed $defaultcustomdata
+     * @param  string|\moodle_url|null                $defaultaction
+     * @param  mixed                                  $defaultcustomdata
      * @return \enrol_wallet\deleteselectedusers_form
      */
     public function get_form($defaultaction = null, $defaultcustomdata = null) {
         if (!is_array($defaultcustomdata)) {
             $defaultcustomdata = [];
         }
-        $defaultcustomdata['title']   = $this->get_title();
+        $defaultcustomdata['title'] = $this->get_title();
         $defaultcustomdata['message'] = get_string('confirmbulkdeleteenrolment', 'enrol_wallet');
-        $defaultcustomdata['button']  = get_string('unenrolusers', 'enrol_wallet');
+        $defaultcustomdata['button'] = get_string('unenrolusers', 'enrol_wallet');
 
         return new deleteselectedusers_form($defaultaction, $defaultcustomdata);
     }
@@ -76,11 +74,11 @@ class deleteselectedusers_operation extends \enrol_bulk_enrolment_operation {
      * Processes the bulk operation request for the given userids with the provided properties.
      *
      * @param \course_enrolment_manager $manager
-     * @param array $users
-     * @param \stdClass $properties The data returned by the form.
+     * @param array                     $users
+     * @param \stdClass                 $properties The data returned by the form.
      */
     public function process(\course_enrolment_manager $manager, array $users, \stdClass $properties) {
-        if (!has_capability("enrol/wallet:unenrol", $manager->get_context())) {
+        if (!has_capability('enrol/wallet:unenrol', $manager->get_context())) {
             return false;
         }
 
@@ -88,6 +86,7 @@ class deleteselectedusers_operation extends \enrol_bulk_enrolment_operation {
             foreach ($user->enrolments as $enrolment) {
                 $plugin = $enrolment->enrolmentplugin;
                 $instance = $enrolment->enrolmentinstance;
+
                 if ($plugin->allow_unenrol_user($instance, $enrolment)) {
                     $plugin->unenrol_user($instance, $user->id);
                 }

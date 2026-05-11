@@ -28,10 +28,7 @@ namespace enrol_wallet;
 use enrol_wallet\local\config;
 use enrol_wallet\local\referral\code;
 use enrol_wallet\local\utils\timedate;
-use enrol_wallet\local\wallet\balance;
-use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\output\pages;
-use enrol_wallet_plugin;
 
 /**
  * Tests for referral program.
@@ -139,8 +136,8 @@ final class referral_test extends \advanced_testcase {
         $config = config::make();
 
         $config->referral_enabled = $enable;
-        $config->referral_amount  = $amount;
-        $config->referral_max     = $maxusage;
+        $config->referral_amount = $amount;
+        $config->referral_max = $maxusage;
         $config->referral_plugins = implode(',', $plugins);
     }
 }

@@ -24,20 +24,19 @@
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\payment;
-use enrol_wallet\local\utils\timedate;
 use enrol_wallet\payment\item;
 
 require_once('../../../config.php');
-require_once(__DIR__.'/../lib.php');
+require_once(__DIR__ . '/../lib.php');
 
 $instanceid = required_param('instanceid', PARAM_INT);
-$courseid   = required_param('courseid', PARAM_INT);
-$confirm    = optional_param('confirm', 0, PARAM_BOOL);
-$account    = required_param('account', PARAM_INT);
-$currency   = required_param('currency', PARAM_TEXT);
-$val        = optional_param('value', 0, PARAM_FLOAT);
-$category   = optional_param('category', 0, PARAM_INT);
-$return     = optional_param('return', '', PARAM_LOCALURL);
+$courseid = required_param('courseid', PARAM_INT);
+$confirm = optional_param('confirm', 0, PARAM_BOOL);
+$account = required_param('account', PARAM_INT);
+$currency = required_param('currency', PARAM_TEXT);
+$val = optional_param('value', 0, PARAM_FLOAT);
+$category = optional_param('category', 0, PARAM_INT);
+$return = optional_param('return', '', PARAM_LOCALURL);
 
 $urlparams = [
     'instanceid' => $instanceid,
@@ -53,8 +52,8 @@ $baseurl = pages::TOPUP->url($urlparams);
 
 $config = config::make();
 // Check the conditional discount.
-$enabled   = $config->conditionaldiscount_apply;
-$discount  = 0;
+$enabled = $config->conditionaldiscount_apply;
+$discount = 0;
 
 if (!empty($enabled)) {
     $value = enrol_wallet\local\discounts\discount_rules::get_the_before($val, $category);
@@ -101,22 +100,25 @@ $attributes = payment::get_payment_button_attributes($item->get('id'), $value, $
 // Just in case.
 $baseurl->param('confirm', true);
 $buttoncontinue = new single_button($baseurl, get_string('yes'), 'get');
+
 foreach ($attributes as $name => $v) {
     $buttoncontinue->set_attribute($name, $v);
 }
 
 $buttoncancel = new single_button($url, get_string('no'), 'get');
 
-$a = (object) [
+$a = (object)[
     'value'    => $value,
     'before'   => $val,
     'currency' => $currency,
 ];
 
 $policy = $config->refundpolicy;
+
 if (!empty($policy)) {
     $a->policy = $policy;
 }
+
 if ($val == $value) {
     $message = get_string('confirmpayment', 'enrol_wallet', $a);
 } else {

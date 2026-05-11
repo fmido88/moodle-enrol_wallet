@@ -19,7 +19,7 @@ namespace enrol_wallet\task;
 use enrol_wallet\local\coupons\generator;
 
 /**
- * Class generate_coupons
+ * Class generate_coupons.
  *
  * @package    enrol_wallet
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -32,12 +32,12 @@ class generate_coupons extends \core\task\adhoc_task {
      */
     public function execute() {
         global $CFG;
-        require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+        require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 
         \core_php_time_limit::raise();
         raise_memory_limit(MEMORY_HUGE);
 
-        $trace = PHPUNIT_TEST ? new \null_progress_trace : new \text_progress_trace;
+        $trace = PHPUNIT_TEST ? new \null_progress_trace() : new \text_progress_trace();
         $options = $this->get_custom_data();
         $trace->output('Starting task...');
         $trace->output('Data: ' . $this->get_custom_data_as_string());

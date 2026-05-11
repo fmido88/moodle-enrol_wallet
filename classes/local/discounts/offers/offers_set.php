@@ -117,13 +117,14 @@ class offers_set extends offer_item {
         global $OUTPUT;
 
         $list = [];
+
         foreach ($this->suboffers as $offer) {
             $desc = $offer->get_description($availableonly);
 
             if ($desc) {
                 $list[] = [
                     'description' => $desc,
-                    'valid' => $offer->validate_offer(),
+                    'valid'       => $offer->validate_offer(),
                 ];
             }
         }
@@ -156,7 +157,7 @@ class offers_set extends offer_item {
             if ($i % 2 === 0) {
                 $finallist[] = [
                     'offer' => $list[$i / 2],
-                    'join' => false,
+                    'join'  => false,
                 ];
             } else {
                 $finallist[] = ['join' => $join];

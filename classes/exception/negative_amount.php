@@ -19,7 +19,7 @@ namespace enrol_wallet\exception;
 use core\exception\moodle_exception;
 
 /**
- * Class negative_amount
+ * Class negative_amount.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -36,7 +36,7 @@ class negative_amount extends moodle_exception {
 
     /**
      * Check an amount to be positive float and throw exception other wise.
-     * @param float $amount
+     * @param  float  $amount
      * @throws static
      * @return void
      */

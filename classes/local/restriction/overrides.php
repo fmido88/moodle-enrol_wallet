@@ -64,16 +64,16 @@ class overrides {
         // Check if this user is a part of an overridden cohort.
         require_once($CFG->dirroot . '/cohort/lib.php');
         $usercohorts = cohort_get_user_cohorts($userid);
-        $cohortsids  = [];
+        $cohortsids = [];
 
         foreach ($usercohorts as $cohort) {
             $cohortsids[] = $cohort->id;
         }
         unset($usercohorts);
 
-        $cohortsids                  = array_unique($cohortsids);
+        $cohortsids = array_unique($cohortsids);
         [$cohortsin, $cohortsparams] = $DB->get_in_or_equal($cohortsids, SQL_PARAMS_NAMED);
-        $sql                         = "SELECT id, rules
+        $sql = "SELECT id, rules
                 FROM {enrol_wallet_overrides}
                 WHERE (userid = :userid
                        OR cohortid $cohortsin)
@@ -150,7 +150,7 @@ class overrides {
                 $rules[$rule] = true;
             }
 
-            $record->rules        = json_encode($rules);
+            $record->rules = json_encode($rules);
             $record->timemodified = timedate::time();
             $record->usermodified = $USER->id;
 

@@ -28,7 +28,7 @@ use core_reportbuilder\local\filters\date;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\reports;
 
-$url           = reports::COUPONS->url();
+$url = reports::COUPONS->url();
 $systemcontext = context_system::instance();
 
 // Setup the page.
@@ -41,11 +41,11 @@ $PAGE->set_heading(get_string('coupons', 'enrol_wallet'));
 require_login();
 require_capability('enrol/wallet:viewcoupon', $systemcontext);
 
-$class  = enrol_wallet\reportbuilder\local\systemreports\coupons::class;
+$class = enrol_wallet\reportbuilder\local\systemreports\coupons::class;
 $report = core_reportbuilder\system_report_factory::create($class, $systemcontext);
 
 $createdfrom = optional_param('createdfrom', 0, PARAM_INT);
-$createdto   = optional_param('createdto', 0, PARAM_INT);
+$createdto = optional_param('createdto', 0, PARAM_INT);
 
 if (!empty($createdfrom) || !empty($createdto)) {
     $report->set_filter_values([

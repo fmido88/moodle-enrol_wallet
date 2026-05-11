@@ -23,10 +23,10 @@ use moodleform;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
- * Class override
+ * Class override.
  *
  * @package    enrol_wallet
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -51,6 +51,7 @@ class override extends moodleform {
         $mform->addElement('select', 'type', get_string('type'), $types);
 
         $cohorts = options::get_cohorts_options($instance, $instance->get_course_context());
+
         if (count($cohorts) > 1) {
             $mform->addElement('select', 'type', get_string('type'), $types);
 
@@ -78,13 +79,14 @@ class override extends moodleform {
     }
 
     /**
-     * Validate override form
-     * @param array $data
-     * @param array $files
+     * Validate override form.
+     * @param  array $data
+     * @param  array $files
      * @return array
      */
     public function validation($data, $files) {
         $errors = [];
+
         return $errors;
     }
 }

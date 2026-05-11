@@ -134,6 +134,7 @@ class transaction_chart implements renderable {
 
         $sitestr = get_string('site');
         $deletedstr = get_string('deleted');
+
         foreach ($records as $record) {
             $week = timedate::start_of_week($record->timecreated);
 

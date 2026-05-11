@@ -136,6 +136,7 @@ class other_category_courses_offer extends offer_item {
         }
 
         $count = static::get_user_courses_count($this->cat, $this->userid, $this->activeonly, [$this->courseid]);
+
         if ($count >= $number) {
             return true;
         }
@@ -194,6 +195,7 @@ class other_category_courses_offer extends offer_item {
     public static function validate_submitted_offer(stdClass $offer, int $i, array &$errors, ?callable $wrapper = null): void {
         if (!is_number($offer->cat) || $offer->cat <= 0 || !$category = core_course_category::get($offer->cat, IGNORE_MISSING)) {
             $errors[static::fname('', $i, $wrapper)] = get_string('offers_error_othercnotexist', 'enrol_wallet');
+
             return;
         }
 
@@ -215,10 +217,10 @@ class other_category_courses_offer extends offer_item {
 
     /**
      * Get the count of courses the user enrolled in for a given category.
-     * @param int $catid
-     * @param int $userid
-     * @param bool $activeonly
-     * @param int[] $exclude list of courses ids to be excluded.
+     * @param  int      $catid
+     * @param  int      $userid
+     * @param  bool     $activeonly
+     * @param  int[]    $exclude    list of courses ids to be excluded.
      * @return int|null
      */
     public static function get_user_courses_count(int $catid, int $userid, bool $activeonly, array $exclude = []): ?int {
@@ -242,11 +244,13 @@ class other_category_courses_offer extends offer_item {
                 JOIN {course} c ON c.id = e.courseid
                 WHERE c.category $in
                   AND ue.userid = :userid";
+
         if (!empty($exclude)) {
             [$xin, $xparams] = $DB->get_in_or_equal($exclude, SQL_PARAMS_NAMED, 'param', false);
             $sql .= " AND c.id $xin";
             $params += $xparams;
         }
+
         if ($activeonly) {
             $sql .= ' AND ue.status = :active
                       AND (ue.timeend >= :now1 OR ue.timeend = 0)
@@ -262,6 +266,7 @@ class other_category_courses_offer extends offer_item {
 
         return \count($records);
     }
+
     /**
      * Mock an offer object of this type for testing.
      * @param  ?testing_data_generator $gen

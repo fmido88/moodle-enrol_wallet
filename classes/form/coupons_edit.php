@@ -23,19 +23,18 @@
 
 namespace enrol_wallet\form;
 
-use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\types\base as type_base;
+
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /** Enrollment form.
  *
  */
 class coupons_edit extends \moodleform {
-
     /**
-     * definition
+     * definition.
      * @return void
      */
     public function definition() {
@@ -61,15 +60,17 @@ class coupons_edit extends \moodleform {
 
         $categories = \core_course_category::get_all();
         $catoptions = [];
+
         foreach ($categories as $category) {
             $catoptions[$category->id] = $category->get_nested_name(false);
         }
-        $mform->addElement('select', 'category',  get_string('category'),  $catoptions);
+        $mform->addElement('select', 'category', get_string('category'), $catoptions);
         $mform->addHelpButton('category', 'category_options', 'enrol_wallet');
         $mform->hideIf('category', 'type', 'neq', 'category');
 
         $courses = get_courses();
         $courseoptions = [];
+
         foreach ($courses as $course) {
             $courseoptions[$course->id] = $course->fullname;
         }
@@ -107,8 +108,8 @@ class coupons_edit extends \moodleform {
      * returns of "element_name"=>"error_description" if there are errors,
      * or an empty array if everything is OK (true allowed for backwards compatibility too).
      *
-     * @param array $data array of data
-     * @param array $files array of files
+     * @param  array $data  array of data
+     * @param  array $files array of files
      * @return array array of errors
      */
     public function validation($data, $files) {

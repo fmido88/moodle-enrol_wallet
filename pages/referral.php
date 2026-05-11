@@ -24,12 +24,14 @@
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\urls\pages;
+
 require_once('../../../config.php');
 
 $isparent = false;
+
 if (file_exists("$CFG->dirroot/auth/parent/auth.php")) {
     require_once("$CFG->dirroot/auth/parent/auth.php");
-    $authparent = new auth_plugin_parent;
+    $authparent = new auth_plugin_parent();
     $isparent = $authparent->is_parent($USER);
 }
 

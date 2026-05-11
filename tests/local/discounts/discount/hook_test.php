@@ -17,8 +17,9 @@
 namespace enrol_wallet\local\discounts\discount;
 
 use enrol_wallet\local\entities\instance;
+
 /**
- * Summary of hook_test
+ * Summary of hook_test.
  *
  * @package    enrol_wallet
  * @category   test
@@ -37,7 +38,7 @@ final class hook_test extends \advanced_testcase {
         $user = $this->getDataGenerator()->create_user();
 
         $record = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $entity = new class($record, $user->id) extends instance {
+        $entity = new class ($record, $user->id) extends instance {
             #[\Override()]
             public function get_behavior(): int {
                 return self::const('max');
@@ -72,10 +73,10 @@ final class hook_test extends \advanced_testcase {
 
         $called = false;
         $discount = new hook($entity, 100.0);
-        $discount->add_post_purchase_callback(function() use (&$called) {
+        $discount->add_post_purchase_callback(function () use (&$called) {
             $called = true;
         });
-        $discount->add_post_purchase_callback(function() {
+        $discount->add_post_purchase_callback(function () {
             throw new \Exception('callback failed');
         });
 

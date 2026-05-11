@@ -48,9 +48,10 @@ use enrol_wallet\local\config;
  */
 class tree extends \core_availability\tree {
     /**
-     * @var \stdClass $instance the enrol wallet instance
+     * @var \stdClass the enrol wallet instance
      */
     private $instance;
+
     /**
      * Decodes availability structure.
      *
@@ -64,10 +65,10 @@ class tree extends \core_availability\tree {
      *    coding_exception (if $lax is false).
      *
      * @see decode_availability
-     * @param \stdClass $structure Structure (decoded from JSON)
-     * @param boolean $lax If true, throw exceptions only for invalid structure
-     * @param boolean $root If true, this is the root tree
-     * @param \stdClass $instance the enrol wallet instance.
+     * @param  \stdClass         $structure Structure (decoded from JSON)
+     * @param  bool              $lax       If true, throw exceptions only for invalid structure
+     * @param  bool              $root      If true, this is the root tree
+     * @param  \stdClass         $instance  the enrol wallet instance.
      * @throws \coding_exception If data is not valid structure
      */
     public function __construct(\stdClass $structure, $lax = false, $root = true, $instance = null) {
@@ -92,17 +93,18 @@ class tree extends \core_availability\tree {
      * the more natural use of the current value at this point inside the tree,
      * so that the information displayed to users makes sense.
      *
-     * @param bool $not Set true if we are inverting the condition
-     * @param info $info Item we're checking
-     * @param bool $grabthelot Performance hint: if true, caches information
-     *   required for all course-modules, to make the front page and similar
-     *   pages work more quickly (works only for current user)
-     * @param int $userid User ID to check availability for
+     * @param  bool   $not        Set true if we are inverting the condition
+     * @param  info   $info       Item we're checking
+     * @param  bool   $grabthelot Performance hint: if true, caches information
+     *                            required for all course-modules, to make the front page and similar
+     *                            pages work more quickly (works only for current user)
+     * @param  int    $userid     User ID to check availability for
      * @return result Availability check result
      */
     public function check_available($not, \core_availability\info $info, $grabthelot, $userid) {
         global $DB;
         $oldinfo = clone $info;
+
         // If there are no children in this group, we just treat it as available.
         if (!$this->children) {
             return new result(true);
@@ -122,10 +124,12 @@ class tree extends \core_availability\tree {
         $enabled = config::make()->availability_plugins;
         $enabled = explode(',', $enabled);
         $additional = '';
+
         foreach ($this->children as $index => $child) {
             if (!\in_array($decoded->c[$index]->type, $enabled)) {
                 continue;
             }
+
             if ($child instanceof \availability_completion\condition) {
                 $cm = $DB->get_record('course_modules', ['id' => $decoded->c[$index]->cm]);
                 $info = new info($this->instance, get_course($cm->course));
@@ -133,17 +137,23 @@ class tree extends \core_availability\tree {
                 $gradeitem = $DB->get_record('grade_items', ['id' => $decoded->c[$index]->id]);
                 $gradecourse = get_course($gradeitem->courseid);
                 $info = new info($this->instance, $gradecourse);
-                $additional = ($gradeitem->itemname ?? 'Course total') . ': ' .$gradecourse->fullname;
+                $additional = ($gradeitem->itemname ?? 'Course total') . ': ' . $gradecourse->fullname;
             } else {
                 $info = $oldinfo;
             }
 
             // Check available and get info.
             $childresult = $child->check_available(
-                    $innernot, $info, $grabthelot, $userid);
+                $innernot,
+                $info,
+                $grabthelot,
+                $userid
+            );
             $childyes = $childresult->is_available();
+
             if (!$childyes) {
                 $failedchildren[] = $childresult;
+
                 if ($this->showchildren !== null && !$this->showchildren[$index]) {
                     $totallyhide = true;
                 }
@@ -161,11 +171,12 @@ class tree extends \core_availability\tree {
 
         if ($allow) {
             return new result(true);
-        } else if ($totallyhide) {
-            return new result(false);
-        } else {
-            return new result(false, $this, $failedchildren);
         }
+
+        if ($totallyhide) {
+            return new result(false);
+        }
+
+        return new result(false, $this, $failedchildren);
     }
 }
-

@@ -16,7 +16,6 @@
 
 namespace enrol_wallet\local\restriction;
 
-use enrol_wallet\local\restriction\overrides;
 use enrol_wallet\local\utils\testing;
 
 /**
@@ -36,8 +35,8 @@ final class overrides_test extends \advanced_testcase {
     public function test_override_instance(): void {
         $this->resetAfterTest();
         $instance = testing::get_generator()->create_instance();
-        $user     = $this->getDataGenerator()->create_user();
-        $cohort   = $this->getDataGenerator()->create_cohort();
+        $user = $this->getDataGenerator()->create_user();
+        $cohort = $this->getDataGenerator()->create_cohort();
 
         $overridden = overrides::override_instance($instance->id, $user->id);
         $this->assertTrue($overridden);

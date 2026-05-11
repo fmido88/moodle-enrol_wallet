@@ -40,6 +40,7 @@ class courses_enrol_same_cat_offer extends offer_item {
      * @var string
      */
     public const COND_ANY = 'any';
+
     /**
      * All of the courses.
      * @var string
@@ -92,6 +93,7 @@ class courses_enrol_same_cat_offer extends offer_item {
         $walletonly = $offer->walletonly ?? false;
         $activeonly = $offer->activeonly ?? false;
         $valid = \is_array($courses);
+
         foreach ($courses as $id) {
             $valid = $valid && is_number($id);
         }
@@ -143,6 +145,7 @@ class courses_enrol_same_cat_offer extends offer_item {
         // Todo: create a template is more convenient here.
         return get_string('offers_ce_desc', 'enrol_wallet', $a);
     }
+
     /**
      * Hide if the category is not exist of is hidden for the student
      * or the number of courses available less than the number required.
@@ -150,34 +153,42 @@ class courses_enrol_same_cat_offer extends offer_item {
      */
     public function is_hidden(): bool {
         global $DB;
+
         if (parent::is_hidden()) {
             return true;
         }
 
         $catid = $DB->get_field('course', 'category', ['id' => $this->courseid]);
+
         if (!$catid) {
             // Shouldn't happen at all.
             return true;
         }
 
         $category = core_course_category::get($catid, IGNORE_MISSING, false, $this->userid);
+
         if (!$category) {
             return true;
         }
 
         $catcourses = $category->get_courses(['recursive' => true, 'idonly' => true]);
         $and = $this->condition === self::COND_ALL;
+
         foreach ($this->courses as $cid) {
             $exist = \in_array($cid, $catcourses);
+
             if ($and && !$exist) {
                 return true;
             }
+
             if (!$and && $exist) {
                 return false;
             }
         }
+
         return false;
     }
+
     #[\Override()]
     public function validate_offer(): bool {
         global $DB;
@@ -291,11 +302,11 @@ class courses_enrol_same_cat_offer extends offer_item {
     /**
      * Mock an offer object of this type for testing.
      * @param  ?testing_data_generator $gen
-     * @param  ?float             $discount
-     * @param  ?array             $courses
-     * @param  ?string            $condition
-     * @param  ?bool              $activeonly
-     * @param  ?bool              $walletonly
+     * @param  ?float                  $discount
+     * @param  ?array                  $courses
+     * @param  ?string                 $condition
+     * @param  ?bool                   $activeonly
+     * @param  ?bool                   $walletonly
      * @return stdClass
      */
     public static function mock_offer(
@@ -307,6 +318,7 @@ class courses_enrol_same_cat_offer extends offer_item {
         ?bool $walletonly = false
     ): stdClass {
         global $DB, $PAGE;
+
         if (null === $gen) {
             $gen = phpunit_util::get_data_generator();
         }
@@ -316,6 +328,7 @@ class courses_enrol_same_cat_offer extends offer_item {
 
         if ($courses === null) {
             $courses = [];
+
             // To be used in test.
             if ($PAGE->course->id == SITEID) {
                 $offer->gen_cat = $gen->create_category();

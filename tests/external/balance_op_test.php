@@ -100,7 +100,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $user     = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $category = $this->getDataGenerator()->create_category();
 
         // Give user main balance.
@@ -214,7 +214,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $user     = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $category = $this->getDataGenerator()->create_category();
 
         // Give user main balance.

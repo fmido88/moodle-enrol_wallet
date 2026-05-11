@@ -21,12 +21,12 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet\task;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
-use enrol_wallet\task\turn_non_refundable;
 
 /**
  * Testing the adhoc task to transform certain amount to nonrefundable.
@@ -76,10 +76,10 @@ final class turn_non_refundable_test extends \advanced_testcase {
             'catid'  => $cat1->id,
         ];
 
-        $task1 = new turn_non_refundable;
+        $task1 = new turn_non_refundable();
         $task1->set_custom_data($taskdata1);
 
-        $task2 = new turn_non_refundable;
+        $task2 = new turn_non_refundable();
         $task2->set_custom_data($taskdata2);
 
         ob_start();
@@ -107,10 +107,10 @@ final class turn_non_refundable_test extends \advanced_testcase {
         $op1->debit(40, $op1::OTHER);
         $op2->debit(40, $op2::OTHER);
 
-        $task1 = new turn_non_refundable;
+        $task1 = new turn_non_refundable();
         $task1->set_custom_data($taskdata1);
 
-        $task2 = new turn_non_refundable;
+        $task2 = new turn_non_refundable();
         $task2->set_custom_data($taskdata2);
 
         ob_start();
@@ -135,10 +135,10 @@ final class turn_non_refundable_test extends \advanced_testcase {
         $taskdata1['amount'] = 250;
         $taskdata2['amount'] = 500;
 
-        $task1 = new turn_non_refundable;
+        $task1 = new turn_non_refundable();
         $task1->set_custom_data($taskdata1);
 
-        $task2 = new turn_non_refundable;
+        $task2 = new turn_non_refundable();
         $task2->set_custom_data($taskdata2);
 
         ob_start();
@@ -161,7 +161,7 @@ final class turn_non_refundable_test extends \advanced_testcase {
     }
 
     /**
-     * test_check_transform_validation
+     * test_check_transform_validation.
      * @covers ::check_transform_validation()
      * @return void
      */
@@ -189,10 +189,10 @@ final class turn_non_refundable_test extends \advanced_testcase {
             'catid'  => $cat1->id,
         ];
 
-        $task1 = new turn_non_refundable;
+        $task1 = new turn_non_refundable();
         $task2 = new turn_non_refundable();
 
-        $trace = new \null_progress_trace;
+        $trace = new \null_progress_trace();
         $output1 = $task1->check_transform_validation($data1, $trace);
         $output2 = $task2->check_transform_validation($data2, $trace);
 

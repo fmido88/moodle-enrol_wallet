@@ -18,8 +18,9 @@ namespace enrol_wallet\local\discounts\discount;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
+
 /**
- * Summary of profile_test
+ * Summary of profile_test.
  *
  * @package    enrol_wallet
  * @category   test
@@ -43,9 +44,9 @@ final class profile_test extends \advanced_testcase {
         $this->assertFalse(profile::is_available($entity));
 
         $fielddata = (object)[
-            'name' => 'discount',
+            'name'      => 'discount',
             'shortname' => 'discount',
-            'datatype' => 'text',
+            'datatype'  => 'text',
         ];
         $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
         config::make()->discount_field = $fieldid;
@@ -65,17 +66,17 @@ final class profile_test extends \advanced_testcase {
         $record = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
 
         $fielddata = (object)[
-            'name' => 'discount',
+            'name'      => 'discount',
             'shortname' => 'discount',
-            'datatype' => 'text',
+            'datatype'  => 'text',
         ];
         $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
         config::make()->discount_field = $fieldid;
 
         $DB->insert_record('user_info_data', (object)[
-            'userid' => $user->id,
+            'userid'  => $user->id,
             'fieldid' => $fieldid,
-            'data' => 'free',
+            'data'    => 'free',
         ]);
 
         $entity = new instance($record, $user->id);
@@ -85,7 +86,7 @@ final class profile_test extends \advanced_testcase {
         $this->assertSame(0.0, $discount->get_discounted_cost());
 
         $DB->update_record('user_info_data', (object)[
-            'id' => $DB->get_field('user_info_data', 'id', ['userid' => $user->id, 'fieldid' => $fieldid]),
+            'id'   => $DB->get_field('user_info_data', 'id', ['userid' => $user->id, 'fieldid' => $fieldid]),
             'data' => '25% discount',
         ]);
 

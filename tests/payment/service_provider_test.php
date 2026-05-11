@@ -23,6 +23,7 @@
  */
 
 namespace enrol_wallet\payment;
+
 use enrol_wallet\local\config;
 use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\wallet\balance;
@@ -30,10 +31,8 @@ use enrol_wallet\local\wallet\balance_op;
 
 /**
  * Unit tests for the enrol_wallet's payment subsystem callback implementation.
- *
  */
 final class service_provider_test extends \advanced_testcase {
-
     /**
      * Test for service_provider::get_payable().
      * For payment area walletenrol, which enrol user into the course after payment.
@@ -44,6 +43,7 @@ final class service_provider_test extends \advanced_testcase {
     public function test_get_payable_walletenrol(): void {
         global $DB;
         $this->resetAfterTest();
+
         if (!class_exists('\core_payment\helper')) {
             return;
         }
@@ -54,11 +54,11 @@ final class service_provider_test extends \advanced_testcase {
         $course = $generator->create_course();
         $user = $generator->create_user();
         $data = [
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
             'customint1' => $account->get('id'),
-            'cost' => 250,
-            'currency' => 'USD',
-            'roleid' => $studentrole->id,
+            'cost'       => 250,
+            'currency'   => 'USD',
+            'roleid'     => $studentrole->id,
         ];
         $id = $walletplugin->add_instance($course, $data);
 
@@ -70,6 +70,7 @@ final class service_provider_test extends \advanced_testcase {
         $this->assertEquals(250, $payable->get_amount());
         $this->assertEquals('USD', $payable->get_currency());
     }
+
     /**
      * Test for service_provider::get_payable().
      * For payment area wallettopup, which topping up the wallet after payment.
@@ -80,6 +81,7 @@ final class service_provider_test extends \advanced_testcase {
     public function test_get_payable_wallettopup(): void {
         global $DB;
         $this->resetAfterTest();
+
         if (!class_exists('\core_payment\helper')) {
             return;
         }
@@ -95,6 +97,7 @@ final class service_provider_test extends \advanced_testcase {
         $this->assertEquals(250, $payable->get_amount());
         $this->assertEquals('USD', $payable->get_currency());
     }
+
     /**
      * Test for service_provider::get_success_url().
      * For payment area walletenrol, which enrol user into the course after payment.
@@ -104,6 +107,7 @@ final class service_provider_test extends \advanced_testcase {
     public function test_get_success_url_walletenrol(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
+
         if (!class_exists('\core_payment\helper')) {
             return;
         }
@@ -115,11 +119,11 @@ final class service_provider_test extends \advanced_testcase {
         $user = $generator->create_user();
 
         $data = [
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
             'customint1' => $account->get('id'),
-            'cost' => 250,
-            'currency' => 'USD',
-            'roleid' => $studentrole->id,
+            'cost'       => 250,
+            'currency'   => 'USD',
+            'roleid'     => $studentrole->id,
         ];
         $id = $walletplugin->add_instance($course, $data);
 
@@ -140,6 +144,7 @@ final class service_provider_test extends \advanced_testcase {
     public function test_get_success_url_wallettopup(): void {
         global $CFG, $DB;
         $this->resetAfterTest();
+
         if (!class_exists('\core_payment\helper')) {
             return;
         }
@@ -156,6 +161,7 @@ final class service_provider_test extends \advanced_testcase {
             $successurl->out(false)
         );
     }
+
     /**
      * Test for service_provider::deliver_order().
      * For payment area walletenrol, which enrol user into the course after payment.
@@ -167,6 +173,7 @@ final class service_provider_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
+
         if (!class_exists('\core_payment\helper')) {
             return;
         }
@@ -182,11 +189,11 @@ final class service_provider_test extends \advanced_testcase {
         $this->setUser($user);
         global $USER;
         $data = [
-            'courseid' => $course->id,
+            'courseid'   => $course->id,
             'customint1' => $account->get('id'),
-            'cost' => 250,
-            'currency' => 'USD',
-            'roleid' => $studentrole->id,
+            'cost'       => 250,
+            'currency'   => 'USD',
+            'roleid'     => $studentrole->id,
         ];
         $id = $walletplugin->add_instance($course, $data);
         $payrecord = [
@@ -201,8 +208,8 @@ final class service_provider_test extends \advanced_testcase {
         $paymentgen = testing::get_core_payment_generator();
         $paymentid = $paymentgen->create_payment([
             'accountid' => $account->get('id'),
-            'amount' => 10,
-            'userid' => $user->id,
+            'amount'    => 10,
+            'userid'    => $user->id,
         ]);
 
         $this->assertFalse(is_enrolled($context, $user));
@@ -231,8 +238,8 @@ final class service_provider_test extends \advanced_testcase {
 
         $paymentid = $paymentgen->create_payment([
             'accountid' => $account->get('id'),
-            'amount' => 10,
-            'userid' => $user2->id,
+            'amount'    => 10,
+            'userid'    => $user2->id,
         ]);
         $delivered = service_provider::deliver_order('walletenrol', $itemid, $paymentid, $user2->id);
         $balance = new balance();
@@ -255,8 +262,8 @@ final class service_provider_test extends \advanced_testcase {
 
         $paymentid = $paymentgen->create_payment([
             'accountid' => $account->get('id'),
-            'amount' => 10,
-            'userid' => $user3->id,
+            'amount'    => 10,
+            'userid'    => $user3->id,
         ]);
 
         $delivered = service_provider::deliver_order('walletenrol', $item->id, $paymentid, $user3->id);
@@ -279,6 +286,7 @@ final class service_provider_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
         $this->preventResetByRollback();
+
         if (!class_exists('\core_payment\helper')) {
             return;
         }
@@ -293,8 +301,8 @@ final class service_provider_test extends \advanced_testcase {
         $id = item::create_item(250, 'USD', $user->id)->get('id');
         $paymentid = testing::get_core_payment_generator()->create_payment([
             'accountid' => $account->get('id'),
-            'amount' => 250,
-            'userid' => $user->id,
+            'amount'    => 250,
+            'userid'    => $user->id,
         ]);
 
         service_provider::deliver_order('wallettopup', $id, $paymentid, $user->id);
@@ -306,17 +314,17 @@ final class service_provider_test extends \advanced_testcase {
         // Set a fake item form payment.
         $category = $generator->create_category();
         $recorddata = [
-            'cost' => 100,
+            'cost'     => 100,
             'currency' => 'USD',
-            'userid' => $user->id,
+            'userid'   => $user->id,
             'category' => $category->id,
         ];
         $id = item::create_item(100, 'USD', $user->id, 0, $category->id)->get('id');
 
         $paymentid = testing::get_core_payment_generator()->create_payment([
             'accountid' => $account->get('id'),
-            'amount' => 100,
-            'userid' => $user->id,
+            'amount'    => 100,
+            'userid'    => $user->id,
         ]);
 
         service_provider::deliver_order('wallettopup', $id, $paymentid, $user->id);
@@ -327,5 +335,4 @@ final class service_provider_test extends \advanced_testcase {
         $this->assertEquals(350, $bal->get_total_balance());
         $this->assertEquals(100, $bal->get_cat_balance($category->id));
     }
-
 }

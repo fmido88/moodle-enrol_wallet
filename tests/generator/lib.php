@@ -26,7 +26,6 @@ use enrol_wallet\local\utils\timedate;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class enrol_wallet_generator extends component_generator_base {
-
     /**
      * Create an enrol instance or return the existed one for the given course.
      * If the courseid passed as 0, it will create a new course.
@@ -38,10 +37,10 @@ class enrol_wallet_generator extends component_generator_base {
     public function create_instance(int $courseid = 0, bool $new = false, ?float $cost = null): instance {
         global $DB;
         $generator = phpunit_util::get_data_generator();
-        $plugin    = enrol_wallet_plugin::get_plugin();
+        $plugin = enrol_wallet_plugin::get_plugin();
 
         if (!$courseid) {
-            $course   = $generator->create_course();
+            $course = $generator->create_course();
             $courseid = $course->id;
         } else {
             $course = get_course($courseid);
@@ -51,7 +50,7 @@ class enrol_wallet_generator extends component_generator_base {
 
         if (empty($existed) || $new) {
             $instanceid = $plugin->add_default_instance($course);
-            $instance   = $DB->get_record('enrol', ['id' => $instanceid]);
+            $instance = $DB->get_record('enrol', ['id' => $instanceid]);
         } else {
             $instance = reset($existed);
         }
@@ -76,7 +75,7 @@ class enrol_wallet_generator extends component_generator_base {
     public function create_discount_rule(array $overrides = []): object {
         global $DB;
 
-        $now    = timedate::time();
+        $now = timedate::time();
         $record = (object)($overrides + [
             'category'     => 0,
             'cond'         => 100,
@@ -96,7 +95,7 @@ class enrol_wallet_generator extends component_generator_base {
     /**
      * Signup a user with referral code.
      * @param stdClass|array $userdata
-     * @param string $referralcode
+     * @param string         $referralcode
      */
     public function signup_user(stdClass|array $userdata = [], string $referralcode = '') {
         global $USER, $DB, $CFG;
@@ -114,16 +113,16 @@ class enrol_wallet_generator extends component_generator_base {
         delete_user($user1);
         $DB->delete_records('user', ['id' => $user->id]);
 
-        $user2 = new \stdClass;
-        $user2->username  = $user->username;
-        $user2->password  = generate_password();
-        $user2->email     = $user->email;
-        $user2->email2    = $user->email;
+        $user2 = new \stdClass();
+        $user2->username = $user->username;
+        $user2->password = generate_password();
+        $user2->email = $user->email;
+        $user2->email2 = $user->email;
         $user2->firstname = $user->firstname;
-        $user2->lastname  = $user->lastname;
-        $user2->country   = $user->country;
-        $user2->refcode   = $referralcode;
-        $user2->sesskey   = sesskey();
+        $user2->lastname = $user->lastname;
+        $user2->country = $user->country;
+        $user2->refcode = $referralcode;
+        $user2->sesskey = sesskey();
 
         // Mock signup process.
         $sink = phpunit_util::start_phpmailer_redirection();

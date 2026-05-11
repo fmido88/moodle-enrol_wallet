@@ -21,16 +21,17 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
-use enrol_wallet\transactions;
 use enrol_wallet_plugin;
+
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+require_once($CFG->dirroot . '/enrol/wallet/lib.php');
+require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 
 /**
  * Wallet enrolment tests.
@@ -40,9 +41,8 @@ require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class locallib_test extends \advanced_testcase {
-
     /**
-     * test_enrol_wallet_is_borrow_eligible
+     * test_enrol_wallet_is_borrow_eligible.
      * @covers ::enrol_wallet_is_borrow_eligible()
      * @return void
      */
@@ -114,6 +114,7 @@ final class locallib_test extends \advanced_testcase {
 
         $this->setUser($user2);
         $this->assertEquals(2, $wallet->can_self_enrol($instance));
+
         try {
             $wallet->enrol_self($instance, $user2);
         } catch (\moodle_exception $e) {

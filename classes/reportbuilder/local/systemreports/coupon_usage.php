@@ -46,7 +46,7 @@ class coupon_usage extends system_report {
     protected function initialise(): void {
         global $USER;
         $usageentity = new couponsusage();
-        $usagealias  = $usageentity->get_table_alias('enrol_wallet_coupons_usage');
+        $usagealias = $usageentity->get_table_alias('enrol_wallet_coupons_usage');
         $this->set_main_table('enrol_wallet_coupons_usage', $usagealias);
 
         $this->add_entity($usageentity);
@@ -54,18 +54,18 @@ class coupon_usage extends system_report {
         $this->add_base_fields("{$usagealias}.id, {$usagealias}.userid");
 
         $couponsentity = new coupon();
-        $couponsalias  = $couponsentity->get_table_alias('enrol_wallet_coupons');
+        $couponsalias = $couponsentity->get_table_alias('enrol_wallet_coupons');
 
         $couponsentity->add_join("JOIN {enrol_wallet_coupons} {$couponsalias} ON {$couponsalias}.code = {$usagealias}.code");
         $this->add_entity($couponsentity);
 
         $userentity = new user();
-        $useralias  = $userentity->get_table_alias('user');
+        $useralias = $userentity->get_table_alias('user');
         $userentity->add_join("JOIN {user} {$useralias} ON {$useralias}.id = {$usagealias}.userid");
         $this->add_entity($userentity);
 
         $systemcontext = system::instance();
-        $canviewall    = has_capability('enrol/wallet:viewcoupon', $systemcontext);
+        $canviewall = has_capability('enrol/wallet:viewcoupon', $systemcontext);
 
         if (!$canviewall) {
             // User can view only his usage.

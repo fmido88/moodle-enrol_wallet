@@ -247,8 +247,9 @@ abstract class base {
      */
     public static function get_type(): string {
         $class = static::class;
+
         if ($class === self::class) {
-            throw new coding_exception("Cannot get the type from base abstract class.");
+            throw new coding_exception('Cannot get the type from base abstract class.');
         }
         $parts = explode('\\', $class);
 
@@ -257,7 +258,7 @@ abstract class base {
 
     /**
      * Get the class name for given type string.
-     * @param  string $type
+     * @param string $type
      *
      * @return base|string|null
      */
@@ -313,6 +314,7 @@ abstract class base {
     public static function has_value(): bool {
         return true;
     }
+
     /**
      * Validate if this coupon can directly enrol.
      * @param  float $fee
@@ -333,23 +335,25 @@ abstract class base {
 
     /**
      * Topup the wallet by coupon.
-     * @param balance_op $op
-     * @param area_base $area
-     * @return bool true if the wallet topped up by the coupon.
+     * @param  balance_op $op
+     * @param  area_base  $area
+     * @return bool       true if the wallet topped up by the coupon.
      */
     final protected function apply_topup(balance_op $op, area_base $area): bool {
         if ($this->is_topup_coupon()) {
             $desc = get_string('topupcoupon_desc', 'enrol_wallet', $this->code);
+
             return $op->credit($this->value, $op::C_COUPON, $this->id, $desc, false);
         }
+
         return false;
     }
 
     /**
      * Check and apply the coupon for enrolment.
-     * @param balance_op $op
-     * @param area_base $area
-     * @return bool true if the coupon used successfully for enrollment.
+     * @param  balance_op $op
+     * @param  area_base  $area
+     * @return bool       true if the coupon used successfully for enrollment.
      */
     final protected function apply_enrol(balance_op $op, area_base $area): bool {
         // Check if this coupon can be used from enrolment page.
@@ -358,6 +362,7 @@ abstract class base {
         if ($this->is_enrol_coupon()) {
             $userid = $op->get_user_id();
             $instance = $area->get_entity($userid);
+
             if (!($instance instanceof instance)) {
                 // Enrollments only apply for enrol instance.
                 return false;
@@ -379,15 +384,16 @@ abstract class base {
                 \core\notification::error($error);
             }
         }
+
         return false;
     }
 
     /**
      * Apply the coupon.
      * Override this if the coupon type has different behavior.
-     * @param area_base $area
-     * @param int $userid
-     * @return bool true if the coupon used successfully and must be marked as used.
+     * @param  area_base $area
+     * @param  int       $userid
+     * @return bool      true if the coupon used successfully and must be marked as used.
      */
     public function apply_coupon(area_base $area, int $userid): bool {
         $op = $area->get_balance_operation($userid, $this);
@@ -426,25 +432,28 @@ abstract class base {
 
     /**
      * Enable all coupons types for testing.
-     * @param bool $set
+     * @param  bool             $set
      * @throws coding_exception
      * @return string
      */
     final public static function enable_all_types(bool $set = true): string {
         if (!PHPUNIT_TEST) {
-            throw new coding_exception("Enable all types only used in phpunit tests.");
+            throw new coding_exception('Enable all types only used in phpunit tests.');
         }
         $types = self::get_types();
         $value = implode(',', $types);
+
         if ($set) {
             config::make()->coupons = $value;
         }
+
         return $value;
     }
+
     /**
      * Return all options of coupons types and their names to be used in plugin settings.
-     * @param bool $stringkey use the type name 'fixed, percent, .. ' as the keys of the array,
-     *                        if false the TYPE integer constant will be used.
+     * @param  bool  $stringkey use the type name 'fixed, percent, .. ' as the keys of the array,
+     *                          if false the TYPE integer constant will be used.
      * @return array
      */
     final public static function get_coupons_options(bool $stringkey = false) {
@@ -462,7 +471,7 @@ abstract class base {
 
     /**
      * Return an array of enabled coupons options keyed with the type code.
-     * @param bool $stringkey
+     * @param  bool  $stringkey
      * @return array
      */
     final public static function get_enabled_options(bool $stringkey = false) {
@@ -471,7 +480,6 @@ abstract class base {
         $classes = self::get_enabled_classes();
 
         foreach ($classes as $class) {
-
             $key = $stringkey ? $class::get_type() : $class::TYPE;
             $options[$key] = $class::get_visible_name();
         }
@@ -485,6 +493,7 @@ abstract class base {
      */
     final public static function get_classes(): array {
         static $classes;
+
         if (isset($classes)) {
             return $classes;
         }
@@ -505,6 +514,7 @@ abstract class base {
 
         \core\di::get(\core\hook\manager::class)->dispatch($hook);
         $classes = $hook->get_classes();
+
         return $classes;
     }
 
@@ -610,8 +620,8 @@ abstract class base {
 
     /**
      * Override if special validation needed for this coupon type.
-     * @param array $data
-     * @param array $errors
+     * @param  array $data
+     * @param  array $errors
      * @return void
      */
     protected static function validate_type_generator_form(array $data, array &$errors): void {
@@ -619,20 +629,22 @@ abstract class base {
 
     /**
      * Validate the generate form submitted data.
-     * @param array $data
-     * @param array $errors
+     * @param  array $data
+     * @param  array $errors
      * @return void
      */
     final public static function validate_generator_form(array $data, array &$errors): void {
         global $DB;
+
         if (\in_array($data['method'], ['single', 'edit'], true)) {
             $params = [
                 'code' => $data['code'],
             ];
             $select = 'code = :code';
+
             if ($data['method'] === 'edit') {
                 $params['id'] = $data['id'];
-                $select .= " AND id != :id";
+                $select .= ' AND id != :id';
             }
 
             if (empty($data['code'])) {
@@ -659,6 +671,7 @@ abstract class base {
 
         $childclass::validate_type_generator_form($data, $errors);
     }
+
     /**
      * Get applying coupon success notification message.
      * @param  area_base                            $area

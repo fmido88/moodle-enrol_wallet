@@ -20,7 +20,7 @@ use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\entities\entity;
 
 /**
- * Class coupon
+ * Class coupon.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -48,9 +48,8 @@ class coupon extends discount_base {
             $couponutil->validate_coupon($this->entity::get_coupon_area(), $this->entity->id);
 
             return $couponutil;
-        } else {
-            unset($this->couponutil);
         }
+        unset($this->couponutil);
 
         return null;
     }
@@ -89,6 +88,7 @@ class coupon extends discount_base {
         $cost = $this->get_original_cost();
         $costafter = $this->get_discounted_cost();
         $coupon = $this->get_coupon_helper();
+
         if ($coupon && !empty($coupon->get_code()) && $costafter < $cost) {
             $coupon->mark_coupon_used();
         }

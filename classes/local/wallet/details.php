@@ -62,11 +62,11 @@ class details implements IteratorAggregate {
 
     /**
      * Helper to calculate balances.
-     * @param float        $refundable
-     * @param float        $nonrefundable
-     * @param float        $freegift
-     * @param int[]        $catids
-     * @param catdetails[]|stdClass[] $catbalance // All category balances.
+     * @param float                   $refundable
+     * @param float                   $nonrefundable
+     * @param float                   $freegift
+     * @param int[]                   $catids
+     * @param catdetails[]|stdClass[] $catbalance    // All category balances.
      */
     public function __construct(
         /** @var float the main refundable value. */
@@ -87,7 +87,7 @@ class details implements IteratorAggregate {
                 $obj->recordid ?? null
             );
         }
-        $catbalance =& $this->catbalance;
+        $catbalance = &$this->catbalance;
     }
 
     /**
@@ -237,7 +237,7 @@ class details implements IteratorAggregate {
 
     /**
      * Don't allow unsetting.
-     * @param  string $name
+     * @param string $name
      *
      * @throws coding_exception
      */
@@ -247,8 +247,8 @@ class details implements IteratorAggregate {
 
     /**
      * Cannot set a calculated value.
-     * @param  string $name
-     * @param  mixed  $value
+     * @param string $name
+     * @param mixed  $value
      *
      * @throws coding_exception
      */

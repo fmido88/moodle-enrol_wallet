@@ -46,7 +46,7 @@ class form {
             $visiblename = get_string('selectusers', 'enrol_manual');
         }
 
-        $courses  = enrol_get_users_courses($USER->id, false);
+        $courses = enrol_get_users_courses($USER->id, false);
         $courseid = SITEID;
 
         foreach ($courses as $course) {

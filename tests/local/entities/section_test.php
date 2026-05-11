@@ -61,7 +61,7 @@ final class section_test extends \advanced_testcase {
     public function test_get_course_id(): void {
         $this->resetAfterTest();
 
-        $course    = $this->getDataGenerator()->create_course();
+        $course = $this->getDataGenerator()->create_course();
         $sectionid = $this->get_section_from_course($course->id);
 
         $section = new section($sectionid);
@@ -81,7 +81,7 @@ final class section_test extends \advanced_testcase {
         $sectionid = $this->get_section_from_course($course->id);
 
         $section = new section($sectionid);
-        $name    = $section->get_name();
+        $name = $section->get_name();
 
         // Should return a string (General or similar).
         $this->assertIsString($name);
@@ -128,7 +128,7 @@ final class section_test extends \advanced_testcase {
         ];
 
         $DB->update_record('course_sections', (object)[
-            'id' => $sectionid,
+            'id'           => $sectionid,
             'availability' => json_encode($availability),
         ]);
 
@@ -160,22 +160,22 @@ final class section_test extends \advanced_testcase {
         ];
 
         $DB->update_record('course_sections', (object)[
-            'id' => $sectionid,
+            'id'           => $sectionid,
             'availability' => json_encode($availability),
         ]);
 
         $fielddata = (object)[
-            'name' => 'discount',
+            'name'      => 'discount',
             'shortname' => 'discount',
-            'datatype' => 'text',
+            'datatype'  => 'text',
         ];
         $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
         config::make()->discount_field = $fieldid;
 
         $DB->insert_record('user_info_data', (object)[
-            'userid' => $user->id,
+            'userid'  => $user->id,
             'fieldid' => $fieldid,
-            'data' => '50% discount',
+            'data'    => '50% discount',
         ]);
 
         $section = new section($sectionid, $user->id);
@@ -196,10 +196,10 @@ final class section_test extends \advanced_testcase {
             return reset($records)->id;
         }
 
-        $section               = new stdClass();
-        $section->course       = $courseid;
-        $section->name         = 'New section for test';
-        $section->summary      = '';
+        $section = new stdClass();
+        $section->course = $courseid;
+        $section->name = 'New section for test';
+        $section->summary = '';
         $section->timemodified = timedate::time();
 
         return $DB->insert_record('course_sections', $section);

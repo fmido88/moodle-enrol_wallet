@@ -22,18 +22,18 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use core_reportbuilder\local\filters\user as user_filter;
 use core_reportbuilder\system_report_factory;
 use enrol_wallet\local\urls\reports;
 use enrol_wallet\output\transaction_chart;
 use enrol_wallet\reportbuilder\local\systemreports\transactions;
-use core_reportbuilder\local\filters\user as user_filter;
 
 require_once('../../../config.php');
 
 // Adding some security.
 require_login(null, false);
 
-$pagesize  = optional_param('pagesize', 50, PARAM_INT);
+$pagesize = optional_param('pagesize', 50, PARAM_INT);
 
 $systemcontext = context_system::instance();
 
@@ -49,14 +49,14 @@ $report = system_report_factory::create(transactions::class, $systemcontext);
 
 $report->set_default_per_page($pagesize);
 
-$canviewall = has_capability("enrol/wallet:transaction", \core\context\system::instance());
-$conditionvalues = $canviewall ? [] : ["user:userselect_operator" => user_filter::USER_CURRENT];
+$canviewall = has_capability('enrol/wallet:transaction', \core\context\system::instance());
+$conditionvalues = $canviewall ? [] : ['user:userselect_operator' => user_filter::USER_CURRENT];
 $report->set_condition_values($conditionvalues);
 
 if ($canviewall && ($userid = optional_param('userid', null, PARAM_INT))) {
     $filtervalues = [
-        "user:userselect_operator" => user_filter::USER_SELECT,
-        "user:userselect_value" => [$userid],
+        'user:userselect_operator' => user_filter::USER_SELECT,
+        'user:userselect_value'    => [$userid],
     ];
     $report->set_filter_values($filtervalues);
 }
@@ -69,6 +69,7 @@ echo $charts;
 
 // Transaction per page.
 $limits = [];
+
 for ($i = 50; $i <= 2000; $i += 50) {
     $limits[$i] = $i;
 }

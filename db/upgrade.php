@@ -15,17 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This file keeps track of upgrades to the wallet enrolment plugin
+ * This file keeps track of upgrades to the wallet enrolment plugin.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @param mixed $oldversion
  */
 
 /**
  * Upgrading database.
  *
- * @param int $oldversion the old version of this plugin.
+ * @param  int  $oldversion the old version of this plugin.
  * @return bool
  */
 function xmldb_enrol_wallet_upgrade($oldversion) {
@@ -34,7 +35,6 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     $dbman = $DB->get_manager();
 
     if ($oldversion < 2023042915) {
-
         // Define table enrol_wallet_awards and its fields.
         $table = new xmldb_table('enrol_wallet_awards');
         $table->add_field('id', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, true);
@@ -47,6 +47,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false);
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
         // Conditionally launch create table responsive.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
@@ -62,6 +63,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         $table->add_field('timecreated', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
         // Conditionally launch create table responsive.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
@@ -73,10 +75,12 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     if ($oldversion < 2023050820) {
         $table = new xmldb_table('enrol_wallet_transactions');
         $field = new xmldb_field('balbefore', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, null, 0, 'amount');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
         $field = new xmldb_field('balance', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, null, 0, 'before');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -100,6 +104,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
         $table->add_key('code', XMLDB_KEY_UNIQUE, ['code']);
+
         // Conditionally launch create table responsive.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
@@ -116,6 +121,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         $table->add_field('timeused', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0);
 
         $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+
         // Conditionally launch create table responsive.
         if (!$dbman->table_exists($table)) {
             $dbman->create_table($table);
@@ -123,9 +129,11 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
         // ...enrol_wallet savepoint reached.
         upgrade_plugin_savepoint(true, 2023051416, 'enrol', 'wallet');
     }
+
     if ($oldversion < 2023060608) {
         $table = new xmldb_table('enrol_wallet_transactions');
         $field = new xmldb_field('norefund', XMLDB_TYPE_FLOAT, '10,5', null, XMLDB_NOTNULL, null, 0, 'balance');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -206,10 +214,12 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     if ($oldversion < 2023080814) {
         $table = new xmldb_table('enrol_wallet_coupons');
         $field = new xmldb_field('category', XMLDB_TYPE_INTEGER, 10, null, null, false, null, 'value');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
         $field = new xmldb_field('courses', XMLDB_TYPE_TEXT, 3000, null, null, false, null, 'category');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -230,6 +240,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     if ($oldversion < 2023102303) {
         $table = new xmldb_table('enrol_wallet_coupons');
         $field = new xmldb_field('maxperuser', XMLDB_TYPE_INTEGER, 10, null, null, false, 0, 'maxusage');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -240,6 +251,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     if ($oldversion < 2023112606) {
         $table = new xmldb_table('enrol_wallet_items');
         $field = new xmldb_field('timecreated', XMLDB_TYPE_INTEGER, 10, null, XMLDB_NOTNULL, false, 0, 'instanceid');
+
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
@@ -248,7 +260,6 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024020300) {
-
         // Define table enrol_wallet_balance to be created.
         $table = new xmldb_table('enrol_wallet_balance');
 
@@ -323,7 +334,6 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024022500) {
-
         // Define field bundle to be added to enrol_wallet_cond_discount.
         $table = new xmldb_table('enrol_wallet_cond_discount');
         $field = new xmldb_field('bundle', XMLDB_TYPE_NUMBER, '10, 2', null, null, null, null, 'timeto');
@@ -351,7 +361,6 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024022619) {
-
         // Changing type of field percent on table enrol_wallet_cond_discount to number.
         $table = new xmldb_table('enrol_wallet_cond_discount');
         $field = new xmldb_field('percent', XMLDB_TYPE_NUMBER, '4, 2', null, XMLDB_NOTNULL, null, null, 'cond');
@@ -366,7 +375,6 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
     // Changing all precisions of fields handle cost, balance, ..
     if ($oldversion < 2024061600) {
-
         // Changing precision of field cost on table enrol_wallet_items to (25, 5).
         $table = new xmldb_table('enrol_wallet_items');
         $field = new xmldb_field('cost', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'id');
@@ -399,7 +407,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
         // Launch change of precision for field balance.
         $dbman->change_field_precision($table, $field);
-            // Changing precision of field norefund on table enrol_wallet_transactions to (25, 5).
+        // Changing precision of field norefund on table enrol_wallet_transactions to (25, 5).
         $field = new xmldb_field('norefund', XMLDB_TYPE_NUMBER, '25, 5', null, XMLDB_NOTNULL, null, '0', 'balance');
 
         // Launch change of precision for field norefund.
@@ -465,7 +473,6 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     }
 
     if ($oldversion < 2024062300) {
-
         // Define field opby to be added to enrol_wallet_transactions.
         $table = new xmldb_table('enrol_wallet_transactions');
         $field = new xmldb_field('opby', XMLDB_TYPE_CHAR, '25', null, null, null, null, 'norefund');
@@ -496,7 +503,6 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
     }
 
     if ($oldversion < 2025070300) {
-
         // Define table enrol_wallet_overrides to be created.
         $table = new xmldb_table('enrol_wallet_overrides');
 
@@ -558,6 +564,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
 
         $records = $DB->get_records('enrol_wallet_balance');
         $tr = $DB->start_delegated_transaction();
+
         try {
             core_php_time_limit::raise();
             raise_memory_limit(MEMORY_UNLIMITED);
@@ -567,6 +574,7 @@ function xmldb_enrol_wallet_upgrade($oldversion) {
                     continue;
                 }
                 $catblances = (array)json_decode($record->cat_balance);
+
                 foreach ($catblances as $catid => $info) {
                     $catr = new stdClass();
                     $catr->catid = $catid;

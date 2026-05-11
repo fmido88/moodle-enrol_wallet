@@ -21,7 +21,7 @@ use enrol_wallet\local\entities\entity;
 use enrol_wallet\local\entities\instance;
 
 /**
- * Class repurchase
+ * Class repurchase.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -31,17 +31,17 @@ class repurchase extends discount_base {
     #[\Override()]
     public function get_percentage_discount(): float {
         global $DB;
-        $userid     = $this->get_userid();
+        $userid = $this->get_userid();
         $instanceid = $this->entity->id;
-        $discount   = 0;
+        $discount = 0;
 
         if ($ue = $DB->get_record('user_enrolments', ['enrolid' => $instanceid, 'userid' => $userid])) {
             $config = config::make();
 
             if (!empty($ue->timeend) && $config->repurchase) {
                 if ($first = $config->repurchase_firstdis) {
-                    $discount   = min($first / 100, 1);
-                    $second     = $config->repurchase_seconddis;
+                    $discount = min($first / 100, 1);
+                    $second = $config->repurchase_seconddis;
                     $timepassed = $ue->timemodified > $ue->timecreated + $ue->timeend - $ue->timestart;
 
                     if ($second && $ue->modifierid == $userid && $timepassed) {

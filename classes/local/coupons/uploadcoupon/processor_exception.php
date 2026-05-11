@@ -17,7 +17,7 @@
 namespace enrol_wallet\local\coupons\uploadcoupon;
 
 /**
- * An exception for reporting errors when processing files
+ * An exception for reporting errors when processing files.
  *
  * Extends the moodle_exception with an http property, to store an HTTP error
  * code for responding to AJAX requests.
@@ -27,9 +27,8 @@ namespace enrol_wallet\local\coupons\uploadcoupon;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class processor_exception extends \moodle_exception {
-
     /**
-     * Stores an HTTP error code
+     * Stores an HTTP error code.
      *
      * @var int
      */
@@ -41,7 +40,7 @@ class processor_exception extends \moodle_exception {
      *
      * @param string $errorcode
      * @param string $a
-     * @param int $http
+     * @param int    $http
      */
     public function __construct($errorcode, $a = null, $http = 200) {
         parent::__construct($errorcode, 'enrol_wallet', '', $a);

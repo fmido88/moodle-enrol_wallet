@@ -17,13 +17,13 @@
 namespace enrol_wallet\local\discounts\discount;
 
 use enrol_wallet\local\entities\entity;
-use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/enrol/wallet/lib.php');
+
 /**
- * discount_base_test
+ * discount_base_test.
  *
  * @package    enrol_wallet
  * @category   test
@@ -41,7 +41,7 @@ final class discount_base_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $user = $this->getDataGenerator()->create_user();
 
-        $entity = new class($course->id, 100, $user->id) extends entity {
+        $entity = new class ($course->id, 100, $user->id) extends entity {
             #[\Override()]
             public function get_name(): string {
                 return 'Stub';
@@ -58,7 +58,7 @@ final class discount_base_test extends \advanced_testcase {
             }
         };
 
-        $discount = new class($entity, 200.0) extends discount_base {
+        $discount = new class ($entity, 200.0) extends discount_base {
             #[\Override()]
             public static function is_available(entity $entity): bool {
                 return true;
@@ -86,7 +86,7 @@ final class discount_base_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $user = $this->getDataGenerator()->create_user();
 
-        $entity = new class($course->id, 101, $user->id) extends entity {
+        $entity = new class ($course->id, 101, $user->id) extends entity {
             #[\Override()]
             public function get_name(): string {
                 return 'Stub Not Available';
@@ -103,7 +103,7 @@ final class discount_base_test extends \advanced_testcase {
             }
         };
 
-        $discount = new class($entity, 120.0) extends discount_base {
+        $discount = new class ($entity, 120.0) extends discount_base {
             #[\Override()]
             public static function is_available(entity $entity): bool {
                 return false;
@@ -128,7 +128,7 @@ final class discount_base_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $user = $this->getDataGenerator()->create_user();
 
-        $entity = new class($course->id, 102, $user->id) extends entity {
+        $entity = new class ($course->id, 102, $user->id) extends entity {
             #[\Override()]
             public function get_name(): string {
                 return 'Stub Noop';
@@ -145,7 +145,7 @@ final class discount_base_test extends \advanced_testcase {
             }
         };
 
-        $discount = new class($entity, 10.0) extends discount_base {
+        $discount = new class ($entity, 10.0) extends discount_base {
             #[\Override()]
             public static function is_available(entity $entity): bool {
                 return true;

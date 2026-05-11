@@ -33,7 +33,7 @@ $frontpagectx = context_course::instance(SITEID);
 require_capability('enrol/wallet:manage', $frontpagectx);
 
 // Initialize the data object.
-$data = new stdClass;
+$data = new stdClass();
 // Get all parameters form the form.
 // First we need the courses to edit.
 $courses = required_param_array('courses', PARAM_INT);
@@ -41,68 +41,82 @@ $courses = required_param_array('courses', PARAM_INT);
 // No get the data to change.
 // If empty or -1 that's mean that we don't need to add it to the $data object.
 $name = required_param('name', PARAM_TEXT);
+
 if ($name != '') {
     $data->name = $name;
 }
 
 $cost = optional_param('cost', '', PARAM_FLOAT);
+
 if ($cost != '' && $cost > 0.01) {
     $data->cost = $cost;
 }
 
 $currency = required_param('currency', PARAM_RAW);
+
 if ($currency != -1) {
     $data->currency = $currency;
 }
 
 $status = required_param('status', PARAM_INT);
+
 if ($status >= 0) {
     $data->status = (int)$status;
 }
 
 $customint1 = required_param('customint1', PARAM_INT);
+
 if ($customint1 >= 0) {
     $data->customint1 = $customint1;
 }
 
 $customint2 = required_param('customint2', PARAM_INT);
+
 if ($customint2 >= 0) {
     $data->customint2 = $customint2;
 }
 
 $customint3 = required_param('customint3', PARAM_INT);
+
 if ($customint3 >= 0) {
     $data->customint3 = $customint3;
 }
 
 $customint4 = required_param('customint4', PARAM_INT);
+
 if ($customint4 >= 0) {
     $data->customint4 = $customint4;
+
     if ($customint4 > 0) {
         $data->customtext1 = required_param('customtext1', PARAM_TEXT);
     }
 }
 
 $customint5 = required_param('customint5', PARAM_INT);
+
 if ($customint5 >= 0) {
     $data->customint5 = $customint5;
 }
 
 $customint6 = required_param('customint6', PARAM_INT);
+
 if ($customint6 >= 0) {
     $data->customint6 = $customint6;
 }
 
 $customint7 = required_param('customint6', PARAM_INT);
 $customchar3 = optional_param('customchar3', '', PARAM_TEXT);
+
 if ($customint7 >= 0 && !empty($customchar3)) {
     $data->customint7 = $customint6;
     $data->customchar3 = $customchar3;
 }
 
 $awards = optional_param('awards', 0, PARAM_INT);
+
 if ($awards) {
     $customint8 = optional_param('customint8', 0, PARAM_INT);
+
     if ($customint8 >= 0) {
         $data->customint8 = $customint8;
     }
@@ -119,21 +133,25 @@ if ($awards) {
 }
 
 $roleid = required_param('roleid', PARAM_INT);
+
 if ($roleid >= 0) {
     $data->roleid = $roleid;
 }
 
 $enrolperiod = optional_param_array('enrolperiod', [], PARAM_INT);
 $enrolperiod = (!empty($enrolperiod)) ? $enrolperiod['number'] * $enrolperiod['timeunit'] : -1;
+
 if ($enrolperiod >= 0) {
     $data->enrolperiod = $enrolperiod;
 }
 
 $expirynotify = required_param('expirynotify', PARAM_INT);
+
 if ($expirynotify < 0) {
     $expirythreshold = -1;
 } else {
     $expirythreshold = optional_param_array('expirythreshold', 0, PARAM_INT);
+
     if (!empty($expirythreshold)) {
         $data->expirythreshold = $expirythreshold['number'] * $expirythreshold['timeunit'];
     } else {
@@ -142,6 +160,7 @@ if ($expirynotify < 0) {
 }
 
 $enrolstartdate = optional_param_array('enrolstartdate', [], PARAM_INT);
+
 if (!empty($enrolstartdate)) {
     $data->enrolstartdate = mktime(
         $enrolstartdate['hour'],
@@ -154,6 +173,7 @@ if (!empty($enrolstartdate)) {
 }
 
 $enrolenddate = optional_param_array('enrolenddate', [], PARAM_INT);
+
 if (!empty($enrolenddate)) {
     $data->enrolenddate = mktime(
         $enrolenddate['hour'],
@@ -174,6 +194,7 @@ $wallet = enrol_get_plugin('wallet');
 
 foreach ($courses as $courseid) {
     $context = context_course::instance($courseid);
+
     // Check the capability for each course.
     if (!has_capability('enrol/wallet:manage', $context)) {
         continue;
@@ -181,8 +202,8 @@ foreach ($courses as $courseid) {
 
     $enrolinstances = enrol_get_instances($courseid, true);
     $count = 0;
-    foreach ($enrolinstances as $instance) {
 
+    foreach ($enrolinstances as $instance) {
         if ($instance->enrol != 'wallet') {
             continue;
         }
@@ -192,6 +213,7 @@ foreach ($courses as $courseid) {
         $i++;
         $wallet->update_instance($instance, $data);
     }
+
     // No wallet instances exists in the course? Add one.
     if ($count < 1) {
         $data->timecreated = timedate::time();
@@ -202,6 +224,7 @@ foreach ($courses as $courseid) {
 }
 
 $url = manage::BULKINSTANCES->url();
+
 if ($i == 0 && $y == 0) {
     $msg = get_string('bulk_instancesno', 'enrol_wallet');
     redirect($url, $msg, null, 'warning');

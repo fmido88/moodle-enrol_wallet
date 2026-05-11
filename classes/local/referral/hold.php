@@ -20,16 +20,16 @@ use coding_exception;
 use core\persistent;
 
 /**
- * Class hold
+ * Class hold.
  *
- * @property int $id
- * @property int $referrer
+ * @property int    $id
+ * @property int    $referrer
  * @property string $referred
- * @property int $courseid
- * @property float $amount
- * @property bool $released
- * @property int $timemodified
- * @property int $timecreated
+ * @property int    $courseid
+ * @property float  $amount
+ * @property bool   $released
+ * @property int    $timemodified
+ * @property int    $timecreated
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -41,6 +41,7 @@ class hold extends persistent {
      * @var string
      */
     public const TABLE = 'enrol_wallet_hold_gift';
+
     /**
      * Return the custom definition of the properties of this model.
      *
@@ -64,7 +65,7 @@ class hold extends persistent {
                 'type'    => PARAM_USERNAME,
             ],
             'courseid' => [
-                'type' => PARAM_INT,
+                'type'    => PARAM_INT,
                 'default' => 0,
             ],
             'amount' => [
@@ -76,17 +77,19 @@ class hold extends persistent {
             ],
         ];
     }
+
     /**
      * Get records by referrer userid.
-     * @param int $userid
+     * @param  int    $userid
      * @return hold[]
      */
     public static function get_by_referrer(int $userid) {
         return static::get_records(['referrer' => $userid]);
     }
+
     /**
      * Get records by the referred username.
-     * @param string $username
+     * @param  string    $username
      * @return bool|hold
      */
     public static function get_by_referred(string $username) {
@@ -94,7 +97,7 @@ class hold extends persistent {
     }
 
     /**
-     * Easier than get() :)
+     * Easier than get() :).
      * @param string $name
      */
     public function __get($name) {
@@ -104,7 +107,7 @@ class hold extends persistent {
     /**
      * Magic setter.
      * @param string $name
-     * @param mixed $value
+     * @param mixed  $value
      *
      * @throws coding_exception
      * @return void
@@ -117,8 +120,8 @@ class hold extends persistent {
     }
 
     /**
-     * Magic isset
-     * @param string $name
+     * Magic isset.
+     * @param  string $name
      * @return bool
      */
     public function __isset($name) {

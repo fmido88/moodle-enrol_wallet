@@ -28,7 +28,7 @@ use enrol_wallet\local\coupons\types\base as type_base;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
  * Coupon Generation form.
@@ -36,9 +36,8 @@ require_once($CFG->libdir.'/formslib.php');
  * @package enrol_wallet
  */
 class coupons_generator extends \moodleform {
-
     /**
-     * definition
+     * definition.
      * @return void
      */
     public function definition() {
@@ -54,7 +53,7 @@ class coupons_generator extends \moodleform {
         $mform->addElement('text', 'code', get_string('coupon_code', 'enrol_wallet'));
         $mform->setType('code', PARAM_TEXT);
         $mform->addHelpButton('code', 'coupon_code', 'enrol_wallet');
-        $mform->hideIf('code' , 'method', 'eq', 'random');
+        $mform->hideIf('code', 'method', 'eq', 'random');
 
         $types = type_base::get_coupons_options(true);
         $mform->addElement('select', 'type', get_string('coupon_type', 'enrol_wallet'), $types);
@@ -65,6 +64,7 @@ class coupons_generator extends \moodleform {
         $mform->addHelpButton('value', 'coupon_value', 'enrol_wallet');
 
         $classes = type_base::get_classes();
+
         foreach ($classes as $class) {
             if (!$class::has_value()) {
                 $mform->hideIf('value', 'type', 'eq', $class::get_type());
@@ -73,11 +73,13 @@ class coupons_generator extends \moodleform {
 
         $categories = \core_course_category::get_all();
         $catoptions = [];
+
         foreach ($categories as $category) {
             $catoptions[$category->id] = $category->get_nested_name(false);
         }
-        $mform->addElement('select', 'category',  get_string('category'),  $catoptions);
+        $mform->addElement('select', 'category', get_string('category'), $catoptions);
         $mform->addHelpButton('category', 'category_options', 'enrol_wallet');
+
         foreach ($classes as $class) {
             if (!$class::can_specify_category()) {
                 $mform->hideIf('category', 'type', 'eq', $class::get_type());
@@ -86,11 +88,13 @@ class coupons_generator extends \moodleform {
 
         $courses = get_courses();
         $courseoptions = [];
+
         foreach ($courses as $course) {
             $courseoptions[$course->id] = $course->fullname;
         }
         $mform->addElement('autocomplete', 'courses', get_string('courses'), $courseoptions, ['multiple' => true]);
         $mform->addHelpButton('courses', 'courses_options', 'enrol_wallet');
+
         foreach ($classes as $class) {
             if (!$class::can_specify_courses()) {
                 $mform->hideIf('courses', 'type', 'eq', $class::get_type());
@@ -101,13 +105,13 @@ class coupons_generator extends \moodleform {
         $mform->setType('number', PARAM_INT);
         $mform->addHelpButton('number', 'coupons_number', 'enrol_wallet');
         $mform->setDefault('number', 1);
-        $mform->disabledIf('number' , 'method', 'eq', 'single');
+        $mform->disabledIf('number', 'method', 'eq', 'single');
 
         $mform->addElement('text', 'length', get_string('coupons_length', 'enrol_wallet'));
         $mform->setType('length', PARAM_INT);
         $mform->addHelpButton('length', 'coupons_length', 'enrol_wallet');
         $mform->setDefault('length', 8);
-        $mform->hideIf('length' , 'method', 'eq', 'single');
+        $mform->hideIf('length', 'method', 'eq', 'single');
 
         $mform->addElement('text', 'maxusage', get_string('coupons_maxusage', 'enrol_wallet'));
         $mform->setType('maxusage', PARAM_INT);
@@ -129,7 +133,7 @@ class coupons_generator extends \moodleform {
 
         $mform->addGroup($group, 'characters', get_string('characters', 'enrol_wallet'), '-');
         $mform->addHelpButton('characters', 'characters', 'enrol_wallet');
-        $mform->hideIf('characters' , 'method', 'eq', 'single');
+        $mform->hideIf('characters', 'method', 'eq', 'single');
 
         $mform->setDefault('characters[upper]', 1);
         $mform->setDefault('characters[lower]', 1);
@@ -150,8 +154,8 @@ class coupons_generator extends \moodleform {
      * returns of "element_name"=>"error_description" if there are errors,
      * or an empty array if everything is OK (true allowed for backwards compatibility too).
      *
-     * @param array $data array of data
-     * @param array $files array of files
+     * @param  array $data  array of data
+     * @param  array $files array of files
      * @return array array of errors
      */
     public function validation($data, $files) {

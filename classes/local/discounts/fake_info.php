@@ -68,4 +68,3 @@ class fake_info extends \core_availability\info {
     protected function set_in_database($availability) {
     }
 }
-

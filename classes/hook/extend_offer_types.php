@@ -33,6 +33,7 @@ class extend_offer_types {
      * @var array
      */
     protected $classes = [];
+
     /**
      * Constructor.
      */
@@ -42,23 +43,27 @@ class extend_offer_types {
     /**
      * Add a class which must be subclass of offer_item to the list of offers.
      * This method check the duplication of the key (type) and exclude non available offers.
-     * @param string $classname
+     * @param  string $classname
      * @return void
      */
     public function add_class(string $classname) {
         if (!class_exists($classname)) {
             debugging("Class $classname does not exist. Cannot add to offer types.");
+
             return;
         }
 
         if (!is_subclass_of($classname, offer_item::class)) {
             debugging("Class $classname is not a subclass of offer_item. Cannot add to offer types.");
+
             return;
         }
 
         $key = $classname::key();
+
         if (isset($this->classes[$key])) {
             debugging("Offer type with key '$key' already exists. Cannot add class $classname.");
+
             return;
         }
 
@@ -70,8 +75,8 @@ class extend_offer_types {
     }
 
     /**
-     * Bulk add for list of classes {@see ::add_class}
-     * @param array $classnames
+     * Bulk add for list of classes {@see ::add_class}.
+     * @param  array $classnames
      * @return void
      */
     public function add_classes(array $classnames) {

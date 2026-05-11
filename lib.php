@@ -29,7 +29,6 @@ use enrol_wallet\local\referral\hold;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\urls\reports;
-use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\output\helper;
 use enrol_wallet\output\static_renderer;
@@ -42,10 +41,10 @@ use enrol_wallet\output\wallet_balance;
  * Regular users can't see the balance of others unless they have the capability 'enrol/wallet:viewotherbalance'.
  * If the user has the capability to credit others, the charger form appears in his own profile.
  *
- * @param core_user\output\myprofile\tree $tree The myprofile tree to add categories and nodes to.
- * @param stdClass                        $user The user object that the profile page belongs to.
- * @param bool                            $iscurrentuser If the $user object is the current user.
- * @param stdClass                        $course The course to determine if we are in a course context or system context.
+ * @param  core_user\output\myprofile\tree $tree          The myprofile tree to add categories and nodes to.
+ * @param  stdClass                        $user          The user object that the profile page belongs to.
+ * @param  bool                            $iscurrentuser If the $user object is the current user.
+ * @param  stdClass                        $course        The course to determine if we are in a course context or system context.
  * @return void
  */
 function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree, $user, $iscurrentuser, $course) {
@@ -56,10 +55,13 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
 
     // Check if the current user is a parent to the profile's owner.
     $parent = false;
+
     if (file_exists($CFG->dirroot . '/auth/parent/lib.php')) {
         require_once($CFG->dirroot . '/auth/parent/lib.php');
+
         if (auth_parent_is_parent($USER)) {
             $children = auth_parent_get_children($USER);
+
             if (!empty($children)) {
                 foreach ($children as $childid) {
                     if ($childid == $user->id) {
@@ -77,55 +79,62 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
     }
 
     // Add the main category.
-    $wdcategory = new core_user\output\myprofile\category('walletcreditdisplay',
-                                                    get_string('walletcredit', 'enrol_wallet'),
-                                                    'contact',
-                                                    'enrol_wallet_card');
+    $wdcategory = new core_user\output\myprofile\category(
+        'walletcreditdisplay',
+        get_string('walletcredit', 'enrol_wallet'),
+        'contact',
+        'enrol_wallet_card'
+    );
     $tree->add_category($wdcategory);
 
     if (!$cancredit || !$iscurrentuser) {
         // First node for displaying the balance information.
         $renderer = helper::get_wallet_renderer();
         $render1 = $renderer->render(new wallet_balance($user->id));
-        $node1 = new core_user\output\myprofile\node('walletcreditdisplay',
-                                                    'walletcreditnode',
-                                                    '',
-                                                    null,
-                                                    null,
-                                                    $render1,
-                                                    null,
-                                                    'enrol_wallet_display_node');
+        $node1 = new core_user\output\myprofile\node(
+            'walletcreditdisplay',
+            'walletcreditnode',
+            '',
+            null,
+            null,
+            $render1,
+            null,
+            'enrol_wallet_display_node'
+        );
         $tree->add_node($node1);
 
         // Second node to display the topping up options.
         if ($iscurrentuser) {
             $render2 = $renderer->render(new topup_options());
 
-            $node2 = new core_user\output\myprofile\node('walletcreditdisplay',
-                                                        'wallettopupnode',
-                                                        '',
-                                                        null,
-                                                        null,
-                                                        $render2,
-                                                        null,
-                                                        'enrol_wallet_display_node');
+            $node2 = new core_user\output\myprofile\node(
+                'walletcreditdisplay',
+                'wallettopupnode',
+                '',
+                null,
+                null,
+                $render2,
+                null,
+                'enrol_wallet_display_node'
+            );
             $tree->add_node($node2);
         }
-
     } else {
         // Node 3 to display charger form and coupon view and generation pages links.
         $render3 = '';
         $form = static_renderer::charger_form();
         $render3 .= $OUTPUT->box($form);
         $render3 .= static_renderer::coupons_urls();
-        $node3 = new core_user\output\myprofile\node('walletcreditdisplay',
-                                                    'walletchargingnode',
-                                                    '',
-                                                    null,
-                                                    null,
-                                                    $render3,
-                                                    null,
-                                                    'enrol_wallet_display_node');
+        $node3 = new core_user\output\myprofile\node(
+            'walletcreditdisplay',
+            'walletchargingnode',
+            '',
+            null,
+            null,
+            $render3,
+            null,
+            'enrol_wallet_display_node'
+        );
         $tree->add_node($node3);
     }
 }
@@ -133,13 +142,12 @@ function enrol_wallet_myprofile_navigation(core_user\output\myprofile\tree $tree
 /**
  * Adding extra options to the navigation in the frontpage so manager can control wallet easily.
  *
- * @param navigation_node $parentnode
- * @param stdClass $course
- * @param context_course $context
+ * @param  navigation_node $parentnode
+ * @param  stdClass        $course
+ * @param  context_course  $context
  * @return void
  */
 function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, stdClass $course, context_course $context) {
-
     if (hooks_callbacks::shouldnt()) {
         return;
     }
@@ -147,19 +155,18 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
     $context = context_system::instance();
 
     $captransactions = has_capability('enrol/wallet:transaction', $context);
-    $capcredit       = has_capability('enrol/wallet:creditdebit', $context);
-    $capbulkedit     = has_capability('enrol/wallet:bulkedit', $context);
-    $capcouponview   = has_capability('enrol/wallet:viewcoupon', $context);
+    $capcredit = has_capability('enrol/wallet:creditdebit', $context);
+    $capbulkedit = has_capability('enrol/wallet:bulkedit', $context);
+    $capcouponview = has_capability('enrol/wallet:viewcoupon', $context);
     $capcouponcreate = has_capability('enrol/wallet:createcoupon', $context);
-    $capcouponedit   = has_capability('enrol/wallet:editcoupon', $context);
-    $hassiteconfig   = has_capability('moodle/site:config', $context);
+    $capcouponedit = has_capability('enrol/wallet:editcoupon', $context);
+    $hassiteconfig = has_capability('moodle/site:config', $context);
 
     $any = ($captransactions || $capcredit || $capbulkedit || $capcouponview || $capcouponcreate);
     $config = config::make();
     $ismoodle = $config->walletsource == balance::MOODLE;
 
     if ($hassiteconfig && $any) {
-
         $node = navigation_node::create(
             get_string('bulkfolder', 'enrol_wallet'),
             new moodle_url('/admin/category.php', ['category' => 'enrol_wallet_settings']),
@@ -169,9 +176,7 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
             null
         );
         $parentnode->add_node($node);
-
     } else {
-
         if ($capcredit) {
             // Adding page to charge wallets of other users.
             $node = navigation_node::create(
@@ -284,13 +289,14 @@ function enrol_wallet_extend_navigation_frontpage(navigation_node $parentnode, s
 
 /**
  * Extend the signup form to add the referral code.
- * @param MoodleQuickForm $mform
+ * @param  MoodleQuickForm $mform
  * @return void
  */
 function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
     $config = config::make();
     $refenabled = $config->referral_enabled;
-    $maxref     = $config->referral_max;
+    $maxref = $config->referral_max;
+
     if (!$refenabled) {
         return;
     }
@@ -302,6 +308,7 @@ function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
     // Get only.
     $hasref = !empty($_GET['refcode']) || optional_param('ref_get', false, PARAM_BOOL);
     $refcode = optional_param('refcode', '', PARAM_ALPHANUM);
+
     if ($hasref && !empty($refcode)) {
         global $DB;
         $mform->setConstant('refcode', $refcode);
@@ -315,6 +322,7 @@ function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
         if (!empty($maxref)) {
             // Check if this code exceeds the max limit.
             $refrecord = $DB->get_record('enrol_wallet_referral', ['code' => $refcode]);
+
             if (!empty($refrecord) && $refrecord->usetimes >= $maxref) {
                 $mform->addElement('static', 'refcode_warn', get_string('referral_exceeded', 'enrol_wallet', $refcode));
                 $mform->updateElementAttr('refcode_warn', ['class' => 'notify notify-error']);
@@ -325,16 +333,17 @@ function enrol_wallet_extend_signup_form(MoodleQuickForm $mform) {
 
 /**
  * Validate the data from signup request to validate the referral code.
- * @param array $data
+ * @param  array         $data
  * @return array<string>
  */
 function enrol_wallet_validate_extend_signup_form($data) {
     $config = config::make();
 
     $refenabled = $config->referral_enabled;
-    $maxref     = $config->referral_max;
+    $maxref = $config->referral_max;
 
     $errors = [];
+
     if (!$refenabled || empty($data['refcode']) || empty($maxref)) {
         return $errors;
     }
@@ -342,6 +351,7 @@ function enrol_wallet_validate_extend_signup_form($data) {
     global $DB;
     // Check if this code exceeds the max limit.
     $refrecord = $DB->get_record('enrol_wallet_referral', ['code' => $data['refcode']]);
+
     if (empty($refrecord)) {
         $errors['refcode'] = get_string('referral_notexist', 'enrol_wallet', $data['refcode']);
     } else if ($refrecord->usetimes >= $maxref) {
@@ -353,21 +363,23 @@ function enrol_wallet_validate_extend_signup_form($data) {
 
 /**
  * Function to update or create user in wordpress.
- * @param stdClass $user
+ * @param  stdClass $user
  * @return void
  */
 function enrol_wallet_update_wordpress_user($user) {
     // Check the wallet source first.
     $source = config::make()->walletsource;
+
     if ($source == balance::WP) {
         // Create or update corresponding user in wordpress.
-        $wordpress = new \enrol_wallet\wordpress;
+        $wordpress = new \enrol_wallet\wordpress();
         $wordpress->create_wordpress_user($user, $user->password);
     }
 }
+
 /**
  * Callback after user signup to create wordpress user and check referral data.
- * @param object $user // The data submitted from the signup form.
+ * @param  object $user // The data submitted from the signup form.
  * @return void
  */
 function enrol_wallet_post_signup_requests($user) {
@@ -375,13 +387,14 @@ function enrol_wallet_post_signup_requests($user) {
 
     // Referral program.
     $refenabled = $config->referral_enabled;
-    $maxref     = $config->referral_max;
-    $amount     = $config->referral_amount;
+    $maxref = $config->referral_max;
+    $amount = $config->referral_amount;
 
     // Check the referral code.
     if (!empty($user->refcode) && $refenabled && !empty($amount)) {
         global $DB;
         $refrecord = code::get_record(['code' => $user->refcode]); // The code should be unique.
+
         // Check if the reference code is available and the user didn't exceed the available referral times.
         // If $maxref is zero means no limit.
         if (!empty($refrecord) && (empty($maxref) || $refrecord->usetimes < $maxref)) {
@@ -413,27 +426,28 @@ function enrol_wallet_post_signup_requests($user) {
 
 /**
  * Callback after set new password to update it in wordpress.
- * @param object $data
- * @param object $user
+ * @param  object $data
+ * @param  object $user
  * @return void
  */
 function enrol_wallet_post_set_password_requests($data, $user) {
     $user->password = $data->password;
+
     return enrol_wallet_update_wordpress_user($user);
 }
 
 /**
- * Callback after set new password to update it in wordpress
- * @param object $data
+ * Callback after set new password to update it in wordpress.
+ * @param  object $data
  * @return void
  */
 function enrol_wallet_post_change_password_requests($data) {
     global $USER;
     $user = fullclone($USER);
     $user->password = $data->newpassword1;
+
     return enrol_wallet_update_wordpress_user($user);
 }
-
 
 /**
  * Callback function in every page to notify users for low balance.
@@ -443,6 +457,7 @@ function enrol_wallet_before_standard_top_of_body_html() {
     global $PAGE;
     $config = config::make();
     $showprice = (bool)$config->showprice;
+
     if ($showprice) {
         $PAGE->requires->js_call_amd('enrol_wallet/overlyprice', 'init');
     }
@@ -454,6 +469,7 @@ function enrol_wallet_before_standard_top_of_body_html() {
 
     // Check if notice is enabled.
     $notice = $config->lowbalancenotice;
+
     if (empty($notice)) {
         return;
     }
@@ -463,6 +479,7 @@ function enrol_wallet_before_standard_top_of_body_html() {
 
     $op = new balance();
     $balance = $op->get_total_balance();
+
     if ($balance !== false && is_numeric($balance) && $balance <= (int)$condition) {
         // Display the warning.
         \core\notification::warning(get_string('lowbalancenotification', 'enrol_wallet', $balance));
@@ -475,19 +492,21 @@ function enrol_wallet_before_standard_top_of_body_html() {
  */
 function enrol_wallet_after_require_login() {
     global $USER, $CFG, $SESSION;
-    require_once($CFG->dirroot.'/login/lib.php');
+    require_once($CFG->dirroot . '/login/lib.php');
 
     if (hooks_callbacks::shouldnt()) {
         return;
     }
 
     $source = config::make()->walletsource;
+
     if ($source != balance::WP) {
         return;
     }
 
     // Prevent multiple calls.
     $done = get_user_preferences('enrol_wallet_wploggedin', false, $USER);
+
     if ($done) {
         return;
     }
@@ -499,13 +518,13 @@ function enrol_wallet_after_require_login() {
         $return = (new moodle_url('/'))->out(false);
     }
 
-    $wordpress = new \enrol_wallet\wordpress;
+    $wordpress = new \enrol_wallet\wordpress();
     $wordpress->login_logout_user_to_wordpress($USER->id, 'login', $return);
 }
 
 /**
  * Delete the user's metadata upon the user deletation.
- * @param stdClass $user
+ * @param  stdClass $user
  * @return void
  */
 function enrol_wallet_pre_user_delete($user) {
@@ -518,6 +537,7 @@ function enrol_wallet_pre_user_delete($user) {
 
     // No need for the adhoc tasks to be run.
     $tasks = core\task\manager::get_adhoc_tasks('turn_non_refundable');
+
     foreach ($tasks as $task) {
         if ($task->get_custom_data()['userid'] == $user->id) {
             $DB->delete_records('task_adhoc', ['id' => $task->id]);

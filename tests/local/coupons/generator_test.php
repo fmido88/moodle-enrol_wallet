@@ -16,11 +16,11 @@
 
 namespace enrol_wallet\local\coupons;
 
-use ReflectionClass;
 use enrol_wallet\local\utils\timedate;
+use ReflectionClass;
 
 /**
- * Tests for Wallet enrolment coupon generator
+ * Tests for Wallet enrolment coupon generator.
  *
  * @covers     \enrol_wallet\local\coupons\generator
  * @package    enrol_wallet
@@ -29,7 +29,6 @@ use enrol_wallet\local\utils\timedate;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class generator_test extends \advanced_testcase {
-
     /**
      * Test generate_random_coupon method with all scenarios.
      * @covers ::generate_random_coupon()
@@ -43,16 +42,18 @@ final class generator_test extends \advanced_testcase {
 
         // Test 1: All character types enabled.
         $options = [
-            'upper' => true,
-            'lower' => true,
+            'upper'  => true,
+            'lower'  => true,
             'digits' => true,
         ];
         $codes = [];
+
         for ($i = 0; $i < 50; $i++) {
             $codes[] = generator::generate_random_coupon(12, $options);
         }
+
         foreach ($codes as $code) {
-            $this->assertEquals(12, strlen($code), "Code length should be 12");
+            $this->assertEquals(12, strlen($code), 'Code length should be 12');
             // Must not contain similar characters when all types are used.
             $this->assertFalse(str_contains($code, 'l'));
             $this->assertFalse(str_contains($code, '1'));
@@ -67,10 +68,11 @@ final class generator_test extends \advanced_testcase {
 
         // Test 2: Uppercase and lowercase only (no digits).
         $options = ['upper' => true, 'lower' => true, 'digits' => false];
+
         for ($i = 0; $i < 50; $i++) {
             $code = generator::generate_random_coupon(25, $options);
             $this->assertEquals(25, strlen($code));
-            $this->assertFalse(preg_match('/[0-9]/', $code) === 1, "No digits expected");
+            $this->assertFalse(preg_match('/[0-9]/', $code) === 1, 'No digits expected');
             // ... l and I should be removed when both lower and upper exist.
             $this->assertFalse(str_contains($code, 'l'));
             $this->assertFalse(str_contains($code, 'I'));
@@ -78,10 +80,11 @@ final class generator_test extends \advanced_testcase {
 
         // Test 3: Lowercase and digits only (no uppercase).
         $options = ['upper' => false, 'lower' => true, 'digits' => true];
+
         for ($i = 0; $i < 50; $i++) {
             $code = generator::generate_random_coupon(8, $options);
             $this->assertEquals(8, strlen($code));
-            $this->assertFalse(preg_match('/[A-Z]/', $code) === 1, "No uppercase expected");
+            $this->assertFalse(preg_match('/[A-Z]/', $code) === 1, 'No uppercase expected');
             // ...'l' and '1' should be removed when both lower and digits exist.
             $this->assertFalse(str_contains($code, 'l'));
             $this->assertFalse(str_contains($code, '1'));
@@ -89,19 +92,21 @@ final class generator_test extends \advanced_testcase {
 
         // Test 4: Only uppercase.
         $options = ['upper' => true, 'lower' => false, 'digits' => false];
+
         for ($i = 0; $i < 50; $i++) {
             $code = generator::generate_random_coupon(10, $options);
             $this->assertEquals(10, strlen($code));
-            $this->assertFalse(preg_match('/[0-9]/', $code) === 1, "No digits expected");
-            $this->assertFalse(preg_match('/[a-z]/', $code) === 1, "No lowercase expected");
+            $this->assertFalse(preg_match('/[0-9]/', $code) === 1, 'No digits expected');
+            $this->assertFalse(preg_match('/[a-z]/', $code) === 1, 'No lowercase expected');
         }
 
         // Test 5: Only digits.
         $options = ['upper' => false, 'lower' => false, 'digits' => true];
+
         for ($i = 0; $i < 50; $i++) {
             $code = generator::generate_random_coupon(6, $options);
             $this->assertEquals(6, strlen($code));
-            $this->assertFalse(preg_match('/[a-zA-Z]/', $code) === 1, "No letters expected");
+            $this->assertFalse(preg_match('/[a-zA-Z]/', $code) === 1, 'No letters expected');
         }
 
         // Test 6: Short lengths.
@@ -116,10 +121,11 @@ final class generator_test extends \advanced_testcase {
 
         // Test 8: Randomness - all codes should be unique.
         $randomcodes = [];
+
         for ($i = 0; $i < 100; $i++) {
             $randomcodes[] = generator::generate_random_coupon(10, $options);
         }
-        $this->assertCount(100, array_unique($randomcodes), "All generated codes should be unique");
+        $this->assertCount(100, array_unique($randomcodes), 'All generated codes should be unique');
 
         // Verify no new records were created (this method doesn't write to DB).
         $this->assertEquals($initialcount, $DB->count_records('enrol_wallet_coupons'));
@@ -137,7 +143,8 @@ final class generator_test extends \advanced_testcase {
 
         $class = new ReflectionClass(generator::class);
         $method = $class->getMethod('remove_like_characters');
-        if ((float)(PHP_MAJOR_VERSION . "." . PHP_MINOR_VERSION) < 8.1) {
+
+        if ((float)(PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION) < 8.1) {
             $method->setAccessible(true);
         }
 
@@ -167,12 +174,12 @@ final class generator_test extends \advanced_testcase {
         $this->assertFalse(str_contains($result, '1'));
         $this->assertFalse(str_contains($result, 'I'));
         $this->assertFalse(str_contains($result, 'O'));
-        $this->assertTrue(str_contains($result, '0'), "0 should remain when only lowercase and numbers");
+        $this->assertTrue(str_contains($result, '0'), '0 should remain when only lowercase and numbers');
 
         // Test 4: Only lowercase.
         $charset = generator::LOWERCASE_CHARSET;
         $result = $method->invoke(null, $charset);
-        $this->assertTrue(str_contains($result, 'l'), "l should remain when only lowercase");
+        $this->assertTrue(str_contains($result, 'l'), 'l should remain when only lowercase');
         $this->assertFalse(str_contains($result, '1'));
         $this->assertFalse(str_contains($result, 'I'));
         $this->assertFalse(str_contains($result, 'O'));
@@ -183,18 +190,18 @@ final class generator_test extends \advanced_testcase {
         $result = $method->invoke(null, $charset);
         $this->assertFalse(str_contains($result, 'l'));
         $this->assertFalse(str_contains($result, '1'));
-        $this->assertTrue(str_contains($result, 'I'), "I should remain when only uppercase");
-        $this->assertTrue(str_contains($result, 'O'), "O should remain when only uppercase");
+        $this->assertTrue(str_contains($result, 'I'), 'I should remain when only uppercase');
+        $this->assertTrue(str_contains($result, 'O'), 'O should remain when only uppercase');
         $this->assertFalse(str_contains($result, '0'));
 
         // Test 6: Only numbers.
         $charset = generator::NUMBERS_CHARSET;
         $result = $method->invoke(null, $charset);
         $this->assertFalse(str_contains($result, 'l'));
-        $this->assertTrue(str_contains($result, '1'), "1 should remain when only numbers");
+        $this->assertTrue(str_contains($result, '1'), '1 should remain when only numbers');
         $this->assertFalse(str_contains($result, 'I'));
         $this->assertFalse(str_contains($result, 'O'));
-        $this->assertTrue(str_contains($result, '0'), "0 should remain when only numbers");
+        $this->assertTrue(str_contains($result, '0'), '0 should remain when only numbers');
 
         // Verify no new records were created.
         $this->assertEquals($initialcount, $DB->count_records('enrol_wallet_coupons'));
@@ -331,14 +338,14 @@ final class generator_test extends \advanced_testcase {
 
         // Test 1: Single coupon with predefined code.
         $options = (object)[
-            'number' => 1,
-            'code' => 'SINGLECODE',
-            'type' => 'fixed',
-            'value' => 50,
-            'maxusage' => 0,
+            'number'     => 1,
+            'code'       => 'SINGLECODE',
+            'type'       => 'fixed',
+            'value'      => 50,
+            'maxusage'   => 0,
             'maxperuser' => 0,
-            'from' => 0,
-            'to' => 0,
+            'from'       => 0,
+            'to'         => 0,
         ];
         $result = generator::create_coupons($options);
         $this->assertIsArray($result);
@@ -353,18 +360,18 @@ final class generator_test extends \advanced_testcase {
 
         // Test 2: Multiple generated codes.
         $options = (object)[
-            'number' => 10,
-            'code' => '',
-            'type' => 'fixed',
-            'value' => 25,
-            'maxusage' => 5,
+            'number'     => 10,
+            'code'       => '',
+            'type'       => 'fixed',
+            'value'      => 25,
+            'maxusage'   => 5,
             'maxperuser' => 1,
-            'from' => 0,
-            'to' => 0,
-            'length' => 15,
-            'lower' => true,
-            'upper' => true,
-            'digits' => true,
+            'from'       => 0,
+            'to'         => 0,
+            'length'     => 15,
+            'lower'      => true,
+            'upper'      => true,
+            'digits'     => true,
         ];
         $result = generator::create_coupons($options);
         $this->assertIsArray($result);
@@ -383,18 +390,18 @@ final class generator_test extends \advanced_testcase {
 
         // Test 3: Unique codes within batch.
         $options = (object)[
-            'number' => 5,
-            'code' => '',
-            'type' => 'percent',
-            'value' => 10,
-            'maxusage' => 0,
+            'number'     => 5,
+            'code'       => '',
+            'type'       => 'percent',
+            'value'      => 10,
+            'maxusage'   => 0,
             'maxperuser' => 0,
-            'from' => 0,
-            'to' => 0,
-            'length' => 10,
-            'lower' => true,
-            'upper' => false,
-            'digits' => true,
+            'from'       => 0,
+            'to'         => 0,
+            'length'     => 10,
+            'lower'      => true,
+            'upper'      => false,
+            'digits'     => true,
         ];
         $result = generator::create_coupons($options);
         $this->assertIsArray($result);
@@ -402,25 +409,25 @@ final class generator_test extends \advanced_testcase {
 
         // Verify all codes within the batch are unique.
         $allcodes = array_values($DB->get_records_menu('enrol_wallet_coupons', ['type' => 'percent'], '', 'id,code'));
-        $this->assertCount(5, array_unique($allcodes), "All generated codes in batch should be unique");
+        $this->assertCount(5, array_unique($allcodes), 'All generated codes in batch should be unique');
         $this->assertEquals($initialcount + 16, $DB->count_records('enrol_wallet_coupons'));
 
         // Test 4: With validity period.
         $now = timedate::time();
         $onemonth = 30 * 24 * 60 * 60;
         $options = (object)[
-            'number' => 3,
-            'code' => '',
-            'type' => 'percent',
-            'value' => 15,
-            'maxusage' => 10,
+            'number'     => 3,
+            'code'       => '',
+            'type'       => 'percent',
+            'value'      => 15,
+            'maxusage'   => 10,
             'maxperuser' => 2,
-            'from' => $now,
-            'to' => $now + $onemonth,
-            'length' => 8,
-            'lower' => false,
-            'upper' => true,
-            'digits' => true,
+            'from'       => $now,
+            'to'         => $now + $onemonth,
+            'length'     => 8,
+            'lower'      => false,
+            'upper'      => true,
+            'digits'     => true,
         ];
         $result = generator::create_coupons($options);
         $this->assertIsArray($result);
@@ -438,19 +445,19 @@ final class generator_test extends \advanced_testcase {
 
         // Test 5: With courses restriction.
         $options = (object)[
-            'number' => 2,
-            'code' => '',
-            'type' => 'enrol',
-            'value' => 0,
-            'maxusage' => 0,
+            'number'     => 2,
+            'code'       => '',
+            'type'       => 'enrol',
+            'value'      => 0,
+            'maxusage'   => 0,
             'maxperuser' => 0,
-            'from' => 0,
-            'to' => 0,
-            'courses' => '5,10,15',
-            'length' => 12,
-            'lower' => true,
-            'upper' => true,
-            'digits' => false,
+            'from'       => 0,
+            'to'         => 0,
+            'courses'    => '5,10,15',
+            'length'     => 12,
+            'lower'      => true,
+            'upper'      => true,
+            'digits'     => false,
         ];
         $result = generator::create_coupons($options);
         $this->assertIsArray($result);
@@ -465,19 +472,19 @@ final class generator_test extends \advanced_testcase {
 
         // Test 6: With category restriction.
         $options = (object)[
-            'number' => 2,
-            'code' => '',
-            'type' => 'category',
-            'value' => 100,
-            'maxusage' => 0,
+            'number'     => 2,
+            'code'       => '',
+            'type'       => 'category',
+            'value'      => 100,
+            'maxusage'   => 0,
             'maxperuser' => 0,
-            'from' => 0,
-            'to' => 0,
-            'category' => 7,
-            'length' => 10,
-            'lower' => true,
-            'upper' => false,
-            'digits' => true,
+            'from'       => 0,
+            'to'         => 0,
+            'category'   => 7,
+            'length'     => 10,
+            'lower'      => true,
+            'upper'      => false,
+            'digits'     => true,
         ];
         $result = generator::create_coupons($options);
         $this->assertIsArray($result);
@@ -493,18 +500,18 @@ final class generator_test extends \advanced_testcase {
         // Test 7: With progress trace.
         $trace = new \null_progress_trace();
         $options = (object)[
-            'number' => 5,
-            'code' => '',
-            'type' => 'fixed',
-            'value' => 50,
-            'maxusage' => 0,
+            'number'     => 5,
+            'code'       => '',
+            'type'       => 'fixed',
+            'value'      => 50,
+            'maxusage'   => 0,
             'maxperuser' => 0,
-            'from' => 0,
-            'to' => 0,
-            'length' => 10,
-            'lower' => true,
-            'upper' => true,
-            'digits' => true,
+            'from'       => 0,
+            'to'         => 0,
+            'length'     => 10,
+            'lower'      => true,
+            'upper'      => true,
+            'digits'     => true,
         ];
         $result = generator::create_coupons($options, $trace);
         $this->assertIsArray($result);

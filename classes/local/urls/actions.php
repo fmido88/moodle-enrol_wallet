@@ -18,7 +18,6 @@ namespace enrol_wallet\local\urls;
 
 // phpcs:ignore moodle.Commenting.InlineComment.DocBlock
 /**
- *
  * Forms actions urls.
  *
  * @package    enrol_wallet

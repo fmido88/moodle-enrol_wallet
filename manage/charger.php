@@ -22,14 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__.'/../../../config.php');
+require_once(__DIR__ . '/../../../config.php');
 
 use enrol_wallet\local\urls\manage;
 
 // Any error displaying casing page to not redirect and charging operation may be processed twice.
 set_debugging(DEBUG_NONE, false);
 
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
+require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 $context = context_system::instance();
 
 require_login();
@@ -39,6 +39,7 @@ $return = optional_param('return', '', PARAM_LOCALURL);
 
 global $OUTPUT;
 $pageurl = manage::CHARGE->url(['result' => $result]);
+
 if (empty($return)) {
     $returnurl = $pageurl;
 } else {
@@ -69,7 +70,7 @@ if ($submit) {
         $params = (array)$returnurl->params();
         $params['errors'] = $errors;
         $returnurl->remove_all_params();
-        $return = $returnurl->out() .'?'. http_build_query($params);
+        $return = $returnurl->out() . '?' . http_build_query($params);
         redirect(new moodle_url($return));
         exit;
     }
@@ -78,19 +79,19 @@ if ($submit) {
         $mform->process_form_submission((object)$data);
         redirect($returnurl);
         exit;
-    } else {
-
-        $confirm = enrol_wallet\output\pages::get_charger_confirm($data, $returnurl, $pageurl);
-        echo $OUTPUT->header();
-
-        echo $confirm;
-
-        echo $OUTPUT->footer();
-        exit;
     }
+
+    $confirm = enrol_wallet\output\pages::get_charger_confirm($data, $returnurl, $pageurl);
+    echo $OUTPUT->header();
+
+    echo $confirm;
+
+    echo $OUTPUT->footer();
+    exit;
 }
 
 echo $OUTPUT->header();
+
 // Display the results.
 if (!empty($result)) {
     echo $OUTPUT->box($result);

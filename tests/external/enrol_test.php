@@ -54,9 +54,9 @@ final class enrol_test extends externallib_advanced_testcase {
         $studentrole = $DB->get_record('role', ['shortname' => 'student']);
         $this->assertNotEmpty($studentrole);
 
-        $coursedata          = new \stdClass();
+        $coursedata = new \stdClass();
         $coursedata->visible = 0;
-        $course              = $this->getDataGenerator()->create_course($coursedata);
+        $course = $this->getDataGenerator()->create_course($coursedata);
 
         // Add enrolment methods for course.
         $instanceid1 = $walletplugin->add_instance($course, ['status'        => ENROL_INSTANCE_ENABLED,
@@ -140,7 +140,7 @@ final class enrol_test extends externallib_advanced_testcase {
 
         $course1 = $this->getDataGenerator()->create_course();
         $course2 = $this->getDataGenerator()->create_course();
-        $user1   = $this->getDataGenerator()->create_user();
+        $user1 = $this->getDataGenerator()->create_user();
         transactions::payment_topup(100, $user1->id);
 
         $context1 = \context_course::instance($course1->id);
@@ -206,7 +206,7 @@ final class enrol_test extends externallib_advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
         // Give user enough balance.
@@ -232,12 +232,12 @@ final class enrol_test extends externallib_advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
-        $instance             = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance->customint6 = 1;
-        $instance->cost       = 100;
+        $instance->cost = 100;
         $DB->update_record('enrol', $instance);
 
         // User has no balance.

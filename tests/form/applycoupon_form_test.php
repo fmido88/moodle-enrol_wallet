@@ -27,9 +27,11 @@ namespace enrol_wallet\form;
 
 use context_course;
 use enrol_wallet\local\config;
-use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\generator;
-use enrol_wallet\local\coupons\types\{fixed, fixeddis, percent, category, enrol};
+use enrol_wallet\local\coupons\types\category;
+use enrol_wallet\local\coupons\types\enrol;
+use enrol_wallet\local\coupons\types\fixed;
+use enrol_wallet\local\coupons\types\percent;
 use enrol_wallet\local\utils\testing;
 use enrol_wallet\local\wallet\balance;
 use moodle_url;

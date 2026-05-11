@@ -47,7 +47,6 @@ const ENROL_WALLET_DISCOUNT_MAX = 0;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait discount {
-
     /**
      * Get the calculation discount constant by it's shortname.
      * @param  string $type

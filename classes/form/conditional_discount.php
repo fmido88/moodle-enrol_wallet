@@ -20,11 +20,12 @@ use enrol_wallet\local\utils\catoptions;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 use moodleform;
+
 /**
- * Class conditional_discount
+ * Class conditional_discount.
  *
  * @package    enrol_wallet
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
@@ -32,7 +33,7 @@ use moodleform;
  */
 class conditional_discount extends moodleform {
     /**
-     * definition
+     * definition.
      * @return void
      */
     public function definition() {
@@ -52,12 +53,20 @@ class conditional_discount extends moodleform {
         $mform->setType('percent', PARAM_FLOAT);
         $mform->addHelpButton('percent', 'conditionaldiscount_percent', 'enrol_wallet');
 
-        $mform->addElement('date_time_selector', 'timefrom',
-                            get_string('conditionaldiscount_timefrom', 'enrol_wallet'), ['optional' => true]);
+        $mform->addElement(
+            'date_time_selector',
+            'timefrom',
+            get_string('conditionaldiscount_timefrom', 'enrol_wallet'),
+            ['optional' => true]
+        );
         $mform->addHelpButton('timefrom', 'conditionaldiscount_timefrom', 'enrol_wallet');
 
-        $mform->addElement('date_time_selector', 'timeto',
-                            get_string('conditionaldiscount_timeto', 'enrol_wallet'), ['optional' => true]);
+        $mform->addElement(
+            'date_time_selector',
+            'timeto',
+            get_string('conditionaldiscount_timeto', 'enrol_wallet'),
+            ['optional' => true]
+        );
         $mform->addHelpButton('timefrom', 'conditionaldiscount_timeto', 'enrol_wallet');
 
         $mform->addElement('checkbox', 'have_bundle', get_string('addbundle', 'enrol_wallet'));
@@ -93,21 +102,24 @@ class conditional_discount extends moodleform {
     }
 
     /**
-     * Validation
-     * @param array $data
-     * @param array $files
+     * Validation.
+     * @param  array $data
+     * @param  array $files
      * @return array
      */
     public function validation($data, $files) {
         $errors = [];
+
         if ($data['percent'] > 100 || $data['percent'] < 0) {
             $errors['percent'] = get_string('percent_error', 'enrol_wallet');
         }
+
         if (!empty($data['have_bundle'])) {
             if (empty($data['bundle_value']) || $data['bundle_value'] < $data['cond']) {
                 $errors['bundle_value'] = get_string('bundle_value_error', 'enrol_wallet');
             }
         }
+
         return $errors;
     }
 }

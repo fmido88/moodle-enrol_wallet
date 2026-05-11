@@ -45,6 +45,7 @@ $PAGE->set_url($url);
 
 // Set up the form.
 $form = new coupons_upload();
+
 if ($form->is_cancelled()) {
     redirect(new moodle_url('/'));
 }
@@ -59,10 +60,13 @@ if ($data = $form->get_data()) {
     $content = $form->get_file_content('csvfile');
     $readcount = $cir->load_csv_content($content, $data->encoding, $data->delimiter_name);
     unset($content);
+
     if ($readcount === false) {
-        throw new moodle_exception(get_string('csvfileerror', 'tool_uploadcourse', $url . " " . $cir->get_error()));
-    } else if ($readcount == 0) {
-        throw new moodle_exception(get_string('csvemptyfile', 'error', $url . " " . $cir->get_error()));
+        throw new moodle_exception(get_string('csvfileerror', 'tool_uploadcourse', $url . ' ' . $cir->get_error()));
+    }
+
+    if ($readcount == 0) {
+        throw new moodle_exception(get_string('csvemptyfile', 'error', $url . ' ' . $cir->get_error()));
     }
 
     // We've got a live file with some entries, so process it.
@@ -76,7 +80,6 @@ if ($data = $form->get_data()) {
     echo $OUTPUT->heading($heading);
 
     $form->display();
-
 }
 
 // Footer.

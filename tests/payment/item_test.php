@@ -19,7 +19,7 @@ namespace enrol_wallet\payment;
 use enrol_wallet\local\utils\testing;
 
 /**
- * Tests for Wallet enrolment
+ * Tests for Wallet enrolment.
  *
  * @package    enrol_wallet
  * @category   test

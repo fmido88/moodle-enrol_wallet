@@ -31,11 +31,11 @@ $frontpagectx = context_course::instance(SITEID);
 
 require_capability('enrol/wallet:manage', $frontpagectx);
 
-$courses   = required_param_array('courses', PARAM_INT);
-$timeend   = optional_param_array('timeend', [], PARAM_INT);
+$courses = required_param_array('courses', PARAM_INT);
+$timeend = optional_param_array('timeend', [], PARAM_INT);
 $timestart = optional_param_array('timestart', [], PARAM_INT);
-$status    = optional_param('status', -1, PARAM_INT);
-$plugins   = optional_param_array('plugins', [], PARAM_TEXT);
+$status = optional_param('status', -1, PARAM_INT);
+$plugins = optional_param_array('plugins', [], PARAM_TEXT);
 
 if (!empty($timeend)) {
     $end = mktime(
@@ -71,6 +71,7 @@ $i = 0;
 
 // Check the sesskey before action.
 require_sesskey();
+
 foreach ($courses as $courseid) {
     $context = context_course::instance($courseid);
 
@@ -87,7 +88,8 @@ foreach ($courses as $courseid) {
             continue;
         }
 
-        $data = new stdClass;
+        $data = new stdClass();
+
         if ($status !== -1) {
             $data->status = $status;
         } else {
@@ -127,6 +129,6 @@ if (!PHPUNIT_TEST) {
     if ($i == 0) {
         redirect($url, $i . $msg, null, 'warning');
     } else {
-        redirect($url, $i . ' '. $msg, null, 'info');
+        redirect($url, $i . ' ' . $msg, null, 'info');
     }
 }

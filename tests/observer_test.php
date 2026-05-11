@@ -21,6 +21,7 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
@@ -34,7 +35,7 @@ use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->dirroot.'/enrol/wallet/lib.php');
+require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 
 /**
  * Wallet enrolment tests.
@@ -149,8 +150,8 @@ final class observer_test extends \advanced_testcase {
 
     /**
      * Add assignment with completion to a course.
-     * @param object $course
-     * @param int $maxgrade
+     * @param  object    $course
+     * @param  int       $maxgrade
      * @return \stdClass
      */
     public function course_completion_init($course, $maxgrade = 100) {
@@ -158,8 +159,8 @@ final class observer_test extends \advanced_testcase {
         /** @var mod_assign_generator */
         $assigngenerator = $this->getDataGenerator()->get_plugin_generator('mod_assign');
         $params = [
-            'course' => $course->id,
-            'completion' => COMPLETION_ENABLED,
+            'course'             => $course->id,
+            'completion'         => COMPLETION_ENABLED,
             'completionusegrade' => 1,
             'grade'              => $maxgrade,
         ];
@@ -171,10 +172,10 @@ final class observer_test extends \advanced_testcase {
 
     /**
      * Trigger completion for a given user.
-     * @param object $cm
-     * @param object $user
-     * @param object $course
-     * @param int $grade
+     * @param  object $cm
+     * @param  object $user
+     * @param  object $course
+     * @param  int    $grade
      * @return void
      */
     public function course_completion_trigger($cm, $user, $course, $grade) {
@@ -190,8 +191,8 @@ final class observer_test extends \advanced_testcase {
         $assign = new \assign($usercm->context, $cm, $cm->course);
         $data = (object)[
             'sendstudentnotifications' => false,
-            'attemptnumber' => 1,
-            'grade' => $grade,
+            'attemptnumber'            => 1,
+            'grade'                    => $grade,
         ];
         $assign->save_grade($user->id, $data);
 
@@ -351,15 +352,15 @@ final class observer_test extends \advanced_testcase {
 
         $this->setUser(null);
         $user3 = [
-            'username' => 'anotheruser',
-            'password' => 'P@ssw0rd',
-            'email' => 'fake@fake.com',
-            'email2' => 'fake@fake.com',
+            'username'  => 'anotheruser',
+            'password'  => 'P@ssw0rd',
+            'email'     => 'fake@fake.com',
+            'email2'    => 'fake@fake.com',
             'firstname' => 'Adam',
-            'lastname' => 'Ali',
-            'country' => 'EG',
-            'refcode' => $code,
-            'sesskey' => sesskey(),
+            'lastname'  => 'Ali',
+            'country'   => 'EG',
+            'refcode'   => $code,
+            'sesskey'   => sesskey(),
         ];
         $mform = new \login_signup_form();
         $errors = $mform->validation($user3, []);

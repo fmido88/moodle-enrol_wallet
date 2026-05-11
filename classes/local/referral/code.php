@@ -22,12 +22,12 @@ use core\persistent;
 /**
  * Referral code.
  *
- * @property int $id
- * @property int $userid
+ * @property int    $id
+ * @property int    $userid
  * @property string $code
- * @property int $usetimes
+ * @property int    $usetimes
  * @property string $users
- * @property int $timemodified
+ * @property int    $timemodified
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -72,14 +72,16 @@ class code extends persistent {
             ],
         ];
     }
+
     /**
      * Get the referral code record for this user.
      * creates one if non-existed.
-     * @param int $userid
+     * @param  int       $userid
      * @return bool|code
      */
     public static function get_code_record(int $userid = 0) {
         global $USER, $DB;
+
         if (!$userid) {
             $userid = $USER->id;
         }
@@ -96,11 +98,12 @@ class code extends persistent {
             'userid' => $userid,
             'code'   => $code,
         ];
+
         return (new static(0, $record))->create();
     }
 
     /**
-     * Easier than get() :)
+     * Easier than get() :).
      * @param string $name
      */
     public function __get($name) {
@@ -110,7 +113,7 @@ class code extends persistent {
     /**
      * Magic setter.
      * @param string $name
-     * @param mixed $value
+     * @param mixed  $value
      *
      * @throws coding_exception
      * @return void
@@ -123,8 +126,8 @@ class code extends persistent {
     }
 
     /**
-     * Magic isset
-     * @param string $name
+     * Magic isset.
+     * @param  string $name
      * @return bool
      */
     public function __isset($name) {

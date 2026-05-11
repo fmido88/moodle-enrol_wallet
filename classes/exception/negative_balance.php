@@ -19,7 +19,7 @@ namespace enrol_wallet\exception;
 use core\exception\moodle_exception;
 
 /**
- * Class negative_balance
+ * Class negative_balance.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>

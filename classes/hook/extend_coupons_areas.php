@@ -33,6 +33,7 @@ class extend_coupons_areas {
      * @var array
      */
     protected $classes = [];
+
     /**
      * Constructor.
      */
@@ -43,32 +44,39 @@ class extend_coupons_areas {
      * Add a class which must be subclass of enrol_wallet\local\coupons\areas\base
      * to the list of available areas.
      * This method check the duplication of the key (area) and exclude non available coupon areas.
-     * @param string $classname
+     * @param  string $classname
      * @return void
      */
     public function add_class(string $classname) {
         if (!class_exists($classname)) {
             debugging("Class $classname does not exist. Cannot add to offer areas.");
+
             return;
         }
+
         if (!is_subclass_of($classname, area_base::class)) {
             debugging("Class $classname is not a subclass of enrol_wallet\local\coupons\areas\base. Cannot add to areas.");
+
             return;
         }
         $area = $classname::get_area();
+
         if (isset($this->classes[$area])) {
             debugging("Coupon area '$area' already exists. Cannot add class $classname.");
+
             return;
         }
 
         if ((!$areacode = ($classname::AREA ?? null)) || !\is_int($areacode)) {
             debugging("The class $classname not defined the integer constant AREA");
+
             return;
         }
 
         foreach ($this->classes as $class) {
             if ($class::AREA == $areacode) {
                 debugging("The const AREA '$areacode' in class $classname already used before and cannot be added.");
+
                 return;
             }
         }
@@ -77,8 +85,8 @@ class extend_coupons_areas {
     }
 
     /**
-     * Bulk add for list of classes {@see ::add_class}
-     * @param array $classnames
+     * Bulk add for list of classes {@see ::add_class}.
+     * @param  array $classnames
      * @return void
      */
     public function add_classes(array $classnames) {

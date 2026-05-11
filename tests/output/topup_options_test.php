@@ -36,7 +36,6 @@ use core\output\templatable;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class topup_options_test extends \advanced_testcase {
-
     /**
      * Test topup_options export.
      * @covers ::export_for_template()

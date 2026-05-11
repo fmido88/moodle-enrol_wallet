@@ -18,8 +18,9 @@ namespace enrol_wallet\local\discounts\discount;
 
 use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
+
 /**
- * Summary of repurchase_test
+ * Summary of repurchase_test.
  *
  * @package    enrol_wallet
  * @category   test

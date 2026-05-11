@@ -104,15 +104,15 @@ class discount_line implements renderable, named_templatable {
 
         $currency = config::make()->currency;
 
-        $data      = [];
+        $data = [];
         $discounts = [];
-        $catid     = -1;
+        $catid = -1;
 
         foreach ($this->records as $id => $record) {
             if ($catid != $record->category) {
                 if (isset($data[$catid])) {
                     $data[$catid]->discounts = array_values($discounts);
-                    $discounts               = [];
+                    $discounts = [];
                 }
 
                 $catid = $record->category;
@@ -147,11 +147,11 @@ class discount_line implements renderable, named_templatable {
 
             $discounts[$id] = new stdClass();
 
-            $discounts[$id]->percent   = (100 - ($cond / $maxcondition) * 100) - $prevwidth;
-            $discounts[$id]->order     = (int)round($cond / $maxcondition * 10);
-            $discounts[$id]->color     = (int)round((1 - $cond / $maxcondition) * 255);
+            $discounts[$id]->percent = (100 - ($cond / $maxcondition) * 100) - $prevwidth;
+            $discounts[$id]->order = (int)round($cond / $maxcondition * 10);
+            $discounts[$id]->color = (int)round((1 - $cond / $maxcondition) * 255);
             $discounts[$id]->condition = '> ' . format_float($cond, 2) . " $currency";
-            $discounts[$id]->discount  = format_float($record->percent, 2) . '%';
+            $discounts[$id]->discount = format_float($record->percent, 2) . '%';
 
             $prevwidth = $discounts[$id]->percent;
         }

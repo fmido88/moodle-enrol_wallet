@@ -18,12 +18,11 @@ namespace enrol_wallet;
 
 use context_course;
 use enrol_wallet\local\config;
-use moodle_page;
 use moodle_url;
 use settings_navigation;
 
 /**
- * Tests for Wallet enrolment
+ * Tests for Wallet enrolment.
  *
  * @package    enrol_wallet
  * @category   test
@@ -32,7 +31,7 @@ use settings_navigation;
  */
 final class lib_test extends \advanced_testcase {
     /**
-     * Test callback
+     * Test callback.
      *
      * @covers ::enrol_wallet_myprofile_navigation()
      */
@@ -49,7 +48,7 @@ final class lib_test extends \advanced_testcase {
     }
 
     /**
-     * Test callback
+     * Test callback.
      *
      * @covers ::enrol_wallet_extend_navigation_frontpage()
      * @return void

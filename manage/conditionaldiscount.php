@@ -22,13 +22,13 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+use enrol_wallet\form\conditional_discount;
 use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\utils\timedate;
-use enrol_wallet\form\conditional_discount;
 
 require_once('../../../config.php');
-require_once($CFG->dirroot.'/enrol/wallet/locallib.php');
-require_once($CFG->libdir.'/tablelib.php');
+require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
+require_once($CFG->libdir . '/tablelib.php');
 
 require_login();
 
@@ -46,10 +46,10 @@ $PAGE->set_url($url);
 $PAGE->set_title(get_string('conditionaldiscount', 'enrol_wallet'));
 $PAGE->set_heading(get_string('conditionaldiscount', 'enrol_wallet'));
 
-$id     = optional_param('id', 0, PARAM_INT);
+$id = optional_param('id', 0, PARAM_INT);
 $delete = optional_param('delete', false, PARAM_BOOL);
-$add    = optional_param('add', false, PARAM_BOOL);
-$edit   = optional_param('edit', false, PARAM_BOOL);
+$add = optional_param('add', false, PARAM_BOOL);
+$edit = optional_param('edit', false, PARAM_BOOL);
 $confirmedit = optional_param('confirmedit', false, PARAM_BOOL);
 
 $customdata = [
@@ -58,9 +58,9 @@ $customdata = [
 ];
 $mform = new conditional_discount(null, $customdata, 'get');
 $done = false;
-if ($data = $mform->get_data()) {
 
-    $dataobject = new stdClass;
+if ($data = $mform->get_data()) {
+    $dataobject = new stdClass();
     $dataobject->cond = $data->cond;
     $dataobject->percent = $data->percent;
     $dataobject->category = $data->category;
@@ -78,6 +78,7 @@ if ($data = $mform->get_data()) {
         $dataobject->bundledesc = null;
         $dataobject->descformat = null;
     }
+
     if ($add) {
         $dataobject->timecreated = timedate::time();
         $done = $DB->insert_record('enrol_wallet_cond_discount', $dataobject);
@@ -137,11 +138,13 @@ if (!empty($records)) {
         if (empty($record->timeto)) {
             unset($record->timeto);
         }
+
         if (empty($record->timefrom)) {
             unset($record->timefrom);
         }
 
         $editparams = array_merge(['edit' => true, 'sesskey' => sesskey()], (array)$record);
+
         if (!empty($record->bundle)) {
             $editparams['have_bundle'] = 1;
             $editparams['bundle_value'] = $record->bundle;
@@ -153,6 +156,7 @@ if (!empty($records)) {
         $deleteurl = new moodle_url($url, $deleteparams);
         $editbutton = $OUTPUT->single_button($editurl, get_string('edit'), 'get');
         $deletebutton = $OUTPUT->single_button($deleteurl, get_string('delete'), 'get');
+
         if (!empty($record->category)) {
             if ($category = core_course_category::get($record->category, IGNORE_MISSING)) {
                 $catname = $category->get_nested_name(false);
@@ -166,7 +170,7 @@ if (!empty($records)) {
         $row = [
             'id'         => $record->id,
             'cond'       => $record->cond,
-            'percent'    => $record->percent.'%',
+            'percent'    => $record->percent . '%',
             'category'   => $catname,
             'timefrom'   => !empty($record->timefrom) ? userdate($record->timefrom) : '',
             'timeto'     => !empty($record->timeto) ? userdate($record->timeto) : '',

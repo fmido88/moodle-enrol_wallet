@@ -328,6 +328,7 @@ class balance {
             $record->catid = $id;
             $record->timecreated = timedate::time();
             $recordid = $obj->recordid ?: $DB->get_field(self::BALANCE_T, 'id', ['userid' => $this->userid, 'catid' => $id]);
+
             if ($recordid) {
                 $record->id = $recordid;
                 $DB->update_record(self::BALANCE_T, $record);
@@ -390,7 +391,7 @@ class balance {
      */
     protected function update(bool $recordandcache = true) {
         if (!empty($this->catop)) {
-            $this->details->catbalance =& $this->catop->details;
+            $this->details->catbalance = &$this->catop->details;
         }
 
         if (!$recordandcache) {

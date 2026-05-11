@@ -33,6 +33,7 @@ class extend_coupons_types {
      * @var array
      */
     protected $classes = [];
+
     /**
      * Constructor.
      */
@@ -43,32 +44,39 @@ class extend_coupons_types {
      * Add a class which must be subclass of enrol_wallet\local\coupons\types\base
      * to the list of available types.
      * This method check the duplication of the key (type) and exclude non available coupon types.
-     * @param string $classname
+     * @param  string $classname
      * @return void
      */
     public function add_class(string $classname) {
         if (!class_exists($classname)) {
             debugging("Class $classname does not exist. Cannot add to offer types.");
+
             return;
         }
+
         if (!is_subclass_of($classname, type_base::class)) {
             debugging("Class $classname is not a subclass of offer_item. Cannot add to offer types.");
+
             return;
         }
         $type = $classname::get_type();
+
         if (isset($this->classes[$type])) {
             debugging("Coupon type '$type' already exists. Cannot add class $classname.");
+
             return;
         }
 
         if ((!$typecode = ($classname::TYPE ?? null)) || !\is_int($typecode)) {
             debugging("The class $classname not defined the integer constant TYPE");
+
             return;
         }
 
         foreach ($this->classes as $class) {
             if ($class::TYPE == $typecode) {
                 debugging("The const TYPE in class $classname already used before and cannot be added.");
+
                 return;
             }
         }
@@ -77,8 +85,8 @@ class extend_coupons_types {
     }
 
     /**
-     * Bulk add for list of classes {@see ::add_class}
-     * @param array $classnames
+     * Bulk add for list of classes {@see ::add_class}.
+     * @param  array $classnames
      * @return void
      */
     public function add_classes(array $classnames) {

@@ -22,10 +22,11 @@ use core_collator;
 use core_course_category;
 use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
-use stdClass;
 use lang_string;
+use stdClass;
+
 /**
- * Class options
+ * Class options.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -91,7 +92,7 @@ class options {
 
     /**
      * Get all available courses for restriction by another course enrolment.
-     * @param int $courseid Current course id of exceptions.
+     * @param  int           $courseid Current course id of exceptions.
      * @return array<string>
      */
     public static function get_courses_options(int $courseid): array {
@@ -100,6 +101,7 @@ class options {
         // Prepare the course selector.
         $courses = $DB->get_records('course', null, '', 'id, category, fullname');
         $options = [];
+
         foreach ($courses as $course) {
             // We don't check enrolment in home page.
             if ($course->id == SITEID || $course->id == $courseid) {
@@ -107,6 +109,7 @@ class options {
             }
 
             $category = core_course_category::get($course->category, IGNORE_MISSING, true);
+
             if (!$category) {
                 continue;
             }
@@ -116,6 +119,7 @@ class options {
         }
 
         core_collator::asort($options);
+
         return $options;
     }
 
@@ -133,38 +137,47 @@ class options {
 
     /**
      * Get available cohorts options for cohort restriction options.
-     * @param instance|stdClass $instance
-     * @param context          $context
+     * @param  instance|stdClass $instance
+     * @param  context           $context
      * @return array<string>
      */
     public static function get_cohorts_options(instance|stdClass $instance, context $context): array {
         global $CFG, $DB;
-        require_once($CFG->dirroot.'/cohort/lib.php');
+        require_once($CFG->dirroot . '/cohort/lib.php');
 
         $cohorts = [0 => get_string('no')];
         $allcohorts = cohort_get_available_cohorts($context, 0, 0, 0);
+
         if ($instance->customint5 && !isset($allcohorts[$instance->customint5])) {
-            $c = $DB->get_record('cohort',
-                                 ['id' => $instance->customint5],
-                                 'id, name, idnumber, contextid, visible',
-                                 IGNORE_MISSING);
+            $c = $DB->get_record(
+                'cohort',
+                ['id' => $instance->customint5],
+                'id, name, idnumber, contextid, visible',
+                IGNORE_MISSING
+            );
+
             if ($c) {
                 // Current cohort was not found because current user can not see it. Still keep it.
                 $allcohorts[$instance->customint5] = $c;
             }
         }
+
         foreach ($allcohorts as $c) {
             $cohorts[$c->id] = format_string($c->name, true, ['context' => context::instance_by_id($c->contextid)]);
+
             if ($c->idnumber) {
-                $cohorts[$c->id] .= ' ['.s($c->idnumber).']';
+                $cohorts[$c->id] .= ' [' . s($c->idnumber) . ']';
             }
         }
+
         if ($instance->customint5 && !isset($allcohorts[$instance->customint5])) {
             // Somebody deleted a cohort, better keep the wrong value so that random ppl can not enrol.
             $cohorts[$instance->customint5] = get_string('unknowncohort', 'cohort', $instance->customint5);
         }
+
         return $cohorts;
     }
+
     /**
      * Returns the list of currencies that the payment subsystem supports and therefore we can work with.
      *
@@ -173,40 +186,46 @@ class options {
      */
     public static function get_possible_currencies(?int $account = null): array {
         $codes = [];
+
         if (class_exists('\core_payment\helper')) {
             $codes = \core_payment\helper::get_supported_currencies();
         }
 
         $currencies = [];
+
         foreach ($codes as $c) {
             $currencies[$c] = new lang_string($c, 'core_currencies');
         }
 
-        uasort($currencies, fn($a, $b): int =>  strcmp($a, $b));
+        uasort($currencies, fn ($a, $b): int =>  strcmp($a, $b));
 
         // Adding custom currency in case of there is no available payment gateway or customize the wallet.
         if (empty($currencies) || empty($account)) {
             $config = config::make();
             $customcurrency = $config->customcurrency ?? get_string('MWC', 'enrol_wallet');
             $cc = $config->customcurrencycode ?? '';
+
             // Don't override standard currencies.
             if (!\array_key_exists($cc, $currencies) || $cc === '' || $cc === 'MWC') {
                 $currencies[$cc] = $customcurrency;
             }
         }
+
         return $currencies;
     }
+
     /**
      * Gets a list of roles that this user can assign for the course as the default for wallet enrolment.
      *
-     * @param context $context the context.
-     * @param int $defaultrole the id of the role that is set as the default for wallet enrolment
-     * @return array index is the role id, value is the role name
+     * @param  context $context     the context.
+     * @param  int     $defaultrole the id of the role that is set as the default for wallet enrolment
+     * @return array   index is the role id, value is the role name
      */
     public static function extend_assignable_roles(context $context, int $defaultrole): array {
         global $DB;
 
         $roles = get_assignable_roles($context, ROLENAME_BOTH);
+
         if (!isset($roles[$defaultrole])) {
             if ($role = $DB->get_record('role', ['id' => $defaultrole])) {
                 $roles[$defaultrole] = role_get_name($role, $context, ROLENAME_BOTH);
@@ -228,6 +247,7 @@ class options {
             ENROL_EXT_REMOVED_UNENROL        => get_string('extremovedunenrol', 'enrol'),
         ];
     }
+
     /**
      * Returns the options for the discount behavior.
      * This defines how the discount will be applied when multiple coupons are used.

@@ -21,6 +21,7 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet\local\coupons\uploadcoupon;
 
 defined('MOODLE_INTERNAL') || die();
@@ -36,21 +37,20 @@ require_once($CFG->libdir . '/weblib.php');
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class tracker {
-
     /**
      * Constant to output nothing.
      */
-    const NO_OUTPUT = 0;
+    public const NO_OUTPUT = 0;
 
     /**
      * Constant to output HTML.
      */
-    const OUTPUT_HTML = 1;
+    public const OUTPUT_HTML = 1;
 
     /**
      * Constant to output plain text.
      */
-    const OUTPUT_PLAIN = 2;
+    public const OUTPUT_PLAIN = 2;
 
     /**
      * @var array columns to display.
@@ -80,11 +80,12 @@ class tracker {
     /**
      * Constructor.
      *
-     * @param int $outputmode desired output mode.
+     * @param int  $outputmode desired output mode.
      * @param bool $outcomecol include outcome column.
      */
     public function __construct($outputmode = self::NO_OUTPUT, bool $outcomecol = false) {
         $this->outputmode = $outputmode;
+
         if ($this->outputmode == self::OUTPUT_PLAIN) {
             $this->buffer = new \progress_trace_buffer(new \text_progress_trace());
         }
@@ -94,12 +95,11 @@ class tracker {
     /**
      * Start the output.
      *
-     * @param array $reportheadings list of headings for output report, with names and labels
-     * @param bool $outcomecol Include an outcome column to visually indicate success or failure
+     * @param  array $reportheadings list of headings for output report, with names and labels
+     * @param  bool  $outcomecol     Include an outcome column to visually indicate success or failure
      * @return void
      */
     public function start(array $reportheadings, bool $outcomecol = false) {
-
         if ($this->outputmode == self::NO_OUTPUT) {
             return;
         }
@@ -121,14 +121,19 @@ class tracker {
             echo \html_writer::start_tag('table', ['class' => 'generaltable boxaligncenter flexible-wrap']);
             echo \html_writer::start_tag('thead');
             echo \html_writer::start_tag('tr', ['class' => 'heading r' . $this->rownb]);
+
             if ($this->outcomecol) {
                 echo \html_writer::tag('th', '', ['class' => 'c' . $ci++, 'scope' => 'col']);
             }
             // Print the headings in array order, and keep track of the columns and order for printing body rows.
             $ci = 0;
+
             foreach ($reportheadings as $hkey => $label) {
-                echo \html_writer::tag('th', $label,
-                    ['class' => 'c' . $ci++, 'scope' => 'col']);
+                echo \html_writer::tag(
+                    'th',
+                    $label,
+                    ['class' => 'c' . $ci++, 'scope' => 'col']
+                );
             }
             echo \html_writer::end_tag('tr');
             echo \html_writer::end_tag('thead');
@@ -139,8 +144,8 @@ class tracker {
     /**
      * Output one more line.
      *
-     * @param array $rowdata data for each column of report
-     * @param bool $outcome success or not?
+     * @param  array $rowdata data for each column of report
+     * @param  bool  $outcome success or not?
      * @return void
      */
     public function output(array $rowdata, bool $outcome = false) {
@@ -160,6 +165,7 @@ class tracker {
                 $message[] = isset($rowdata[$key]) ? $rowdata[$key] : '';
             }
             $this->buffer->output(implode("\t", $message));
+
             if (!empty($message)) {
                 foreach ($message as $st) {
                     $this->buffer->output($st, 1);
@@ -171,6 +177,7 @@ class tracker {
 
             // Print a row of output.
             echo \html_writer::start_tag('tr', ['class' => 'r' . $this->rownb % 2]);
+
             // Print a visual success indicator column (green tickbox or red x) for the outcome.
             if ($this->outcomecol) {
                 if ($outcome) {
@@ -212,7 +219,7 @@ class tracker {
     /**
      * Output a summary of the results.
      *
-     * @param array $summary Summary of completed operations.
+     * @param  array $summary Summary of completed operations.
      * @return void
      */
     public function results(array $summary) {
@@ -226,6 +233,7 @@ class tracker {
             }
         } else if ($this->outputmode == self::OUTPUT_HTML) {
             $buffer = new \progress_trace_buffer(new \html_list_progress_trace());
+
             foreach ($summary as $msg) {
                 $buffer->output($msg);
             }

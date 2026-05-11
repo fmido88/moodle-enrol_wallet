@@ -61,12 +61,14 @@ class percent extends base {
 
         return $cost * $this->value / 100;
     }
+
     #[\Override()]
     protected static function validate_type_generator_form(array $data, array &$errors): void {
         if ($data['value'] > 100) {
             $errors['value'] = get_string('invalidpercentcoupon', 'enrol_wallet');
         }
     }
+
     #[\Override()]
     public function get_submission_message(area_base $area): array {
         global $DB;

@@ -74,12 +74,12 @@ class geo_location_offer extends offer_item {
 
     /**
      * Not used yet.
-     * @param ?testing_data_generator $gen
+     * @param  ?testing_data_generator $gen
      * @return stdClass
      */
     public static function mock_offer(?testing_data_generator $gen = null): stdClass {
-        $offer           = new stdClass();
-        $offer->type     = static::key();
+        $offer = new stdClass();
+        $offer->type = static::key();
         $offer->discount = 10;
 
         return $offer;

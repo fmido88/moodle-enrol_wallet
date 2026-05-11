@@ -29,7 +29,7 @@ use enrol_wallet_plugin;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
  * Enrollment form.
@@ -38,12 +38,13 @@ require_once($CFG->libdir.'/formslib.php');
  */
 class enrol_form extends \moodleform {
     /**
-     * instance
+     * instance.
      * @var object
      */
     protected $instance;
+
     /**
-     * toomany
+     * toomany.
      * @var bool
      */
     protected $toomany = false;
@@ -54,12 +55,13 @@ class enrol_form extends \moodleform {
      * @return string form identifier
      */
     protected function get_form_identifier() {
-        $formid = ((object)$this->_customdata)->id.'_'.get_class($this);
+        $formid = ((object)$this->_customdata)->id . '_' . get_class($this);
+
         return $formid;
     }
 
     /**
-     * definition
+     * definition.
      * @return void
      */
     public function definition() {
@@ -83,11 +85,12 @@ class enrol_form extends \moodleform {
         // Todo: Display enrolment duration info.
 
         $a = [
-            'credit_cost'   => $costbefore,
+            'credit_cost'    => $costbefore,
             'user_balance'   => $balance,
             'after_discount' => $costafter,
             'currency'       => $currency,
         ];
+
         // Display cost and balance.
         if ($balance >= $costafter) {
             if ($costafter == $costbefore) {
@@ -97,6 +100,7 @@ class enrol_form extends \moodleform {
             }
         } else {
             $a['borrow'] = $costafter - $balance;
+
             if ($costafter == $costbefore) {
                 $mform->addElement('html', get_string('checkout_borrow', 'enrol_wallet', $a));
             } else {
@@ -108,9 +112,10 @@ class enrol_form extends \moodleform {
         // Display refund policy if enabled.
         $refund = $config->unenrolrefund;
         $policy = $config->unenrolrefundpolicy;
+
         if (!empty($refund) && !empty($policy)) {
             $period = $config->unenrolrefundperiod;
-            $period = (!empty($period)) ? $period / DAYSECS : '('.get_string('unlimited').')';
+            $period = (!empty($period)) ? $period / DAYSECS : '(' . get_string('unlimited') . ')';
 
             $fee = $config->unenrolrefundfee;
             $fee = !(empty($fee)) ? $fee : 0;
@@ -146,8 +151,8 @@ class enrol_form extends \moodleform {
      * returns of "element_name"=>"error_description" if there are errors,
      * or an empty array if everything is OK (true allowed for backwards compatibility too).
      *
-     * @param array $data array of data
-     * @param array $files array of files
+     * @param  array $data  array of data
+     * @param  array $files array of files
      * @return array array of errors
      */
     public function validation($data, $files) {

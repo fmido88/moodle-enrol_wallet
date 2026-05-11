@@ -21,32 +21,36 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
+
+use curl;
 use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
-use curl;
+
 /**
  * The class containing  the function which handles wordpress requests.
- *
  */
 class wordpress {
     /**
      * Moo-Wallet plugin endpoint.
      */
     private const ENDPOINT = '/wp-json/moo-wallet/v1/';
+
     /**
      * Make an HTTP POST request to the moo-wallet plugin endpoint.
      * Of the external WordPress site.
-     * @param string $method
-     * @param array $data
+     * @param  string $method
+     * @param  array  $data
      * @return mixed
      */
     public function request($method, $data) {
         global $CFG;
-        require_once($CFG->libdir .'/filelib.php');
+        require_once($CFG->libdir . '/filelib.php');
 
         $wordpressurl = config::make()->wordpress_url;
         $wordpressurl = clean_param($wordpressurl, PARAM_URL);
+
         if (empty($wordpressurl)) {
             return;
         }
@@ -76,14 +80,16 @@ class wordpress {
             if (is_string($response)) {
                 debugging($response);
             }
+
             return get_string('endpoint_error', 'enrol_wallet');
         }
+
         return json_decode($response, true);
     }
 
     /**
      * encrypt data before sent it.
-     * @param array $data data to encrypt (in form of an array)
+     * @param  array  $data data to encrypt (in form of an array)
      * @return string
      */
     public static function encrypt_data($data) {
@@ -94,20 +100,22 @@ class wordpress {
         $encryptkey = openssl_digest( $key, 'SHA256', true );
 
         $encryptiv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('AES-128-CTR'));
-        $crypttext = openssl_encrypt($token, 'AES-128-CTR', $encryptkey, 0, $encryptiv) . "::" . bin2hex($encryptiv);
+        $crypttext = openssl_encrypt($token, 'AES-128-CTR', $encryptkey, 0, $encryptiv) . '::' . bin2hex($encryptiv);
 
         $encdata = base64_encode($crypttext);
         $encdata = str_replace(['+', '/', '='], ['-', '_', ''], $encdata);
 
         $encrypteddata = trim($encdata);
+
         return $encrypteddata;
     }
+
     /**
      * Deduct amount from user's wallet.
-     * @param int $userid
-     * @param float $amount
-     * @param string $coursename COURSE name at which the request occurred.
-     * @param int $charger id of user did the operation.
+     * @param  int    $userid
+     * @param  float  $amount
+     * @param  string $coursename COURSE name at which the request occurred.
+     * @param  int    $charger    id of user did the operation.
      * @return mixed
      */
     public function debit($userid, float $amount, $coursename = '', $charger = '') {
@@ -125,10 +133,10 @@ class wordpress {
      * Add credit to user's balance in Tera wallet.
      * return array contain error msg and success status.
      *
-     * @param float $amount
-     * @param int $userid
-     * @param string $description
-     * @param int $charger
+     * @param  float        $amount
+     * @param  int          $userid
+     * @param  string       $description
+     * @param  int          $charger
      * @return array|string
      */
     public function credit($amount, $userid, $description = '', $charger = '') {
@@ -145,10 +153,10 @@ class wordpress {
             if (!isset($responsedata['err'])) {
                 // Response format is incorrect.
                 return get_string('endpoint_incorrect', 'enrol_wallet');
-            } else {
-                // Print the error from wordpress site.
-                return $responsedata['err'];
             }
+
+            // Print the error from wordpress site.
+            return $responsedata['err'];
         }
 
         if ($responsedata['success'] == 'false') {
@@ -161,11 +169,11 @@ class wordpress {
 
     /**
      * Get the coupon value and type from woocommerce.
-     * return array of the value and type or string in case of error
-     * @param string $coupon
-     * @param int $userid
-     * @param int $instanceid
-     * @param bool $apply
+     * return array of the value and type or string in case of error.
+     * @param  string       $coupon
+     * @param  int          $userid
+     * @param  int          $instanceid
+     * @param  bool         $apply
      * @return array|string
      */
     public function get_coupon($coupon, $userid, $instanceid, $apply = false) {
@@ -183,10 +191,10 @@ class wordpress {
             if (!isset($responsedata['err'])) {
                 // Response format is incorrect.
                 return get_string('endpoint_incorrect', 'enrol_wallet');
-            } else {
-                // Print the error from wordpress site.
-                return $responsedata['err'];
             }
+
+            // Print the error from wordpress site.
+            return $responsedata['err'];
         }
 
         $couponvalue = $responsedata['coupon_value'];
@@ -213,13 +221,14 @@ class wordpress {
             'value' => $couponvalue,
             'type'  => $coupontype,
         ];
+
         return $coupondata;
     }
 
     /**
      * Get the user's balance in Tera wallet.
      * return the user's balance or string in case of error.
-     * @param int $userid
+     * @param  int          $userid
      * @return float|string
      */
     public function get_user_balance($userid) {
@@ -241,12 +250,11 @@ class wordpress {
     /**
      * Creating or updating wordpress user associative with the moodle user.
      * return wordpress user's id.
-     * @param int|object $user user id or user object.
-     * @param string $password raw password before hashing.
-     * @return int|bool wordpress user id or false on fail.
+     * @param  int|object $user     user id or user object.
+     * @param  string     $password raw password before hashing.
+     * @return int|bool   wordpress user id or false on fail.
      */
     public function create_wordpress_user($user, $password = null) {
-
         if (is_number($user)) {
             $user = \core_user::get_user($user);
         }
@@ -277,8 +285,8 @@ class wordpress {
 
     /**
      * Login and logout the user to the wordpress site.
-     * @param int $userid moodle user id
-     * @param string $method either login or logout
+     * @param int    $userid   moodle user id
+     * @param string $method   either login or logout
      * @param string $redirect redirection url after login or logout from wordpress website
      */
     public function login_logout_user_to_wordpress($userid, $method, $redirect) {
@@ -297,7 +305,7 @@ class wordpress {
             || !$user // If this is a valid user.
             || isguestuser($user) // Not guest.
             || ($method == 'login' && !isloggedin())
-            ) {
+        ) {
             return;
         }
 
@@ -307,6 +315,7 @@ class wordpress {
 
         if ($method == 'login') {
             $done = get_user_preferences('enrol_wallet_wploggedin', false, $user);
+
             if ($done) {
                 return;
             }

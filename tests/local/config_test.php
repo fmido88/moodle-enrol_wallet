@@ -36,7 +36,6 @@ use enrol_wallet\local\config;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 final class config_test extends \advanced_testcase {
-
     /**
      * Test singleton pattern.
      * @covers ::make()

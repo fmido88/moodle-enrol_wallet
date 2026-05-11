@@ -21,7 +21,7 @@ use enrol_wallet\local\entities\entity;
 use enrol_wallet\local\entities\instance;
 
 /**
- * Class offers
+ * Class offers.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -30,7 +30,7 @@ use enrol_wallet\local\entities\instance;
 class offers extends discount_base {
     #[\Override()]
     public function get_percentage_discount(): float {
-        $offers   = new offers_base($this->entity->instance, $this->get_userid());
+        $offers = new offers_base($this->entity->instance, $this->get_userid());
         $discount = 0;
 
         $discount = match($this->entity->get_behavior()) {

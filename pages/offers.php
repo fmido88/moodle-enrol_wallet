@@ -38,5 +38,5 @@ $PAGE->set_pagelayout('frontpage');
 $out = enrol_wallet\output\pages::get_offers_content();
 
 echo $OUTPUT->header(),
-     $out,
-     $OUTPUT->footer();
+$out,
+$OUTPUT->footer();

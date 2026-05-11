@@ -20,7 +20,7 @@ use core_course_renderer;
 use moodle_page;
 
 /**
- * Class helper
+ * Class helper.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -29,26 +29,31 @@ use moodle_page;
 class helper {
     /**
      * Get instance of enrol wallet renderer.
-     * @param ?moodle_page $page
+     * @param  ?moodle_page $page
      * @return renderer
      */
     public static function get_wallet_renderer(?moodle_page $page = null): renderer {
         global $PAGE;
+
         if ($page === null) {
             $page = $PAGE;
         }
+
         return $page->get_renderer('enrol_wallet');
     }
+
     /**
      * Get instance of core_course_renderer.
-     * @param ?moodle_page $page
+     * @param  ?moodle_page         $page
      * @return core_course_renderer
      */
     public static function get_course_renderer(?moodle_page $page = null): core_course_renderer {
         global $PAGE;
+
         if ($page === null) {
             $page = $PAGE;
         }
+
         return $page->get_renderer('core', 'course');
     }
 }

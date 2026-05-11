@@ -44,16 +44,16 @@ $form = new coupons_edit(null, ['id' => $id]);
 if ($data = $form->get_data()) {
     global $DB;
 
-    $id            = $data->id;
-    $code          = $data->code;
-    $type          = $data->type;
-    $value         = $data->value ?? 0;
-    $category      = $data->category ?? null;
-    $courses       = !empty($data->courses) ? implode(',', $data->courses) : null;
-    $maxusage      = $data->maxusage ?? 0;
-    $maxperuser    = $data->maxperuser ?? 0;
-    $validfrom     = $data->validfrom ?? [];
-    $validto       = $data->validto ?? [];
+    $id = $data->id;
+    $code = $data->code;
+    $type = $data->type;
+    $value = $data->value ?? 0;
+    $category = $data->category ?? null;
+    $courses = !empty($data->courses) ? implode(',', $data->courses) : null;
+    $maxusage = $data->maxusage ?? 0;
+    $maxperuser = $data->maxperuser ?? 0;
+    $validfrom = $data->validfrom ?? [];
+    $validto = $data->validto ?? [];
     $usetimesreset = $data->usetimesreset ?? false;
 
     $coupondata = [
@@ -80,7 +80,6 @@ if ($data = $form->get_data()) {
         } else {
             $coupondata['validfrom'] = $validfrom;
         }
-
     } else {
         $coupondata['validfrom'] = 0;
     }
@@ -98,7 +97,6 @@ if ($data = $form->get_data()) {
         } else {
             $coupondata['validto'] = $validto;
         }
-
     } else {
         $coupondata['validto'] = 0;
     }

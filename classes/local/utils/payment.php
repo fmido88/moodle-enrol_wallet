@@ -25,7 +25,7 @@ use dml_missing_record_exception;
 use enrol_wallet\local\config;
 
 /**
- * Class payment
+ * Class payment.
  *
  * @package    enrol_wallet
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -35,10 +35,10 @@ class payment {
     /**
      * Get payment button attributes.
      *
-     * @param int $itemid
-     * @param float $cost
+     * @param int    $itemid
+     * @param float  $cost
      * @param string $description
-     * @param ?url $successurl
+     * @param ?url   $successurl
      * @param string $paymentarea
      * @param string $classes
      * @return array{class:            string,
@@ -57,20 +57,19 @@ class payment {
         float $cost,
         string $description,
         ?url $successurl = null,
-        string $paymentarea = "wallettopup",
-        string $classes = "btn-primary"
+        string $paymentarea = 'wallettopup',
+        string $classes = 'btn-primary'
     ): array {
-
         if ($successurl === null) {
             $successurl = helper::get_success_url('enrol_wallet', $paymentarea, $itemid);
         }
 
         return [
             'class'            => "btn $classes",
-            'type'             => "button",
-            'id'               => html_writer::random_id("gateways-modal-trigger-"),
-            'data-action'      => "core_payment/triggerPayment",
-            'data-component'   => "enrol_wallet",
+            'type'             => 'button',
+            'id'               => html_writer::random_id('gateways-modal-trigger-'),
+            'data-action'      => 'core_payment/triggerPayment',
+            'data-component'   => 'enrol_wallet',
             'data-paymentarea' => $paymentarea,
             'data-itemid'      => $itemid,
             'data-cost'        => $cost,
@@ -91,7 +90,7 @@ class payment {
 
     /**
      * Check if the payment account is valid or not.
-     * @param int $accountid
+     * @param  int  $accountid
      * @return bool
      */
     public static function is_valid_account(int $accountid): bool {
@@ -118,11 +117,13 @@ class payment {
         }
 
         $gateways = $account->get_gateways(true);
+
         if (\count($gateways) > 1) {
             return true;
         }
 
         $gatewaysnames = array_keys($gateways);
+
         if (\count($gatewaysnames) === 1 && 'wallet' === $gatewaysnames[0]) {
             // This means that the only gateway available is paygw_wallet
             // which cannot be used with wallet.
@@ -134,8 +135,8 @@ class payment {
 
     /**
      * Check if the currency is a valid currency and not a custom currency.
-     * @param string $currency
-     * @param bool $sensitive case sensitive check
+     * @param  string $currency
+     * @param  bool   $sensitive case sensitive check
      * @return bool
      */
     public static function is_valid_currency(string $currency, bool $sensitive = true): bool {
@@ -148,6 +149,7 @@ class payment {
         }
 
         $plugins = core_plugin_manager::instance()->get_enabled_plugins('paygw');
+
         foreach ($plugins as $plugin) {
             if ($plugin === 'wallet') {
                 continue;
@@ -156,6 +158,7 @@ class payment {
             $classname = '\paygw_' . $plugin . '\gateway';
 
             $currencies = component_class_callback($classname, 'get_supported_currencies', [], []);
+
             if (\in_array($currency, $currencies)) {
                 return true;
             }
@@ -172,6 +175,7 @@ class payment {
         $config = config::make();
         $currency = $config->currency;
         $accountid = $config->paymentaccount;
+
         return self::is_valid_currency($currency) && self::is_valid_account($accountid);
     }
 }

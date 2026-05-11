@@ -20,13 +20,13 @@ use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
 
 /**
- * Class queue_trasaction
+ * Class queue_trasaction.
  *
  * @package    enrol_wallet
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class queue_trasaction  extends \core\task\adhoc_task {
+class queue_trasaction extends \core\task\adhoc_task {
     /**
      * Name for this task.
      *
@@ -35,6 +35,7 @@ class queue_trasaction  extends \core\task\adhoc_task {
     public function get_name() {
         return 'queue transactions';
     }
+
     /**
      * Perform the transaction.
      * @return void
@@ -43,44 +44,51 @@ class queue_trasaction  extends \core\task\adhoc_task {
         $data = (array)$this->get_custom_data();
 
         $op = new balance_op($data['userid'], $data['catid'] ?? 0);
+
         if ($data['method'] == 'credit') {
             $op->credit($data['amount'], $data['by'], $data['thingid'], $data['desc'], $data['refundable'], $data['trigger']);
         } else if ($data['method'] == 'debit') {
             $op->debit($data['amount'], $data['by'], $data['thingid'], $data['desc'], $data['neg']);
         }
     }
+
     /**
-     * Queue credit
-     * @param balance $op
-     * @param array $args
+     * Queue credit.
+     * @param  balance $op
+     * @param  array   $args
      * @return void
      */
     public static function credit(balance $op, array $args) {
         $args['method'] = 'credit';
         $args['userid'] = $op->get_user_id();
         $args['catid'] = $op->get_catid();
+
         return self::queue_transaction($args);
     }
+
     /**
-     * Queue debit
-     * @param balance $op
-     * @param array $args
+     * Queue debit.
+     * @param  balance $op
+     * @param  array   $args
      * @return void
      */
     public static function debit(balance $op, array $args) {
         $args['method'] = 'debit';
         $args['userid'] = $op->get_user_id();
         $args['catid'] = $op->get_catid();
+
         return self::queue_transaction($args);
     }
+
     /**
-     * Queue transaction
-     * @param array $args
+     * Queue transaction.
+     * @param  array $args
      * @return void
      */
     protected static function queue_transaction(array $args) {
         $task = new self();
         $task->set_custom_data($args);
+
         if (!PHPUNIT_TEST) {
             $task->set_next_run_time(time() - 1);
             \core\task\manager::queue_adhoc_task($task);

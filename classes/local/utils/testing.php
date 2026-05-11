@@ -22,6 +22,7 @@ use phpunit_util;
 
 defined('MOODLE_INTERNAL') || die();
 require_once("{$CFG->dirroot}/lib/phpunit/classes/util.php");
+
 /**
  * Class testing contains helpful method for testing.
  *
@@ -37,6 +38,7 @@ class testing {
     public static function get_generator(): enrol_wallet_generator {
         return phpunit_util::get_data_generator()->get_plugin_generator('enrol_wallet');
     }
+
     /**
      * Return the core payment generator.
      * @return \core_payment_generator

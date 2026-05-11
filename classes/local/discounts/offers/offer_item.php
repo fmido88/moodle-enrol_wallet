@@ -37,9 +37,9 @@ abstract class offer_item {
 
     /**
      * Initiate an offer item helper class.
-     * @param  stdClass         $offer    The offer data.
-     * @param  int              $courseid The course id.
-     * @param  int              $userid   The user id to validate the offer for.
+     * @param  stdClass         $offer        The offer data.
+     * @param  int              $courseid     The course id.
+     * @param  int              $userid       The user id to validate the offer for.
      * @param  bool             $subcondition Is part of another set condition.
      * @throws coding_exception
      */
@@ -61,7 +61,8 @@ abstract class offer_item {
         if (!$subcondition && !isset($offer->discount)) {
             ob_start();
             var_dump(compact('offer', 'subcondition'));
-            throw new coding_exception("No discount for offer which not a sub-offer ", ob_get_clean());
+
+            throw new coding_exception('No discount for offer which not a sub-offer ', ob_get_clean());
         }
         $this->discount = $subcondition ? 0 : $offer->discount;
 
@@ -107,6 +108,7 @@ abstract class offer_item {
     public function is_hidden(): bool {
         return !static::is_available();
     }
+
     /**
      * Return the type of this offer item.
      * @return string
@@ -221,6 +223,7 @@ abstract class offer_item {
             if ($throw) {
                 ob_start();
                 var_dump($offer);
+
                 throw new coding_exception($msg, ob_get_clean());
             }
             debugging($msg);
@@ -289,7 +292,7 @@ abstract class offer_item {
      */
     public static function pre_save_submitted_data(array &$offers, int $i, string $name, mixed $value): void {
         if (!isset($offers[$i])) {
-            $offers[$i]       = new stdClass();
+            $offers[$i] = new stdClass();
             $offers[$i]->type = static::key();
         }
         $offers[$i]->$name = $value;
@@ -303,14 +306,14 @@ abstract class offer_item {
      */
     protected static function add_offer_form_heading(MoodleQuickForm $mform, ?callable $wrapper = null): void {
         global $OUTPUT;
-        $name    = static::get_visible_name();
+        $name = static::get_visible_name();
         $heading = $OUTPUT->heading($name, 5);
         $mform->addElement('html', $heading);
     }
 
     /**
      * Return a callable to wrap the offer element name.
-     * @param int $i the current increment
+     * @param int       $i       the current increment
      * @param ?callable $wrapper the parent wrapper
      *
      * @throws coding_exception
@@ -324,12 +327,12 @@ abstract class offer_item {
      * Add a form fragment directly for certain type of offers.
      * Used in server side directly.
      *
-     * @param int             $i            increment number
-     * @param int             $courseid
-     * @param MoodleQuickForm $mform
-     * @param stdClass|null   $offer
-     * @param bool            $issuboffer   set to false if this is a sub offer.
-     * @param ?callable       $wrapper      the wrapper for form element name.
+     * @param  int             $i          increment number
+     * @param  int             $courseid
+     * @param  MoodleQuickForm $mform
+     * @param  stdClass|null   $offer
+     * @param  bool            $issuboffer set to false if this is a sub offer.
+     * @param  ?callable       $wrapper    the wrapper for form element name.
      * @return void
      */
     public static function add_form_fragment(
@@ -369,7 +372,11 @@ abstract class offer_item {
      * @return void
      */
     protected static function add_form_footer(
-        MoodleQuickForm $mform, int $i, ?callable $wrapper = null, bool $withdiscount = true): void {
+        MoodleQuickForm $mform,
+        int $i,
+        ?callable $wrapper = null,
+        bool $withdiscount = true
+    ): void {
         if ($withdiscount) {
             $name = static::fname('discount', $i, $wrapper);
             $mform->addElement('text', $name, get_string('discount', 'enrol_wallet'));

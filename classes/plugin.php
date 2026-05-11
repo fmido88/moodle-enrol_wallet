@@ -14,34 +14,31 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-use enrol_wallet\form\enrol_form;
-use enrol_wallet\form\empty_form;
+use enrol_wallet\deleteselectedusers_operation;
+use enrol_wallet\editselectedusers_operation;
+use enrol_wallet\event\enrolpage_viewed;
 use enrol_wallet\form\applycoupon_form;
+use enrol_wallet\form\empty_form;
+use enrol_wallet\form\enrol_form;
 use enrol_wallet\form\insuf_form;
 use enrol_wallet\form\topup_form;
-
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\types\base as type_base;
+use enrol_wallet\local\discounts\offers;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\restriction\cohorts;
 use enrol_wallet\local\restriction\courses;
+use enrol_wallet\local\restriction\frontend;
+use enrol_wallet\local\restriction\info;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\pages;
+use enrol_wallet\local\utils\options;
 use enrol_wallet\local\utils\payment;
 use enrol_wallet\local\utils\timedate;
-use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\local\wallet\balance;
-use enrol_wallet\local\utils\options;
-use enrol_wallet\local\restriction\info;
-use enrol_wallet\local\restriction\frontend;
-use enrol_wallet\local\discounts\offers;
-
-use enrol_wallet\event\enrolpage_viewed;
+use enrol_wallet\local\wallet\balance_op;
 use enrol_wallet\output\payment_info;
-
-use enrol_wallet\editselectedusers_operation;
-use enrol_wallet\deleteselectedusers_operation;
 
 /**
  * wallet enrolment plugin implementation.
@@ -55,20 +52,24 @@ class enrol_wallet_plugin extends enrol_plugin {
      * If the user has insufficient balance.
      */
     public const INSUFFICIENT_BALANCE = 2;
+
     /**
      * If the user has insufficient balance even after discount.
      */
     public const INSUFFICIENT_BALANCE_DISCOUNTED = 3;
+
     /**
-     * lasternoller
+     * lasternoller.
      * @var stdClass
      */
     protected $lasternoller = null;
+
     /**
-     * lasternollerinstanceid
+     * lasternollerinstanceid.
      * @var int
      */
     protected $lasternollerinstanceid = 0;
+
     /**
      * The cost after discounts.
      * @var float[]
@@ -76,10 +77,11 @@ class enrol_wallet_plugin extends enrol_plugin {
     protected $costafter = [];
 
     /**
-     * instance Class
+     * instance Class.
      * @var instance
      */
     protected $instance;
+
     /**
      * Creating new enrol_wallet_plugin, passing the instance object or id
      * will calculate the cost after discount and caches it.
@@ -102,6 +104,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     public function set_config($name, $value) {
         return config::set($name, $value);
     }
+
     /**
      * Return instance of this class.
      * @return enrol_wallet_plugin
@@ -109,6 +112,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     public static function get_plugin(): static {
         return enrol_get_plugin('wallet');
     }
+
     /**
      * Returns optional enrolment information icons.
      *
@@ -118,19 +122,20 @@ class enrol_wallet_plugin extends enrol_plugin {
      * we might want to prevent icon repetition when multiple instances
      * of one type exist. One instance may also produce several icons.
      *
-     * @param array $instances all enrol instances of this type in one course
+     * @param  array $instances all enrol instances of this type in one course
      * @return array of pix_icon
      */
     public function get_info_icons(array $instances) {
-
         $icons = [];
+
         foreach ($instances as $instance) {
             $instance = new instance($instance);
             $cost = $instance->get_cost_after_discount();
             $enrolstat = $this->can_self_enrol($instance);
-            $canenrol  = (true === $enrolstat);
+            $canenrol = (true === $enrolstat);
             $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
             $discount = 0;
+
             if (is_numeric($instance->cost) && !empty($instance->cost)) {
                 $discount = (int)(($instance->cost - $cost) / $instance->cost * 100);
             }
@@ -148,7 +153,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 'data-cost'        => is_numeric($cost) ? (int)ceil($cost) : $cost,
                 'data-selector'    => 'enrol_wallet_icon',
                 'data-discount'    => $discount,
-                'title' => get_string('pluginname', 'enrol_wallet') . " ($cost)",
+                'title'            => get_string('pluginname', 'enrol_wallet') . " ($cost)",
             ];
 
             $icons[] = new pix_icon('wallet', $attributes['title'], 'enrol_wallet', $attributes);
@@ -162,17 +167,17 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Returns localized name of enrol instance
+     * Returns localized name of enrol instance.
      *
-     * @param stdClass $instance (null is accepted too)
+     * @param  stdClass $instance (null is accepted too)
      * @return string
      */
     public function get_instance_name($instance) {
         global $DB;
 
         $instance = $this->get_helper($instance);
-        if (empty($instance->name)) {
 
+        if (empty($instance->name)) {
             if (!empty($instance->roleid) && $role = $DB->get_record('role', ['id' => $instance->roleid])) {
                 $role = ' (' . role_get_name($role, context_course::instance($instance->courseid, IGNORE_MISSING)) . ')';
             } else {
@@ -204,11 +209,11 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Does this plugin allow manual unenrolment of all users?
-     * All plugins allowing this must implement 'enrol/xxx:unenrol' capability
+     * All plugins allowing this must implement 'enrol/xxx:unenrol' capability.
      *
-     * @param stdClass $instance course enrol instance
-     * @return bool - true means user with 'enrol/xxx:unenrol' may unenrol others freely, false means nobody may touch
-     * user_enrollments
+     * @param  stdClass $instance course enrol instance
+     * @return bool     - true means user with 'enrol/xxx:unenrol' may unenrol others freely, false means nobody may touch
+     *                  user_enrollments
      */
     public function allow_unenrol(stdClass $instance) {
         return true;
@@ -217,7 +222,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Return unenrol link to unenrol user from the current course.
      * Null if unenrol self is not allowed or the user doesn't has the capability to unenrol.
-     * @param stdClass $instance
+     * @param  stdClass        $instance
      * @return moodle_url|null
      */
     public function get_unenrolself_link($instance) {
@@ -226,12 +231,14 @@ class enrol_wallet_plugin extends enrol_plugin {
         $instance = $this->get_helper($instance);
         // Check if unenrol self is enabled in the settings.
         $enabled = $config->unenrolselfenabled;
+
         if (!$enabled) {
             return null;
         }
 
         // Check main security in the main function.
         $return = parent::get_unenrolself_link($instance);
+
         if (empty($return)) {
             return null;
         }
@@ -240,13 +247,14 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         // Check the periods conditions.
         $before = $config->unenrollimitbefor;
-        $after  = $config->unenrollimitafter;
+        $after = $config->unenrollimitafter;
 
         $enrolrecord = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $USER->id]);
 
         $enrolstart = $enrolrecord->timestart;
-        $enrolend   = $enrolrecord->timeend;
+        $enrolend = $enrolrecord->timeend;
         $now = timedate::time();
+
         // Cannot unenrol self after this period from enrol start date.
         if (!empty($after) && $now > $after + $enrolstart) {
             // Make sure this is not interfere with the second condition.
@@ -273,8 +281,8 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Unenrol user from the course if enrolled using wallet enrolment.
      * using this to refund the users balance again.
-     * @param stdClass $instance
-     * @param int $userid
+     * @param  stdClass $instance
+     * @param  int      $userid
      * @return void
      */
     public function unenrol_user(stdClass $instance, $userid) {
@@ -284,15 +292,17 @@ class enrol_wallet_plugin extends enrol_plugin {
         $instance = $this->get_helper($instance);
         // Check if refund upon unenrolment is enabled.
         $enabled = $config->unenrolrefund;
+
         if (empty($enabled)) {
             return parent::unenrol_user($instance, $userid);
         }
 
-        $enrolrecord  = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $userid]);
-        $enrolstart   = $enrolrecord->timestart;
-        $enrolend     = $enrolrecord->timeend;
+        $enrolrecord = $DB->get_record('user_enrolments', ['enrolid' => $instance->id, 'userid' => $userid]);
+        $enrolstart = $enrolrecord->timestart;
+        $enrolend = $enrolrecord->timeend;
         $refundperiod = $config->unenrolrefundperiod;
         $now = timedate::time();
+
         if (
             (!empty($enrolend) && $now > $enrolend) // The enrolmet already ended.
             || ($now > $enrolstart && !empty($refundperiod) && ($now - $enrolstart) > $refundperiod) // Passed the period.
@@ -303,12 +313,13 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $rawcost = $this->get_cost_after_discount($userid, $instance);
         // Check for refunding fee.
-        $fee  = intval($config->unenrolrefundfee);
+        $fee = intval($config->unenrolrefundfee);
         $cost = $rawcost - ($rawcost * $fee / 100);
 
         // Check for previously used coupon.
         $coupons = $DB->get_records('enrol_wallet_coupons_usage', ['userid' => $userid, 'instanceid' => $instance->id]);
         $credit = $cost;
+
         if (!empty($coupons)) {
             foreach ($coupons as $coupon) {
                 $coupon = type_base::make($coupon);
@@ -318,7 +329,9 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         if ($credit <= 0) {
             return parent::unenrol_user($instance, $userid);
-        } else if ($credit > $cost) {
+        }
+
+        if ($credit > $cost) {
             // Shouldn't happen.
             $credit = $cost;
         }
@@ -335,13 +348,14 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         return parent::unenrol_user($instance, $userid);
     }
+
     /**
      * Does this plugin allow manual changes in user_enrollments table?
      *
      * All plugins allowing this must implement 'enrol/xxx:manage' capability
      *
-     * @param stdClass $instance course enrol instance
-     * @return bool - true means it is possible to change enrol period and status in user_enrolments table
+     * @param  stdClass $instance course enrol instance
+     * @return bool     - true means it is possible to change enrol period and status in user_enrolments table
      */
     public function allow_manage(stdClass $instance) {
         return true;
@@ -350,11 +364,10 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Does this plugin support some way to user to self enrol?
      *
-     * @param stdClass $instance course enrol instance
-     * @return bool - true means show "Enrol me in this course" link in course UI
+     * @param  stdClass $instance course enrol instance
+     * @return bool     - true means show "Enrol me in this course" link in course UI
      */
     public function show_enrolme_link(stdClass $instance) {
-
         if (true !== $this->can_self_enrol($instance, false)) {
             return false;
         }
@@ -365,8 +378,8 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Return true if we can add a new instance to this course.
      *
-     * @param int $courseid
-     * @return boolean
+     * @param  int  $courseid
+     * @return bool
      */
     public function can_add_instance($courseid) {
         global $DB;
@@ -378,10 +391,13 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         // Check the number of allowed instances.
         $count = $DB->count_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet']);
+
         if ($multiple = config::make()->allowmultipleinstances) {
             if (empty($multiple)) {
                 return true;
-            } else if ($count >= $multiple) {
+            }
+
+            if ($count >= $multiple) {
                 return false;
             }
         }
@@ -390,16 +406,17 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Self enrol user to course
+     * Self enrol user to course.
      *
-     * @param stdClass $instance enrolment instance
-     * @param stdClass|null $user User to enrol and deduct fees from
-     * @param bool $charge Charge the user to enrol (only false in case of enrol coupons)
-     * @return bool|array true if enrolled else error code and message
+     * @param  stdClass      $instance enrolment instance
+     * @param  stdClass|null $user     User to enrol and deduct fees from
+     * @param  bool          $charge   Charge the user to enrol (only false in case of enrol coupons)
+     * @return bool|array    true if enrolled else error code and message
      */
     public function enrol_self(stdClass $instance, $user = null, $charge = true) {
         global $CFG, $DB, $USER;
         require_once("$CFG->dirroot/enrol/wallet/locallib.php");
+
         if (empty($user)) {
             $user = $USER;
         }
@@ -415,13 +432,16 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         $charge = $charge && ($costafter >= 0.01);
+
         if ($charge) {
             $canborrow = enrol_wallet_is_borrow_eligible($user->id);
             $balancebefore = $op->get_valid_balance();
+
             // Deduct fees from user's account.
             if (!$op->debit($costafter, balance_op::D_ENROL_INSTANCE, $instance->id, '', $canborrow)) {
                 $e = new moodle_exception('cannotdeductbalance', 'enrol_wallet');
                 $op->fallback($e);
+
                 return false;
             }
         }
@@ -438,6 +458,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 'timeend'   => $timeend,
                 'status'    => ENROL_USER_ACTIVE,
             ];
+
             do {
                 $this->enrol_user($instance, $user->id, $instance->roleid, $timestart, $timeend, null, true);
             } while (!$DB->record_exists('user_enrolments', $conditions));
@@ -467,6 +488,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if ($cashbackenabled) {
             $op->apply_cashback();
         }
+
         // Send welcome message.
         if ($instance->customint4 != ENROL_DO_NOT_SEND_EMAIL) {
             $this->email_welcome_message($instance, $user);
@@ -478,7 +500,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Check for other enrol_wallet instances, return true if there is a cheaper one.
      *
-     * @param stdClass $thisinstance the id of this instances.
+     * @param  stdClass $thisinstance the id of this instances.
      * @return bool
      */
     public function hide_due_cheaper_instance(stdClass $thisinstance): bool {
@@ -487,14 +509,15 @@ class enrol_wallet_plugin extends enrol_plugin {
         $courseid = $thisinstance->courseid;
 
         // Check the status of this instance.
-        $thisid        = $thisinstance->id;
-        $thiscost      = $this->get_cost_after_discount($USER->id, $thisinstance, true);
+        $thisid = $thisinstance->id;
+        $thiscost = $this->get_cost_after_discount($USER->id, $thisinstance, true);
         $thisenrolstat = $this->can_self_enrol($thisinstance);
-        $thiscanenrol  = (true === $thisenrolstat);
+        $thiscanenrol = (true === $thisenrolstat);
         $thisinsuf = (self::INSUFFICIENT_BALANCE == $thisenrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $thisenrolstat);
 
         // Get the other instances.
         $instances = $DB->get_records('enrol', ['courseid' => $courseid, 'enrol' => 'wallet'], 'cost ASC');
+
         // No need to check if there is only one instance.
         if (count($instances) < 2) {
             return false;
@@ -502,6 +525,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         // Check the status of other instance.
         $hide = false;
+
         foreach ($instances as $instance) {
             // Don't compare the instance with itself.
             if ($thisid == $instance->id) {
@@ -513,7 +537,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $instance->mark_as_dirty();
             $othercost = $instance->get_cost_after_discount(true);
             $enrolstat = $wallet->can_self_enrol($instance);
-            $canenrol  = (true === $enrolstat);
+            $canenrol = (true === $enrolstat);
             $insuf = (self::INSUFFICIENT_BALANCE == $enrolstat || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstat);
 
             // Hide if can enrol in other and is cheaper or cannot enrol in this one.
@@ -521,6 +545,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $hide = true;
                 break;
             }
+
             // Both insuficient but there is a cheaper one.
             if ($insuf && $thisinsuf && $othercost < $thiscost) {
                 $otherinsuf = true;
@@ -538,7 +563,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Check if there is restriction according to other courses enrolment.
      * Return false if not restricted and string with required courses names in case if restricted.
-     * @param stdClass $instance
+     * @param  stdClass     $instance
      * @return false|string
      */
     public function is_course_enrolment_restriction(stdClass $instance): false|string {
@@ -549,8 +574,8 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Creates course enrol form, checks if form submitted
      * and enrols user if necessary. It can also redirect.
      *
-     * @param stdClass $instance
-     * @return string html text, usually a form in a text box
+     * @param  stdClass $instance
+     * @return string   html text, usually a form in a text box
      */
     public function enrol_page_hook(stdClass $instance) {
         global $OUTPUT, $USER, $CFG;
@@ -567,35 +592,39 @@ class enrol_wallet_plugin extends enrol_plugin {
         enrolpage_viewed::create_and_trigger($instance);
 
         $couponsetting = config::make()->coupons;
-        $costafter   = $instance->get_cost_after_discount();
+        $costafter = $instance->get_cost_after_discount();
         $costbefore = $instance->cost;
 
         $enrolstatus = $this->can_self_enrol($instance);
 
         $output = '';
+
         if (coupons::is_enabled()) {
             $formdata = new stdClass();
-            $formdata->header   = $this->get_instance_name($instance);
+            $formdata->header = $this->get_instance_name($instance);
             $formdata->instance = $instance;
             $formdata->url = (new \moodle_url('/enrol/index.php', ['id' => $instance->courseid]))->out();
             $couponaction = actions::APPLY_COUPON->url();
             $couponform = new applycoupon_form($couponaction, $formdata);
+
             if ($submitteddata = $couponform->get_data()) {
                 $couponform->process_coupon_data($submitteddata);
             }
         }
 
         if (true === $enrolstatus) {
-
             $confirmpage = pages::CONFIRM_ENROL->url();
             // This user can self enrol using this instance.
             $form = new enrol_form($confirmpage, $instance);
             $instanceid = optional_param('instance', 0, PARAM_INT);
+
             if ((int)$instance->id === $instanceid) {
                 // If form validates user can purchase enrolment with wallet balance.
                 $data = $form->get_data();
+
                 if (!empty($data) && $data->instance == $instance->id) {
                     $this->enrol_self($instance, $USER);
+
                     return '';
                 }
             }
@@ -611,17 +640,16 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $couponform->display();
                 $output .= ob_get_clean();
             }
-
         } else if (
-                self::INSUFFICIENT_BALANCE == $enrolstatus
-                || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus
-            ) {
+            self::INSUFFICIENT_BALANCE == $enrolstatus
+            || self::INSUFFICIENT_BALANCE_DISCOUNTED == $enrolstatus
+        ) {
             $balancehelper = new balance(0, $instance->get_course_category());
             $balance = $balancehelper->get_valid_balance();
             // This user has insufficient wallet balance to be directly enrolled.
             // So we will show him several ways for payments or recharge his wallet.
             $data = new stdClass();
-            $data->header   = $this->get_instance_name($instance);
+            $data->header = $this->get_instance_name($instance);
             $data->instance = $instance;
             $a = [
                 'cost_before'  => $costbefore,
@@ -629,6 +657,7 @@ class enrol_wallet_plugin extends enrol_plugin {
                 'user_balance' => $balance,
                 'currency'     => $instance->currency,
             ];
+
             if ($enrolstatus == self::INSUFFICIENT_BALANCE) {
                 $data->info = get_string('insufficient_balance', 'enrol_wallet', $a);
             } else {
@@ -661,13 +690,12 @@ class enrol_wallet_plugin extends enrol_plugin {
                 $topupform->display();
                 $output .= ob_get_clean();
             }
-
         } else {
             // This user cannot enrol using this instance. Using an empty form to keep
             // the UI consistent with other enrolment plugins that returns a form.
             $data = new stdClass();
-            $data->header   = $this->get_instance_name($instance);
-            $data->info     = $enrolstatus;
+            $data->header = $this->get_instance_name($instance);
+            $data->info = $enrolstatus;
             $data->instance = $instance;
 
             // The can_self_enrol call returns a button to the login page if the user is a
@@ -681,15 +709,16 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
         $offers = new offers($instance);
         $output .= $offers->format_offers_descriptions();
+
         return $OUTPUT->box($output);
     }
 
     /**
      * Checks if user can self enrol.
      *
-     * @param stdClass $instance enrolment instance
-     * @param bool $checkuserenrolment if true will check if user enrolment is inactive.
-     *             used by navigation to improve performance.
+     * @param  stdClass    $instance           enrolment instance
+     * @param  bool        $checkuserenrolment if true will check if user enrolment is inactive.
+     *                                         used by navigation to improve performance.
      * @return bool|string true if successful, else error message or false.
      */
     public function can_self_enrol(stdClass $instance, $checkuserenrolment = true) {
@@ -710,12 +739,14 @@ class enrol_wallet_plugin extends enrol_plugin {
         // Check if user is a parent only if auth wallet exists.
         if (file_exists($CFG->dirroot . '/auth/parent/lib.php')) {
             require_once($CFG->dirroot . '/auth/parent/lib.php');
+
             if (auth_parent_is_parent($USER)) {
                 return get_string('canntenrol', 'enrol_wallet');
             }
         }
 
         $now = timedate::time();
+
         if ($checkuserenrolment) {
             // Check if user is already enroled.
             if ($ue = $DB->get_record('user_enrolments', ['userid' => $USER->id, 'enrolid' => $instance->id])) {
@@ -727,6 +758,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         $return = [];
+
         // Disabled instance.
         if ($instance->status != ENROL_INSTANCE_ENABLED) {
             $return[] = get_string('canntenrol', 'enrol_wallet');
@@ -751,6 +783,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         if ($instance->customint3 > 0) {
             // Max enrol limit specified.
             $count = $DB->count_records('user_enrolments', ['enrolid' => $instance->id]);
+
             if ($count >= $instance->customint3) {
                 // Bad luck, no more self enrolments here.
                 $return[] = get_string('maxenrolledreached', 'enrol_wallet');
@@ -773,10 +806,9 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         if (!empty(config::make()->restrictionenabled) && !empty($instance->customtext2)) {
             $info = new info($instance);
+
             if (!$info->is_available($reasons, true, $USER->id)) {
-
                 $return[] = $reasons;
-
             }
         }
 
@@ -806,28 +838,29 @@ class enrol_wallet_plugin extends enrol_plugin {
         $balancehelper = new balance(0, $instance->get_course_category());
 
         $costbefore = $instance->cost;
-        $balance    = $balancehelper->get_valid_balance();
-        $canborrow  = enrol_wallet_is_borrow_eligible($USER->id);
+        $balance = $balancehelper->get_valid_balance();
+        $canborrow = enrol_wallet_is_borrow_eligible($USER->id);
 
         if ($balance < $costafter && !$canborrow) {
             if ($costbefore == $costafter) {
                 return self::INSUFFICIENT_BALANCE;
-            } else {
-                return self::INSUFFICIENT_BALANCE_DISCOUNTED;
             }
+
+            return self::INSUFFICIENT_BALANCE_DISCOUNTED;
         }
 
         return true;
     }
 
     /**
-     * Get the instance class
-     * @param \stdClass|int $instance
-     * @param int $userid
+     * Get the instance class.
+     * @param  \stdClass|int $instance
+     * @param  int           $userid
      * @return instance
      */
     protected function get_helper(int|stdClass $instance, int $userid = 0): stdClass {
         global $USER;
+
         if (empty($userid)) {
             $userid = $USER->id;
         }
@@ -843,14 +876,15 @@ class enrol_wallet_plugin extends enrol_plugin {
         if (empty($this->instance)
             || ($this->instance->id != $instanceid)
             || $userid != $this->instance->get_userid()) {
-
             if ($instance instanceof instance && $userid == $instance->get_userid()) {
                 $this->instance = $instance;
+
                 return $instance;
             }
 
             $this->instance = new instance($instance, $userid);
         }
+
         return $this->instance;
     }
 
@@ -858,27 +892,27 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Return information for enrolment instance containing list of parameters required
      * for enrolment, name of enrolment plugin etc.
      *
-     * @param stdClass $instance enrolment instance
+     * @param  stdClass $instance enrolment instance
      * @return stdClass instance info.
      */
     public function get_enrol_info(stdClass $instance) {
         global $USER;
 
         $instanceinfo = new stdClass();
-        $instanceinfo->id       = $instance->id;
+        $instanceinfo->id = $instance->id;
         $instanceinfo->courseid = $instance->courseid;
-        $instanceinfo->type     = $this->get_name();
-        $instanceinfo->name     = $this->get_instance_name($instance);
-        $instanceinfo->status   = $this->can_self_enrol($instance);
-        $instanceinfo->cost     = $this->get_cost_after_discount($USER->id, $instance);
+        $instanceinfo->type = $this->get_name();
+        $instanceinfo->name = $this->get_instance_name($instance);
+        $instanceinfo->status = $this->can_self_enrol($instance);
+        $instanceinfo->cost = $this->get_cost_after_discount($USER->id, $instance);
 
         return $instanceinfo;
     }
 
     /**
      * Add new instance of enrol plugin with default settings.
-     * @param stdClass $course
-     * @return int id of new instance
+     * @param  stdClass $course
+     * @return int      id of new instance
      */
     public function add_default_instance($course) {
         $fields = $this->get_instance_defaults();
@@ -889,8 +923,8 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Send welcome email to specified user.
      *
-     * @param stdClass $instance
-     * @param stdClass $user user record
+     * @param  stdClass $instance
+     * @param  stdClass $user     user record
      * @return void
      */
     protected function email_welcome_message($instance, $user) {
@@ -910,6 +944,7 @@ class enrol_wallet_plugin extends enrol_plugin {
             $key = ['{$a->coursename}', '{$a->profileurl}', '{$a->fullname}', '{$a->email}'];
             $value = [$a->coursename, $a->profileurl, fullname($user), $user->email];
             $message = str_replace($key, $value, $message);
+
             if (strpos($message, '<') === false) {
                 // Plain text only.
                 $messagetext = $message;
@@ -944,15 +979,16 @@ class enrol_wallet_plugin extends enrol_plugin {
      *
      * Unenrols users that have exceeded the "longtimenosee" value set on wallet enrolment instances.
      *
-     * @param progress_trace $trace
-     * @param int $courseid one course, empty mean all
-     * @return int 0 means ok, 1 means error, 2 means plugin disabled
+     * @param  progress_trace $trace
+     * @param  int            $courseid one course, empty mean all
+     * @return int            0 means ok, 1 means error, 2 means plugin disabled
      */
     public function sync(progress_trace $trace, $courseid = null) {
         global $DB;
 
         if (!enrol_is_enabled('wallet')) {
             $trace->finished();
+
             return 2;
         }
 
@@ -963,9 +999,10 @@ class enrol_wallet_plugin extends enrol_plugin {
         $trace->output('Verifying wallet enrolments...');
 
         $params = ['now' => timedate::time(), 'useractive' => ENROL_USER_ACTIVE, 'courselevel' => CONTEXT_COURSE];
-        $coursesql = "";
+        $coursesql = '';
+
         if ($courseid) {
-            $coursesql = "AND e.courseid = :courseid";
+            $coursesql = 'AND e.courseid = :courseid';
             $params['courseid'] = $courseid;
         }
 
@@ -1006,8 +1043,8 @@ class enrol_wallet_plugin extends enrol_plugin {
             unset($instance->userid);
             $this->unenrol_user($instance, $userid);
             $days = $instance->customint2 / DAYSECS;
-            $msg = 'unenrolling user '.$userid.' from course '.$instance->courseid.
-            ' as they have did not access course for at least '.$days.' days';
+            $msg = 'unenrolling user ' . $userid . ' from course ' . $instance->courseid .
+            ' as they have did not access course for at least ' . $days . ' days';
             $trace->output($msg, 1);
         }
 
@@ -1028,7 +1065,7 @@ class enrol_wallet_plugin extends enrol_plugin {
      * as defined by sort_by_roleassignment_authority() having 'enrol/wallet:manage'
      * capability.
      *
-     * @param int $instanceid enrolment instance id
+     * @param  int      $instanceid enrolment instance id
      * @return stdClass user record
      */
     protected function get_enroller($instanceid) {
@@ -1058,9 +1095,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Restore instance and map settings.
      *
      * @param restore_enrolments_structure_step $step
-     * @param stdClass $data
-     * @param stdClass $course
-     * @param int $oldid
+     * @param stdClass                          $data
+     * @param stdClass                          $course
+     * @param int                               $oldid
      */
     public function restore_instance(restore_enrolments_structure_step $step, stdClass $data, $course, $oldid) {
         global $DB;
@@ -1098,10 +1135,10 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Restore user enrolment.
      *
      * @param restore_enrolments_structure_step $step
-     * @param stdClass $data
-     * @param stdClass $instance
-     * @param int $userid
-     * @param int $oldinstancestatus
+     * @param stdClass                          $data
+     * @param stdClass                          $instance
+     * @param int                               $userid
+     * @param int                               $oldinstancestatus
      */
     public function restore_user_enrolment(restore_enrolments_structure_step $step, $data, $instance, $userid, $oldinstancestatus) {
         $this->enrol_user($instance, $userid, null, $data->timestart, $data->timeend, $data->status);
@@ -1111,9 +1148,9 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Restore role assignment.
      *
      * @param stdClass $instance
-     * @param int $roleid
-     * @param int $userid
-     * @param int $contextid
+     * @param int      $roleid
+     * @param int      $userid
+     * @param int      $contextid
      */
     public function restore_role_assignment($instance, $roleid, $userid, $contextid) {
         // This is necessary only because we may migrate other types to this instance,
@@ -1124,7 +1161,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Is it possible to delete enrol instance via standard UI?
      *
-     * @param stdClass $instance
+     * @param  stdClass $instance
      * @return bool
      */
     public function can_delete_instance($instance) {
@@ -1134,38 +1171,42 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Is it possible to hide/show enrol instance via standard UI?
      *
-     * @param stdClass $instance
-     * @return bool
+     * @param  stdClass          $instance
      * @throws \coding_exception
+     * @return bool
      */
     public function can_hide_show_instance($instance) {
         $context = context_course::instance($instance->courseid);
+
         return has_capability('enrol/wallet:config', $context);
     }
 
     /**
      * The wallet enrollment plugin has several bulk operations that can be performed.
-     * @param course_enrolment_manager $manager
+     * @param  course_enrolment_manager $manager
      * @return array
      */
     public function get_bulk_operations(course_enrolment_manager $manager) {
         $context = $manager->get_context();
         $bulkoperations = [];
-        if (has_capability("enrol/wallet:manage", $context)) {
+
+        if (has_capability('enrol/wallet:manage', $context)) {
             $bulkoperations['editselectedusers'] = new editselectedusers_operation($manager, $this);
         }
-        if (has_capability("enrol/wallet:unenrol", $context)) {
+
+        if (has_capability('enrol/wallet:unenrol', $context)) {
             $bulkoperations['deleteselectedusers'] = new deleteselectedusers_operation($manager, $this);
         }
+
         return $bulkoperations;
     }
 
     /**
      * Add elements to the edit instance form.
      *
-     * @param ?stdClass $instance
+     * @param ?stdClass       $instance
      * @param MoodleQuickForm $mform
-     * @param context $context
+     * @param context         $context
      */
     public function edit_instance_form($instance, \MoodleQuickForm $mform, $context) {
         // Merge these two settings to one value for the single selection element.
@@ -1204,8 +1245,12 @@ class enrol_wallet_plugin extends enrol_plugin {
             $mform->addElement('select', 'customint1', get_string('paymentaccount', 'payment'), $accounts);
             $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
         } else {
-            $mform->addElement('static', 'customint1_text', get_string('paymentaccount', 'payment'),
-                html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning'));
+            $mform->addElement(
+                'static',
+                'customint1_text',
+                get_string('paymentaccount', 'payment'),
+                html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-warning')
+            );
             $mform->addElement('hidden', 'customint1');
             $mform->setType('customint1', PARAM_INT);
             $mform->setConstant('customint1', 0);
@@ -1317,19 +1362,21 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Include availability restrictions options to the instance edit form.
      *
-     * @param stdClass $instance
+     * @param stdClass         $instance
      * @param \MoodleQuickForm $mform
-     * @param context $context
+     * @param context          $context
      */
     protected function include_availability($instance, $mform, $context) {
         global $CFG, $OUTPUT;
         $config = config::make();
+
         if (empty($config->restrictionenabled) || empty($config->availability_plugins)) {
             return;
         }
 
         if (!$course = self::get_course_by_instance_id($instance->id ?? 0)) {
             $courseid = optional_param('courseid', null, PARAM_INT);
+
             if (!empty($courseid) && $courseid != SITEID) {
                 $course = get_course($courseid);
             }
@@ -1340,33 +1387,46 @@ class enrol_wallet_plugin extends enrol_plugin {
         }
 
         $courses = [$course->id => $course];
+
         if (!empty($instance->customchar3)) {
             $coursesids = explode(',', $instance->customchar3);
+
             foreach ($coursesids as $cid) {
                 $courses[$cid] = get_course($cid);
             }
         }
 
-        $mform->addElement('header', 'availabilityconditions',
-                    get_string('restrictaccess', 'availability'));
+        $mform->addElement(
+            'header',
+            'availabilityconditions',
+            get_string('restrictaccess', 'availability')
+        );
         $mform->setExpanded('availabilityconditions', true);
 
-        $mform->addElement('static', 'availabilitynotice',
-                    get_string('notice'),
-                    get_string('availability_form_desc', 'enrol_wallet'));
+        $mform->addElement(
+            'static',
+            'availabilitynotice',
+            get_string('notice'),
+            get_string('availability_form_desc', 'enrol_wallet')
+        );
 
         // Availability field. This is just a textarea; the user interface
         // interaction is all implemented in JavaScript. The field is named
         // availabilityconditionsjson for consistency with moodleform_mod.
-        $json = $mform->addElement('textarea', 'availabilityconditionsjson',
-                    get_string('accessrestrictions', 'availability'));
+        $json = $mform->addElement(
+            'textarea',
+            'availabilityconditionsjson',
+            get_string('accessrestrictions', 'availability')
+        );
 
         if ($CFG->version >= 2023100900) { // Version 403.
             $json->updateAttributes(['class' => 'd-none']);
             // Availability loading indicator.
-            $loadingcontainer = $OUTPUT->container($OUTPUT->render_from_template('core/loading', []),
-                                                    'd-flex justify-content-center py-5 icon-size-5',
-                                                    'availabilityconditions-loading');
+            $loadingcontainer = $OUTPUT->container(
+                $OUTPUT->render_from_template('core/loading', []),
+                'd-flex justify-content-center py-5 icon-size-5',
+                'availabilityconditions-loading'
+            );
             $mform->addElement('html', $loadingcontainer);
         }
 
@@ -1374,23 +1434,25 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Adds enrol instance UI to course edit form
+     * Adds enrol instance UI to course edit form.
      *
-     * @param object $instance enrol instance or null if does not exist yet
-     * @param MoodleQuickForm $mform
-     * @param object $data
-     * @param object $context context of existing course or parent category if course does not exist
+     * @param  object          $instance enrol instance or null if does not exist yet
+     * @param  MoodleQuickForm $mform
+     * @param  object          $data
+     * @param  object          $context  context of existing course or parent category if course does not exist
      * @return void
      */
     public function course_edit_form($instance, MoodleQuickForm $mform, $data, $context) {
         global $DB;
 
         $courseid = $data->id ?? optional_param('id', null, PARAM_INT);
+
         // If the course not created yet, we cannot display the form as it needs the course id.
         if ($context instanceof \context_coursecat) {
             if (empty($courseid) || $courseid == SITEID) {
                 $mform->addElement('header', 'enrol_wallet', 'Enrol Wallet Availabe after creation of the course');
                 $mform->addElement('static', 'warn', '', 'The course not created yet.');
+
                 return;
             }
         }
@@ -1410,28 +1472,29 @@ class enrol_wallet_plugin extends enrol_plugin {
         // I leave this part of the code in case if the core code in /course/edit.php changed.
         if (empty($count) || empty($instance)) {
             $wallet = optional_param('wallet', false, PARAM_BOOL);
+
             if (!$wallet) {
                 $mform->addElement('header', 'enrol_wallet', 'Enrol Wallet Availabe after creation of the course');
-                unset($data->id);
-                unset($data->summary_editor);
+                unset($data->id, $data->summary_editor);
+
                 $params = ['id' => $courseid, 'wallet' => true, 'sesskey' => sesskey()] + (array)$data;
                 $url = (new \moodle_url('/course/edit.php', $params))->out(false);
                 $mform->addElement('button', 'wallet', 'insert wallet enrolment instance', [
                     'onclick' => "createWallet('$url')",
                 ]);
 
-                $code = <<<JS
+                $code = <<<'JS'
                     function createWallet(url) {
                         window.location.href = url;
                     }
                 JS;
                 $mform->addElement('html', "<script>$code</script>");
+
                 return;
-            } else {
-                $course = get_course($courseid);
-                $instanceid = $this->add_default_instance($course);
-                $instance = $this->get_instance_by_id($instanceid);
             }
+            $course = get_course($courseid);
+            $instanceid = $this->add_default_instance($course);
+            $instance = $this->get_instance_by_id($instanceid);
         }
 
         $mform->addElement('header', 'enrol_wallet', $this->get_instance_name($instance));
@@ -1449,9 +1512,9 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Called after updating/inserting course.
      *
-     * @param bool $inserted true if course just inserted
-     * @param object $course
-     * @param object $data form data
+     * @param  bool   $inserted true if course just inserted
+     * @param  object $course
+     * @param  object $data     form data
      * @return void
      */
     public function course_updated($inserted, $course, $data) {
@@ -1462,6 +1525,7 @@ class enrol_wallet_plugin extends enrol_plugin {
         } else {
             $instances = $DB->get_records('enrol', ['courseid' => $course->id, 'enrol' => 'wallet']);
             $instance = array_pop($instances);
+
             if (empty($instances) || count($instances) > 1) {
                 return parent::course_updated($inserted, $course, $data);
             }
@@ -1472,21 +1536,23 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Validates course edit form data
+     * Validates course edit form data.
      *
-     * @param object $instance enrol instance or null if does not exist yet
-     * @param array $data
-     * @param object $context context of existing course or parent category if course does not exist
-     * @return array errors array
+     * @param  object $instance enrol instance or null if does not exist yet
+     * @param  array  $data
+     * @param  object $context  context of existing course or parent category if course does not exist
+     * @return array  errors array
      */
     public function course_edit_validation($instance, $data, $context) {
         global $DB;
         $instances = $DB->get_records('enrol', ['courseid' => $data['id'], 'enrol' => 'wallet']);
+
         if (empty($instances) || count($instances) > 1) {
             return [];
         }
 
         $submitted = fullclone($data);
+
         if (empty($instance)) {
             if (isset($data['instanceid'])) {
                 $instance = $this->get_instance_by_id($data['instanceid']);
@@ -1497,6 +1563,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         if (!empty($instance)) {
             $submitted['id'] = $instance->id;
+
             return $this->edit_instance_validation($submitted, [], $instance, $context);
         }
 
@@ -1506,12 +1573,12 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Perform custom validation of the data used to edit the instance.
      *
-     * @param array $data array of ("fieldname"=>value) of submitted data
-     * @param array $files array of uploaded files "element_name"=>tmp_file_path
-     * @param object $instance The instance loaded from the DB
-     * @param context $context The context of the instance we are editing
-     * @return array of "element_name"=>"error_description" if there are errors,
-     *         or an empty array if everything is OK.
+     * @param  array   $data     array of ("fieldname"=>value) of submitted data
+     * @param  array   $files    array of uploaded files "element_name"=>tmp_file_path
+     * @param  object  $instance The instance loaded from the DB
+     * @param  context $context  The context of the instance we are editing
+     * @return array   of "element_name"=>"error_description" if there are errors,
+     *                 or an empty array if everything is OK.
      */
     public function edit_instance_validation($data, $files, $instance, $context) {
         $errors = [];
@@ -1535,15 +1602,15 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         $context = context_course::instance($instance->courseid);
 
-        $validstatus        = array_keys(options::get_status_options());
-        $validnewenrols     = array_keys(options::get_newenrols_options());
-        $validroles         = array_keys(options::extend_assignable_roles($context, $instance->roleid));
-        $validexpirynotify  = array_keys(options::get_expirynotify_options());
+        $validstatus = array_keys(options::get_status_options());
+        $validnewenrols = array_keys(options::get_newenrols_options());
+        $validroles = array_keys(options::extend_assignable_roles($context, $instance->roleid));
+        $validexpirynotify = array_keys(options::get_expirynotify_options());
         $validlongtimenosee = array_keys(options::get_longtimenosee_options());
-        $validswep          = array_keys(options::get_send_welcome_email_option());
-        $cohorts            = options::get_cohorts_options($instance, $context);
-        $validcohorts       = array_keys($cohorts);
-        $validcurrencies    = array_keys(options::get_possible_currencies($instance->customint1));
+        $validswep = array_keys(options::get_send_welcome_email_option());
+        $cohorts = options::get_cohorts_options($instance, $context);
+        $validcohorts = array_keys($cohorts);
+        $validcurrencies = array_keys(options::get_possible_currencies($instance->customint1));
         $tovalidate = [
             'enrolstartdate' => PARAM_INT,
             'enrolenddate'   => PARAM_INT,
@@ -1569,6 +1636,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
         if (config::make()->awardssite) {
             $tovalidate['customint8'] = PARAM_BOOL;
+
             if (!empty($data['customint8'])) {
                 $tovalidate['customdec1'] = PARAM_FLOAT;
                 $tovalidate['customdec2'] = PARAM_FLOAT;
@@ -1588,7 +1656,6 @@ class enrol_wallet_plugin extends enrol_plugin {
         return $errors;
     }
 
-
     /**
      * Returns defaults for new instances.
      * @return array
@@ -1596,6 +1663,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     public function get_instance_defaults() {
         $config = config::make();
         $expirynotify = $config->expirynotify;
+
         if ($expirynotify == 2) {
             $expirynotify = 1;
             $notifyall = 1;
@@ -1620,9 +1688,11 @@ class enrol_wallet_plugin extends enrol_plugin {
             'customint7'      => 0,
             'customtext2'     => '',
         ];
+
         if ($config->awardssite) {
             $awards = $config->awards;
             $fields['customint8'] = !empty($awards) ? $awards : 0;
+
             if (!empty($awards)) {
                 $fields['customdec1'] = $config->awardcreteria;
                 $fields['customdec2'] = $config->awardvalue;
@@ -1638,7 +1708,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * We are a good plugin and don't invent our own UI/validation code path.
      *
-     * @return boolean
+     * @return bool
      */
     public function use_standard_editing_ui() {
         return true;
@@ -1646,9 +1716,9 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Add new instance of enrol plugin.
-     * @param object $course
-     * @param array|null $fields instance fields
-     * @return int id of new instance, null if can not be created
+     * @param  object     $course
+     * @param  array|null $fields instance fields
+     * @return int        id of new instance, null if can not be created
      */
     public function add_instance($course, $fields = null) {
         instance::reset_static_cache();
@@ -1674,7 +1744,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Update instance of enrol plugin.
      * @param stdClass $instance
-     * @param stdClass $data modified instance fields
+     * @param stdClass $data     modified instance fields
      */
     public function update_instance($instance, $data) {
         instance::reset_static_cache();
@@ -1714,17 +1784,18 @@ class enrol_wallet_plugin extends enrol_plugin {
 
     /**
      * Get the enrol wallet instance by id.
-     * @param int $instanceid
+     * @param  int       $instanceid
      * @return ?instance
      */
     public function get_instance_by_id($instanceid): ?instance {
         $instance = $this->get_helper($instanceid);
+
         return $instance;
     }
 
     /**
      * Get the course object by enrol wallet instance id.
-     * @param ?int $instanceid
+     * @param  ?int          $instanceid
      * @return bool|stdClass
      */
     public function get_course_by_instance_id(?int $instanceid) {
@@ -1738,40 +1809,44 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Get the "from" contact which the email will be sent from.
      *
-     * @param int $sendoption send email from constant ENROL_SEND_EMAIL_FROM_*
-     * @param object $context context where the user will be fetched
+     * @param  int            $sendoption send email from constant ENROL_SEND_EMAIL_FROM_*
+     * @param  object         $context    context where the user will be fetched
      * @return array|stdClass the contact user object.
      */
     public function get_welcome_email_contact($sendoption, $context) {
         global $CFG;
 
         $contact = null;
+
         // Send as the first user assigned as the course contact.
         if ($sendoption == ENROL_SEND_EMAIL_FROM_COURSE_CONTACT) {
             $rusers = [];
+
             if (!empty($CFG->coursecontact)) {
                 $croles = explode(',', $CFG->coursecontact);
                 list($sort, $sortparams) = users_order_by_sql('u');
                 // We only use the first user.
                 $i = 0;
+
                 do {
                     if (class_exists('\core_user\fields')) {
                         $userfieldsapi = \core_user\fields::for_name();
                         $allnames = $userfieldsapi->get_sql('u', false, '', '', false)->selects;
                     } else {
-                        $allnames = 'u.firstname, '.
-                                    'u.lastname, '.
-                                    'u.middlename, '.
-                                    'u.firstnamephonetic, '.
-                                    'u.lastnamephonetic, '.
+                        $allnames = 'u.firstname, ' .
+                                    'u.lastname, ' .
+                                    'u.middlename, ' .
+                                    'u.firstnamephonetic, ' .
+                                    'u.lastnamephonetic, ' .
                                     'u.alternatename';
                     }
 
-                    $rusers = get_role_users($croles[$i], $context, true, 'u.id,  u.confirmed, u.username, '. $allnames . ',
+                    $rusers = get_role_users($croles[$i], $context, true, 'u.id,  u.confirmed, u.username, ' . $allnames . ',
                     u.email, r.sortorder, ra.id', 'r.sortorder, ra.id ASC, ' . $sort, false, '', '', '', '', $sortparams);
                     $i++;
                 } while (empty($rusers) && !empty($croles[$i]));
             }
+
             if ($rusers) {
                 $contact = array_values($rusers)[0];
             }
@@ -1787,7 +1862,7 @@ class enrol_wallet_plugin extends enrol_plugin {
     }
 
     /**
-     * Check if there is coupon code in session or as a parameter
+     * Check if there is coupon code in session or as a parameter.
      * @return string|null return the coupon code, or null if not found.
      */
     public static function check_discount_coupon(): ?string {
@@ -1798,10 +1873,10 @@ class enrol_wallet_plugin extends enrol_plugin {
      * Get percentage discount for a user from custom profile field and coupon code.
      * Calculate the cost of the course after discount.
      *
-     * @param int $userid
-     * @param stdClass $instance
-     * @param bool $recalculate
-     * @return float the cost after discount.
+     * @param  int      $userid
+     * @param  stdClass $instance
+     * @param  bool     $recalculate
+     * @return float    the cost after discount.
      */
     public function get_cost_after_discount(int $userid, stdClass $instance, bool $recalculate = false): ?float {
         if (!$recalculate && isset($this->costafter[$instance->id])) {
@@ -1826,15 +1901,15 @@ class enrol_wallet_plugin extends enrol_plugin {
     /**
      * Generates payment information to display on enrol/info page.
      *
-     * @param stdClass $instance
+     * @param  stdClass $instance
      * @return string
      */
     public static function show_payment_info(stdClass $instance): string {
         $renderinfo = new payment_info($instance);
         $renderer = \enrol_wallet\output\helper::get_wallet_renderer();
+
         return $renderer->render($renderinfo);
     }
-
 }
 
 /*  A reference to remind me with the instance object.
@@ -1874,4 +1949,3 @@ class enrol_wallet_plugin extends enrol_plugin {
     timecreated:     the time at which the instance created (int)
     timemodified:    the time at which the instance modified (int)
     */
-

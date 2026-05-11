@@ -28,7 +28,7 @@ use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\reports;
 
 $confirm = optional_param('confirm', 0, PARAM_BOOL); // Delete confirmation.
-$ids     = required_param('ids', PARAM_TEXT);
+$ids = required_param('ids', PARAM_TEXT);
 
 $contextsys = context_system::instance();
 
@@ -53,6 +53,7 @@ if ($confirm) {
         redirect($returnurl, get_string('couponsdeleted', 'enrol_wallet', count($ids)));
     }
 }
+
 if (!PHPUNIT_TEST) {
     echo $OUTPUT->header();
 }
@@ -66,6 +67,7 @@ $buttoncancel = new single_button($returnurl, get_string('no'));
 $message = get_string('confirmdeletecoupon', 'enrol_wallet', $ids);
 
 echo $OUTPUT->confirm($message, $buttoncontinue, $buttoncancel);
+
 if (!PHPUNIT_TEST) {
     echo $OUTPUT->footer();
 }

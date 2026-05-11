@@ -36,14 +36,13 @@ use enrol_wallet\local\wallet\balance_op as op;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class service_provider implements \core_payment\local\callback\service_provider {
-
     /**
      * Callback function that returns the enrolment cost and the accountid
      * for the course that $instanceid enrolment instance belongs to or itemid
      * for fake item to topup wallet.
      *
-     * @param string $paymentarea Payment area
-     * @param int $itemid The enrolment instance id or fake item id
+     * @param  string                               $paymentarea Payment area
+     * @param  int                                  $itemid      The enrolment instance id or fake item id
      * @return \core_payment\local\entities\payable
      */
     public static function get_payable(string $paymentarea, int $itemid): \core_payment\local\entities\payable {
@@ -61,6 +60,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
             ];
 
             $paid = false;
+
             if ($DB->get_manager()->table_exists('payments')) {
                 $paid = $DB->get_record('payments', $conditions);
             }
@@ -71,10 +71,10 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
             $item = new \stdClass();
 
-            $item->id       = $itemid;
-            $item->cost     = $paid->amount;
+            $item->id = $itemid;
+            $item->cost = $paid->amount;
             $item->currency = $paid->currency;
-            $account        = $paid->accountid;
+            $account = $paid->accountid;
         }
 
         if (empty($account)) {
@@ -92,43 +92,42 @@ class service_provider implements \core_payment\local\callback\service_provider 
     /**
      * Callback function that returns the URL of the page the user should be redirected to in the case of a successful payment.
      *
-     * @param string $paymentarea Payment area
-     * @param int $itemid The enrolment instance id
+     * @param  string      $paymentarea Payment area
+     * @param  int         $itemid      The enrolment instance id
      * @return \moodle_url
      */
     public static function get_success_url(string $paymentarea, int $itemid): \moodle_url {
         global $DB;
+
         try {
             $item = new item($itemid);
         } catch (dml_missing_record_exception $e) {
             $item = null;
         }
+
         // Check if the payment is for enrolment or topping up the wallet.
         if ($item && ($paymentarea == 'walletenrol') && !empty($item->get('instanceid'))) {
-
             $courseid = $DB->get_field('enrol', 'courseid', ['enrol' => 'wallet', 'id' => $item->get('instanceid')], MUST_EXIST);
 
             return new \moodle_url('/course/view.php', ['id' => $courseid]);
-
-        } else {
-
-            return new \moodle_url('/');
         }
+
+        return new \moodle_url('/');
     }
 
     /**
      * Callback function that delivers what the user paid for to them.
      *
-     * @param string $paymentarea
-     * @param int $itemid The item id
-     * @param int $paymentid payment id as inserted into the 'payments' table, if needed for reference
-     * @param int $userid The user id the order is going to deliver to
-     * @return bool Whether successful or not
+     * @param  string $paymentarea
+     * @param  int    $itemid      The item id
+     * @param  int    $paymentid   payment id as inserted into the 'payments' table, if needed for reference
+     * @param  int    $userid      The user id the order is going to deliver to
+     * @return bool   Whether successful or not
      */
     public static function deliver_order(string $paymentarea, int $itemid, int $paymentid, int $userid): bool {
         global $DB, $CFG;
 
-        require_once($CFG->dirroot.'/enrol/wallet/lib.php');
+        require_once($CFG->dirroot . '/enrol/wallet/lib.php');
         // Get the fake item in case of topping up the wallet.
         $item = new item($itemid);
         $op = new op($userid, $item->get('category') ?? 0);
@@ -138,7 +137,7 @@ class service_provider implements \core_payment\local\callback\service_provider 
 
         // Check if the payment is for enrolment or topping up the wallet.
         if ($paymentarea == 'walletenrol') {
-            $plugin = new \enrol_wallet_plugin;
+            $plugin = new \enrol_wallet_plugin();
             $instance = $plugin->get_instance_by_id($item->instanceid);
 
             $user = \core_user::get_user($userid);
@@ -163,16 +162,14 @@ class service_provider implements \core_payment\local\callback\service_provider 
             }
 
             return false;
-
-        } else {
-
-            $response = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc);
-
-            if ($response) {
-                return true;
-            } else {
-                return false;
-            }
         }
+
+        $response = $op->credit($item->cost, op::C_PAYMENT, $itemid, $desc);
+
+        if ($response) {
+            return true;
+        }
+
+        return false;
     }
 }

@@ -17,7 +17,6 @@
 namespace enrol_wallet\local\entities;
 
 use context;
-use core_collator;
 use core_course_category;
 use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\discounts\discount\discount_base;
@@ -33,6 +32,7 @@ use stdClass;
  */
 abstract class entity extends stdClass {
     use discount;
+
     /**
      * The course which the instance belong to.
      * @var int
@@ -56,6 +56,7 @@ abstract class entity extends stdClass {
      * @var float[]
      */
     protected array $discounts;
+
     /**
      * The id of the user.
      * @var int
@@ -67,35 +68,38 @@ abstract class entity extends stdClass {
      * @var int
      */
     public readonly int $id;
+
     /**
      * If the instance class in dirty state and the cached values
      * of $costafter could be cleared.
      * @var bool
      */
     protected bool $dirty = false;
+
     /**
      * Discount classes.
      * @var discount_base[]
      */
     protected array $discountclasses;
+
     /**
      * Create a new enrol wallet instance helper class.
      * store the cost after discount.
      *
      * @param int $courseid the course id that the entity belongs to.
      * @param int $entityid the id of the entity.
-     * @param int $userid the id of the user, 0 means the current user.
+     * @param int $userid   the id of the user, 0 means the current user.
      */
     public function __construct(int $courseid, int $entityid, int $userid = 0) {
         global $USER;
-        $this->userid   = empty($userid) ? $USER->id : $userid;
+        $this->userid = empty($userid) ? $USER->id : $userid;
         $this->courseid = $courseid;
-        $this->id       = $entityid;
+        $this->id = $entityid;
     }
 
     /**
      * Set the userid to calculate the discount for.
-     * @param int|stdClass $user
+     * @param  int|stdClass $user
      * @return void
      */
     public function set_user(int|stdClass $user = 0): void {
@@ -185,6 +189,7 @@ abstract class entity extends stdClass {
      */
     public function get_cost_after_discount(?float $cost = null): ?float {
         $this->calculate_discount($cost);
+
         return $this->costafter;
     }
 
@@ -196,11 +201,12 @@ abstract class entity extends stdClass {
 
     /**
      * Get the available discount classes.
-     * @param float $originalcost
+     * @param  float           $originalcost
      * @return discount_base[]
      */
     final protected function get_discount_classes(float $originalcost): array {
         $this->check_dirty();
+
         if (isset($this->discountclasses)) {
             return $this->discountclasses;
         }
@@ -213,32 +219,38 @@ abstract class entity extends stdClass {
             'repurchase',
             'hook',
         ];
+
         foreach ($all as $name) {
             $class = "enrol_wallet\\local\\discounts\\discount\\$name";
+
             if (!class_exists($class) || !$class::is_available($this)) {
                 continue;
             }
             $this->discountclasses[$name] = new $class($this, $originalcost);
         }
+
         return $this->discountclasses;
     }
 
     /**
      * Calculate and return discounts of all types.
-     * @param float $originalcost
+     * @param  float   $originalcost
      * @return float[]
      */
     protected function get_discounts(float $originalcost): array {
         $this->check_dirty();
+
         if (isset($this->discounts)) {
             return $this->discounts;
         }
         $discounts = [];
         $classes = $this->get_discount_classes($originalcost);
+
         foreach ($classes as $name => $class) {
             $discounts[$name] = $class->get_percentage_discount();
         }
         $this->discounts = $discounts;
+
         return $discounts;
     }
 
@@ -258,8 +270,10 @@ abstract class entity extends stdClass {
         };
 
         $this->costafter = $cost - $cost * $discount;
+
         return $discount;
     }
+
     /**
      * Check if the cached values of cost after discount need to be cleared first.
      * @return bool
@@ -283,12 +297,12 @@ abstract class entity extends stdClass {
      */
     protected function check_dirty(): void {
         if ($this->is_dirty()) {
-            unset($this->costafter);
-            unset($this->discounts);
-            unset($this->discountclasses);
+            unset($this->costafter, $this->discounts, $this->discountclasses);
+
             $this->dirty = false;
         }
     }
+
     /**
      * Get the coupon helper class for he code used for discount if existed.
      * @deprecated Please use the coupons offers class to get the coupons class
@@ -310,11 +324,12 @@ abstract class entity extends stdClass {
 
     /**
      * Must be called after successful purchase with discount.
-     * @param float $originalcost
+     * @param  float $originalcost
      * @return void
      */
     public function post_purchase(float $originalcost): void {
         $classes = $this->get_discount_classes($originalcost);
+
         foreach ($classes as $class) {
             $class->after_process();
         }

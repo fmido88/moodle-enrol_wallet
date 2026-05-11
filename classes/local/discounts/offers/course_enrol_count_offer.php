@@ -100,25 +100,30 @@ class course_enrol_count_offer extends offer_item {
      */
     public function is_hidden(): bool {
         global $DB;
+
         if (parent::is_hidden()) {
             return true;
         }
 
         $catid = $DB->get_field('course', 'category', ['id' => $this->courseid]);
+
         if (!$catid) {
             // Shouldn't happen at all.
             return true;
         }
 
         $category = core_course_category::get($catid, IGNORE_MISSING, false, $this->userid);
+
         if (!$category) {
             return false;
         }
 
         $count = $category->get_courses_count(['recursive' => true]);
+
         // Exclude this course.
         return $count - 1 < $this->number;
     }
+
     #[\Override()]
     public function validate_offer(): bool {
         global $DB;
@@ -189,9 +194,9 @@ class course_enrol_count_offer extends offer_item {
     /**
      * Mock an offer object of this type for testing.
      * @param  ?testing_data_generator $gen
-     * @param  ?float                 $discount
-     * @param  ?int                   $number
-     * @param  ?bool                  $activeonly
+     * @param  ?float                  $discount
+     * @param  ?int                    $number
+     * @param  ?bool                   $activeonly
      * @return stdClass
      */
     public static function mock_offer(
@@ -208,6 +213,7 @@ class course_enrol_count_offer extends offer_item {
         if ($number === null) {
             global $PAGE;
             $number = rand(1, 6);
+
             if ($PAGE->course->id === SITEID) {
                 $categoryid = $gen->create_category()->id;
                 $offer->gen_course = $gen->create_course(['category' => $categoryid]);

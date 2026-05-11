@@ -50,10 +50,10 @@ final class instance_test extends \externallib_advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
-        $instance       = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance->cost = 150;
         $DB->update_record('enrol', $instance);
 
@@ -75,10 +75,10 @@ final class instance_test extends \externallib_advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
-        $instance       = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
         $instance->cost = 0;
         $DB->update_record('enrol', $instance);
 
@@ -100,11 +100,11 @@ final class instance_test extends \externallib_advanced_testcase {
 
         $this->resetAfterTest(true);
 
-        $user   = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $course = $this->getDataGenerator()->create_course();
 
-        $instance             = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $instance->cost       = 100;
+        $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
+        $instance->cost = 100;
         $instance->customint6 = 1;
         $DB->update_record('enrol', $instance);
 

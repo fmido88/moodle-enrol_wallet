@@ -26,14 +26,12 @@ namespace enrol_wallet\form;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
  * This is really just a display for user that he has insufficient wallet ballance to enrol.
  */
 class insuf_form extends \moodleform {
-
-
     /**
      * Form definition. Abstract method - always override!
      * @return void
@@ -41,7 +39,6 @@ class insuf_form extends \moodleform {
     public function definition() {
         $data = (object)$this->_customdata;
         $this->_form->addElement('header', 'walletheader', $data->header);
-        $this->_form->addElement('html', '<span style="text-align: center;"><p>'.$data->info.'</p></span>');
+        $this->_form->addElement('html', '<span style="text-align: center;"><p>' . $data->info . '</p></span>');
     }
-
 }

@@ -22,14 +22,14 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-use enrol_wallet\local\utils\options;
-use enrol_wallet\local\urls\manage;
 use enrol_wallet\local\urls\actions;
+use enrol_wallet\local\urls\manage;
+use enrol_wallet\local\utils\options;
 
 require_once('../../../config.php');
-require_once($CFG->dirroot.'/course/lib.php');
-require_once($CFG->libdir.'/formslib.php');
-require_once(__DIR__.'/../lib.php');
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->libdir . '/formslib.php');
+require_once(__DIR__ . '/../lib.php');
 
 // Adding some security.
 require_login();
@@ -50,12 +50,14 @@ $mform = new MoodleQuickForm('bulkinstances_edit', 'post', actions::BULKINSTANCE
 
 // Prepare the course selector.
 $courses = get_courses('all', 'c.sortorder ASC', 'c.id, c.fullname');
+
 foreach ($courses as $course) {
     if ($course->id == 1) {
         continue;
     }
 
     $category = core_course_category::get($course->category, IGNORE_MISSING, true);
+
     if (!$category) {
         continue;
     }
@@ -89,8 +91,12 @@ if ($accounts) {
     $accounts = ((count($accounts) > 1) ? ['' => ''] : []) + $accounts;
     $mform->addElement('select', 'customint1', get_string('paymentaccount', 'payment'), $accounts, ['optional' => true]);
 } else {
-    $mform->addElement('static', 'customint1_text', get_string('paymentaccount', 'payment'),
-        html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-danger'));
+    $mform->addElement(
+        'static',
+        'customint1_text',
+        get_string('paymentaccount', 'payment'),
+        html_writer::span(get_string('noaccountsavilable', 'payment'), 'alert alert-danger')
+    );
     $mform->addElement('hidden', 'customint1');
     $mform->setType('customint1', PARAM_INT);
 }
@@ -98,7 +104,7 @@ $mform->addHelpButton('customint1', 'paymentaccount', 'enrol_wallet');
 
 $enrol = enrol_get_plugin('wallet');
 $supportedcurrencies = options::get_possible_currencies();
-$supportedcurrencies = [ '-1' => $nochange ] + $supportedcurrencies;
+$supportedcurrencies = ['-1' => $nochange] + $supportedcurrencies;
 $mform->addElement('select', 'currency', get_string('currency', 'enrol_wallet'), $supportedcurrencies, ['optional' => true]);
 
 $options = [
@@ -155,7 +161,7 @@ $mform->addElement('text', 'customint3', get_string('maxenrolled', 'enrol_wallet
 $mform->addHelpButton('customint3', 'maxenrolled', 'enrol_wallet');
 $mform->setType('customint3', PARAM_INT);
 
-require_once($CFG->dirroot.'/cohort/lib.php');
+require_once($CFG->dirroot . '/cohort/lib.php');
 
 $cohorts = [
             -1 => $nochange,
@@ -165,8 +171,9 @@ $allcohorts = cohort_get_all_cohorts();
 
 foreach ($allcohorts['cohorts'] as $c) {
     $cohorts[$c->id] = format_string($c->name, true, ['context' => context::instance_by_id($c->contextid)]);
+
     if ($c->idnumber) {
-        $cohorts[$c->id] .= ' ['.s($c->idnumber).']';
+        $cohorts[$c->id] .= ' [' . s($c->idnumber) . ']';
     }
 }
 
@@ -215,7 +222,7 @@ $mform->disabledIf('customdec2', 'customint8', 'notchecked');
 $mform->addHelpButton('customdec2', 'awardvalue', 'enrol_wallet');
 $mform->hideIf('customdec2', 'awards', 'notchecked');
 
-$mform->addElement('submit' , 'submit', 'submit');
+$mform->addElement('submit', 'submit', 'submit');
 $mform->disabledIf('submit', 'courses[]', 'noitemselected');
 
 $mform->addElement('hidden', 'sesskey');
@@ -224,7 +231,7 @@ $mform->setDefault('sesskey', sesskey());
 
 if (!empty($coursesoptions)) {
     // Add some js code to set the value of customchar3 element for the restriction course enrolment.
-    $js = <<<JS
+    $js = <<<'JS'
             function restrictByCourse() {
                 var textelement = document.getElementById("wallet_customchar3");
                 var courseArray = document.getElementById("wallet_courserestriction").selectedOptions;
@@ -236,7 +243,7 @@ if (!empty($coursesoptions)) {
                 textelement.value = selectedValues.join(",");
             }
         JS;
-    $mform->addElement('html', '<script>'.$js.'</script>');
+    $mform->addElement('html', '<script>' . $js . '</script>');
 }
 
 echo $OUTPUT->header();

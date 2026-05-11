@@ -23,7 +23,7 @@ use MoodleQuickForm;
 use stdClass;
 
 /**
- * Class cohorts
+ * Class cohorts.
  *
  * @package    enrol_wallet
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
@@ -32,33 +32,40 @@ use stdClass;
 class cohorts {
     /**
      * Check if the instance is restricted by cohort member.
-     * @param stdClass $instance
+     * @param  stdClass    $instance
      * @return bool|string
      */
     public static function is_restricted(stdClass $instance) {
         global $CFG, $USER, $DB;
+
         if ($instance->customint5) {
             require_once("$CFG->dirroot/cohort/lib.php");
+
             if (!cohort_is_member($instance->customint5, $USER->id)) {
                 $cohort = $DB->get_record('cohort', ['id' => $instance->customint5]);
+
                 if ($cohort) {
                     $a = format_string($cohort->name, true, ['context' => context::instance_by_id($cohort->contextid)]);
+
                     return markdown_to_html(get_string('cohortnonmemberinfo', 'enrol_wallet', $a));
                 }
             }
         }
+
         return false;
     }
+
     /**
      * Adding another course restriction options to enrolment edit form.
-     * @param \MoodleQuickForm $mform
-     * @param instance|stdClass $instance
-     * @param context $context
+     * @param  \MoodleQuickForm  $mform
+     * @param  instance|stdClass $instance
+     * @param  context           $context
      * @return void
      */
     public static function add_to_edit_form(MoodleQuickForm $mform, instance|stdClass $instance, context $context) {
         // Cohort restriction.
         $cohorts = options::get_cohorts_options($instance, $context);
+
         if (\count($cohorts) > 1) {
             $mform->addElement('select', 'customint5', get_string('cohortonly', 'enrol_wallet'), $cohorts);
             $mform->addHelpButton('customint5', 'cohortonly', 'enrol_wallet');

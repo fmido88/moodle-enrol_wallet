@@ -28,15 +28,14 @@ namespace enrol_wallet\form;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->libdir.'/formslib.php');
+require_once($CFG->libdir . '/formslib.php');
 
 /**
  * This is show if the user unable to enrol due to some restriction.
  */
 class empty_form extends \moodleform {
-
     /**
-     * instance
+     * instance.
      * @var object
      */
     protected $instance;
@@ -48,7 +47,6 @@ class empty_form extends \moodleform {
     public function definition() {
         $data = (object)$this->_customdata;
         $this->_form->addElement('header', 'walletheader', $data->header);
-        $this->_form->addElement('html', '<span style="text-align: center;"><p>'.$data->info.'</p></span>');
+        $this->_form->addElement('html', '<span style="text-align: center;"><p>' . $data->info . '</p></span>');
     }
-
 }

@@ -80,7 +80,7 @@ class extend_topup_options {
      */
     public function order_option(string $key, int $order) {
         $options = fullclone($this->options);
-        $target  = null;
+        $target = null;
 
         foreach ($options as $k => $option) {
             if ($key === $option['key']) {
@@ -99,7 +99,7 @@ class extend_topup_options {
         $this->options = [];
 
         if ($order >= \count($options)) {
-            $options[]     = $target;
+            $options[] = $target;
             $this->options = $option;
 
             return;

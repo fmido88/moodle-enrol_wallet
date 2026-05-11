@@ -31,7 +31,7 @@ class before_charger_form_definition {
     /**
      * Constructor for the hook.
      * @param MoodleQuickForm $mform
-     * @param mixed $customdata
+     * @param mixed           $customdata
      */
     public function __construct(
         /** @var MoodleQuickForm The charger form. */
@@ -40,6 +40,7 @@ class before_charger_form_definition {
         protected mixed $customdata = null
     ) {
     }
+
     /**
      * The charger form.
      * @return MoodleQuickForm
@@ -47,6 +48,7 @@ class before_charger_form_definition {
     public function get_form(): \MoodleQuickForm {
         return $this->mform;
     }
+
     /**
      * Getter for form custom data.
      * @return mixed

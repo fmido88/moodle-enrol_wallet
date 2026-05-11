@@ -53,7 +53,7 @@ class timedate {
 
     /**
      * Get the order of the week in a single month.
-     * @param int $time the timestamp
+     * @param  int    $time the timestamp
      * @return string something like 2nd week
      */
     public static function week_of_month(int $time = -1) {
@@ -66,18 +66,19 @@ class timedate {
         $numweek = $cal->get_num_weekdays();
         $week = ceil($date['mday'] / $numweek);
         $map = [
-            1 => "1st",
-            2 => "2nd",
-            3 => "3rd",
-            4 => "4th",
-            5 => "5th",
+            1 => '1st',
+            2 => '2nd',
+            3 => '3rd',
+            4 => '4th',
+            5 => '5th',
         ];
-        return $map[$week] . " " . get_string('week');
+
+        return $map[$week] . ' ' . get_string('week');
     }
 
     /**
      * Get the start of a week for the given timestamp.
-     * @param int $time
+     * @param  int      $time
      * @return bool|int
      */
     public static function start_of_week(int $time = -1) {
@@ -89,9 +90,11 @@ class timedate {
         $weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         $starting = $weekdays[$cal->get_starting_weekday()];
         $week = strtotime("$starting this week", $time);
+
         while ($week > $time) {
             $week -= WEEKSECS;
         }
+
         return $week;
     }
 }

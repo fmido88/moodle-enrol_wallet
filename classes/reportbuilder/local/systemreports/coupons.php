@@ -56,10 +56,11 @@ class coupons extends system_report {
         $this->add_columns_from_entity($couponsentity->get_entity_name());
         $this->add_filters_from_entity($couponsentity->get_entity_name());
 
-        $this->set_checkbox_toggleall(static function(stdClass $row) {
+        $this->set_checkbox_toggleall(static function (stdClass $row) {
             return [$row->id, $row->id];
         });
         $actions = $couponsentity->get_all_actions();
+
         foreach ($actions as $action) {
             $this->add_action($action);
         }

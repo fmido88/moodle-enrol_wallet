@@ -15,19 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * wallet enrol plugin login logout from wordpress action page
+ * wallet enrol plugin login logout from wordpress action page.
  *
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-require_once(__DIR__.'/../../config.php');
+require_once(__DIR__ . '/../../config.php');
 require_once("$CFG->dirroot/login/lib.php");
 
-$userid      = required_param('userid', PARAM_INT);
-$action      = required_param('action', PARAM_TEXT);
-$wantsurl    = optional_param('wantsurl', null, PARAM_URL);
+$userid = required_param('userid', PARAM_INT);
+$action = required_param('action', PARAM_TEXT);
+$wantsurl = optional_param('wantsurl', null, PARAM_URL);
 $newredirect = optional_param('redirect', '', PARAM_URL);
 
 if ($action == 'login') {
@@ -40,9 +40,8 @@ if ($action == 'login') {
 
     $redirect = $wantsurl ?? core_login_get_return_url();
 
-    $wordpress = new \enrol_wallet\wordpress;
+    $wordpress = new \enrol_wallet\wordpress();
     $wordpress->login_logout_user_to_wordpress($USER->id, 'login', $redirect);
-
 } else if ($action == 'logout') {
     global $redirect;
 
@@ -52,9 +51,8 @@ if ($action == 'login') {
         $redirect = (new \moodle_url('/'))->out(false);
     }
 
-    $wordpress = new \enrol_wallet\wordpress;
+    $wordpress = new \enrol_wallet\wordpress();
     $wordpress->login_logout_user_to_wordpress($userid, 'logout', $redirect);
-
 } else {
     throw new moodle_exception('invalidaccess');
 }

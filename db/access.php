@@ -21,11 +21,9 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = [
-
     /* Add or edit enrol-wallet instance in course. */
     'enrol/wallet:config' => [
         'captype'      => 'write',
@@ -157,9 +155,9 @@ $capabilities = [
     ],
     /* Ability to enrol self in courses. */
     'enrol/wallet:enrolself' => [
-        'captype' => 'write',
+        'captype'      => 'write',
         'contextlevel' => CONTEXT_COURSE,
-        'archetypes' => [
+        'archetypes'   => [
             'user' => CAP_ALLOW,
         ],
     ],

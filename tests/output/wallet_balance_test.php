@@ -75,7 +75,7 @@ final class wallet_balance_test extends \advanced_testcase {
         $renderable = new wallet_balance($user->id);
 
         $renderer = helper::get_wallet_renderer();
-        $result   = $renderable->export_for_template($renderer);
+        $result = $renderable->export_for_template($renderer);
     }
 
     /**
@@ -94,7 +94,7 @@ final class wallet_balance_test extends \advanced_testcase {
         $renderable = new wallet_balance($user->id);
 
         $renderer = helper::get_wallet_renderer();
-        $result   = $renderable->export_for_template($renderer);
+        $result = $renderable->export_for_template($renderer);
     }
 
     /**
@@ -104,7 +104,7 @@ final class wallet_balance_test extends \advanced_testcase {
     public function test_wallet_balance_with_category(): void {
         $this->resetAfterTest();
 
-        $user     = $this->getDataGenerator()->create_user();
+        $user = $this->getDataGenerator()->create_user();
         $category = $this->getDataGenerator()->create_category();
 
         // Give user main balance.
@@ -118,6 +118,6 @@ final class wallet_balance_test extends \advanced_testcase {
         $renderable = new wallet_balance($user->id);
 
         $renderer = helper::get_wallet_renderer();
-        $result   = $renderable->export_for_template($renderer);
+        $result = $renderable->export_for_template($renderer);
     }
 }

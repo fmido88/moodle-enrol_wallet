@@ -103,7 +103,7 @@ final class charger_form_test extends \advanced_testcase {
 
         // Create a user with balance.
         $user = $this->getDataGenerator()->create_user();
-        $op   = new balance_op($user->id);
+        $op = new balance_op($user->id);
         $op->credit(200);
 
         // Create the form.
@@ -137,7 +137,7 @@ final class charger_form_test extends \advanced_testcase {
 
         // Create a user with low balance.
         $user = $this->getDataGenerator()->create_user();
-        $op   = new balance_op($user->id);
+        $op = new balance_op($user->id);
         $op->credit(50);
 
         // Create the form.
@@ -172,7 +172,7 @@ final class charger_form_test extends \advanced_testcase {
 
         // Create a user with low balance.
         $user = $this->getDataGenerator()->create_user();
-        $op   = new balance_op($user->id);
+        $op = new balance_op($user->id);
         $op->credit(50);
 
         // Create the form.
@@ -358,7 +358,7 @@ final class charger_form_test extends \advanced_testcase {
 
         // Create a user with balance.
         $user = $this->getDataGenerator()->create_user();
-        $op   = new balance_op($user->id);
+        $op = new balance_op($user->id);
         $op->credit(200);
 
         // Create the form.
@@ -395,7 +395,7 @@ final class charger_form_test extends \advanced_testcase {
 
         // Create a user with balance.
         $user = $this->getDataGenerator()->create_user();
-        $op   = new balance_op($user->id);
+        $op = new balance_op($user->id);
         $op->credit(200);
 
         // Verify initial balance.

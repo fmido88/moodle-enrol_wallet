@@ -61,7 +61,7 @@ final class cm_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $module = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
 
-        $cm      = new cm($module->cmid);
+        $cm = new cm($module->cmid);
         $context = $cm->get_context();
 
         $this->assertInstanceOf('context_module', $context);
@@ -78,7 +78,7 @@ final class cm_test extends \advanced_testcase {
         $course = $this->getDataGenerator()->create_course();
         $module = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
 
-        $cm     = new cm($module->cmid);
+        $cm = new cm($module->cmid);
         $result = $cm->get_course();
 
         $this->assertEquals($course->id, $result->id);
@@ -97,7 +97,7 @@ final class cm_test extends \advanced_testcase {
             'name'   => 'Test Page',
         ]);
 
-        $cm   = new cm($module->cmid);
+        $cm = new cm($module->cmid);
         $name = $cm->get_name();
 
         $this->assertEquals('Test Page', $name);
@@ -125,7 +125,7 @@ final class cm_test extends \advanced_testcase {
         ];
 
         $DB->update_record('course_modules', (object)[
-            'id' => $module->cmid,
+            'id'           => $module->cmid,
             'availability' => json_encode($availability),
         ]);
 
@@ -157,22 +157,22 @@ final class cm_test extends \advanced_testcase {
         ];
 
         $DB->update_record('course_modules', (object)[
-            'id' => $module->cmid,
+            'id'           => $module->cmid,
             'availability' => json_encode($availability),
         ]);
 
         $fielddata = (object)[
-            'name' => 'discount',
+            'name'      => 'discount',
             'shortname' => 'discount',
-            'datatype' => 'text',
+            'datatype'  => 'text',
         ];
         $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
         config::make()->discount_field = $fieldid;
 
         $DB->insert_record('user_info_data', (object)[
-            'userid' => $user->id,
+            'userid'  => $user->id,
             'fieldid' => $fieldid,
-            'data' => '25% discount',
+            'data'    => '25% discount',
         ]);
 
         $cm = new cm($module->cmid, $user->id);

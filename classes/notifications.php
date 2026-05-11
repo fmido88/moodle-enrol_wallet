@@ -21,26 +21,26 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 /**
- * Notifications class
- *
+ * Notifications class.
  */
 class notifications {
     /**
      * Sending notification after a wallet transaction.
-     * @param array $data
-     * @return int the id of the message.
+     * @param  array $data
+     * @return int   the id of the message.
      */
     public static function transaction_notify($data) {
-        $userid  = $data['userid'];
-        $type    = $data['type'];
-        $amount  = $data['amount'];
-        $before  = $data['balbefore'];
+        $userid = $data['userid'];
+        $type = $data['type'];
+        $amount = $data['amount'];
+        $before = $data['balbefore'];
         $balance = $data['balance'];
-        $desc    = $data['descripe'];
-        $time    = userdate($data['timecreated']);
+        $desc = $data['descripe'];
+        $time = userdate($data['timecreated']);
 
         $a = (object)[
             'type'    => $type,
@@ -57,6 +57,7 @@ class notifications {
         $message->userfrom = \core_user::get_noreply_user(); // If the message is 'from' a specific user you can set them here.
         $message->userto = $user;
         $message->subject = get_string('messagesubject', 'enrol_wallet', $type);
+
         if ($type == 'credit') {
             $messagebody = get_string('messagebody_credit', 'enrol_wallet', $a);
         } else if ($type == 'debit') {
@@ -76,6 +77,7 @@ class notifications {
 
         // Set the page context to resolve the coding problem with airnotifier processor.
         global $PAGE;
+
         if (!is_object($PAGE->context)) {
             $PAGE->set_context(\context_course::instance(SITEID));
         }
@@ -84,6 +86,4 @@ class notifications {
 
         return $messageid;
     }
-
 }
-

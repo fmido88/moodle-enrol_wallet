@@ -51,7 +51,7 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->box($donemsg);
 
-$options = ['type' => 'primary', 'primary' => 'true', 'class' => 'continuebutton', 'onClick' => "self.close()"];
+$options = ['type' => 'primary', 'primary' => 'true', 'class' => 'continuebutton', 'onClick' => 'self.close()'];
 echo $OUTPUT->single_button(new moodle_url('/admin/settings.php'), get_string('continue'), 'post', $options);
 
 echo $OUTPUT->footer();

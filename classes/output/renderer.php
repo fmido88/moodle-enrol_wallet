@@ -32,33 +32,37 @@ use plugin_renderer_base;
 class renderer extends plugin_renderer_base {
     /**
      * Render payment info and payment button for an instance.
-     * @param payment_info $widget
+     * @param  payment_info $widget
      * @return string
      */
     public function render_payment_info(payment_info $widget) {
         $data = (object)$widget->export_for_template($this);
+
         if (empty($data)) {
             return '';
-        } else if (isset($data->nocost)) {
-            return $data->nocost;
-        } else {
-            return $this->render_from_template('enrol_wallet/payment_region', $data);
         }
+
+        if (isset($data->nocost)) {
+            return $data->nocost;
+        }
+
+        return $this->render_from_template('enrol_wallet/payment_region', $data);
     }
 
     /**
      * Render the balance details for a certain user.
-     * @param wallet_balance $widget
+     * @param  wallet_balance $widget
      * @return string
      */
     public function render_wallet_balance(wallet_balance $widget) {
         $data = (object)$widget->export_for_template($this);
+
         return $this->render_from_template('enrol_wallet/display', $data);
     }
 
     /**
      * Render all topping up options.
-     * @param topup_options $widget
+     * @param  topup_options $widget
      * @return string
      */
     public function render_topup_options(topup_options $widget) {
@@ -66,16 +70,18 @@ class renderer extends plugin_renderer_base {
             return '';
         }
         $data = $widget->export_for_template($this);
+
         return $this->render_from_template('enrol_wallet/topup_options', $data);
     }
 
     /**
      * Render the transaction statistical chart.
-     * @param transaction_chart $widget
+     * @param  transaction_chart $widget
      * @return string
      */
     public function render_transaction_chart(transaction_chart $widget) {
         $corerenderer = $this->get_page()->get_renderer('core');
+
         return $widget->get_output($corerenderer);
     }
 }

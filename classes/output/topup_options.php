@@ -16,15 +16,15 @@
 
 namespace enrol_wallet\output;
 
-use core\output\templatable;
 use core\output\renderable;
 use core\output\renderer_base;
+use core\output\templatable;
 use core\url;
 use core_user;
+use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\hook\extend_topup_options;
 use enrol_wallet\local\config;
 use enrol_wallet\local\coupons\coupons;
-use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\payment;
@@ -32,8 +32,8 @@ use stdClass;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot.'/enrol/wallet/lib.php');
-require_once($CFG->dirroot.'/user/lib.php');
+require_once($CFG->dirroot . '/enrol/wallet/lib.php');
+require_once($CFG->dirroot . '/user/lib.php');
 
 /**
  * Prepare all topup options for output.
@@ -48,11 +48,13 @@ class topup_options implements templatable, renderable {
      * @var stdClass
      */
     public readonly stdClass $user;
+
     /**
      * If false don't display anything.
      * @var bool
      */
     public bool $display = true;
+
     /**
      * Prepare all available topup options for rendering.
      * @return void
@@ -65,6 +67,7 @@ class topup_options implements templatable, renderable {
         } else if ($username = optional_param('s', null, PARAM_USERNAME)) {
             // Only used in auth_wallet.
             $user = get_complete_user_data('username', $username);
+
             if ($user) {
                 $this->user = $user;
             }
@@ -72,6 +75,7 @@ class topup_options implements templatable, renderable {
 
         if (!isset($this->user)) {
             $this->display = false;
+
             return;
         }
     }
@@ -82,6 +86,7 @@ class topup_options implements templatable, renderable {
      */
     public function export_policy_warn() {
         $policy = config::make()->refundpolicy;
+
         if (empty($policy)) {
             return ['haswarn' => false];
         }
@@ -99,17 +104,17 @@ class topup_options implements templatable, renderable {
      */
     protected function get_mocked_instance() {
         // Set the data we want to send to forms.
-        $instance = new stdClass;
-        $data = new stdClass;
+        $instance = new stdClass();
+        $data = new stdClass();
         $config = config::make();
 
-        $instance->id         = 0;
-        $instance->courseid   = SITEID;
-        $instance->currency   = $config->currency;
+        $instance->id = 0;
+        $instance->courseid = SITEID;
+        $instance->currency = $config->currency;
         $instance->customint1 = $config->paymentaccount;
 
         $data->instance = $instance;
-        $data->user     = $this->user;
+        $data->user = $this->user;
 
         return $data;
     }
@@ -126,6 +131,7 @@ class topup_options implements templatable, renderable {
         $bundles = new bundles();
         $renderer = helper::get_wallet_renderer();
         $out = $renderer->render($bundles);
+
         if (empty(trim($out ?? ''))) {
             return null;
         }
@@ -166,6 +172,7 @@ class topup_options implements templatable, renderable {
         // Check if fixed coupons enabled.
         $enabledtypes = \enrol_wallet\local\coupons\types\base::get_enabled_classes();
         $hastopup = false;
+
         foreach ($enabledtypes as $class) {
             if ($class::is_topup_coupon()) {
                 $hastopup = true;
@@ -201,10 +208,10 @@ class topup_options implements templatable, renderable {
      */
     public function get_vc_credit_form() {
         global $CFG;
+
         // If plugin block_vc exist, add credit options by it.
         if (file_exists("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php")
                 && (bool)get_config('block_vc', 'enablecredit')) {
-
             require_once("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php");
             $action = new url('/blocks/vc/credit.php');
             $vcform = new \block_vc\form\vc_credit_form($action);
@@ -215,28 +222,32 @@ class topup_options implements templatable, renderable {
                 'key'     => 'vc',
             ];
         }
+
         return null;
     }
 
     /**
      * Get teller men info.
-     * @param renderer_base $output
+     * @param  renderer_base                                                $output
      * @return array{content: bool|string, key: string, label: string}|null
      */
     public function get_teller_men(renderer_base $output) {
         // Display teller men (user with capabilities to credit and chosen in the settings to be displayed).
         $tellermen = config::make()->tellermen;
+
         if (empty($tellermen)) {
             return null;
         }
 
         $chargerids = explode(',', $tellermen);
         $tellermen = [];
+
         foreach ($chargerids as $tellerid) {
             if (empty($tellerid)) {
                 continue;
             }
             $teller = core_user::get_user($tellerid);
+
             if (!$teller || isguestuser($teller) || !core_user::is_real_user($tellerid)) {
                 continue;
             }
@@ -250,6 +261,7 @@ class topup_options implements templatable, renderable {
             }
 
             $contactinfo = null;
+
             if ($info = get_config('enrol_wallet', "teller_{$tellerid}")) {
                 $contactinfo = format_text($info);
             }
@@ -273,8 +285,8 @@ class topup_options implements templatable, renderable {
     }
 
     /**
-     * Summary of export_for_template
-     * @param renderer_base $output
+     * Summary of export_for_template.
+     * @param  renderer_base                                                                                      $output
      * @return array{display: bool}|array{display: bool, items: array, haswarn: bool, policy: mixed, topup: bool}
      */
     public function export_for_template(renderer_base $output) {

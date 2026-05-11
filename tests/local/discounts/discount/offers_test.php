@@ -19,8 +19,9 @@ namespace enrol_wallet\local\discounts\discount;
 use enrol_wallet\local\discounts\offers as offers_list;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\entities\section;
+
 /**
- * Summary of offers_test
+ * Summary of offers_test.
  *
  * @package    enrol_wallet
  * @category   test
@@ -42,9 +43,9 @@ final class offers_test extends \advanced_testcase {
 
         $record->customtext3 = json_encode([
             (object)[
-                'type' => offers_list::TIME,
-                'from' => $now - DAYSECS,
-                'to' => $now + DAYSECS,
+                'type'     => offers_list::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
                 'discount' => 20,
             ],
         ]);
@@ -78,33 +79,33 @@ final class offers_test extends \advanced_testcase {
 
         $record->customtext3 = json_encode([
             (object)[
-                'type' => offers_list::TIME,
-                'from' => $now - DAYSECS,
-                'to' => $now + DAYSECS,
+                'type'     => offers_list::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
                 'discount' => 30,
             ],
             (object)[
-                'type' => offers_list::TIME,
-                'from' => $now - DAYSECS,
-                'to' => $now + DAYSECS,
+                'type'     => offers_list::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
                 'discount' => 20,
             ],
             (object)[
-                'type' => offers_list::TIME,
-                'from' => $now - DAYSECS,
-                'to' => $now + DAYSECS,
+                'type'     => offers_list::TIME,
+                'from'     => $now - DAYSECS,
+                'to'       => $now + DAYSECS,
                 'discount' => 10,
             ],
         ]);
         $DB->update_record('enrol', $record);
 
-        $sumentity = new class($record, $user->id) extends instance {
+        $sumentity = new class ($record, $user->id) extends instance {
             #[\Override()]
             public function get_behavior(): int {
                 return self::const('sum');
             }
         };
-        $seqentity = new class($record, $user->id) extends instance {
+        $seqentity = new class ($record, $user->id) extends instance {
             #[\Override()]
             public function get_behavior(): int {
                 return self::const('seq');

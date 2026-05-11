@@ -29,9 +29,9 @@ class debit_exception extends coding_exception {
     /**
      * Thrown when the debit misbehave due to some miscalculation which should
      * never happen.
-     * @param float $amount The amount suppose to be deducted.
-     * @param float $before The balance before debit.
-     * @param float $after The balance after debit.
+     * @param float  $amount    The amount suppose to be deducted.
+     * @param float  $before    The balance before debit.
+     * @param float  $after     The balance after debit.
      * @param string $debuginfo
      */
     public function __construct(float $amount, float $before, float $after, $debuginfo = null) {

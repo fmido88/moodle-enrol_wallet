@@ -21,13 +21,14 @@
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
 namespace enrol_wallet;
 
 use enrol_wallet\local\config;
+use enrol_wallet\local\utils\options;
 use enrol_wallet\local\utils\timedate;
 use enrol_wallet\local\wallet\balance;
 use enrol_wallet\local\wallet\balance_op;
-use enrol_wallet\local\utils\options;
 use enrol_wallet_plugin;
 
 /**
@@ -39,7 +40,7 @@ use enrol_wallet_plugin;
  */
 final class enrol_wallet_test extends \advanced_testcase {
     /**
-     * Basic test for enrol wallet plugin
+     * Basic test for enrol wallet plugin.
      * @covers \enrol_wallet_plugin
      */
     public function test_basics(): void {
@@ -63,7 +64,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     public function test_sync_nothing(): void {
         global $SITE;
 
-        $walletplugin = new enrol_wallet_plugin;
+        $walletplugin = new enrol_wallet_plugin();
 
         $trace = new \null_progress_trace();
 
@@ -73,7 +74,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
-     * Test longtimnosee
+     * Test longtimnosee.
      * @covers ::sync
      * @return void
      */
@@ -81,7 +82,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         global $DB;
         $this->resetAfterTest();
 
-        $walletplugin = new enrol_wallet_plugin;
+        $walletplugin = new enrol_wallet_plugin();
         $manualplugin = enrol_get_plugin('manual');
         $this->assertNotEmpty($manualplugin);
 
@@ -124,16 +125,16 @@ final class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->enrol_user($instance1, $user2->id, $studentrole->id);
         $walletplugin->enrol_user($instance1, $user3->id, $studentrole->id);
         $this->assertEquals(3, $DB->count_records('user_enrolments'));
-        $DB->insert_record('user_lastaccess', ['userid' => $user2->id,
-                                                    'courseid' => $course1->id,
+        $DB->insert_record('user_lastaccess', ['userid'          => $user2->id,
+                                                    'courseid'   => $course1->id,
                                                     'timeaccess' => $now - DAYSECS * 20,
                                                 ]);
-        $DB->insert_record('user_lastaccess', ['userid' => $user3->id,
-                                                    'courseid' => $course1->id,
+        $DB->insert_record('user_lastaccess', ['userid'          => $user3->id,
+                                                    'courseid'   => $course1->id,
                                                     'timeaccess' => $now - DAYSECS * 2,
                                                 ]);
-        $DB->insert_record('user_lastaccess', ['userid' => $user4->id,
-                                                    'courseid' => $course1->id,
+        $DB->insert_record('user_lastaccess', ['userid'          => $user4->id,
+                                                    'courseid'   => $course1->id,
                                                     'timeaccess' => $now - 60,
                                                 ]);
 
@@ -146,16 +147,16 @@ final class enrol_wallet_test extends \advanced_testcase {
         $walletplugin->enrol_user($instance3b, $user1->id, $teacherrole->id);
         $walletplugin->enrol_user($instance3b, $user4->id, $teacherrole->id);
         $this->assertEquals(8, $DB->count_records('user_enrolments'));
-        $DB->insert_record('user_lastaccess', ['userid' => $user2->id,
-                                                    'courseid' => $course3->id,
+        $DB->insert_record('user_lastaccess', ['userid'          => $user2->id,
+                                                    'courseid'   => $course3->id,
                                                     'timeaccess' => $now - DAYSECS * 11,
                                                 ]);
-        $DB->insert_record('user_lastaccess', ['userid' => $user3->id,
-                                                    'courseid' => $course3->id,
+        $DB->insert_record('user_lastaccess', ['userid'          => $user3->id,
+                                                    'courseid'   => $course3->id,
                                                     'timeaccess' => $now - DAYSECS * 200,
                                                 ]);
-        $DB->insert_record('user_lastaccess', ['userid' => $user4->id,
-                                                    'courseid' => $course3->id,
+        $DB->insert_record('user_lastaccess', ['userid'          => $user4->id,
+                                                    'courseid'   => $course3->id,
                                                     'timeaccess' => $now - DAYSECS * 200,
                                                 ]);
 
@@ -298,19 +299,19 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->assertEquals(7, $DB->count_records('role_assignments'));
         $this->assertEquals(5, $DB->count_records('role_assignments', ['roleid' => $studentrole->id]));
         $this->assertEquals(1, $DB->count_records('role_assignments', ['roleid' => $teacherrole->id]));
-        $this->assertFalse($DB->record_exists('role_assignments', ['contextid' => $context1->id,
+        $this->assertFalse($DB->record_exists('role_assignments', ['contextid'   => $context1->id,
                                                                         'userid' => $user3->id,
                                                                         'roleid' => $studentrole->id,
                                                                     ]));
-        $this->assertFalse($DB->record_exists('role_assignments', ['contextid' => $context3->id,
+        $this->assertFalse($DB->record_exists('role_assignments', ['contextid'   => $context3->id,
                                                                         'userid' => $user2->id,
                                                                         'roleid' => $studentrole->id,
                                                                     ]));
-        $this->assertFalse($DB->record_exists('role_assignments', ['contextid' => $context3->id,
+        $this->assertFalse($DB->record_exists('role_assignments', ['contextid'   => $context3->id,
                                                                         'userid' => $user1->id,
                                                                         'roleid' => $teacherrole->id,
                                                                     ]));
-        $this->assertTrue($DB->record_exists('role_assignments', ['contextid' => $context3->id,
+        $this->assertTrue($DB->record_exists('role_assignments', ['contextid'    => $context3->id,
                                                                         'userid' => $user1->id,
                                                                         'roleid' => $studentrole->id,
                                                                     ]));
@@ -524,7 +525,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
-     * Test show enrol me link
+     * Test show enrol me link.
      * @covers ::show_enrolme_link()
      */
     public function test_show_enrolme_link(): void {
@@ -737,8 +738,10 @@ final class enrol_wallet_test extends \advanced_testcase {
         // Guest user cannot enrol.
         $guest = $DB->get_record('user', ['id' => $CFG->siteguest]);
         $this->setUser($guest);
-        $this->assertStringContainsString(get_string('noguestaccess', 'enrol'),
-                $walletplugin->can_self_enrol($instance1, true));
+        $this->assertStringContainsString(
+            get_string('noguestaccess', 'enrol'),
+            $walletplugin->can_self_enrol($instance1, true)
+        );
 
         $this->setUser($user1);
         $this->assertTrue($walletplugin->can_self_enrol($instance1, true));
@@ -823,7 +826,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $DB->update_record('enrol', $instance9);
         $walletplugin->update_status($instance9, ENROL_INSTANCE_ENABLED);
         $a = [
-            'number' => 1,
+            'number'  => 1,
             'courses' => '(xcourse8)',
         ];
         $msg = get_string('othercourserestriction', 'enrol_wallet', $a);
@@ -852,9 +855,9 @@ final class enrol_wallet_test extends \advanced_testcase {
         $op3 = new balance_op($user3->id);
         $op3->credit(70);
         $DB->insert_record('user_info_data', (object)[
-            'userid' => $user3->id,
+            'userid'  => $user3->id,
             'fieldid' => $fieldid,
-            'data'   => '40% discount',
+            'data'    => '40% discount',
         ]);
 
         $this->setUser($user3);
@@ -1039,7 +1042,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
-     * Summary of test_is_course_enrolment_restriction
+     * Summary of test_is_course_enrolment_restriction.
      * @covers ::is_course_enrolment_restriction()
      * @return void
      */
@@ -1065,7 +1068,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $courses[] = $course6->id;
 
         $instance = $DB->get_record('enrol', ['enrol' => 'wallet', 'courseid' => $course1->id]);
-        $data = new \stdClass;
+        $data = new \stdClass();
         $data->status = ENROL_INSTANCE_ENABLED;
         $data->cost = 50;
         $data->customint1 = 1;
@@ -1140,14 +1143,14 @@ final class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
-     * test for hide_due_cheaper_instance function
+     * test for hide_due_cheaper_instance function.
      * @covers ::hide_due_cheaper_instance()
      */
     public function test_hide_due_cheaper_instance(): void {
         global $DB;
         self::resetAfterTest(true);
 
-        $walletplugin = new enrol_wallet_plugin;
+        $walletplugin = new enrol_wallet_plugin();
         $user1 = $this->getDataGenerator()->create_user();
         $op = new balance_op($user1->id);
         $op->credit(250);
@@ -1174,7 +1177,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         $walletplugin->update_instance($instance2, (object)$data2);
 
-        $walletplugin = new enrol_wallet_plugin;
+        $walletplugin = new enrol_wallet_plugin();
         // Sufficient balance for both.
         $this->setUser($user1);
         $this->assertTrue($walletplugin->hide_due_cheaper_instance($instance1));
@@ -1192,7 +1195,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
         // Cheaper but cannot enrol late.
         $data2['enrolenddate'] = timedate::time() - 3 * DAYSECS;
-        $walletplugin->update_instance($instance2, (object) $data2);
+        $walletplugin->update_instance($instance2, (object)$data2);
 
         $this->setUser($user1);
         // Sufficient balance.
@@ -1324,7 +1327,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->setAdminUser();
         // Set to 10%.
         $config->unenrolrefundfee = 10;
-        $wallet = new enrol_wallet_plugin;
+        $wallet = new enrol_wallet_plugin();
 
         $this->setUser($user);
         $wallet->enrol_self($instance);
@@ -1343,7 +1346,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     }
 
     /**
-     * Summary of test_get_unenrolself_link
+     * Summary of test_get_unenrolself_link.
      * @covers ::get_unenrolself_link()
      * @return void
      */
@@ -1357,11 +1360,11 @@ final class enrol_wallet_test extends \advanced_testcase {
         $op = new balance_op($user->id);
         $op->credit(100);
 
-        $wallet = new enrol_wallet_plugin;
+        $wallet = new enrol_wallet_plugin();
         $config = config::make();
         // Update the instance such that the enrol duration is 2 hours.
         $instance = $DB->get_record('enrol', ['courseid' => $course->id, 'enrol' => 'wallet'], '*', MUST_EXIST);
-        $data = new \stdClass;
+        $data = new \stdClass();
         $data->customint6 = 1;
         $data->enrolperiod = HOURSECS * 10;
         $data->cost = 50;
@@ -1378,7 +1381,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $this->setAdminUser();
         $config->unenrolselfenabled = 1;
 
-        $wallet = new enrol_wallet_plugin;
+        $wallet = new enrol_wallet_plugin();
         $this->setUser($user);
         $this->assertNotEmpty($wallet->get_unenrolself_link($instance));
 
@@ -1387,7 +1390,7 @@ final class enrol_wallet_test extends \advanced_testcase {
         $config->unenrollimitafter = 2 * HOURSECS;
         $config->unenrollimitbefor = 2 * HOURSECS;
 
-        $wallet = new enrol_wallet_plugin;
+        $wallet = new enrol_wallet_plugin();
         // First condition limit after enrol start time by 2 hours.
         // Second condition limit is before the enrol end time by 2 hours.
         // Can unenrol before the first condition.

@@ -58,6 +58,7 @@ class null_type extends base {
     #[\Override()]
     public function is_valid_record(int $userid, ?string &$error = ''): bool {
         $error = get_string('coupon_invalidrecord', 'enrol_wallet');
+
         return false;
     }
 

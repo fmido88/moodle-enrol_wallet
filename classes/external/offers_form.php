@@ -60,9 +60,9 @@ class offers_form extends external_api {
         $params = compact('type', 'increment', 'course', 'parentset');
         $params = self::validate_parameters(self::get_form_fragment_parameters(), $params);
 
-        $type      = $params['type'];
-        $i         = $params['increment'];
-        $courseid  = $params['course'];
+        $type = $params['type'];
+        $i = $params['increment'];
+        $courseid = $params['course'];
         $parentset = $params['parentset'];
 
         require_login($courseid, false);
