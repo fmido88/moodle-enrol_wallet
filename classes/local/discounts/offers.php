@@ -366,9 +366,9 @@ class offers {
         $behavior = (int)config::instance()->discount_behavior;
 
         return match ($behavior) {
-            self::B_MAX => self::calculate_max_discount($discounts, true),
-            self::B_SUM => self::calculate_sum_discount($discounts, true),
-            self::B_SEQ => self::calculate_sequential_discount($discounts, true),
+            self::const('max') => self::calculate_max_discount($discounts, true),
+            self::const('sum') => self::calculate_sum_discount($discounts, true),
+            self::const('seq') => self::calculate_sequential_discount($discounts, true),
         };
     }
 

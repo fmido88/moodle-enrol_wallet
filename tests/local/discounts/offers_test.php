@@ -69,7 +69,7 @@ final class offers_test extends \advanced_testcase {
         $maxdiscount = $offerhelper->get_max_discount();
         $this->assertEquals(0, $maxdiscount);
 
-        config::make()->discount_behavior = instance::B_MAX;
+        config::make()->discount_behavior = instance::const('max');
 
         // Test 2: Multiple offers instance.
         $instance = new \stdClass();
@@ -99,11 +99,11 @@ final class offers_test extends \advanced_testcase {
         $maxdiscount2 = $offerhelper->get_max_discount();
         $this->assertEquals(25, $maxdiscount2);
 
-        config::make()->discount_behavior = instance::B_SUM;
+        config::make()->discount_behavior = instance::const('sum');
         $maxdiscount3 = $offerhelper->get_max_discount();
         $this->assertEquals(50, $maxdiscount3);
 
-        config::make()->discount_behavior = instance::B_SEQ;
+        config::make()->discount_behavior = instance::const('seq');
         $maxdiscount4 = $offerhelper->get_max_discount();
         // First discount 25, remain 75%. Second 15 on 75% = 11.25, total 36.25, remain 63.75.
         // Third 10 on 63.75% = 6.375, total 42.625.
@@ -118,15 +118,15 @@ final class offers_test extends \advanced_testcase {
         $offersobj = new offers($instance, $user->id);
 
         // B_MAX: highest discount.
-        config::make()->discount_behavior = instance::B_MAX;
+        config::make()->discount_behavior = instance::const('max');
         $this->assertEquals(30, $offersobj->get_max_discount());
 
         // B_SUM: total, capped 100.
-        config::make()->discount_behavior = instance::B_SUM;
+        config::make()->discount_behavior = instance::const('sum');
         $this->assertEquals(60, $offersobj->get_max_discount());
 
         // B_SEQ: sequential application.
-        config::make()->discount_behavior = instance::B_SEQ;
+        config::make()->discount_behavior = instance::const('seq');
         $expectedseq = 1 - (1 - 0.30) * (1 - 0.20) * (1 - 0.10); // 49.4%
         $this->assertEqualsWithDelta($expectedseq * 100, $offersobj->get_max_discount(), 0.1);
     }
@@ -329,15 +329,15 @@ final class offers_test extends \advanced_testcase {
         $this->assertCount(\count($rawoffers), $rawoffers2);
         $this->assertNotEmpty($rawoffers2);
 
-        config::make()->discount_behavior = instance::B_MAX;
+        config::make()->discount_behavior = instance::const('max');
         $maxdiscount2 = $offers->get_max_discount();
         $this->assertEquals($discount, $maxdiscount2);
 
-        config::make()->discount_behavior = instance::B_SUM;
+        config::make()->discount_behavior = instance::const('sum');
         $maxdiscount2 = $offers->get_max_discount();
         $this->assertEquals(min($sum, 100), $maxdiscount2);
 
-        config::make()->discount_behavior = instance::B_SEQ;
+        config::make()->discount_behavior = instance::const('seq');
         $maxdiscount2 = $offers->get_max_discount();
         $seq = $discount;
 

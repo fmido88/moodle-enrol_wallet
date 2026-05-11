@@ -239,9 +239,9 @@ class options {
      */
     public static function get_discount_behavior_options(): array {
         return [
-            instance::B_SEQ => get_string('discount_behavior_sequential', 'enrol_wallet'),
-            instance::B_SUM => get_string('discount_behavior_sum', 'enrol_wallet'),
-            instance::B_MAX => get_string('discount_behavior_max', 'enrol_wallet'),
+            instance::const('seq') => get_string('discount_behavior_sequential', 'enrol_wallet'),
+            instance::const('sum') => get_string('discount_behavior_sum', 'enrol_wallet'),
+            instance::const('max') => get_string('discount_behavior_max', 'enrol_wallet'),
         ];
     }
 }

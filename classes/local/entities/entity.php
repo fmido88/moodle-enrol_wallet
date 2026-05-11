@@ -151,7 +151,7 @@ abstract class entity extends stdClass {
      * @return int
      */
     public function get_behavior(): int {
-        return self::B_MAX;
+        return self::const('max');
     }
 
     /**
@@ -190,7 +190,7 @@ abstract class entity extends stdClass {
 
     /**
      * Get the coupons area describe this entity, one of constants coupons::AREA_.
-     * @return void
+     * @return int
      */
     abstract public static function get_coupon_area(): int;
 
@@ -252,9 +252,9 @@ abstract class entity extends stdClass {
     final protected function calculate_discount(float $cost): float {
         $discounts = $this->get_discounts($cost);
         $discount = match($this->get_behavior()) {
-            self::B_MAX => $this->calculate_max_discount($discounts),
-            self::B_SEQ => $this->calculate_sequential_discount($discounts),
-            self::B_SUM => $this->calculate_sum_discount($discounts),
+            self::const('max') => $this->calculate_max_discount($discounts),
+            self::const('seq') => $this->calculate_sequential_discount($discounts),
+            self::const('sum') => $this->calculate_sum_discount($discounts),
         };
 
         $this->costafter = $cost - $cost * $discount;

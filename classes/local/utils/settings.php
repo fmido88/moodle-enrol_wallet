@@ -651,7 +651,7 @@ class settings {
             'enrol_wallet/discount_behavior',
             get_string('discount_behavior', 'enrol_wallet'),
             get_string('discount_behavior_desc', 'enrol_wallet'),
-            instance::B_SEQ,
+            instance::const('seq'),
             $behaviors
         ));
         // Get the custom profile fields, to select the discount field.

@@ -49,9 +49,9 @@ class hook extends discount_base {
         \core\di::get(\core\hook\manager::class)->dispatch($hook);
 
         return match($this->entity->get_behavior()) {
-            self::B_MAX => $this->calculate_max_discount($this->values, true),
-            self::B_SUM => $this->calculate_sum_discount($this->values, true),
-            self::B_SEQ => $this->calculate_sequential_discount($this->values, true),
+            self::const('max') => $this->calculate_max_discount($this->values, true),
+            self::const('sum') => $this->calculate_sum_discount($this->values, true),
+            self::const('seq') => $this->calculate_sequential_discount($this->values, true),
         };
     }
 

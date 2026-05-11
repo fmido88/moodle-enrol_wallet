@@ -945,7 +945,7 @@ class offers_extensive_test extends \advanced_testcase {
         $instance->cost = 1000.00;
         $instance->update();
 
-        config::make()->discount_behavior = instance::B_SUM;
+        config::make()->discount_behavior = instance::const('sum');
         $discountedcost = $instance->get_cost_after_discount();
         $expectedcost = 1000 * (100 - $offersobj->get_sum_discounts()) / 100;
         ob_start();
@@ -953,7 +953,7 @@ class offers_extensive_test extends \advanced_testcase {
         $this->assertEqualsWithDelta($expectedcost, $discountedcost, 0.01, ob_get_clean());
 
         $instance->mark_as_dirty();
-        config::make()->discount_behavior = instance::B_MAX;
+        config::make()->discount_behavior = instance::const('max');
         $discountedcost = $instance->get_cost_after_discount();
         $expectedcost = 1000 * (100 - $offersobj->get_max_valid_discount()) / 100;
         $this->assertEqualsWithDelta($expectedcost, $discountedcost, 0.01);
