@@ -1,5 +1,10 @@
 # Wallet Enrollment for Moodle #
 ==========
+## V 6.2.2 ##
+- Revert some changed for php 8.1 compatibility.
+- Add more phpunit tests.
+- Fix bugs.
+
 ## V 6.2.1 ##
 - Fix coupon edit error.
 
