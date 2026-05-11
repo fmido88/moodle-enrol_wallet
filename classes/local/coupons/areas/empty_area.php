@@ -32,12 +32,14 @@ class empty_area extends base {
      */
     public const AREA = -1;
 
+    // phpcs:disable Generic.CodeAnalysis.UselessOverridingMethod.Found
     /**
      * Constructor for empty area.
      */
     public function __construct() {
         parent::__construct(0);
     }
+    // phpcs:enable Generic.CodeAnalysis.UselessOverridingMethod.Found
 
     #[\Override()]
     public function get_balance_operation(int $userid, \enrol_wallet\local\coupons\types\base $type): balance_op {

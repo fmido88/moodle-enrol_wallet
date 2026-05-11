@@ -25,6 +25,7 @@
 
 namespace enrol_wallet\local\entities;
 
+use enrol_wallet\local\config;
 use enrol_wallet\local\utils\timedate;
 use stdClass;
 
@@ -103,6 +104,83 @@ final class section_test extends \advanced_testcase {
 
         $this->assertEquals($context->instanceid, $course->id);
         $this->assertInstanceOf('context_course', $context);
+    }
+
+    /**
+     * Test get_cost_after_discount for section costs and invalid cost values.
+     * @covers ::get_cost_after_discount()
+     */
+    public function test_get_cost_after_discount_with_valid_and_invalid_costs(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $sectionid = $this->get_section_from_course($course->id);
+
+        $availability = (object)[
+            'c' => [
+                (object)[
+                    'type' => 'wallet',
+                    'cost' => 65,
+                ],
+            ],
+        ];
+
+        $DB->update_record('course_sections', (object)[
+            'id' => $sectionid,
+            'availability' => json_encode($availability),
+        ]);
+
+        $section = new section($sectionid, $user->id);
+
+        $this->assertNull($section->get_cost_after_discount(100.0));
+        $this->assertSame(65.0, $section->get_cost_after_discount(65.0));
+    }
+
+    /**
+     * Test get_cost_after_discount with profile field discount.
+     * @covers ::get_cost_after_discount()
+     */
+    public function test_get_cost_after_discount_with_profile_discount(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $sectionid = $this->get_section_from_course($course->id);
+
+        $availability = (object)[
+            'c' => [
+                (object)[
+                    'type' => 'wallet',
+                    'cost' => 80,
+                ],
+            ],
+        ];
+
+        $DB->update_record('course_sections', (object)[
+            'id' => $sectionid,
+            'availability' => json_encode($availability),
+        ]);
+
+        $fielddata = (object)[
+            'name' => 'discount',
+            'shortname' => 'discount',
+            'datatype' => 'text',
+        ];
+        $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
+        config::make()->discount_field = $fieldid;
+
+        $DB->insert_record('user_info_data', (object)[
+            'userid' => $user->id,
+            'fieldid' => $fieldid,
+            'data' => '50% discount',
+        ]);
+
+        $section = new section($sectionid, $user->id);
+
+        $this->assertSame(40.0, $section->get_cost_after_discount(80.0));
     }
 
     /**

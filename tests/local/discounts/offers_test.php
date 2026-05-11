@@ -322,6 +322,7 @@ final class offers_test extends \advanced_testcase {
             } while ((new $class($mocked, $course2->id, $user1->id))->is_hidden());
             $rawoffers[] = $mocked;
         }
+
         $instance->offersrules = json_encode($rawoffers);
 
         $offers = new offers($instance, $user1->id);

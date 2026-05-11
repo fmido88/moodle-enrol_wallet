@@ -25,6 +25,8 @@
 
 namespace enrol_wallet\local\entities;
 
+use enrol_wallet\local\config;
+
 /**
  * Tests for CM entity.
  *
@@ -100,5 +102,81 @@ final class cm_test extends \advanced_testcase {
 
         $this->assertEquals('Test Page', $name);
     }
-    // Todo: Merge these tests into one test only and add a test for get_cost_after_discount().
+
+    /**
+     * Test get_cost_after_discount behavior with available and unavailable costs.
+     * @covers ::get_cost_after_discount()
+     */
+    public function test_get_cost_after_discount_with_available_costs(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $module = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
+
+        $availability = (object)[
+            'c' => [
+                (object)[
+                    'type' => 'wallet',
+                    'cost' => 50,
+                ],
+            ],
+        ];
+
+        $DB->update_record('course_modules', (object)[
+            'id' => $module->cmid,
+            'availability' => json_encode($availability),
+        ]);
+
+        $cm = new cm($module->cmid, $user->id);
+
+        $this->assertNull($cm->get_cost_after_discount(100.0));
+        $this->assertSame(50.0, $cm->get_cost_after_discount(50.0));
+    }
+
+    /**
+     * Test get_cost_after_discount with profile field discount.
+     * @covers ::get_cost_after_discount()
+     */
+    public function test_get_cost_after_discount_with_profile_discount(): void {
+        global $DB;
+        $this->resetAfterTest();
+
+        $course = $this->getDataGenerator()->create_course();
+        $user = $this->getDataGenerator()->create_user();
+        $module = $this->getDataGenerator()->create_module('page', ['course' => $course->id]);
+
+        $availability = (object)[
+            'c' => [
+                (object)[
+                    'type' => 'wallet',
+                    'cost' => 80,
+                ],
+            ],
+        ];
+
+        $DB->update_record('course_modules', (object)[
+            'id' => $module->cmid,
+            'availability' => json_encode($availability),
+        ]);
+
+        $fielddata = (object)[
+            'name' => 'discount',
+            'shortname' => 'discount',
+            'datatype' => 'text',
+        ];
+        $fieldid = $DB->insert_record('user_info_field', $fielddata, true);
+        config::make()->discount_field = $fieldid;
+
+        $DB->insert_record('user_info_data', (object)[
+            'userid' => $user->id,
+            'fieldid' => $fieldid,
+            'data' => '25% discount',
+        ]);
+
+        $cm = new cm($module->cmid, $user->id);
+
+        $this->assertSame(60.0, $cm->get_cost_after_discount(80.0));
+    }
 }

@@ -254,7 +254,7 @@ final class coupons_test extends \advanced_testcase {
     public function test_is_enabled_type(): void {
         $this->setUser($this->u2);
         $coupons = new coupons('fixed1');
-        $this->assertFalse($coupons->is_enabled_type());
+        $this->assertFalse($coupons->is_enabled_type(), config::get('coupons'));
 
         $this->set_config(percent::TYPE);
         $coupons = new coupons('fixed1');
