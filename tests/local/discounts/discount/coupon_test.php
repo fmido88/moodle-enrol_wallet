@@ -28,10 +28,12 @@ use enrol_wallet\local\entities\instance;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\discount\coupon
  */
 final class coupon_test extends \advanced_testcase {
     /**
      * Test coupon discounts are available when coupon types are enabled.
+     * @covers ::is_available
      */
     public function test_is_available_when_coupon_types_are_enabled(): void {
         global $DB;
@@ -49,6 +51,10 @@ final class coupon_test extends \advanced_testcase {
 
     /**
      * Test coupon session discount is applied when a valid session coupon exists.
+     * @covers ::get_percentage_discount
+     * @covers ::get_discounted_cost
+     * @covers ::get_absolute_discount
+     * @covers ::after_process
      */
     public function test_get_percentage_discount_applies_session_discount_coupon(): void {
         global $DB;
@@ -76,6 +82,8 @@ final class coupon_test extends \advanced_testcase {
 
     /**
      * Test invalid session coupon returns zero discount.
+     * @covers ::get_percentage_discount
+     * @covers ::get_discounted_cost
      */
     public function test_get_percentage_discount_returns_zero_for_invalid_coupon(): void {
         global $DB;

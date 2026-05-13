@@ -23,11 +23,12 @@ namespace enrol_wallet\local\wallet;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\wallet\catop
  */
 final class catop_test extends \advanced_testcase {
     /**
      * Test constructor.
-     * @covers ::__construct()
+     * @covers ::__construct
      * @return void
      */
     public function test_constructor(): void {

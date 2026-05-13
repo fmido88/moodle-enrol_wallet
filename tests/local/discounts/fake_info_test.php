@@ -28,7 +28,7 @@ namespace enrol_wallet\local\discounts;
 final class fake_info_test extends \advanced_testcase {
     /**
      * Test fake_info class.
-     * @covers ::__construct()
+     * @covers ::__construct
      */
     public function test_constructor(): void {
         $this->resetAfterTest();
@@ -41,8 +41,8 @@ final class fake_info_test extends \advanced_testcase {
     /**
      * Test the most probably called methods and just
      * make sure that non will throw errors.
-     * @covers ::get_context()
-     * @covers ::get_course()
+     * @covers ::get_context
+     * @covers ::get_course
      * @return void
      */
     public function test_methods(): void {

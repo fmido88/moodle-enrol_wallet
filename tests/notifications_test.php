@@ -32,11 +32,12 @@ use enrol_wallet\local\utils\timedate;
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\notifications
  */
 final class notifications_test extends \advanced_testcase {
     /**
      * Test transaction_notifications.
-     * @covers ::transaction_notify()
+     * @covers ::transaction_notify
      * @return void
      */
     public function test_transaction_notifications(): void {

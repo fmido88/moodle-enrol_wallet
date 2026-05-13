@@ -23,12 +23,13 @@ namespace enrol_wallet\local\wallet;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\wallet\details
  */
 final class details_test extends \advanced_testcase {
     /**
      * Test calculations of balances.
-     * @covers ::__get()
-     * @covers ::calculate()
+     * @covers ::__get
+     * @covers ::calculate
      * @return void
      */
     public function test_no_category_calculations(): void {

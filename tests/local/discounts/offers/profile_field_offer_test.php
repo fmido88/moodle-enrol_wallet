@@ -28,7 +28,7 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \enrol_wallet\local\discounts\profile_field_offer
  */
-class profile_field_offer_test extends \advanced_testcase {
+final class profile_field_offer_test extends \advanced_testcase {
     /**
      * Test profile_field_offer::key() returns correct constant.
      *

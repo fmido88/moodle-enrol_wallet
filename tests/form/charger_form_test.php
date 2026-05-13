@@ -45,11 +45,12 @@ require_once($CFG->dirroot . '/enrol/wallet/lib.php');
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\form\charger
  */
 final class charger_form_test extends \advanced_testcase {
     /**
      * Test form definition creates valid form structure.
-     * @covers ::definition()
+     * @covers ::definition
      */
     public function test_form_definition(): void {
         $this->resetAfterTest();
@@ -64,7 +65,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation with valid credit data.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_valid_credit(): void {
         $this->resetAfterTest();
@@ -95,7 +96,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation with valid debit data.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_valid_debit(): void {
         $this->resetAfterTest();
@@ -129,7 +130,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation fails when debit exceeds balance.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_debit_exceeds_balance(): void {
         $this->resetAfterTest();
@@ -164,7 +165,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation allows negative debit with neg flag.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_debit_with_negative_allowed(): void {
         $this->resetAfterTest();
@@ -198,7 +199,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation fails with missing user.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_missing_user(): void {
         $this->resetAfterTest();
@@ -226,7 +227,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation fails with invalid user.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_invalid_user(): void {
         $this->resetAfterTest();
@@ -254,7 +255,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation fails with missing value.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_missing_value(): void {
         $this->resetAfterTest();
@@ -285,7 +286,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form validation fails with invalid operation.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_invalid_operation(): void {
         $this->resetAfterTest();
@@ -316,7 +317,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form processing for credit operation.
-     * @covers ::process_form_submission()
+     * @covers ::process_form_submission
      */
     public function test_process_credit(): void {
         $this->resetAfterTest();
@@ -350,7 +351,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form processing for debit operation.
-     * @covers ::process_form_submission()
+     * @covers ::process_form_submission
      */
     public function test_process_debit(): void {
         $this->resetAfterTest();
@@ -387,7 +388,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form processing for reset operation.
-     * @covers ::process_form_submission()
+     * @covers ::process_form_submission
      */
     public function test_process_reset(): void {
         $this->resetAfterTest();
@@ -427,7 +428,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form processing with category balance.
-     * @covers ::process_form_submission()
+     * @covers ::process_form_submission
      */
     public function test_process_credit_with_category(): void {
         $this->resetAfterTest();
@@ -467,7 +468,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test notify_result method.
-     * @covers ::notify_result()
+     * @covers ::notify_result
      */
     public function test_notify_result(): void {
         $this->resetAfterTest();
@@ -501,7 +502,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form processing returns null with empty data.
-     * @covers ::process_form_submission()
+     * @covers ::process_form_submission
      */
     public function test_process_empty_data(): void {
         $this->resetAfterTest();
@@ -519,7 +520,7 @@ final class charger_form_test extends \advanced_testcase {
 
     /**
      * Test form processing returns false for result operation.
-     * @covers ::process_form_submission()
+     * @covers ::process_form_submission
      */
     public function test_process_result_operation(): void {
         $this->resetAfterTest();

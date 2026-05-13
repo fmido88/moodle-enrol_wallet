@@ -35,11 +35,12 @@ use enrol_wallet\local\utils\timedate;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\wallet\balance_op
  */
 final class balance_op_test extends \advanced_testcase {
     /**
      * Test conditional discounts.
-     * @covers ::conditional_discount_charging()
+     * @covers ::conditional_discount_charging
      * @return void
      */
     public function test_conditional_discount_charging(): void {
@@ -994,7 +995,7 @@ final class balance_op_test extends \advanced_testcase {
 
     /**
      * Test transferring balance to another user.
-     * @covers ::transfer_to_other()
+     * @covers ::transfer_to_other
      */
     public function test_transfer_to_other(): void {
         $this->resetAfterTest();
@@ -1190,7 +1191,7 @@ final class balance_op_test extends \advanced_testcase {
 
     /**
      * Testing resetting balance.
-     * @covers ::reset_balance()
+     * @covers ::reset_balance
      * @return void
      */
     public function test_reset_balance(): void {

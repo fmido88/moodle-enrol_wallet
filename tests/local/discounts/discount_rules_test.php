@@ -32,7 +32,7 @@ use enrol_wallet\local\utils\timedate;
 final class discount_rules_test extends \advanced_testcase {
     /**
      * Test get_current_discount_rules method.
-     * @covers ::get_current_discount_rules()
+     * @covers ::get_current_discount_rules
      */
     public function test_get_current_discount_rules(): void {
         $this->resetAfterTest();
@@ -149,7 +149,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_all_available_discount_rules method.
-     * @covers ::get_all_available_discount_rules()
+     * @covers ::get_all_available_discount_rules
      */
     public function test_get_all_available_discount_rules(): void {
         $this->resetAfterTest();
@@ -207,7 +207,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_all_categories_with_discounts method.
-     * @covers ::get_all_categories_with_discounts()
+     * @covers ::get_all_categories_with_discounts
      */
     public function test_get_all_categories_with_discounts(): void {
         $this->resetAfterTest();
@@ -260,7 +260,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_the_rest method.
-     * @covers ::get_the_rest()
+     * @covers ::get_the_rest
      */
     public function test_get_the_rest(): void {
         $this->resetAfterTest();
@@ -343,7 +343,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_the_before method.
-     * @covers ::get_the_before()
+     * @covers ::get_the_before
      */
     public function test_get_the_before(): void {
         $this->resetAfterTest();
@@ -413,7 +413,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_the_after method.
-     * @covers ::get_the_after()
+     * @covers ::get_the_after
      */
     public function test_get_the_after(): void {
         $this->resetAfterTest();
@@ -483,7 +483,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_applied_discount method.
-     * @covers ::get_applied_discount()
+     * @covers ::get_applied_discount
      */
     public function test_get_applied_discount(): void {
         $this->resetAfterTest();
@@ -559,7 +559,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_the_discount_line method.
-     * @covers ::get_the_discount_line()
+     * @covers ::get_the_discount_line
      */
     public function test_get_the_discount_line(): void {
         $this->resetAfterTest();
@@ -596,7 +596,7 @@ final class discount_rules_test extends \advanced_testcase {
 
     /**
      * Test get_bundles_records method.
-     * @covers ::get_bundles_records()
+     * @covers ::get_bundles_records
      */
     public function test_get_bundles_records(): void {
         $this->resetAfterTest();

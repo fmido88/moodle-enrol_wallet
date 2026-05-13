@@ -34,11 +34,12 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @copyright 2023 Mohammad Farouk
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @runTestsInSeparateProcesses
+ * @coversDefaultClass \enrol_wallet\external\enrol
  */
 final class enrol_test extends externallib_advanced_testcase {
     /**
      * Test get_instance_info.
-     * @covers ::get_instance_info()
+     * @covers ::get_instance_info
      */
     public function test_get_instance_info(): void {
         global $DB;
@@ -123,7 +124,7 @@ final class enrol_test extends externallib_advanced_testcase {
 
     /**
      * Test enrol_user.
-     * @covers ::enrol_user()
+     * @covers ::enrol_user
      */
     public function test_enrol_user(): void {
         global $DB;
@@ -199,7 +200,7 @@ final class enrol_test extends externallib_advanced_testcase {
 
     /**
      * Test enrol_user with no instance specified.
-     * @covers ::enrol_user()
+     * @covers ::enrol_user
      */
     public function test_enrol_user_no_instance(): void {
         global $DB;
@@ -225,7 +226,7 @@ final class enrol_test extends externallib_advanced_testcase {
 
     /**
      * Test enrol_user with insufficient balance.
-     * @covers ::enrol_user()
+     * @covers ::enrol_user
      */
     public function test_enrol_user_insufficient_balance(): void {
         global $DB;

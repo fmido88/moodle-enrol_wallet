@@ -33,7 +33,7 @@ final class lib_test extends \advanced_testcase {
     /**
      * Test callback.
      *
-     * @covers ::enrol_wallet_myprofile_navigation()
+     * @covers ::enrol_wallet_myprofile_navigation
      */
     public function test_enrol_wallet_myprofile_navigation(): void {
         global $CFG;
@@ -50,7 +50,7 @@ final class lib_test extends \advanced_testcase {
     /**
      * Test callback.
      *
-     * @covers ::enrol_wallet_extend_navigation_frontpage()
+     * @covers ::enrol_wallet_extend_navigation_frontpage
      * @return void
      */
     public function test_enrol_wallet_extend_navigation_frontpage(): void {

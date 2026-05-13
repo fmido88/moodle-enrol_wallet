@@ -37,6 +37,7 @@ use enrol_wallet\output\pages;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\observer
  */
 final class referral_test extends \advanced_testcase {
     // Test for release referral gift is already existed in observer_test.
@@ -81,7 +82,7 @@ final class referral_test extends \advanced_testcase {
 
     /**
      * Test user deletion cleans up referral data.
-     * @covers ::pre_user_delete()
+     * @covers ::pre_user_delete
      */
     public function test_user_delete_cleans_referral(): void {
         global $DB;

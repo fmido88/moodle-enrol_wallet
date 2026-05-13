@@ -39,11 +39,12 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\external\instance
  */
 final class instance_test extends \externallib_advanced_testcase {
     /**
      * Test get_cost external function.
-     * @covers ::get_cost()
+     * @covers ::get_cost
      */
     public function test_get_cost(): void {
         global $DB;
@@ -68,7 +69,7 @@ final class instance_test extends \externallib_advanced_testcase {
 
     /**
      * Test get_cost with zero cost.
-     * @covers ::get_cost()
+     * @covers ::get_cost
      */
     public function test_get_cost_zero(): void {
         global $DB;
@@ -93,7 +94,7 @@ final class instance_test extends \externallib_advanced_testcase {
 
     /**
      * Test get_cost with discount.
-     * @covers ::get_cost()
+     * @covers ::get_cost
      */
     public function test_get_cost_with_discount(): void {
         global $DB;
@@ -124,7 +125,7 @@ final class instance_test extends \externallib_advanced_testcase {
 
     /**
      * Test get_cost with invalid instance.
-     * @covers ::get_cost()
+     * @covers ::get_cost
      */
     public function test_get_cost_invalid_instance(): void {
         $this->resetAfterTest(true);
@@ -140,7 +141,7 @@ final class instance_test extends \externallib_advanced_testcase {
 
     /**
      * Test get_cost parameters validation.
-     * @covers ::get_cost_parameters()
+     * @covers ::get_cost_parameters
      */
     public function test_get_cost_parameters(): void {
         $params = \enrol_wallet\external\instance::get_cost_parameters();
@@ -150,7 +151,7 @@ final class instance_test extends \externallib_advanced_testcase {
 
     /**
      * Test get_cost returns structure.
-     * @covers ::get_cost_returns()
+     * @covers ::get_cost_returns
      */
     public function test_get_cost_returns(): void {
         $returns = \enrol_wallet\external\instance::get_cost_returns();

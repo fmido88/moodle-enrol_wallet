@@ -36,11 +36,12 @@ use enrol_wallet\local\wallet\balance_op;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\observer
  */
 final class awards_test extends \advanced_testcase {
     /**
      * Test creating an award record.
-     * @covers ::create_award()
+     * @covers ::create_award
      */
     public function test_create_award(): void {
         global $DB;
@@ -72,7 +73,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test getting awards for a user.
-     * @covers ::get_user_awards()
+     * @covers ::get_user_awards
      */
     public function test_get_user_awards(): void {
         global $DB;
@@ -110,7 +111,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test getting awards for a course.
-     * @covers ::get_course_awards()
+     * @covers ::get_course_awards
      */
     public function test_get_course_awards(): void {
         global $DB;
@@ -148,7 +149,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test calculating award amount based on grade.
-     * @covers ::calculate_award_amount()
+     * @covers ::calculate_award_amount
      */
     public function test_calculate_award_amount(): void {
         $this->resetAfterTest();
@@ -170,7 +171,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test high grade gets higher award.
-     * @covers ::higher_grade_higher_award()
+     * @covers ::higher_grade_higher_award
      */
     public function test_higher_grade_higher_award(): void {
         $this->resetAfterTest();
@@ -193,7 +194,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test award amount is added to user balance.
-     * @covers ::award_balance_integration()
+     * @covers ::award_balance_integration
      */
     public function test_award_added_to_balance(): void {
         global $DB;
@@ -228,7 +229,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test award with different grade percentages.
-     * @covers ::grade_percentages()
+     * @covers ::grade_percentages
      */
     public function test_award_grade_percentages(): void {
         $this->resetAfterTest();
@@ -249,7 +250,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test multiple awards for same user and course - only highest should count.
-     * @covers ::unique_award_per_course()
+     * @covers ::unique_award_per_course
      */
     public function test_multiple_awards_same_course(): void {
         global $DB;
@@ -293,7 +294,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test award is non-refundable.
-     * @covers ::award_non_refundable()
+     * @covers ::award_non_refundable
      */
     public function test_award_is_non_refundable(): void {
         global $DB;
@@ -314,7 +315,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test get total awards amount for user.
-     * @covers ::get_total_awards()
+     * @covers ::get_total_awards
      */
     public function test_get_total_awards_for_user(): void {
         global $DB;
@@ -356,7 +357,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test delete award.
-     * @covers ::delete_award()
+     * @covers ::delete_award
      */
     public function test_delete_award(): void {
         global $DB;
@@ -387,7 +388,7 @@ final class awards_test extends \advanced_testcase {
 
     /**
      * Test award threshold configuration.
-     * @covers ::award_threshold()
+     * @covers ::award_threshold
      */
     public function test_award_threshold(): void {
         $this->resetAfterTest();

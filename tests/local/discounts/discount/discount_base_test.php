@@ -23,16 +23,22 @@ global $CFG;
 require_once($CFG->dirroot . '/enrol/wallet/lib.php');
 
 /**
- * discount_base_test.
+ * Tests for the discount_base abstract discount class.
  *
  * @package    enrol_wallet
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\discount\discount_base
  */
 final class discount_base_test extends \advanced_testcase {
     /**
      * Test original and discounted cost calculations.
+     * @covers ::get_original_cost
+     * @covers ::get_discounted_cost
+     * @covers ::get_absolute_discount
+     * @covers ::get_entity
+     * @covers ::get_userid
      */
     public function test_get_original_and_discounted_cost(): void {
         global $DB;
@@ -79,6 +85,8 @@ final class discount_base_test extends \advanced_testcase {
 
     /**
      * Test discounted cost remains original when discount is unavailable.
+     * @covers ::get_discounted_cost
+     * @covers ::get_absolute_discount
      */
     public function test_discount_not_available_returns_original_cost(): void {
         $this->resetAfterTest();
@@ -121,6 +129,7 @@ final class discount_base_test extends \advanced_testcase {
 
     /**
      * Test after_process is a no-op by default.
+     * @covers ::after_process
      */
     public function test_after_process_is_noop_by_default(): void {
         $this->resetAfterTest();

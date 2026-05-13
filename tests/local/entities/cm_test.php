@@ -34,11 +34,12 @@ use enrol_wallet\local\config;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\entities\cm
  */
 final class cm_test extends \advanced_testcase {
     /**
      * Test CM entity instantiation with course module.
-     * @covers ::__construct()
+     * @covers ::__construct
      */
     public function test_cm_instantiation(): void {
         $this->resetAfterTest();
@@ -53,7 +54,7 @@ final class cm_test extends \advanced_testcase {
 
     /**
      * Test get_context method.
-     * @covers ::get_context()
+     * @covers ::get_context
      */
     public function test_get_context(): void {
         $this->resetAfterTest();
@@ -70,7 +71,7 @@ final class cm_test extends \advanced_testcase {
 
     /**
      * Test get_course method.
-     * @covers ::get_course()
+     * @covers ::get_course
      */
     public function test_get_course(): void {
         $this->resetAfterTest();
@@ -86,7 +87,7 @@ final class cm_test extends \advanced_testcase {
 
     /**
      * Test get_name method.
-     * @covers ::get_name()
+     * @covers ::get_name
      */
     public function test_get_name(): void {
         $this->resetAfterTest();
@@ -105,7 +106,7 @@ final class cm_test extends \advanced_testcase {
 
     /**
      * Test get_cost_after_discount behavior with available and unavailable costs.
-     * @covers ::get_cost_after_discount()
+     * @covers ::get_cost_after_discount
      */
     public function test_get_cost_after_discount_with_available_costs(): void {
         global $DB;
@@ -137,7 +138,7 @@ final class cm_test extends \advanced_testcase {
 
     /**
      * Test get_cost_after_discount with profile field discount.
-     * @covers ::get_cost_after_discount()
+     * @covers ::get_cost_after_discount
      */
     public function test_get_cost_after_discount_with_profile_discount(): void {
         global $DB;

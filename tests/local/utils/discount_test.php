@@ -36,10 +36,12 @@ use core\exception\invalid_parameter_exception;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\utils\discount
  */
 final class discount_test extends \advanced_testcase {
     /**
      * Test calculate_max_discount returns the correct maximum discount.
+     * @covers ::calculate_max_discount
      */
     public function test_calculate_max_discount(): void {
         $this->resetAfterTest();
@@ -51,6 +53,7 @@ final class discount_test extends \advanced_testcase {
 
     /**
      * Test calculate_sum_discount returns the correct summed discount.
+     * @covers ::calculate_sum_discount
      */
     public function test_calculate_sum_discount(): void {
         $this->resetAfterTest();
@@ -62,6 +65,7 @@ final class discount_test extends \advanced_testcase {
 
     /**
      * Test calculate_sequential_discount returns the correct sequential discount.
+     * @covers ::calculate_sequential_discount
      */
     public function test_calculate_sequential_discount(): void {
         $this->resetAfterTest();
@@ -73,51 +77,12 @@ final class discount_test extends \advanced_testcase {
 
     /**
      * Test invalid discount values throw an exception.
+     * @covers ::calculate_sum_discount
      */
     public function test_invalid_values_throw_exception(): void {
         $this->resetAfterTest();
 
         $this->expectException(invalid_parameter_exception::class);
         discount_test_helper::calculate_sum_discount_public([10, 'invalid']);
-    }
-}
-
-/**
- * Helper exposing discount trait methods for tests.
- */
-class discount_test_helper {
-    use discount;
-
-    /**
-     * Calculate max discount.
-     *
-     * @param  array $discounts
-     * @param  bool  $percentage
-     * @return float
-     */
-    public static function calculate_max_discount_public(array $discounts, bool $percentage = false): float {
-        return self::calculate_max_discount($discounts, $percentage);
-    }
-
-    /**
-     * Calculate sum discount.
-     *
-     * @param  array $discounts
-     * @param  bool  $percentage
-     * @return float
-     */
-    public static function calculate_sum_discount_public(array $discounts, bool $percentage = false): float {
-        return self::calculate_sum_discount($discounts, $percentage);
-    }
-
-    /**
-     * Calculate sequential discount.
-     *
-     * @param  array $discounts
-     * @param  bool  $percentage
-     * @return float
-     */
-    public static function calculate_sequential_discount_public(array $discounts, bool $percentage = false): float {
-        return self::calculate_sequential_discount($discounts, $percentage);
     }
 }

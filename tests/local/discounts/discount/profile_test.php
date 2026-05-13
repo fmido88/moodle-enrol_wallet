@@ -20,16 +20,18 @@ use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
 
 /**
- * Summary of profile_test.
+ * Tests for the profile discount implementation.
  *
  * @package    enrol_wallet
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\discount\profile
  */
 final class profile_test extends \advanced_testcase {
     /**
      * Test profile offer only available when discount profile field is configured.
+     * @covers ::is_available
      */
     public function test_is_available_only_when_discount_field_is_enabled(): void {
         global $DB;
@@ -56,6 +58,8 @@ final class profile_test extends \advanced_testcase {
 
     /**
      * Test profile discount rules apply correctly to percentage and free values.
+     * @covers ::get_percentage_discount
+     * @covers ::get_discounted_cost
      */
     public function test_get_percentage_discount_applies_profile_field_rules(): void {
         global $DB;

@@ -21,16 +21,21 @@ use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\entities\section;
 
 /**
- * Summary of offers_test.
+ * Tests for the offers discount implementation.
  *
  * @package    enrol_wallet
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\discount\offers
  */
 final class offers_test extends \advanced_testcase {
     /**
      * Test instance offers produce correct percentage discount.
+     * @covers ::is_available
+     * @covers ::get_percentage_discount
+     * @covers ::get_discounted_cost
+     * @covers ::get_absolute_discount
      */
     public function test_get_percentage_discount_for_instance_offers(): void {
         global $DB;
@@ -67,6 +72,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test sum and sequential offer behaviors compute expected discounts.
+     * @covers ::get_percentage_discount
      */
     public function test_get_percentage_discount_with_sum_and_seq_behaviors(): void {
         global $DB;

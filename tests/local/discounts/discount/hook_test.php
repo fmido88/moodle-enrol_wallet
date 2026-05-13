@@ -19,16 +19,23 @@ namespace enrol_wallet\local\discounts\discount;
 use enrol_wallet\local\entities\instance;
 
 /**
- * Summary of hook_test.
+ * Tests for the hook discount implementation.
  *
  * @package    enrol_wallet
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\discount\hook
  */
 final class hook_test extends \advanced_testcase {
     /**
      * Test hook discount addition and discount set behavior.
+     * @covers ::add_discount
+     * @covers ::get_discounts
+     * @covers ::get_percentage_discount
+     * @covers ::get_discounted_cost
+     * @covers ::get_absolute_discount
+     * @covers ::set_discounts
      */
     public function test_add_and_set_discounts(): void {
         global $DB;
@@ -60,6 +67,8 @@ final class hook_test extends \advanced_testcase {
 
     /**
      * Test after_process executes callbacks and ignores exceptions.
+     * @covers ::after_process
+     * @covers ::add_post_purchase_callback
      */
     public function test_after_process_executes_callbacks_and_catches_exceptions(): void {
         global $DB;

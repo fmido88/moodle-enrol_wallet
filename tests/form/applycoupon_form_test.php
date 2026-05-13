@@ -49,11 +49,12 @@ require_once($CFG->dirroot . '/enrol/wallet/tests/generator/lib.php');
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\form\applycoupon
  */
 final class applycoupon_form_test extends \advanced_testcase {
     /**
      * Test form definition creates valid form structure.
-     * @covers ::definition()
+     * @covers ::definition
      */
     public function test_form_definition(): void {
         $this->resetAfterTest();
@@ -81,7 +82,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation with valid fixed coupon.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_valid_fixed_coupon(): void {
         global $DB;
@@ -137,7 +138,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation with valid percent coupon.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_valid_percent_coupon(): void {
         global $DB;
@@ -193,7 +194,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation with invalid coupon.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_invalid_coupon(): void {
         $this->resetAfterTest();
@@ -232,7 +233,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation with expired coupon.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_expired_coupon(): void {
         global $DB;
@@ -290,7 +291,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation with max usage exceeded coupon.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_max_usage_exceeded(): void {
         global $DB;
@@ -353,7 +354,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation for course module area.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_cm_area(): void {
         global $DB;
@@ -410,7 +411,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation for section area.
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_section_area(): void {
         global $DB;
@@ -466,7 +467,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test form validation for topup area (no instance).
-     * @covers ::validation()
+     * @covers ::validation
      */
     public function test_validation_topup_area(): void {
         global $DB;
@@ -515,7 +516,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test process_coupon_data with fixed coupon.
-     * @covers ::process_coupon_data()
+     * @covers ::process_coupon_data
      */
     public function test_process_fixed_coupon(): void {
         global $DB;
@@ -572,7 +573,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test process_coupon_data with cancel.
-     * @covers ::process_coupon_data()
+     * @covers ::process_coupon_data
      */
     public function test_process_cancel(): void {
         $this->resetAfterTest();
@@ -616,7 +617,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test process_coupon_data with empty coupon.
-     * @covers ::process_coupon_data()
+     * @covers ::process_coupon_data
      */
     public function test_process_empty_coupon(): void {
         $this->resetAfterTest();
@@ -655,7 +656,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test get_form_identifier with instance id.
-     * @covers ::get_form_identifier()
+     * @covers ::get_form_identifier
      */
     public function test_get_form_identifier_with_instance(): void {
         $this->resetAfterTest();
@@ -679,7 +680,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test get_form_identifier with cmid.
-     * @covers ::get_form_identifier()
+     * @covers ::get_form_identifier
      */
     public function test_get_form_identifier_with_cmid(): void {
         $this->resetAfterTest();
@@ -704,7 +705,7 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test get_form_identifier with sectionid.
-     * @covers ::get_form_identifier()
+     * @covers ::get_form_identifier
      */
     public function test_get_form_identifier_with_sectionid(): void {
         global $DB;
@@ -729,8 +730,8 @@ final class applycoupon_form_test extends \advanced_testcase {
 
     /**
      * Test the submission through action page.
-     * @covers ::process_coupon_data()
-     * @covers ::validation()
+     * @covers ::process_coupon_data
+     * @covers ::validation
      * @return void
      */
     public function test_coupon_action_page(): void {

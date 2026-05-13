@@ -31,13 +31,14 @@ use enrol_wallet\local\wallet\balance_op;
 
 /**
  * Unit tests for the enrol_wallet's payment subsystem callback implementation.
+ * @coversDefaultClass \enrol_wallet\payment\service_provider
  */
 final class service_provider_test extends \advanced_testcase {
     /**
      * Test for service_provider::get_payable().
      * For payment area walletenrol, which enrol user into the course after payment.
      *
-     * @covers ::get_payable()
+     * @covers ::get_payable
      * @return void
      */
     public function test_get_payable_walletenrol(): void {
@@ -75,7 +76,7 @@ final class service_provider_test extends \advanced_testcase {
      * Test for service_provider::get_payable().
      * For payment area wallettopup, which topping up the wallet after payment.
      *
-     * @covers ::get_payable()
+     * @covers ::get_payable
      * @return void
      */
     public function test_get_payable_wallettopup(): void {
@@ -102,7 +103,7 @@ final class service_provider_test extends \advanced_testcase {
      * Test for service_provider::get_success_url().
      * For payment area walletenrol, which enrol user into the course after payment.
      *
-     * @covers ::get_success_url()
+     * @covers ::get_success_url
      */
     public function test_get_success_url_walletenrol(): void {
         global $CFG, $DB;
@@ -139,7 +140,7 @@ final class service_provider_test extends \advanced_testcase {
      * Test for service_provider::get_success_url().
      * For payment area wallettopup, which topping up the wallet after payment.
      *
-     * @covers ::get_success_url()
+     * @covers ::get_success_url
      */
     public function test_get_success_url_wallettopup(): void {
         global $CFG, $DB;
@@ -166,7 +167,7 @@ final class service_provider_test extends \advanced_testcase {
      * Test for service_provider::deliver_order().
      * For payment area walletenrol, which enrol user into the course after payment.
      *
-     * @covers ::deliver_order()
+     * @covers ::deliver_order
      * @return void
      */
     public function test_deliver_order_walletenrol(): void {
@@ -279,7 +280,7 @@ final class service_provider_test extends \advanced_testcase {
      * Test for service_provider::deliver_order().
      * For payment area wallettopup, which topping up the wallet after payment.
      *
-     * @covers ::deliver_order()
+     * @covers ::deliver_order
      * @return void
      */
     public function test_deliver_order_wallettopup(): void {

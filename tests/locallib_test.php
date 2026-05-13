@@ -43,7 +43,7 @@ require_once($CFG->dirroot . '/enrol/wallet/locallib.php');
 final class locallib_test extends \advanced_testcase {
     /**
      * test_enrol_wallet_is_borrow_eligible.
-     * @covers ::enrol_wallet_is_borrow_eligible()
+     * @covers ::enrol_wallet_is_borrow_eligible
      * @return void
      */
     public function test_enrol_wallet_is_borrow_eligible(): void {

@@ -25,6 +25,7 @@ use stdClass;
  *
  * @package    enrol_wallet
  * @category   test
+ * @coversDefaultClass \enrol_wallet\local\coupons\types\category
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

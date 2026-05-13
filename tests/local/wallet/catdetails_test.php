@@ -25,11 +25,12 @@ use core\exception\coding_exception;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\wallet\catdetails
  */
 final class catdetails_test extends \advanced_testcase {
     /**
      * Testing cat details.
-     * @covers ::__get()
+     * @covers ::__get
      * @return void
      */
     public function test_cat_details(): void {

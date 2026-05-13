@@ -34,11 +34,12 @@ use core\output\templatable;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\output\topup_options
  */
 final class topup_options_test extends \advanced_testcase {
     /**
      * Test topup_options export.
-     * @covers ::export_for_template()
+     * @covers ::export_for_template
      */
     public function test_topup_options_export(): void {
         $this->resetAfterTest();

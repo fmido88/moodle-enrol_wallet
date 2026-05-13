@@ -28,7 +28,7 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \enrol_wallet\local\discounts\time_offer
  */
-class time_offer_test extends \advanced_testcase {
+final class time_offer_test extends \advanced_testcase {
     /**
      * Test time_offer::key() returns correct constant.
      *

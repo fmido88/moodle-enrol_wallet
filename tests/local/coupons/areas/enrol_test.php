@@ -27,6 +27,7 @@ use enrol_wallet\local\utils\testing;
  *
  * @package    enrol_wallet
  * @category   test
+ * @coversDefaultClass \enrol_wallet\local\coupons\areas\enrol
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

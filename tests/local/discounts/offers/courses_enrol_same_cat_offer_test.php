@@ -28,7 +28,7 @@ use stdClass;
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @coversDefaultClass \enrol_wallet\local\discounts\courses_enrol_same_cat_offer
  */
-class courses_enrol_same_cat_offer_test extends \advanced_testcase {
+final class courses_enrol_same_cat_offer_test extends \advanced_testcase {
     /**
      * Test courses_enrol_same_cat_offer::key() returns correct constant.
      *

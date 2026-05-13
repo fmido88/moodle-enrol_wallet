@@ -38,11 +38,12 @@ use enrol_wallet\payment\item;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\privacy\provider
  */
 final class provider_test extends \core_privacy\tests\provider_testcase {
     /**
      * Test get_metadata returns correct collection.
-     * @covers ::get_metadata()
+     * @covers ::get_metadata
      */
     public function test_get_metadata(): void {
         $collection = new collection('enrol_wallet');
@@ -57,7 +58,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test export_user_data exports data correctly for wallet top-up.
-     * @covers ::export_user_data()
+     * @covers ::export_user_data
      */
     public function test_export_user_data_wallet_topup(): void {
         $this->resetAfterTest();
@@ -79,7 +80,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test get_contextid_for_payment for wallet enrol payment.
-     * @covers ::get_contextid_for_payment()
+     * @covers ::get_contextid_for_payment
      */
     public function test_get_contextid_for_payment_enrol(): void {
         $this->resetAfterTest();
@@ -102,7 +103,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test get_contextid_for_payment for wallet top-up.
-     * @covers ::get_contextid_for_payment()
+     * @covers ::get_contextid_for_payment
      */
     public function test_get_contextid_for_payment_topup(): void {
         $this->resetAfterTest();
@@ -115,7 +116,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test get_users_in_context for system context.
-     * @covers ::get_users_in_context()
+     * @covers ::get_users_in_context
      */
     public function test_get_users_in_context_system(): void {
         $this->resetAfterTest();
@@ -150,7 +151,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test delete_data_for_all_users_in_context for system context.
-     * @covers ::delete_data_for_all_users_in_context()
+     * @covers ::delete_data_for_all_users_in_context
      */
     public function test_delete_data_for_all_users_in_context_system(): void {
         $this->resetAfterTest();
@@ -192,7 +193,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test delete_data_for_user for system context with wallet top-up.
-     * @covers ::delete_data_for_user()
+     * @covers ::delete_data_for_user
      */
     public function test_delete_data_for_user_system(): void {
         global $DB;
@@ -222,7 +223,7 @@ final class provider_test extends \core_privacy\tests\provider_testcase {
 
     /**
      * Test delete_data_for_users for system context with wallet top-ups.
-     * @covers ::delete_data_for_users()
+     * @covers ::delete_data_for_users
      */
     public function test_delete_data_for_users_system(): void {
         $this->resetAfterTest();

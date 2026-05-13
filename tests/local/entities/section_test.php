@@ -36,11 +36,12 @@ use stdClass;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\entities\section
  */
 final class section_test extends \advanced_testcase {
     /**
      * Test Section entity instantiation with course and section number.
-     * @covers ::__construct()
+     * @covers ::__construct
      */
     public function test_section_instantiation(): void {
         $this->resetAfterTest();
@@ -56,7 +57,7 @@ final class section_test extends \advanced_testcase {
 
     /**
      * Test get_course_id method.
-     * @covers ::get_course_id()
+     * @covers ::get_course_id
      */
     public function test_get_course_id(): void {
         $this->resetAfterTest();
@@ -71,7 +72,7 @@ final class section_test extends \advanced_testcase {
 
     /**
      * Test get_name method.
-     * @covers ::get_name()
+     * @covers ::get_name
      */
     public function test_get_name(): void {
         $this->resetAfterTest();
@@ -89,7 +90,7 @@ final class section_test extends \advanced_testcase {
 
     /**
      * Test get_context method.
-     * @covers ::get_context()
+     * @covers ::get_context
      */
     public function test_get_context(): void {
         $this->resetAfterTest();
@@ -108,7 +109,7 @@ final class section_test extends \advanced_testcase {
 
     /**
      * Test get_cost_after_discount for section costs and invalid cost values.
-     * @covers ::get_cost_after_discount()
+     * @covers ::get_cost_after_discount
      */
     public function test_get_cost_after_discount_with_valid_and_invalid_costs(): void {
         global $DB;
@@ -140,7 +141,7 @@ final class section_test extends \advanced_testcase {
 
     /**
      * Test get_cost_after_discount with profile field discount.
-     * @covers ::get_cost_after_discount()
+     * @covers ::get_cost_after_discount
      */
     public function test_get_cost_after_discount_with_profile_discount(): void {
         global $DB;

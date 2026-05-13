@@ -36,6 +36,7 @@ require_once($CFG->dirroot . '/enrol/wallet/lib.php');
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\transactions
  */
 final class transactions_test extends \advanced_testcase {
     /**
@@ -58,9 +59,9 @@ final class transactions_test extends \advanced_testcase {
      * Testing the functionalities of adding and deducting credits
      * from user's wallet.
      *
-     * @covers ::payment_topup()
-     * @covers ::debit()
-     * @covers ::get_user_balance()
+     * @covers ::payment_topup
+     * @covers ::debit
+     * @covers ::get_user_balance
      * @return void
      */
     public function test_credit_debit(): void {

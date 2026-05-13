@@ -29,7 +29,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \enrol_wallet\local\discounts\offers_set
  */
-class offers_set_test extends \advanced_testcase {
+final class offers_set_test extends \advanced_testcase {
     /**
      * Test offers_set::key() returns correct constant.
      *

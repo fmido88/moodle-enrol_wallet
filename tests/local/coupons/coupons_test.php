@@ -41,6 +41,7 @@ use enrol_wallet_plugin;
  * @category   test
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\coupons\coupons
  */
 final class coupons_test extends \advanced_testcase {
     /**
@@ -291,7 +292,7 @@ final class coupons_test extends \advanced_testcase {
 
     /**
      * Test if coupons are enabled in this site.
-     * @covers ::is_enabled()
+     * @covers ::is_enabled
      */
     public function test_is_enabled(): void {
         $this->assertFalse(coupons::is_enabled());
@@ -311,7 +312,7 @@ final class coupons_test extends \advanced_testcase {
 
     /**
      * Test validation for fixed coupons.
-     * @covers ::validate_coupon()
+     * @covers ::validate_coupon
      */
     public function test_validate_fixed_coupon(): void {
         type_base::enable_all_types();
@@ -503,7 +504,7 @@ final class coupons_test extends \advanced_testcase {
 
     /**
      * Validation for discount coupons.
-     * @covers ::validate_coupon()
+     * @covers ::validate_coupon
      */
     public function test_validate_discount_coupon(): void {
         $this->set_config(percent::TYPE);
@@ -626,7 +627,7 @@ final class coupons_test extends \advanced_testcase {
 
     /**
      * Validation for fixed discount coupons.
-     * @covers ::validate_coupon()
+     * @covers ::validate_coupon
      */
     public function test_validate_fixed_discount_coupon(): void {
         $this->set_config(fixeddis::TYPE);
@@ -707,7 +708,7 @@ final class coupons_test extends \advanced_testcase {
 
     /**
      * Validate category coupons.
-     * @covers ::validate_coupons()
+     * @covers ::validate_coupons
      */
     public function test_validate_category_coupon(): void {
         $this->set_config(category::TYPE);
@@ -777,7 +778,7 @@ final class coupons_test extends \advanced_testcase {
 
     /**
      * Test applying fixed coupon.
-     * @covers ::apply_coupon()
+     * @covers ::apply_coupon
      */
     public function test_apply_fixed_coupon(): void {
         $this->set_config(fixed::TYPE);
@@ -848,7 +849,7 @@ final class coupons_test extends \advanced_testcase {
 
     /**
      * Test applying category coupon.
-     * @covers ::apply_coupon()
+     * @covers ::apply_coupon
      */
     public function test_apply_category_coupon(): void {
         $this->set_config(category::TYPE);

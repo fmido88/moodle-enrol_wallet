@@ -41,11 +41,12 @@ require_once($CFG->dirroot . '/webservice/tests/helpers.php');
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\external\balance_op
  */
 final class balance_op_test extends externallib_advanced_testcase {
     /**
      * Test get_balance_details external function.
-     * @covers ::get_balance_details()
+     * @covers ::get_balance_details
      */
     public function test_get_balance_details(): void {
         global $DB;
@@ -70,7 +71,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
     /**
      * Test get_balance external function.
-     * @covers ::get_balance()
+     * @covers ::get_balance
      */
     public function test_get_balance(): void {
         $this->resetAfterTest(true);
@@ -93,7 +94,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
     /**
      * Test get_balance with category.
-     * @covers ::get_balance()
+     * @covers ::get_balance
      */
     public function test_get_balance_with_category(): void {
         global $DB;
@@ -130,7 +131,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
     /**
      * Test get_balance for another user.
-     * @covers ::get_balance()
+     * @covers ::get_balance
      */
     public function test_get_balance_other_user(): void {
         $this->resetAfterTest(true);
@@ -159,7 +160,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
     /**
      * Test get_balance with zero balance.
-     * @covers ::get_balance()
+     * @covers ::get_balance
      */
     public function test_get_balance_zero(): void {
         $this->resetAfterTest(true);
@@ -180,7 +181,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
     /**
      * Test get_balance with non-refundable balance.
-     * @covers ::get_balance()
+     * @covers ::get_balance
      */
     public function test_get_balance_non_refundable(): void {
         $this->resetAfterTest(true);
@@ -207,7 +208,7 @@ final class balance_op_test extends externallib_advanced_testcase {
 
     /**
      * Test get_balance_details with category.
-     * @covers ::get_balance_details()
+     * @covers ::get_balance_details
      */
     public function test_get_balance_details_with_category(): void {
         global $DB;

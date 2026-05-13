@@ -44,7 +44,7 @@ use stdClass;
  * Testing offers and offer items.
  * @coversDefaultClass \enrol_wallet\local\discounts\offers
  */
-class offers_extensive_test extends \advanced_testcase {
+final class offers_extensive_test extends \advanced_testcase {
     /**
      * The user object.
      * @var stdClass

@@ -27,11 +27,12 @@ use ReflectionClass;
  * @category   test
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\coupons\generator
  */
 final class generator_test extends \advanced_testcase {
     /**
      * Test generate_random_coupon method with all scenarios.
-     * @covers ::generate_random_coupon()
+     * @covers ::generate_random_coupon
      */
     public function test_generate_random_coupon(): void {
         $this->resetAfterTest();
@@ -133,7 +134,7 @@ final class generator_test extends \advanced_testcase {
 
     /**
      * Test remove_like_characters method with all scenarios.
-     * @covers ::remove_like_characters()
+     * @covers ::remove_like_characters
      */
     public function test_remove_like_characters(): void {
         $this->resetAfterTest();
@@ -209,7 +210,7 @@ final class generator_test extends \advanced_testcase {
 
     /**
      * Test create_coupon_record method with all scenarios.
-     * @covers ::create_coupon_record()
+     * @covers ::create_coupon_record
      */
     public function test_create_coupon_record(): void {
         $this->resetAfterTest();
@@ -327,7 +328,7 @@ final class generator_test extends \advanced_testcase {
 
     /**
      * Test create_coupons method with all scenarios.
-     * @covers ::create_coupons()
+     * @covers ::create_coupons
      */
     public function test_create_coupons(): void {
         $this->resetAfterTest();

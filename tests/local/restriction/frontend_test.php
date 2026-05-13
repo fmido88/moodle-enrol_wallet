@@ -32,11 +32,12 @@ namespace enrol_wallet\local\restriction;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\restriction\frontend
  */
 final class frontend_test extends \advanced_testcase {
     /**
      * Test no errors for include_availability_javascript.
-     * @covers ::include_availability_javascript()
+     * @covers ::include_availability_javascript
      * @return void
      */
     public function test_include_availability_javascript(): void {

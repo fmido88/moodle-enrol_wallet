@@ -27,7 +27,7 @@ use MoodleQuickForm;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \enrol_wallet\local\discounts\geo_location_offer
  */
-class geo_location_offer_test extends \advanced_testcase {
+final class geo_location_offer_test extends \advanced_testcase {
     /**
      * Test geo_location_offer::key() returns correct constant.
      *

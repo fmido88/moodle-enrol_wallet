@@ -28,7 +28,7 @@ use stdClass;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @coversDefaultClass \enrol_wallet\local\discounts\course_enrol_count_offer
  */
-class course_enrol_count_offer_test extends \advanced_testcase {
+final class course_enrol_count_offer_test extends \advanced_testcase {
     public function setUp(): void {
         parent::setUp();
         $this->resetAfterTest();

@@ -36,11 +36,12 @@ use moodle_page;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\hooks_callbacks
  */
 final class hooks_callbacks_test extends \advanced_testcase {
     /**
      * Test shouldnt method.
-     * @covers ::shouldnt()
+     * @covers ::shouldnt
      */
     public function test_shouldnt(): void {
         global $CFG;
@@ -68,7 +69,7 @@ final class hooks_callbacks_test extends \advanced_testcase {
 
     /**
      * Test show_price method.
-     * @covers ::show_price()
+     * @covers ::show_price
      */
     public function test_show_price(): void {
         global $PAGE;
@@ -85,7 +86,7 @@ final class hooks_callbacks_test extends \advanced_testcase {
 
     /**
      * Test low_balance_warning method.
-     * @covers ::low_balance_warning()
+     * @covers ::low_balance_warning
      */
     public function test_low_balance_warning(): void {
         global $SESSION, $PAGE;
@@ -118,7 +119,7 @@ final class hooks_callbacks_test extends \advanced_testcase {
 
     /**
      * Test primary_navigation_tabs method.
-     * @covers ::primary_navigation_tabs()
+     * @covers ::primary_navigation_tabs
      */
     public function test_primary_navigation_tabs(): void {
         $this->resetAfterTest();

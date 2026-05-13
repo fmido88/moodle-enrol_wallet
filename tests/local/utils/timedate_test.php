@@ -32,11 +32,12 @@ namespace enrol_wallet\local\utils;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\utils\timedate
  */
 final class timedate_test extends \advanced_testcase {
     /**
      * Test clock method.
-     * @covers ::clock()
+     * @covers ::clock
      */
     public function test_clock(): void {
         $this->resetAfterTest();
@@ -47,7 +48,7 @@ final class timedate_test extends \advanced_testcase {
 
     /**
      * Test time method.
-     * @covers ::time()
+     * @covers ::time
      */
     public function test_time(): void {
         $this->resetAfterTest();

@@ -32,11 +32,12 @@ namespace enrol_wallet\local\utils;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\utils\payment
  */
 final class payment_test extends \advanced_testcase {
     /**
      * Test get_payment_button_attributes method.
-     * @covers ::get_payment_button_attributes()
+     * @covers ::get_payment_button_attributes
      */
     public function test_get_payment_button_attributes(): void {
         $this->resetAfterTest();
@@ -64,7 +65,7 @@ final class payment_test extends \advanced_testcase {
 
     /**
      * Test init_payment_js method.
-     * @covers ::init_payment_js()
+     * @covers ::init_payment_js
      */
     public function test_init_payment_js(): void {
         $this->resetAfterTest();
@@ -77,7 +78,7 @@ final class payment_test extends \advanced_testcase {
 
     /**
      * Test is_valid_account method with invalid account.
-     * @covers ::is_valid_account()
+     * @covers ::is_valid_account
      */
     public function test_is_valid_account_invalid(): void {
         $this->resetAfterTest();
@@ -97,7 +98,7 @@ final class payment_test extends \advanced_testcase {
 
     /**
      * Test is_valid_currency method.
-     * @covers ::is_valid_currency()
+     * @covers ::is_valid_currency
      */
     public function test_is_valid_currency(): void {
         $this->resetAfterTest();
@@ -121,7 +122,7 @@ final class payment_test extends \advanced_testcase {
 
     /**
      * Test is_topup_available method.
-     * @covers ::is_topup_available()
+     * @covers ::is_topup_available
      */
     public function test_is_topup_available(): void {
         $this->resetAfterTest();

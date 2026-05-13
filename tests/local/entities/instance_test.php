@@ -43,12 +43,13 @@ use enrol_wallet_plugin;
  * @category   test
  * @copyright  2024 2024, Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\entities\instance
  */
 final class instance_test extends \advanced_testcase {
     /**
      * Testing get cost after discount.
      *
-     * @covers ::get_cost_after_discount()
+     * @covers ::get_cost_after_discount
      */
     public function test_get_cost_after_discount(): void {
         global $DB;

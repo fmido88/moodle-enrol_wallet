@@ -34,6 +34,7 @@ use enrol_wallet\local\wallet\balance_op;
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\task\turn_non_refundable
  */
 final class turn_non_refundable_test extends \advanced_testcase {
     /**
@@ -162,7 +163,7 @@ final class turn_non_refundable_test extends \advanced_testcase {
 
     /**
      * test_check_transform_validation.
-     * @covers ::check_transform_validation()
+     * @covers ::check_transform_validation
      * @return void
      */
     public function test_check_transform_validation(): void {

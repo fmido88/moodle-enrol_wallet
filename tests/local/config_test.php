@@ -34,12 +34,13 @@ use enrol_wallet\local\config;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\config
  */
 final class config_test extends \advanced_testcase {
     /**
      * Test singleton pattern.
-     * @covers ::make()
-     * @covers ::instance()
+     * @covers ::make
+     * @covers ::instance
      */
     public function test_singleton(): void {
         $this->resetAfterTest();
@@ -52,7 +53,7 @@ final class config_test extends \advanced_testcase {
 
     /**
      * Test __get method.
-     * @covers ::__get()
+     * @covers ::__get
      */
     public function test_get(): void {
         $this->resetAfterTest();
@@ -66,7 +67,7 @@ final class config_test extends \advanced_testcase {
 
     /**
      * Test __set method.
-     * @covers ::__set()
+     * @covers ::__set
      */
     public function test_set(): void {
         $this->resetAfterTest();
@@ -84,7 +85,7 @@ final class config_test extends \advanced_testcase {
 
     /**
      * Test static get method.
-     * @covers ::get()
+     * @covers ::get
      */
     public function test_static_get(): void {
         $this->resetAfterTest();
@@ -95,7 +96,7 @@ final class config_test extends \advanced_testcase {
 
     /**
      * Test static set method.
-     * @covers ::set()
+     * @covers ::set
      */
     public function test_static_set(): void {
         $this->resetAfterTest();
@@ -106,7 +107,7 @@ final class config_test extends \advanced_testcase {
 
     /**
      * Test __invoke method.
-     * @covers ::__invoke()
+     * @covers ::__invoke
      */
     public function test_invoke(): void {
         $this->resetAfterTest();
@@ -124,7 +125,7 @@ final class config_test extends \advanced_testcase {
 
     /**
      * Test __isset method.
-     * @covers ::__isset()
+     * @covers ::__isset
      */
     public function test_isset(): void {
         $this->resetAfterTest();
@@ -138,7 +139,7 @@ final class config_test extends \advanced_testcase {
 
     /**
      * Test __unset method.
-     * @covers ::__unset()
+     * @covers ::__unset
      */
     public function test_unset(): void {
         $this->resetAfterTest();

@@ -49,11 +49,12 @@ use stdClass;
  * @category   test
  * @copyright  2024 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\offers
  */
 final class offers_test extends \advanced_testcase {
     /**
      * Test get max discount - returns highest discount.
-     * @covers ::get_max_discount()
+     * @covers ::get_max_discount
      */
     public function test_get_max_discount(): void {
         $this->resetAfterTest();
@@ -61,7 +62,7 @@ final class offers_test extends \advanced_testcase {
         $now = timedate::time();
 
         // Test 1: Instance with no offers.
-        $instance = new \stdClass();
+        $instance = new stdClass();
         $instance->courseid = 1;
         $instance->customtext3 = null;
         $user = $this->getDataGenerator()->create_user();
@@ -72,7 +73,7 @@ final class offers_test extends \advanced_testcase {
         config::make()->discount_behavior = instance::const('max');
 
         // Test 2: Multiple offers instance.
-        $instance = new \stdClass();
+        $instance = new stdClass();
         $instance->courseid = 1;
         $instance->customtext3 = json_encode([
             (object)[
@@ -133,7 +134,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test get sum discounts.
-     * @covers ::get_sum_discounts()
+     * @covers ::get_sum_discounts
      */
     public function test_get_sum_discounts(): void {
         global $DB;
@@ -142,7 +143,7 @@ final class offers_test extends \advanced_testcase {
         $now = timedate::time();
 
         // Test 1: Empty offers array.
-        $instance1 = new \stdClass();
+        $instance1 = new stdClass();
         $instance1->courseid = 1;
         $instance1->customtext3 = json_encode([]);
         $user1 = $this->getDataGenerator()->create_user();
@@ -155,7 +156,7 @@ final class offers_test extends \advanced_testcase {
         $this->assertEquals(0, $sum1);
 
         // Test 2: Expired offers only.
-        $instance2 = new \stdClass();
+        $instance2 = new stdClass();
         $instance2->courseid = 1;
         $instance2->customtext3 = json_encode([
             (object)[
@@ -171,7 +172,7 @@ final class offers_test extends \advanced_testcase {
         $this->assertEquals(0, $sum2);
 
         // Test 3: Multiple valid time offers (20+30=50).
-        $instance3 = new \stdClass();
+        $instance3 = new stdClass();
         $instance3->courseid = 1;
         $instance3->customtext3 = json_encode([
             (object)[
@@ -193,7 +194,7 @@ final class offers_test extends \advanced_testcase {
         $this->assertEquals(50, $sum3);
 
         // Test 4: High discounts (capped at 100).
-        $instance4 = new \stdClass();
+        $instance4 = new stdClass();
         $instance4->courseid = 1;
         $instance4->customtext3 = json_encode([
             (object)[
@@ -217,7 +218,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test get max valid discount.
-     * @covers ::get_max_valid_discount()
+     * @covers ::get_max_valid_discount
      */
     public function test_get_max_valid_discount(): void {
         $this->resetAfterTest();
@@ -225,7 +226,7 @@ final class offers_test extends \advanced_testcase {
         $now = timedate::time();
 
         // Test 1: Only expired offers.
-        $instance1 = new \stdClass();
+        $instance1 = new stdClass();
         $instance1->courseid = 1;
         $instance1->customtext3 = json_encode([
             (object)[
@@ -241,7 +242,7 @@ final class offers_test extends \advanced_testcase {
         $this->assertEquals(0, $maxvalid1);
 
         // Test 2: Mixed valid/expired offers (max valid = 40).
-        $instance2 = new \stdClass();
+        $instance2 = new stdClass();
         $instance2->courseid = 1;
         $instance2->customtext3 = json_encode([
             (object)[
@@ -271,7 +272,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test offers with no offers configured.
-     * @covers ::get_raw_offers()
+     * @covers ::get_raw_offers
      */
     public function test_get_raw_offers(): void {
         global $PAGE;
@@ -351,7 +352,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test course enrollment count offer validation - valid.
-     * @covers ::get_available_discounts()
+     * @covers ::get_available_discounts
      */
     public function test_get_available_discounts(): void {
         global $DB;
@@ -395,7 +396,7 @@ final class offers_test extends \advanced_testcase {
         $this->getDataGenerator()->enrol_user($user19->id, $course19->id);
 
         $this->setUser($user19);
-        $instance19 = new \stdClass();
+        $instance19 = new stdClass();
         $instance19->courseid = $course20->id;
         $instance19->customtext3 = json_encode([
             (object)[
@@ -413,7 +414,7 @@ final class offers_test extends \advanced_testcase {
         $course21 = $this->getDataGenerator()->create_course(['category' => $cat2->id]);
         $course22 = $this->getDataGenerator()->create_course(['category' => $cat2->id]);
         $user20 = $this->getDataGenerator()->create_user();
-        $instance20 = new \stdClass();
+        $instance20 = new stdClass();
         $instance20->courseid = $course22->id;
         $instance20->customtext3 = json_encode([
             (object)[
@@ -456,7 +457,7 @@ final class offers_test extends \advanced_testcase {
         $targetcourse25 = $this->getDataGenerator()->create_course(['category' => $cat25->id]);
         $user22 = $this->getDataGenerator()->create_user();
         $this->getDataGenerator()->enrol_user($user22->id, $course25->id);
-        $instance22 = new \stdClass();
+        $instance22 = new stdClass();
         $instance22->courseid = $targetcourse25->id;
         $instance22->customtext3 = json_encode([
             (object)[
@@ -473,7 +474,7 @@ final class offers_test extends \advanced_testcase {
         // Test 6: Non-existent category.
         $course26 = $this->getDataGenerator()->create_course();
         $user23 = $this->getDataGenerator()->create_user();
-        $instance23 = new \stdClass();
+        $instance23 = new stdClass();
         $instance23->courseid = $course26->id;
         $instance23->customtext3 = json_encode([
             (object)[
@@ -546,7 +547,7 @@ final class offers_test extends \advanced_testcase {
         $course34 = $this->getDataGenerator()->create_course(['category' => $cat33->id]);
         $targetcourse33 = $this->getDataGenerator()->create_course(['category' => $cat33->id]);
         $user26 = $this->getDataGenerator()->create_user();
-        $instance26 = new \stdClass();
+        $instance26 = new stdClass();
         $instance26->courseid = $targetcourse33->id;
         $instance26->customtext3 = json_encode([
             (object)[
@@ -564,7 +565,7 @@ final class offers_test extends \advanced_testcase {
         $cat9 = $this->getDataGenerator()->create_category();
         $course9 = $this->getDataGenerator()->create_course(['category' => $cat9->id]);
         $user9 = $this->getDataGenerator()->create_user();
-        $instance9 = new \stdClass();
+        $instance9 = new stdClass();
         $instance9->courseid = $course9->id;
         $instance9->customtext3 = json_encode([
             (object)[
@@ -579,7 +580,7 @@ final class offers_test extends \advanced_testcase {
 
         // Test 11: Mixed offer types.
         $course10 = $this->getDataGenerator()->create_course();
-        $instance10 = new \stdClass();
+        $instance10 = new stdClass();
         $instance10->courseid = $course10->id;
         $instance10->customtext3 = json_encode([
             (object)[
@@ -604,7 +605,7 @@ final class offers_test extends \advanced_testcase {
         // Test 12: Profile field firstname equals (valid).
         $course11 = $this->getDataGenerator()->create_course();
         $user11 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-        $instance11 = new \stdClass();
+        $instance11 = new stdClass();
         $instance11->courseid = $course11->id;
         $instance11->customtext3 = json_encode([
             (object)[
@@ -622,7 +623,7 @@ final class offers_test extends \advanced_testcase {
         // Test 13: Profile field firstname mismatch (invalid).
         $course12 = $this->getDataGenerator()->create_course();
         $user12 = $this->getDataGenerator()->create_user(['firstname' => 'Jane']);
-        $instance12 = new \stdClass();
+        $instance12 = new stdClass();
         $instance12->courseid = $course12->id;
         $instance12->customtext3 = json_encode([
             (object)[
@@ -640,7 +641,7 @@ final class offers_test extends \advanced_testcase {
         // Test 14: Profile field contains (valid).
         $course13 = $this->getDataGenerator()->create_course();
         $user13 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-        $instance13 = new \stdClass();
+        $instance13 = new stdClass();
         $instance13->courseid = $course13->id;
         $instance13->customtext3 = json_encode([
             (object)[
@@ -658,7 +659,7 @@ final class offers_test extends \advanced_testcase {
         // Test 15: Profile field starts with (valid).
         $course14 = $this->getDataGenerator()->create_course();
         $user14 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-        $instance14 = new \stdClass();
+        $instance14 = new stdClass();
         $instance14->courseid = $course14->id;
         $instance14->customtext3 = json_encode([
             (object)[
@@ -676,7 +677,7 @@ final class offers_test extends \advanced_testcase {
         // Test 16: Profile field ends with (valid).
         $course15 = $this->getDataGenerator()->create_course();
         $user15 = $this->getDataGenerator()->create_user(['firstname' => 'John']);
-        $instance15 = new \stdClass();
+        $instance15 = new stdClass();
         $instance15->courseid = $course15->id;
         $instance15->customtext3 = json_encode([
             (object)[
@@ -694,7 +695,7 @@ final class offers_test extends \advanced_testcase {
         // Test 17: Profile field idnumber empty (valid).
         $course16 = $this->getDataGenerator()->create_course();
         $user16 = $this->getDataGenerator()->create_user(['idnumber' => '']);
-        $instance16 = new \stdClass();
+        $instance16 = new stdClass();
         $instance16->courseid = $course16->id;
         $instance16->customtext3 = json_encode([
             (object)[
@@ -711,7 +712,7 @@ final class offers_test extends \advanced_testcase {
         // Test 18: Profile field idnumber not empty (valid).
         $course17 = $this->getDataGenerator()->create_course();
         $user17 = $this->getDataGenerator()->create_user(['idnumber' => '12345']);
-        $instance17 = new \stdClass();
+        $instance17 = new stdClass();
         $instance17->courseid = $course17->id;
         $instance17->customtext3 = json_encode([
             (object)[
@@ -871,7 +872,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test detailed offers for OTHER_CATEGORY_COURSES.
-     * @covers ::get_detailed_offers()
+     * @covers ::get_detailed_offers
      */
     public function test_get_detailed_offers(): void {
         $this->resetAfterTest();
@@ -880,7 +881,7 @@ final class offers_test extends \advanced_testcase {
 
         // Test 1: Time-based offer.
         $course1 = $this->getDataGenerator()->create_course();
-        $instance1 = new \stdClass();
+        $instance1 = new stdClass();
         $instance1->courseid = $course1->id;
         $instance1->customtext3 = json_encode([
             (object)[
@@ -899,7 +900,7 @@ final class offers_test extends \advanced_testcase {
         $cat1 = $this->getDataGenerator()->create_category();
         $cat2 = $this->getDataGenerator()->create_category();
         $course2 = $this->getDataGenerator()->create_course(['category' => $cat1->id]);
-        $instance2 = new \stdClass();
+        $instance2 = new stdClass();
         $instance2->courseid = $course2->id;
         $instance2->customtext3 = json_encode([
             (object)[
@@ -919,7 +920,7 @@ final class offers_test extends \advanced_testcase {
         $course48 = $this->getDataGenerator()->create_course(['category' => $cat48->id]);
         $course49 = $this->getDataGenerator()->create_course(['category' => $cat48->id]);
         $targetcourse48 = $this->getDataGenerator()->create_course(['category' => $cat48->id]);
-        $instance37 = new \stdClass();
+        $instance37 = new stdClass();
         $instance37->courseid = $targetcourse48->id;
         $instance37->customtext3 = json_encode([
             (object)[
@@ -958,7 +959,7 @@ final class offers_test extends \advanced_testcase {
 
         // Test 5: Available only (mixed valid/expired).
         $course5 = $this->getDataGenerator()->create_course();
-        $instance5 = new \stdClass();
+        $instance5 = new stdClass();
         $instance5->courseid = $course5->id;
         $instance5->customtext3 = json_encode([
             (object)[
@@ -981,7 +982,7 @@ final class offers_test extends \advanced_testcase {
 
         // Test 6: Available only expired (empty).
         $course53 = $this->getDataGenerator()->create_course();
-        $instance53 = new \stdClass();
+        $instance53 = new stdClass();
         $instance53->courseid = $course53->id;
         $instance53->customtext3 = json_encode([
             (object)[
@@ -1001,7 +1002,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test format offers descriptions.
-     * @covers ::format_offers_descriptions()
+     * @covers ::format_offers_descriptions
      */
     public function test_format_offers_descriptions(): void {
         $this->resetAfterTest();
@@ -1009,7 +1010,7 @@ final class offers_test extends \advanced_testcase {
         $now = timedate::time();
 
         $course1 = $this->getDataGenerator()->create_course();
-        $instance1 = new \stdClass();
+        $instance1 = new stdClass();
         $instance1->courseid = $course1->id;
         $instance1->customtext3 = json_encode([
             (object)[
@@ -1028,7 +1029,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test get_offer_options static method.
-     * @covers ::get_offer_options()
+     * @covers ::get_offer_options
      */
     public function test_get_offer_options(): void {
         $this->resetAfterTest();
@@ -1064,7 +1065,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test render_form_fragment for time-based offer.
-     * @covers ::render_form_fragment()
+     * @covers ::render_form_fragment
      */
     public function test_render_form_fragment(): void {
         $this->resetAfterTest();
@@ -1094,7 +1095,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test fname method.
-     * @covers ::fname()
+     * @covers ::fname
      */
     public function test_fname(): void {
         $this->resetAfterTest();
@@ -1121,7 +1122,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test add_form_fragment adds elements to form.
-     * @covers ::add_form_fragment()
+     * @covers ::add_form_fragment
      */
     public function test_add_form_fragment(): void {
         $this->resetAfterTest();
@@ -1140,7 +1141,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test get_courses_with_offers static method.
-     * @covers ::get_courses_with_offers()
+     * @covers ::get_courses_with_offers
      */
     public function test_get_courses_with_offers(): void {
         $this->resetAfterTest();
@@ -1175,7 +1176,7 @@ final class offers_test extends \advanced_testcase {
 
     /**
      * Test offers constructor with default user.
-     * @covers ::__construct()
+     * @covers ::__construct
      */
     public function test_constructor(): void {
         global $DB;
@@ -1184,7 +1185,7 @@ final class offers_test extends \advanced_testcase {
         $now = timedate::time();
 
         // Test 1: Default user constructor.
-        $instance1 = new \stdClass();
+        $instance1 = new stdClass();
         $instance1->courseid = 1;
         $instance1->customtext3 = json_encode([
             (object)[

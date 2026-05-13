@@ -43,6 +43,7 @@ require_once($CFG->dirroot . '/enrol/wallet/lib.php');
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\observer
  */
 final class observer_test extends \advanced_testcase {
     /**
@@ -210,7 +211,7 @@ final class observer_test extends \advanced_testcase {
 
     /**
      * Testing event observer gifting new users.
-     * @covers ::wallet_gifting_new_user()
+     * @covers ::wallet_gifting_new_user
      */
     public function test_wallet_gifting_new_user(): void {
         $this->resetAfterTest();
@@ -238,7 +239,7 @@ final class observer_test extends \advanced_testcase {
 
     /**
      * Test Referrals.
-     * @covers ::release_referral_gift()
+     * @covers ::release_referral_gift
      * @return void
      */
     public function test_release_referral_gift(): void {

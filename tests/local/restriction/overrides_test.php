@@ -25,11 +25,12 @@ use enrol_wallet\local\utils\testing;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\restriction\overrides
  */
 final class overrides_test extends \advanced_testcase {
     /**
      * Test override an instance.
-     * @covers ::override_instance()
+     * @covers ::override_instance
      * @return void
      */
     public function test_override_instance(): void {

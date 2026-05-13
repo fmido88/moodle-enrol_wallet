@@ -20,16 +20,18 @@ use enrol_wallet\local\config;
 use enrol_wallet\local\entities\instance;
 
 /**
- * Summary of repurchase_test.
+ * Tests for the repurchase discount implementation.
  *
  * @package    enrol_wallet
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\local\discounts\discount\repurchase
  */
 final class repurchase_test extends \advanced_testcase {
     /**
      * Test repurchase discount availability depends on instance and config.
+     * @covers ::is_available
      */
     public function test_is_available_only_for_instance_and_when_enabled(): void {
         global $DB;
@@ -49,6 +51,8 @@ final class repurchase_test extends \advanced_testcase {
 
     /**
      * Test repurchase discount percentage is returned correctly for eligible users.
+     * @covers ::get_percentage_discount
+     * @covers ::get_discounted_cost
      */
     public function test_get_percentage_discount_returns_expected_repurchase_value(): void {
         global $DB;
@@ -84,6 +88,8 @@ final class repurchase_test extends \advanced_testcase {
 
     /**
      * Test repurchase discount returns zero when user is not eligible.
+     * @covers ::get_percentage_discount
+     * @covers ::get_discounted_cost
      */
     public function test_get_percentage_discount_returns_zero_when_not_eligible(): void {
         global $DB;

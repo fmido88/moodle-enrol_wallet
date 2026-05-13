@@ -28,11 +28,12 @@ use core\output\renderable;
  * @category   test
  * @copyright  2026 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet\output\wallet_balance
  */
 final class wallet_balance_test extends \advanced_testcase {
     /**
      * Test wallet_balance export.
-     * @covers ::export_for_template()
+     * @covers ::export_for_template
      */
     public function test_wallet_balance_export(): void {
         $this->resetAfterTest();
@@ -50,7 +51,7 @@ final class wallet_balance_test extends \advanced_testcase {
 
     /**
      * Test wallet_balance renderable instantiation.
-     * @covers ::__construct()
+     * @covers ::__construct
      */
     public function test_wallet_balance_instantiation(): void {
         $this->resetAfterTest();
@@ -64,7 +65,7 @@ final class wallet_balance_test extends \advanced_testcase {
 
     /**
      * Test wallet_balance with zero balance.
-     * @covers ::export_for_template()
+     * @covers ::export_for_template
      */
     public function test_wallet_balance_zero(): void {
         $this->resetAfterTest();
@@ -80,7 +81,7 @@ final class wallet_balance_test extends \advanced_testcase {
 
     /**
      * Test wallet_balance with positive balance.
-     * @covers ::export_for_template()
+     * @covers ::export_for_template
      */
     public function test_wallet_balance_positive(): void {
         $this->resetAfterTest();
@@ -99,7 +100,7 @@ final class wallet_balance_test extends \advanced_testcase {
 
     /**
      * Test wallet_balance with category.
-     * @covers ::export_for_template()
+     * @covers ::export_for_template
      */
     public function test_wallet_balance_with_category(): void {
         $this->resetAfterTest();

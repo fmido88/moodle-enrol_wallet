@@ -37,6 +37,7 @@ use enrol_wallet_plugin;
  * @package    enrol_wallet
  * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @coversDefaultClass \enrol_wallet_plugin
  */
 final class enrol_wallet_test extends \advanced_testcase {
     /**
@@ -59,7 +60,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test function sync() not throw any errors when there is nothing to do.
-     * @covers ::sync()
+     * @covers ::sync
      */
     public function test_sync_nothing(): void {
         global $SITE;
@@ -207,7 +208,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Text expire enrolment.
-     * @covers ::expired()
+     * @covers ::expired
      */
     public function test_expired(): void {
         global $DB;
@@ -338,7 +339,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test send expiry notification.
-     * @covers ::send_expiry_notification()
+     * @covers ::send_expiry_notification
      */
     public function test_send_expiry_notifications(): void {
         global $DB;
@@ -526,7 +527,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test show enrol me link.
-     * @covers ::show_enrolme_link()
+     * @covers ::show_enrolme_link
      */
     public function test_show_enrolme_link(): void {
         global $DB, $CFG;
@@ -703,7 +704,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * This will check user enrolment only, rest has been tested in test_show_enrolme_link.
-     * @covers ::can_self_enrol()
+     * @covers ::can_self_enrol
      */
     public function test_can_self_enrol(): void {
         global $DB, $CFG;
@@ -874,7 +875,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test get_welcome_email_contact().
-     * @covers ::get_welcome_email_contact()
+     * @covers ::get_welcome_email_contact
      */
     public function test_get_welcome_email_contact(): void {
         global $DB;
@@ -929,7 +930,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test for getting user enrolment actions.
-     * @covers ::get_user_enrolment_actions()
+     * @covers ::get_user_enrolment_actions
      */
     public function test_get_user_enrolment_actions(): void {
         global $CFG, $PAGE;
@@ -977,7 +978,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Test that enrol_self deduct the users credit and that cashback program works.
-     * @covers ::enrol_self()
+     * @covers ::enrol_self
      */
     public function test_enrol_self(): void {
         global $DB;
@@ -1043,7 +1044,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Summary of test_is_course_enrolment_restriction.
-     * @covers ::is_course_enrolment_restriction()
+     * @covers ::is_course_enrolment_restriction
      * @return void
      */
     public function test_is_course_enrolment_restriction(): void {
@@ -1144,7 +1145,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * test for hide_due_cheaper_instance function.
-     * @covers ::hide_due_cheaper_instance()
+     * @covers ::hide_due_cheaper_instance
      */
     public function test_hide_due_cheaper_instance(): void {
         global $DB;
@@ -1218,7 +1219,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     /**
      * Summary of test_unenrol_user
      * Mainly to test the refunds.
-     * @covers ::unenrol_user()
+     * @covers ::unenrol_user
      * @return void
      */
     public function test_unenrol_user(): void {
@@ -1347,7 +1348,7 @@ final class enrol_wallet_test extends \advanced_testcase {
 
     /**
      * Summary of test_get_unenrolself_link.
-     * @covers ::get_unenrolself_link()
+     * @covers ::get_unenrolself_link
      * @return void
      */
     public function test_get_unenrolself_link(): void {
