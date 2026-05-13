@@ -26,6 +26,7 @@ namespace enrol_wallet\local\urls;
  */
 enum manage: string {
     use base;
+
     // Bulk wallet enrolments edit page.
     case BULKENROLMENTS = 'manage/bulkedit.php';
     // Bulk wallet instances edit page.

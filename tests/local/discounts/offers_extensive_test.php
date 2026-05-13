@@ -960,7 +960,13 @@ final class offers_extensive_test extends \advanced_testcase {
     }
 
     /**
-     * Run all tests.
+     * Run all integration cases for offers.
+     *
+     * @covers ::get_available_discounts
+     * @covers ::get_raw_offers
+     * @covers ::get_max_valid_discount
+     * @covers ::get_sum_discounts
+     * @covers ::get_detailed_offers
      * @return void
      */
     public function test_all(): void {

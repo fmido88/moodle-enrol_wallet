@@ -26,6 +26,7 @@ namespace enrol_wallet\local\urls;
  */
 enum pages: string {
     use base;
+
     // Wallet offers page.
     case OFFERS = 'pages/offers.php';
     // Referral page.

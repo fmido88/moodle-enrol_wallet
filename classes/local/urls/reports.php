@@ -26,6 +26,7 @@ namespace enrol_wallet\local\urls;
  */
 enum reports: string {
     use base;
+
     // Coupons table report.
     case COUPONS = 'reports/coupontable.php';
     // Coupons usage report.

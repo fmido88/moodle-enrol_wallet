@@ -954,7 +954,7 @@ final class coupons_test extends \advanced_testcase {
             $record = new \stdClass();
             $var = 'c' . $i;
 
-            $record->category = match($i) {
+            $record->category = match ($i) {
                 1, 2 => $this->cat1->id,
                 3, 4 => $this->cat2->id,
                 5, 6 => $this->cat3->id,

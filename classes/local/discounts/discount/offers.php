@@ -33,7 +33,7 @@ class offers extends discount_base {
         $offers = new offers_base($this->entity->instance, $this->get_userid());
         $discount = 0;
 
-        $discount = match($this->entity->get_behavior()) {
+        $discount = match ($this->entity->get_behavior()) {
             entity::const('sum') => $offers->get_sum_discounts(),
             entity::const('max') => $offers->get_max_valid_discount(),
             entity::const('seq') => $offers->get_seq_discounts(),

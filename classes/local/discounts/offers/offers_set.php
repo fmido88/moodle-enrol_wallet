@@ -145,7 +145,7 @@ class offers_set extends offer_item {
             'op'       => $listintro,
         ]);
 
-        $join = match(true) {
+        $join = match (true) {
             \count($list) <= 1         => '',
             $this->op === self::OP_AND => get_string('operator_and'),
             default                    => get_string('operator_or'),
@@ -184,7 +184,7 @@ class offers_set extends offer_item {
         $hidden = !$and;
 
         foreach ($this->suboffers as $offer) {
-            $hidden = match($and) {
+            $hidden = match ($and) {
                 // Any one of sub offers is hidden while the operation is 'AND' it
                 // means that the whole set is useless and cannot be validated
                 // what ever the user do so the whole set should be hidden,

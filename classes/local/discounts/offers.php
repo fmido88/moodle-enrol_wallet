@@ -60,6 +60,7 @@ use MoodleQuickForm;
  */
 class offers {
     use discount;
+
     /**
      * Offers codes
      * time - time based offers
@@ -140,12 +141,12 @@ class offers {
         global $USER;
         $this->instance = $instance;
 
-        $this->userid = match(true) {
+        $this->userid = match (true) {
             !empty($userid) => $userid,
             default         => $USER->id,
         };
 
-        $offers = match(true) {
+        $offers = match (true) {
             !empty($instance->customtext3)                             => (array)json_decode($instance->customtext3),
             !empty($instance->offers) && \is_string($instance->offers) => (array)json_decode($instance->offers),
             !empty($instance->offers) && \is_array($instance->offers)  => $instance->offers,
@@ -621,9 +622,13 @@ class offers {
 
         $offers = self::get_offers_from_submitted_data($data, $hasoffersdata);
 
-        if (!$hasoffersdata
-            && (($isarray && !isset($data['customtext3']))
-            || (!$isarray && !isset($data->add_offer)))) {
+        if (
+            !$hasoffersdata
+            && (
+                ($isarray && !isset($data['customtext3']))
+                || (!$isarray && !isset($data->add_offer))
+                )
+            ) {
             return; // No offers parsed.
         }
 
@@ -651,7 +656,8 @@ class offers {
             $type = $offer->type;
             $class = self::get_offer_class_name($type);
 
-            if (empty($discount)
+            if (
+                empty($discount)
                 || !is_numeric($discount)
                 || $discount < 0 || $discount > 100
             ) {

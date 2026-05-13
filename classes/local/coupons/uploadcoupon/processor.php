@@ -83,8 +83,10 @@ class processor {
         global $DB;
         $context = \context_system::instance();
 
-        if (!has_capability('enrol/wallet:createcoupon', $context)
-         || !has_capability('enrol/wallet:editcoupon', $context)) {
+        if (
+            !has_capability('enrol/wallet:createcoupon', $context)
+            || !has_capability('enrol/wallet:editcoupon', $context)
+        ) {
             return;
         }
 
@@ -386,10 +388,8 @@ class processor {
      * @return void.
      */
     public function reset() {
-        $this->processstarted = false;
         $this->linenb = 0;
         $this->cir->init();
-        $this->errors = [];
     }
 
     /**
@@ -402,7 +402,7 @@ class processor {
             throw new \moodle_exception('cannotreadtmpfile', 'error');
         }
 
-        if (count($this->columns) < 3) { // At lest code and value columns.
+        if (\count($this->columns) < 3) { // At lest code and value columns.
             throw new \moodle_exception('csvfewcolumns', 'error');
         }
     }

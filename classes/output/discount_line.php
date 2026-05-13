@@ -30,7 +30,7 @@ use stdClass;
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class discount_line implements renderable, named_templatable {
+class discount_line implements named_templatable, renderable {
     /**
      * If there is any bundle to show.
      * @var bool

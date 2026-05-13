@@ -83,10 +83,11 @@ class observer {
         foreach ($instances as $inst) {
             // Check for multiple wallet instances and get the higher award available.
             // Check if awards enabled in this instance & if the condition applied and the student deserve the award.
-            if ($inst->enrol === 'wallet' // Wallet enrollments only.
-            && !empty($inst->customint8) // Awards enabled.
-            && $inst->customdec1 <= $percentage // Condition for award applied.
-            && $inst->customdec2 * ($percentage - $inst->customdec1) > $ta // Maximum award available.
+            if (
+                $inst->enrol === 'wallet' // Wallet enrollments only.
+                && !empty($inst->customint8) // Awards enabled.
+                && $inst->customdec1 <= $percentage // Condition for award applied.
+                && $inst->customdec2 * ($percentage - $inst->customdec1) > $ta // Maximum award available.
             ) {
                 $instance = $inst;
                 $ta = $inst->customdec2 * ($percentage - $inst->customdec1);

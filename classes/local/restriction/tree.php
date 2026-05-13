@@ -111,7 +111,7 @@ class tree extends \core_availability\tree {
         }
 
         // Get logic flags from operator.
-        list($innernot, $andoperator) = $this->get_logic_flags($not);
+        [$innernot, $andoperator] = $this->get_logic_flags($not);
 
         if ($andoperator) {
             $allow = true;

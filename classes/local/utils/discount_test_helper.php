@@ -59,4 +59,3 @@ class discount_test_helper {
         return self::calculate_sequential_discount($discounts, $percentage);
     }
 }
-

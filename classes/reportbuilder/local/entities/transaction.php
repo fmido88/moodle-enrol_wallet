@@ -80,7 +80,7 @@ class transaction extends base {
 
             $this->add_column($column);
 
-            $fieldsql = match($field) {
+            $fieldsql = match ($field) {
                 'descripe' => $DB->sql_compare_text($fieldsql),
                 default    => $fieldsql
             };

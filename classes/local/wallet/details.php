@@ -191,41 +191,30 @@ class details implements IteratorAggregate {
         switch ($name) {
             case 'mainrefundable':
             case 'refund':
-
             case 'mainnonrefundable':
             case 'mainnonrefund':
             case 'norefund':
-
             case 'mainbalance':
             case 'balance':
-
             case 'mainfree':
             case 'main_free':
             case 'free':
-
             case 'total':
             case 'totalbalance':
             case 'total_balance':
-
             case 'total_nonrefundable':
             case 'totalnonrefundable':
-
             case 'total_refundable':
             case 'totalrefundable':
-
             case 'total_free':
             case 'totalfree':
-
             case 'valid':
             case 'validbalance':
             case 'valid_balance':
-
             case 'valid_nonrefundable':
             case 'validnonrefundable':
-
             case 'valid_refundable':
             case 'validrefundable':
-
             case 'valid_free':
             case 'validfree':
                 return true;

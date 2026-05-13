@@ -108,9 +108,11 @@ foreach ($courses as $courseid) {
             $data->timeend = $euser->uetimeend;
         }
 
-        if ($euser->uestatus == $data->status
+        if (
+            $euser->uestatus == $data->status
             && $euser->uetimestart == $data->timestart
-            && $euser->uetimeend == $data->timeend) {
+            && $euser->uetimeend == $data->timeend
+        ) {
             // No change.
             continue;
         }

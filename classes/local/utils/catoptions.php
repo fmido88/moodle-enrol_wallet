@@ -168,7 +168,7 @@ class catoptions {
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
 
         if (!empty($this->catid)) {
-            list($in, $catparams) = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
+            [$in, $catparams] = $DB->get_in_or_equal($this->get_parents_ids(), SQL_PARAMS_NAMED);
             $select .= " AND category $in";
             $params += $catparams;
         }

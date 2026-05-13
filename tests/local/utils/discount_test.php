@@ -25,8 +25,6 @@
 
 namespace enrol_wallet\local\utils;
 
-defined('MOODLE_INTERNAL') || die();
-
 use core\exception\invalid_parameter_exception;
 
 /**

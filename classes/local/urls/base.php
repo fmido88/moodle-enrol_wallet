@@ -26,6 +26,7 @@ use core\url;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 trait base {
+
     /**
      * Get the url of the page.
      * @param  array $params

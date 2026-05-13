@@ -53,7 +53,7 @@ trait discount {
      * @return ?int
      */
     final public static function const(string $type): ?int {
-        return match(core_text::strtolower($type)) {
+        return match (core_text::strtolower($type)) {
             'seq', 'b_seq', 'sequential' => ENROL_WALLET_DISCOUNT_SEQ,
             'max', 'b_max', 'maximum'    => ENROL_WALLET_DISCOUNT_MAX,
             'sum', 'b_sum', 'summation'  => ENROL_WALLET_DISCOUNT_SUM,

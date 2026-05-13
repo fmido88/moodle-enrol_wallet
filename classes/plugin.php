@@ -873,9 +873,11 @@ class enrol_wallet_plugin extends enrol_plugin {
             return $instance;
         }
 
-        if (empty($this->instance)
+        if (
+            empty($this->instance)
             || ($this->instance->id != $instanceid)
-            || $userid != $this->instance->get_userid()) {
+            || $userid != $this->instance->get_userid()
+        ) {
             if ($instance instanceof instance && $userid == $instance->get_userid()) {
                 $this->instance = $instance;
 
@@ -1824,7 +1826,7 @@ class enrol_wallet_plugin extends enrol_plugin {
 
             if (!empty($CFG->coursecontact)) {
                 $croles = explode(',', $CFG->coursecontact);
-                list($sort, $sortparams) = users_order_by_sql('u');
+                [$sort, $sortparams] = users_order_by_sql('u');
                 // We only use the first user.
                 $i = 0;
 

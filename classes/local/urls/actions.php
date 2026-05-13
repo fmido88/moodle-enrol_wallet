@@ -26,6 +26,7 @@ namespace enrol_wallet\local\urls;
  */
 enum actions: string {
     use base;
+
     // Bulk enrolments edit action page.
     case BULKENROLMENTS = 'actions/bulkedit_action.php';
     // Bulk edit instances actions page.

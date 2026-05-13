@@ -24,7 +24,6 @@ use core_user;
 use enrol_wallet\form\applycoupon_form;
 use enrol_wallet\hook\extend_topup_options;
 use enrol_wallet\local\config;
-use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\urls\actions;
 use enrol_wallet\local\urls\pages;
 use enrol_wallet\local\utils\payment;
@@ -42,7 +41,7 @@ require_once($CFG->dirroot . '/user/lib.php');
  * @copyright  2025 Mohammad Farouk <phun.for.physics@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class topup_options implements templatable, renderable {
+class topup_options implements renderable, templatable {
     /**
      * User object.
      * @var stdClass
@@ -210,8 +209,10 @@ class topup_options implements templatable, renderable {
         global $CFG;
 
         // If plugin block_vc exist, add credit options by it.
-        if (file_exists("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php")
-                && (bool)get_config('block_vc', 'enablecredit')) {
+        if (
+            file_exists("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php")
+            && (bool)get_config('block_vc', 'enablecredit')
+        ) {
             require_once("$CFG->dirroot/blocks/vc/classes/form/vc_credit_form.php");
             $action = new url('/blocks/vc/credit.php');
             $vcform = new \block_vc\form\vc_credit_form($action);

@@ -1051,6 +1051,11 @@ final class offers_test extends \advanced_testcase {
         $this->assertArrayHasKey(offers::COURSES_ENROL_SAME_CAT, $options);
     }
 
+    /**
+     * Test returned offer classes correspond to available offer types.
+     *
+     * @covers ::get_offer_classes
+     */
     public function test_get_offer_classes(): void {
         $this->resetAfterTest();
         $classes = offers::get_offer_classes();
@@ -1221,6 +1226,11 @@ final class offers_test extends \advanced_testcase {
         $this->assertEquals(20, $rawoffers50[0]->discount);
     }
 
+    /**
+     * Test parse_data and validate behavior for offer form data.
+     *
+     * @covers ::parse_data
+     */
     public function test_parse_data(): void {
         $this->resetAfterTest();
         $_POST = [
@@ -1304,6 +1314,11 @@ final class offers_test extends \advanced_testcase {
         $_POST = [];
     }
 
+    /**
+     * Test invalid offer type returns null for class name lookup.
+     *
+     * @covers ::get_offer_class_name
+     */
     public function test_get_offer_class_name(): void {
         $this->assertNull(offers::get_offer_class_name('invalid_type'));
     }

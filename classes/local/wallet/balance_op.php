@@ -1093,7 +1093,7 @@ class balance_op extends balance {
 
         $receiver = \core_user::get_user_by_email($email);
 
-        list($debit, $credit) = $mform->get_debit_credit($amount);
+        [$debit, $credit] = $mform->get_debit_credit($amount);
         $fee = abs($credit - $debit);
 
         $unknownerror = get_string('error');

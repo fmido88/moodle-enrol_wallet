@@ -95,9 +95,9 @@ class wordpress {
     public static function encrypt_data($data) {
         $key = config::make()->wordpress_secretkey;
         $data['sk'] = $key;
-        $token = http_build_query( $data, 'flags_' );
+        $token = http_build_query($data, 'flags_');
 
-        $encryptkey = openssl_digest( $key, 'SHA256', true );
+        $encryptkey = openssl_digest($key, 'SHA256', true);
 
         $encryptiv = openssl_random_pseudo_bytes(openssl_cipher_iv_length('AES-128-CTR'));
         $crypttext = openssl_encrypt($token, 'AES-128-CTR', $encryptkey, 0, $encryptiv) . '::' . bin2hex($encryptiv);

@@ -119,14 +119,14 @@ class balance {
 
         $this->source = $source;
 
-        $this->userid = match(true) {
+        $this->userid = match (true) {
             !empty($userid) => $userid,
             default         => $USER->id,
         };
 
         $this->catenabled = (bool)$config->catbalance && ($this->source == self::MOODLE);
 
-        $this->catid = $this->catenabled ? match(true) {
+        $this->catid = $this->catenabled ? match (true) {
             empty($category) && !empty($COURSE->category) => $COURSE->category,
             \is_object($category)                         => $category->id,
             is_number($category) && $category > 0         => $category,

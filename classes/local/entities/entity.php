@@ -104,7 +104,7 @@ abstract class entity extends stdClass {
      */
     public function set_user(int|stdClass $user = 0): void {
         global $USER;
-        $this->userid = match(true) {
+        $this->userid = match (true) {
             empty($user)      => $USER->id,
             \is_object($user) => $user->id,
             default           => $user,
@@ -263,7 +263,7 @@ abstract class entity extends stdClass {
      */
     final protected function calculate_discount(float $cost): float {
         $discounts = $this->get_discounts($cost);
-        $discount = match($this->get_behavior()) {
+        $discount = match ($this->get_behavior()) {
             self::const('max') => $this->calculate_max_discount($discounts),
             self::const('seq') => $this->calculate_sequential_discount($discounts),
             self::const('sum') => $this->calculate_sum_discount($discounts),

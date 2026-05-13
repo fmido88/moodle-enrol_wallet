@@ -91,7 +91,7 @@ class editselectedusers_operation extends \enrol_bulk_enrolment_operation {
         $timestart = $properties->timestart;
         $timeend = $properties->timeend;
 
-        list($ueidsql, $params) = $DB->get_in_or_equal($ueids, SQL_PARAMS_NAMED);
+        [$ueidsql, $params] = $DB->get_in_or_equal($ueids, SQL_PARAMS_NAMED);
 
         $updatesql = [];
 

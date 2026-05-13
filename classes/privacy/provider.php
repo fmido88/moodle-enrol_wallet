@@ -24,9 +24,12 @@
 
 namespace enrol_wallet\privacy;
 
+use core_payment\privacy\consumer_provider;
 use core_privacy\local\metadata\collection;
+use core_privacy\local\metadata\provider as core_provider;
 use core_privacy\local\request\approved_contextlist;
 use core_privacy\local\request\approved_userlist;
+use core_privacy\local\request\data_provider;
 use core_privacy\local\request\userlist;
 use enrol_wallet\local\config;
 use enrol_wallet\local\wallet\balance;
@@ -38,9 +41,10 @@ use enrol_wallet\local\wallet\balance;
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class provider implements
-    \core_privacy\local\metadata\provider,
-    \core_privacy\local\request\data_provider,
-    \core_payment\privacy\consumer_provider {
+    consumer_provider,
+    core_provider,
+    data_provider {
+
     /**
      * Returns meta data about this system.
      * @param  collection $collection The initialized collection to add items to.

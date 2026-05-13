@@ -35,7 +35,7 @@ require(__DIR__ . '/../../../config.php');
 require_once("$CFG->libdir/clilib.php");
 
 // Now get cli options.
-list($options, $unrecognized) = cli_get_params(
+[$options, $unrecognized] = cli_get_params(
     ['verbose' => false, 'help' => false],
     ['v' => 'verbose', 'h' => 'help']
 );
