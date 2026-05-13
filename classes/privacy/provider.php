@@ -44,7 +44,6 @@ class provider implements
     consumer_provider,
     core_provider,
     data_provider {
-
     /**
      * Returns meta data about this system.
      * @param  collection $collection The initialized collection to add items to.

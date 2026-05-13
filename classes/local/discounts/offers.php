@@ -627,8 +627,8 @@ class offers {
             && (
                 ($isarray && !isset($data['customtext3']))
                 || (!$isarray && !isset($data->add_offer))
-                )
-            ) {
+            )
+        ) {
             return; // No offers parsed.
         }
 
