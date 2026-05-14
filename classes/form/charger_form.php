@@ -119,7 +119,7 @@ class charger_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $DB, $PAGE;
+        global $PAGE;
 
         $mform = $this->_form;
         $hook = new \enrol_wallet\hook\before_charger_form_definition($mform, $this->_customdata);
@@ -260,7 +260,7 @@ class charger_form extends \moodleform {
      * @return bool|null
      */
     public function process_form_submission($data = null) {
-        global $USER, $DB;
+        global $USER;
 
         if (!$data) {
             $data = $this->get_data();

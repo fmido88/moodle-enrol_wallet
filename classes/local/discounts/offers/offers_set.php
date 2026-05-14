@@ -359,7 +359,7 @@ class offers_set extends offer_item {
             return;
         }
 
-        [$k, $i, $type] = offers::analyze_element_key($name);
+        [$k, , $type] = offers::analyze_element_key($name);
 
         if (!$class = offers::get_offer_class_name($type)) {
             return;
@@ -405,11 +405,11 @@ class offers_set extends offer_item {
         ?array $sub = null,
         ?string $op = null
     ): stdClass {
-        global $DB;
 
         if (null === $gen) {
             $gen = phpunit_util::get_data_generator();
         }
+
         $offer = new stdClass();
         $offer->type = static::key();
         $offer->discount = $discount ?? random_int(1, 99);

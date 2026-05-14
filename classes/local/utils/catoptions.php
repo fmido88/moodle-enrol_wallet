@@ -111,9 +111,10 @@ class catoptions {
     /**
      * Get all the categories in the site in nested name form
      * return array keyed with categories ids.
+     * @param bool $includesite
      * @return array[string]
      */
-    public static function get_all_categories_options() {
+    public static function get_all_categories_options(bool $includesite = true) {
         $catoptions = [];
         $allcats = \core_course_category::get_all();
 
@@ -121,7 +122,7 @@ class catoptions {
             $catoptions[$catid] = $cat->get_nested_name(false);
         }
         asort($catoptions, SORT_STRING | SORT_FLAG_CASE);
-        $catoptions = [0 => get_string('site')] + $catoptions;
+        $catoptions = !$includesite ?: [0 => get_string('site')] + $catoptions;
 
         return $catoptions;
     }

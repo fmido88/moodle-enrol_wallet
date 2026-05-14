@@ -197,8 +197,6 @@ class applycoupon_form extends \moodleform {
      * @return string|url
      */
     public function process_coupon_data($data = null) {
-        global $DB;
-
         $data ??= $this->get_data() ?? [];
 
         $data = (array)$data;

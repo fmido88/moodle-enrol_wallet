@@ -159,7 +159,6 @@ class coupons_generator extends \moodleform {
      * @return array array of errors
      */
     public function validation($data, $files) {
-        global $DB;
         $errors = parent::validation($data, $files);
         type_base::validate_generator_form($data, $errors);
 

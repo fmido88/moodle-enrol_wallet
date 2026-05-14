@@ -24,13 +24,18 @@
 namespace enrol_wallet\form;
 
 use enrol_wallet\local\coupons\types\base as type_base;
+use enrol_wallet\local\utils\catoptions;
 
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
 
-/** Enrollment form.
+/**
+ * Edit coupon form.
  *
+ * @package enrol_wallet
+ * @copyright  2023 Mo Farouk <phun.for.physics@gmail.com>
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class coupons_edit extends \moodleform {
     /**
@@ -58,12 +63,7 @@ class coupons_edit extends \moodleform {
         $mform->addHelpButton('value', 'coupon_value', 'enrol_wallet');
         $mform->hideIf('value', 'type', 'eq', 'enrol');
 
-        $categories = \core_course_category::get_all();
-        $catoptions = [];
-
-        foreach ($categories as $category) {
-            $catoptions[$category->id] = $category->get_nested_name(false);
-        }
+        $catoptions = catoptions::get_all_categories_options(false);
         $mform->addElement('select', 'category', get_string('category'), $catoptions);
         $mform->addHelpButton('category', 'category_options', 'enrol_wallet');
         $mform->hideIf('category', 'type', 'neq', 'category');

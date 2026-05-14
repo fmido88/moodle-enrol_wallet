@@ -317,7 +317,7 @@ class courses_enrol_same_cat_offer extends offer_item {
         ?bool $activeonly = false,
         ?bool $walletonly = false
     ): stdClass {
-        global $DB, $PAGE;
+        global $PAGE;
 
         if (null === $gen) {
             $gen = phpunit_util::get_data_generator();

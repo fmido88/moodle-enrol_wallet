@@ -105,7 +105,6 @@ class other_category_courses_offer extends offer_item {
      * @return bool
      */
     public function is_hidden(): bool {
-        global $DB;
 
         if (parent::is_hidden()) {
             return true;
@@ -127,9 +126,7 @@ class other_category_courses_offer extends offer_item {
 
     #[\Override()]
     public function validate_offer(): bool {
-        global $DB;
         $number = $this->number;
-        $catid = $this->cat;
 
         if (empty($number)) {
             return false;
@@ -283,7 +280,6 @@ class other_category_courses_offer extends offer_item {
         ?int $number = null,
         ?bool $activeonly = null
     ) {
-        global $DB;
 
         if (null === $gen) {
             $gen = phpunit_util::get_data_generator();

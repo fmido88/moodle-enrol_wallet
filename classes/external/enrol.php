@@ -151,7 +151,7 @@ class enrol extends external_api {
 
         $course = get_course($params['courseid']);
         $context = context_course::instance($course->id);
-        self::validate_context(system::instance());
+        self::validate_context($context);
 
         if (!core_course_category::can_view_course_info($course)) {
             throw new moodle_exception('coursehidden');

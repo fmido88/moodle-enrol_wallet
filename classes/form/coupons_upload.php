@@ -39,8 +39,8 @@ class coupons_upload extends \moodleform {
      * @return void
      */
     public function definition() {
-        $mform = $this->_form;
         global $CFG;
+        $mform = $this->_form;
         // Heading.
         $mform->addElement('html', '<p>' . get_string('upload_coupons_help', 'enrol_wallet') . '</p>');
 
@@ -92,7 +92,6 @@ class coupons_upload extends \moodleform {
      * @return array array of errors
      */
     public function validation($data, $files) {
-        global $DB;
         $errors = parent::validation($data, $files);
 
         if (empty($data['csvfile'])) {

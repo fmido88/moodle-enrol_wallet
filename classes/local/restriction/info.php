@@ -95,7 +95,6 @@ class info extends \core_availability\info {
      * @param string $availability New JSON value
      */
     protected function set_in_database($availability) {
-        global $DB;
 
         $plugin = enrol_wallet_plugin::get_plugin();
 
@@ -172,7 +171,7 @@ class info extends \core_availability\info {
         $userid = 0,
         $modinfo = null
     ) {
-        global $USER, $DB;
+        global $USER;
 
         // Default to no information.
         $information = '';

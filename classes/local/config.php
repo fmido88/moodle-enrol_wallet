@@ -246,7 +246,6 @@ class config {
      * @return bool
      */
     protected function exists($name) {
-        global $CFG;
         $exists = isset($this->$name) || property_exists($this, $name) || property_exists($this->store, $name);
 
         if (!$exists && !self::upgrading()) {

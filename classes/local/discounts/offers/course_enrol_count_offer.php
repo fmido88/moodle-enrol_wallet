@@ -205,13 +205,12 @@ class course_enrol_count_offer extends offer_item {
         ?int $number = null,
         ?bool $activeonly = null
     ) {
-        global $DB;
+        global $PAGE;
         $offer = new stdClass();
         $offer->type = static::key();
         $offer->discount = $discount ?? (random_int(100, 9900) / 100);
 
         if ($number === null) {
-            global $PAGE;
             $number = rand(1, 6);
 
             if ($PAGE->course->id === SITEID) {

@@ -114,7 +114,7 @@ class topup_form extends \moodleform {
      * @return void
      */
     public function definition() {
-        global $DB, $PAGE;
+        global $PAGE;
 
         $instance = ((object)$this->_customdata)->instance;
 

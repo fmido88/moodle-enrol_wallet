@@ -77,16 +77,4 @@ class override extends moodleform {
         $this->add_action_buttons();
         $this->set_display_vertical();
     }
-
-    /**
-     * Validate override form.
-     * @param  array $data
-     * @param  array $files
-     * @return array
-     */
-    public function validation($data, $files) {
-        $errors = [];
-
-        return $errors;
-    }
 }

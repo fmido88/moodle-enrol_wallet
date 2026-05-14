@@ -287,7 +287,6 @@ class coupons {
      * @return bool
      */
     protected function is_same_area_input(?int $area, int $areaid): bool {
-        global $DB;
 
         if ($area === null) {
             return true;

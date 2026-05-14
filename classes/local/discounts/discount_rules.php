@@ -73,12 +73,13 @@ class discount_rules {
      * @return \stdClass[]
      */
     public static function get_all_available_discount_rules(): array {
+        global $DB;
         $enabled = (bool)config::instance()->conditionaldiscount_apply;
 
         if (!$enabled) {
             return [];
         }
-        global $DB;
+
         $select = '(timefrom <= :time1 OR timefrom = 0) AND (timeto >= :time2 OR timeto = 0)';
         $params = ['time1' => timedate::time(), 'time2' => timedate::time()];
 
@@ -151,7 +152,6 @@ class discount_rules {
      * @return ?float[] with two elements the rest of the amount and the condition applied.
      */
     public static function get_the_rest(float $amount, int $catid = 0): array {
-        global $DB;
         $enabled = config::instance()->conditionaldiscount_apply;
         $percentdiscount = 0;
 

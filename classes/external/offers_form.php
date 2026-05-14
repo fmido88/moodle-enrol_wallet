@@ -55,8 +55,6 @@ class offers_form extends external_api {
      * @return array
      */
     public static function get_form_fragment(string $type, int $increment, int $course, ?string $parentset = null): array {
-        global $PAGE;
-
         $params = compact('type', 'increment', 'course', 'parentset');
         $params = self::validate_parameters(self::get_form_fragment_parameters(), $params);
 
