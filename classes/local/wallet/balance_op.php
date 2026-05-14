@@ -1112,12 +1112,11 @@ class balance_op extends balance {
         ];
         $desc = get_string('transferop_desc', 'enrol_wallet', $a);
         $op = new self($receiver->id, $catid);
-        $done = true;
+        $done = false;
 
         try {
-            $done = $op->credit($credit, self::C_TRANSFER, $receiver->id, $desc, false);
+            $done = $op->credit($credit, self::C_TRANSFER, $this->userid, $desc, false);
         } catch (\moodle_exception $e) {
-            $done = false;
             $unknownerror = $e->getMessage();
         }
 

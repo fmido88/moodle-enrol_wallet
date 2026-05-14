@@ -69,6 +69,7 @@ class transfer_form extends \moodleform {
         if (empty($transferenabled)) {
             return;
         }
+
         $this->config = (object)[
             'transfer_enabled' => $transferenabled,
             'transferpercent'  => (float)$config->transferpercent,

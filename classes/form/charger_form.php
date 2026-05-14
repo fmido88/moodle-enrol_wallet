@@ -26,98 +26,19 @@ namespace enrol_wallet\form;
 
 use core\context\system;
 use enrol_wallet\local\config;
-use enrol_wallet\local\wallet\balance_op;
-use stdClass;
-
-defined('MOODLE_INTERNAL') || die();
-global $CFG;
-require_once($CFG->libdir . '/formslib.php');
-
 use enrol_wallet\local\discounts\discount_rules;
 use enrol_wallet\local\utils\catoptions;
 use enrol_wallet\local\utils\form;
 use enrol_wallet\local\wallet\balance;
+use enrol_wallet\local\wallet\balance_op;
+use stdClass;
 
 /**
  * The form by which managers could charge others manually.
  * @package enrol_wallet
  */
-class charger_form extends \moodleform {
-    /**
-     * The unique id of the form.
-     * @var string
-     */
-    protected $formid;
-
-    /**
-     * Override the original constructor to set the from id.
-     *
-     * The constructor function calls the abstract function definition() and it will then
-     * process and clean and attempt to validate incoming data.
-     *
-     * It will call your custom validate method to validate data and will also check any rules
-     * you have specified in definition using addRule
-     *
-     * The name of the form (id attribute of the form) is automatically generated depending on
-     * the name you gave the class extending moodleform. You should call your class something
-     * like
-     *
-     * @param mixed  $action       the action attribute for the form. If empty defaults to auto detect the
-     *                             current url. If a moodle_url object then outputs params as hidden variables.
-     * @param mixed  $customdata   if your form defintion method needs access to data such as $course
-     *                             $cm, etc. to construct the form definition then pass it in this array. You can
-     *                             use globals for somethings.
-     * @param string $method       if you set this to anything other than 'post' then _GET and _POST will
-     *                             be merged and used as incoming data to the form.
-     * @param string $target       target frame for form submission. You will rarely use this. Don't use
-     *                             it if you don't need to as the target attribute is deprecated in xhtml strict.
-     * @param mixed  $attributes   you can pass a string of html attributes here or an array.
-     *                             Special attribute 'data-random-ids' will randomise generated elements ids. This
-     *                             is necessary when there are several forms on the same page.
-     *                             Special attribute 'data-double-submit-protection' set to 'off' will turn off
-     *                             double-submit protection JavaScript - this may be necessary if your form sends
-     *                             downloadable files in response to a submit button, and can't call
-     *                             \core_form\util::form_download_complete();
-     * @param bool   $editable
-     * @param array  $ajaxformdata Forms submitted via ajax, must pass their data here, instead of relying on _GET and _POST.
-     */
-    public function __construct(
-        $action = null,
-        $customdata = null,
-        $method = 'post',
-        $target = '',
-        $attributes = null,
-        $editable = true,
-        $ajaxformdata = null
-    ) {
-        if (empty($attributes)) {
-            $attributes = ['id' => $this->get_form_id()];
-        } else if (is_array($attributes)) {
-            $attributes['id'] = $this->get_form_id();
-        } else {
-            $attributes .= ' id="' . $this->get_form_id() . '"';
-        }
-
-        return parent::__construct($action, $customdata, $method, $target, $attributes, $editable, $ajaxformdata);
-    }
-
-    /**
-     * Create and return the id of the form to be used in js module.
-     * @return string
-     */
-    protected function get_form_id() {
-        if (isset($this->formid)) {
-            return $this->formid;
-        }
-        $this->formid = $this->get_form_identifier() . '_' . random_string();
-
-        return $this->formid;
-    }
-
-    /**
-     * Form definition. Abstract method - always override!
-     * @return void
-     */
+class charger_form extends topup_form {
+    #[\Override()]
     public function definition() {
         global $PAGE;
 
@@ -200,14 +121,7 @@ class charger_form extends \moodleform {
         $this->set_display_vertical();
     }
 
-    /**
-     * Dummy stub method - override if you needed to perform some extra validation.
-     * If there are errors return array of errors ("fieldname"=>"error message"),
-     * otherwise true if ok.
-     * Server side rules do not work for uploaded files, implement serverside rules here if needed.
-     * @param array $data  array of ("fieldname"=>value) of submitted data
-     * @param array $files array of uploaded files "element_name"=>tmp_file_path
-     */
+    #[\Override()]
     public function validation($data, $files) {
         global $DB;
         $errors = parent::validation($data, $files);

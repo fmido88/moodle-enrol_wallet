@@ -17,12 +17,11 @@
 namespace enrol_wallet\form;
 
 use enrol_wallet\local\utils\catoptions;
+use moodleform;
 
 defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->libdir . '/formslib.php');
-
-use moodleform;
 
 /**
  * Class conditional_discount.

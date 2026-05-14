@@ -44,12 +44,6 @@ class enrol_form extends \moodleform {
     protected $instance;
 
     /**
-     * toomany.
-     * @var bool
-     */
-    protected $toomany = false;
-
-    /**
      * Overriding this function to get unique form id for multiple wallet enrolments.
      *
      * @return string form identifier
@@ -141,27 +135,5 @@ class enrol_form extends \moodleform {
             $mform->setType('coupon', PARAM_TEXT);
             $mform->setDefault('coupon', $coupon);
         }
-    }
-
-    /**
-     * Dummy stub method - override if you needed to perform some extra validation.
-     * If there are errors return array of errors ("fieldname"=>"error message"),
-     * otherwise true if ok.
-     * Server side rules do not work for uploaded files, implement serverside rules here if needed.
-     * returns of "element_name"=>"error_description" if there are errors,
-     * or an empty array if everything is OK (true allowed for backwards compatibility too).
-     *
-     * @param  array $data  array of data
-     * @param  array $files array of files
-     * @return array array of errors
-     */
-    public function validation($data, $files) {
-        $errors = parent::validation($data, $files);
-
-        if ($this->toomany) {
-            $errors['notice'] = get_string('error');
-        }
-
-        return $errors;
     }
 }
