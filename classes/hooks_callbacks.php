@@ -171,14 +171,14 @@ class hooks_callbacks {
      */
     public static function shouldnt($logincheck = true): bool {
         global $CFG;
-        $plugin = new stdClass();
-        include("{$CFG->dirroot}/enrol/wallet/version.php");
-        $shouldnt = get_config('enrol_wallet', 'version') < $plugin->version;
-
-        $shouldnt = $shouldnt || !class_exists('\\enrol_wallet\\local\\config');
+        $shouldnt = !class_exists('\\enrol_wallet\\local\\config');
         $shouldnt = $shouldnt || during_initial_install();
         $shouldnt = $shouldnt || !empty($CFG->upgraderunning);
         $shouldnt = $shouldnt || @moodle_needs_upgrading();
+
+        $plugin = new stdClass();
+        include("{$CFG->dirroot}/enrol/wallet/version.php");
+        $shouldnt = $shouldnt || get_config('enrol_wallet', 'version') < $plugin->version;
 
         if ($logincheck) {
             $shouldnt = $shouldnt || !isloggedin() || isguestuser();
