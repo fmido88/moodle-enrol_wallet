@@ -33,7 +33,6 @@ use context_system;
 use core\output\html_writer;
 use core\plugininfo\enrol;
 use enrol_wallet\admin\admin_setting_wp_notice;
-use enrol_wallet\local\coupons\coupons;
 use enrol_wallet\local\coupons\types\base as type_base;
 use enrol_wallet\local\entities\instance;
 use enrol_wallet\local\urls\actions;
