@@ -29,9 +29,12 @@ import $ from 'jquery';
 const Selectors = {
     bulkDeleteForm: 'form#enrolwallet_coupondelete',
     couponsReportWrapper: '[data-region="coupons-table-report-wrapper"]',
-    checkbox: 'input[type="checkbox"][data-togglegroup="report-select-all"][data-toggle="slave"]',
-    masterCheckbox: 'input[type="checkbox"][data-togglegroup="report-select-all"][data-toggle="master"]',
-    checkedRows: '[data-togglegroup="report-select-all"][data-toggle="slave"]:checked',
+    checkbox: 'input[type="checkbox"][data-togglegroup="report-select-all"][data-toggle="target"]'
+            + ', input[type="checkbox"][data-togglegroup="report-select-all"][data-toggle="slave"]',
+    masterCheckbox: 'input[type="checkbox"][data-togglegroup="report-select-all"][data-toggle="toggler"]'
+                  + ', input[type="checkbox"][data-togglegroup="report-select-all"][data-toggle="master"]',
+    checkedRows: '[data-togglegroup="report-select-all"][data-toggle="target"]:checked'
+               + ', [data-togglegroup="report-select-all"][data-toggle="slave"]:checked',
 };
 
 export const init = () => {
