@@ -133,7 +133,7 @@ abstract class base {
         $list = [];
 
         foreach ($classes as $class) {
-            if (!$key = ($class::TYPE ?? null)) {
+            if (!$key = (@$class::get_area() ?? null)) {
                 continue;
             }
             $list[$key] = $class::get_visible_name();
