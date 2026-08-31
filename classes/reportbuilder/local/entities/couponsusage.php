@@ -123,7 +123,8 @@ class couponsusage extends base {
                 // Bad developer.
                 return '';
             }
-            $class = new $class($row->instanceid);
+
+            $class = area_base::make($class::get_area(), $row->instanceid);
 
             return $class->get_name(true);
         });
