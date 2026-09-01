@@ -21,7 +21,9 @@ use enrol_wallet_generator;
 use phpunit_util;
 
 defined('MOODLE_INTERNAL') || die();
-require_once("{$CFG->dirroot}/lib/phpunit/classes/util.php");
+if ((int)$CFG->branch < 502) {
+    require_once("{$CFG->dirroot}/lib/phpunit/classes/util.php");
+}
 
 /**
  * Class testing contains helpful method for testing.
