@@ -4,7 +4,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     services:
-      postgres:
+      postgres16:
         image: postgres:16
         env:
           POSTGRES_USER: 'postgres'
@@ -12,7 +12,23 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
-      mariadb:
+      postgres17:
+        image: postgres:17
+        env:
+          POSTGRES_USER: 'postgres'
+          POSTGRES_HOST_AUTH_METHOD: 'trust'
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
+      mariadb10:
+        image: mariadb:10
+        env:
+          MYSQL_USER: 'root'
+          MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping" --health-interval 10s --health-timeout 5s --health-retries 3
+      mariadb11:
         image: mariadb:10
         env:
           MYSQL_USER: 'root'
@@ -24,12 +40,14 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {php: '8.2', moodle-branch: MOODLE_500_STABLE, database: mariadb}
-          - {php: '8.2', moodle-branch: MOODLE_500_STABLE, database: pgsql}
-          - {php: '8.4', moodle-branch: MOODLE_501_STABLE, database: mariadb}
-          - {php: '8.4', moodle-branch: MOODLE_501_STABLE, database: pgsql}
-          - {php: '8.4', moodle-branch: main, database: mariadb}
-          - {php: '8.4', moodle-branch: main, database: pgsql}
+          - {php: '8.2', moodle-branch: MOODLE_500_STABLE, database: mariadb10}
+          - {php: '8.2', moodle-branch: MOODLE_500_STABLE, database: pgsql16}
+          - {php: '8.3', moodle-branch: MOODLE_501_STABLE, database: mariadb10}
+          - {php: '8.3', moodle-branch: MOODLE_501_STABLE, database: pgsql16}
+          - {php: '8.4', moodle-branch: MOODLE_502_STABLE, database: mariadb11}
+          - {php: '8.4', moodle-branch: MOODLE_502_STABLE, database: pgsql17}
+          - {php: '8.4', moodle-branch: main, database: mariadb11}
+          - {php: '8.4', moodle-branch: main, database: pgsql17}
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
