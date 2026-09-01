@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: ${{ matrix.database == 'pgsql17' && 'postgres:17' || matrix.database == 'pgsql16' && 'postgres:16' || '' }}
+        image: ${{ (matrix.database == 'pgsql17' && 'postgres:17') || (matrix.database == 'pgsql16' && 'postgres:16') || '' }}
         env:
           POSTGRES_USER: 'postgres'
           POSTGRES_HOST_AUTH_METHOD: 'trust'
@@ -13,7 +13,7 @@ jobs:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
       mariadb10:
-        image: ${{ matrix.database == 'mariadb11' && 'mariadb:11' || matrix.database == 'mariadb10' && 'mariadb:10' || '' }}
+        image: ${{ (matrix.database == 'mariadb11' && 'mariadb:11') || (matrix.database == 'mariadb10' && 'mariadb:10') || '' }}
         env:
           MYSQL_USER: 'root'
           MYSQL_ALLOW_EMPTY_PASSWORD: "true"
