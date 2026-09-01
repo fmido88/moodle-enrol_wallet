@@ -12,7 +12,7 @@ jobs:
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 3
-      mariadb10:
+      mariadb:
         image: ${{ (matrix.database == 'mariadb11' && 'mariadb:11') || (matrix.database == 'mariadb10' && 'mariadb:10') || '' }}
         env:
           MYSQL_USER: 'root'
