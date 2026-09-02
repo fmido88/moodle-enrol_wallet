@@ -184,12 +184,6 @@ class wallet_tabs implements renderable, templatable {
      * @return string
      */
     public function render_transactions(renderer_base $output) {
-        if ($output->get_page()->has_set_url()) {
-            $url = clone $output->get_page()->url;
-            $url->set_anchor('linktransactions');
-        } else {
-            $url = new url(qualified_me());
-        }
 
         $transactionurl = reports::TRANSACTIONS->url();
         $class = ['class' => 'btn btn-primary'];
@@ -230,10 +224,10 @@ class wallet_tabs implements renderable, templatable {
     public function render_transfer(renderer_base $output) {
         if ($output->get_page()->has_set_url()) {
             $url = clone $output->get_page()->url;
-            $url->set_anchor('linktransfer');
         } else {
             $url = new url(qualified_me());
         }
+        $url->set_anchor('linktransfer');
 
         ob_start();
         pages::process_transfer_page($url);
