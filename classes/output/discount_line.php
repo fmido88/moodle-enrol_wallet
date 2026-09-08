@@ -82,7 +82,7 @@ class discount_line implements named_templatable, renderable {
         $maxconditions = [];
 
         foreach ($this->records as $record) {
-            if ($record->cond > ($maxconditions[$record->category ?? 0] ?? 0)) {
+            if ($record->cond >= ($maxconditions[$record->category ?? 0] ?? 0)) {
                 $maxconditions[$record->category] = $record->cond;
             }
         }
@@ -147,9 +147,9 @@ class discount_line implements named_templatable, renderable {
 
             $discounts[$id] = new stdClass();
 
-            $discounts[$id]->percent = (100 - ($cond / $maxcondition) * 100) - $prevwidth;
-            $discounts[$id]->order = (int)round($cond / $maxcondition * 10);
-            $discounts[$id]->color = (int)round((1 - $cond / $maxcondition) * 255);
+            $discounts[$id]->percent = $cond == 0 ? 0 : (100 - ($cond / $maxcondition) * 100) - $prevwidth;
+            $discounts[$id]->order = $cond == 0 ? 0 : (int)round($cond / $maxcondition * 10);
+            $discounts[$id]->color = $cond == 0 ? 0 : (int)round((1 - $cond / $maxcondition) * 255);
             $discounts[$id]->condition = '> ' . format_float($cond, 2) . " $currency";
             $discounts[$id]->discount = format_float($record->percent, 2) . '%';
 
