@@ -254,6 +254,88 @@ class settings {
             PARAM_INT
         ));
 
+        // Option to hide more expensive instances.
+        $page->add(new admin_setting_configcheckbox(
+            'enrol_wallet/hidecheaperinstances',
+            get_string('hidecheaperinstances', 'enrol_wallet'),
+            get_string('hidecheaperinstances_desc', 'enrol_wallet'),
+            0
+        ));
+
+        // Modern Pricing Table Settings.
+        $page->add(new admin_setting_heading(
+            'enrol_wallet/pricingtableheading',
+            get_string('pricingtableheading', 'enrol_wallet'),
+            get_string('pricingtableheading_desc', 'enrol_wallet')
+        ));
+
+        $page->add(new admin_setting_configcheckbox(
+            'enrol_wallet/enablepricingtable',
+            get_string('enablepricingtable', 'enrol_wallet'),
+            get_string('enablepricingtable_desc', 'enrol_wallet'),
+            1
+        ));
+
+        $page->add(new admin_setting_configtext(
+            'enrol_wallet/pricingtabletitle',
+            get_string('pricingtabletitle', 'enrol_wallet'),
+            get_string('pricingtabletitle_desc', 'enrol_wallet'),
+            '',
+            PARAM_TEXT
+        ));
+
+        $page->add(new admin_setting_configtext(
+            'enrol_wallet/pricingtablesubtitle',
+            get_string('pricingtablesubtitle', 'enrol_wallet'),
+            get_string('pricingtablesubtitle_desc', 'enrol_wallet'),
+            '',
+            PARAM_TEXT
+        ));
+
+        $page->add(new admin_setting_configtext(
+            'enrol_wallet/pricingtabledefaultcolor',
+            get_string('pricingtabledefaultcolor', 'enrol_wallet'),
+            get_string('pricingtabledefaultcolor_desc', 'enrol_wallet'),
+            '#0d6efd',
+            PARAM_TEXT
+        ));
+
+        $page->add(new admin_setting_configcheckbox(
+            'enrol_wallet/showwalletbalance',
+            get_string('showwalletbalance', 'enrol_wallet'),
+            get_string('showwalletbalance_desc', 'enrol_wallet'),
+            1
+        ));
+
+        $page->add(new admin_setting_configcheckbox(
+            'enrol_wallet/enablegeopricing',
+            get_string('enablegeopricing', 'enrol_wallet'),
+            get_string('enablegeopricing_desc', 'enrol_wallet'),
+            1
+        ));
+
+        $switcheroptions = [
+            \enrol_wallet\local\utils\geo::SWITCHER_DISABLED => get_string('countryswitcher_hidden', 'enrol_wallet'),
+            \enrol_wallet\local\utils\geo::SWITCHER_ADMINS_ONLY => get_string('countryswitcher_admins', 'enrol_wallet'),
+            \enrol_wallet\local\utils\geo::SWITCHER_EVERYONE => get_string('countryswitcher_all', 'enrol_wallet'),
+        ];
+        $page->add(new admin_setting_configselect(
+            'enrol_wallet/countryswitcher_access',
+            get_string('countryswitcher_access', 'enrol_wallet'),
+            get_string('countryswitcher_access_desc', 'enrol_wallet'),
+            \enrol_wallet\local\utils\geo::SWITCHER_ADMINS_ONLY,
+            $switcheroptions
+        ));
+
+        $fallbackoptions = \enrol_wallet\local\utils\geo::get_region_options();
+        $page->add(new admin_setting_configselect(
+            'enrol_wallet/defaultfallbackregion',
+            get_string('defaultfallbackregion', 'enrol_wallet'),
+            get_string('defaultfallbackregion_desc', 'enrol_wallet'),
+            \enrol_wallet\local\utils\geo::REGION_EGYPT,
+            $fallbackoptions
+        ));
+
         // Enable or disable unenrol self.
         $page->add(new admin_setting_configcheckbox(
             'enrol_wallet/unenrolselfenabled',

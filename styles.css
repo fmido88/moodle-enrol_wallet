@@ -392,3 +392,246 @@
         right: 80px;
     }
 }
+
+/* ========================================================
+   Modern Responsive Pricing Cards Table
+   ======================================================== */
+.wallet-pricing-wrapper {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media (min-width: 992px) {
+    /* Allow enrolment page columns to comfortably expand for pricing table */
+    body#page-enrol-index #region-main .col-md-6.offset-md-3:has(.wallet-pricing-wrapper),
+    body#page-enrol-index #region-main .col-xl-6.offset-xl-3:has(.wallet-pricing-wrapper) {
+        width: 100% !important;
+        max-width: 1140px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        flex: 0 0 100% !important;
+    }
+}
+
+.wallet-pricing-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 18px !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    overflow: hidden;
+}
+
+.wallet-pricing-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.09) !important;
+    border-color: var(--card-accent-color, #0d6efd) !important;
+}
+
+.wallet-pricing-card.is-featured {
+    border: 2px solid var(--card-accent-color, #6f42c1) !important;
+    box-shadow: 0 12px 30px rgba(111, 66, 193, 0.15) !important;
+}
+
+.wallet-card-featured-bar {
+    letter-spacing: 0.8px;
+    font-size: 0.78rem;
+    z-index: 2;
+}
+
+.wallet-card-badge {
+    font-size: 0.8rem;
+    letter-spacing: 0.5px;
+    z-index: 2;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.wallet-pricing-cost .display-5 {
+    letter-spacing: -1px;
+    font-size: 2.5rem;
+    font-weight: 800;
+}
+
+.card-action-wrap .btn {
+    font-size: 0.95rem;
+    padding: 0.65rem 1rem;
+    transition: all 0.2s ease;
+}
+
+.card-action-wrap .btn-dark {
+    background-color: #1e293b;
+    border-color: #1e293b;
+}
+
+.card-action-wrap .btn-dark:hover {
+    background-color: #0f172a;
+    border-color: #0f172a;
+}
+
+/* Hostinger-style feature list checklist */
+.wallet-pricing-features-wrap {
+    font-size: 0.92rem;
+    color: #475569;
+}
+
+.wallet-pricing-features-wrap ul {
+    list-style: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-bottom: 0 !important;
+}
+
+.wallet-pricing-features-wrap ul li {
+    position: relative;
+    padding-left: 28px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    line-height: 1.5;
+    list-style: none !important;
+}
+
+.wallet-pricing-features-wrap ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 18px;
+    height: 18px;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2310b981'%3E%3Cpath fill-rule='evenodd' d='M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+.wallet-pricing-features-wrap ul li.is-disabled,
+.wallet-pricing-features-wrap ul li del {
+    opacity: 0.55;
+    text-decoration: line-through;
+}
+
+.wallet-pricing-features-wrap ul li.is-disabled::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E");
+}
+
+/* RTL Support for Arabic */
+[dir="rtl"] .wallet-pricing-features-wrap ul li,
+.dir-rtl .wallet-pricing-features-wrap ul li {
+    padding-left: 0;
+    padding-right: 28px;
+}
+
+[dir="rtl"] .wallet-pricing-features-wrap ul li::before,
+.dir-rtl .wallet-pricing-features-wrap ul li::before {
+    left: auto;
+    right: 0;
+}
+
+.wallet-pricing-balance-badge {
+    font-size: 0.9rem;
+}
+
+.wallet-pricing-region-switcher {
+    font-size: 0.88rem;
+    gap: 4px;
+}
+
+.wallet-pricing-region-switcher .btn {
+    font-size: 0.85rem;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.wallet-pricing-region-switcher .btn:hover:not(.active) {
+    background-color: #e2e8f0;
+}
+
+/* Dark mode compatibility (SmartLearn, Bootstrap 5, Moodle dark mode) */
+[data-bs-theme="dark"] .wallet-pricing-card,
+[data-theme="dark"] .wallet-pricing-card,
+html.theme-dark .wallet-pricing-card,
+body.smartlearn-dark .wallet-pricing-card,
+body.dark-mode .wallet-pricing-card,
+.theme-dark .wallet-pricing-card {
+    background: #16171d !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-card.is-featured,
+[data-theme="dark"] .wallet-pricing-card.is-featured,
+html.theme-dark .wallet-pricing-card.is-featured,
+body.smartlearn-dark .wallet-pricing-card.is-featured,
+body.dark-mode .wallet-pricing-card.is-featured,
+.theme-dark .wallet-pricing-card.is-featured {
+    border-color: var(--card-accent-color, #6f42c1) !important;
+    box-shadow: 0 0 32px rgba(111, 66, 193, 0.3) !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-card .text-dark,
+[data-theme="dark"] .wallet-pricing-card .text-dark,
+html.theme-dark .wallet-pricing-card .text-dark,
+body.smartlearn-dark .wallet-pricing-card .text-dark,
+body.dark-mode .wallet-pricing-card .text-dark,
+.theme-dark .wallet-pricing-card .text-dark {
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-features-wrap,
+[data-theme="dark"] .wallet-pricing-features-wrap,
+html.theme-dark .wallet-pricing-features-wrap,
+body.smartlearn-dark .wallet-pricing-features-wrap,
+body.dark-mode .wallet-pricing-features-wrap,
+.theme-dark .wallet-pricing-features-wrap {
+    color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-card .card-action-wrap .btn-dark,
+[data-theme="dark"] .wallet-pricing-card .card-action-wrap .btn-dark,
+html.theme-dark .wallet-pricing-card .card-action-wrap .btn-dark,
+body.smartlearn-dark .wallet-pricing-card .card-action-wrap .btn-dark,
+body.dark-mode .wallet-pricing-card .card-action-wrap .btn-dark,
+.theme-dark .wallet-pricing-card .card-action-wrap .btn-dark {
+    background-color: #262a36 !important;
+    border-color: rgba(255, 255, 255, 0.15) !important;
+    color: #ffffff !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-card .card-action-wrap .btn-dark:hover,
+[data-theme="dark"] .wallet-pricing-card .card-action-wrap .btn-dark:hover,
+html.theme-dark .wallet-pricing-card .card-action-wrap .btn-dark:hover,
+body.smartlearn-dark .wallet-pricing-card .card-action-wrap .btn-dark:hover,
+body.dark-mode .wallet-pricing-card .card-action-wrap .btn-dark:hover,
+.theme-dark .wallet-pricing-card .card-action-wrap .btn-dark:hover {
+    background-color: #313747 !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-balance-badge,
+[data-theme="dark"] .wallet-pricing-balance-badge,
+html.theme-dark .wallet-pricing-balance-badge,
+body.smartlearn-dark .wallet-pricing-balance-badge,
+body.dark-mode .wallet-pricing-balance-badge,
+.theme-dark .wallet-pricing-balance-badge {
+    background: #16171d !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+    color: #cbd5e1 !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-region-switcher,
+[data-theme="dark"] .wallet-pricing-region-switcher,
+html.theme-dark .wallet-pricing-region-switcher,
+body.smartlearn-dark .wallet-pricing-region-switcher,
+body.dark-mode .wallet-pricing-region-switcher,
+.theme-dark .wallet-pricing-region-switcher {
+    background: #16171d !important;
+    border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+[data-bs-theme="dark"] .wallet-pricing-region-switcher .btn-light,
+[data-theme="dark"] .wallet-pricing-region-switcher .btn-light,
+html.theme-dark .wallet-pricing-region-switcher .btn-light,
+body.smartlearn-dark .wallet-pricing-region-switcher .btn-light,
+body.dark-mode .wallet-pricing-region-switcher .btn-light,
+.theme-dark .wallet-pricing-region-switcher .btn-light {
+    background: transparent !important;
+    color: #cbd5e1 !important;
+}
+

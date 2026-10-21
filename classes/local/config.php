@@ -42,12 +42,22 @@ use stdClass;
  * @property string $defaultenrol
  * @property string $discount_behavior
  * @property string $discount_field
+ * @property string $enablepricingtable         If pricing table view is enabled on enrolment page (bool).
+ * @property string $pricingtabletitle          Custom title for pricing table section.
+ * @property string $pricingtablesubtitle       Custom subtitle for pricing table section.
+ * @property string $pricingtabledefaultcolor   Default accent color for pricing cards.
+ * @property string $showwalletbalance          Whether to show user balance on pricing cards (bool).
+ * @property string $enablegeopricing           Whether auto-country detection & regional pricing is enabled (bool).
+ * @property string $showcountryswitcher        Whether to show manual country switcher on pricing table (legacy bool).
+ * @property string $countryswitcher_access     Who can view country switcher (0=hidden, 1=admins only, 2=all).
+ * @property string $defaultfallbackregion      Default regional pricing fallback (EG, GULF, GLOBAL).
  * @property string $enablerefund
  * @property string $enrolperiod
  * @property string $expiredaction
  * @property string $expirynotify
  * @property string $expirynotifyhour
  * @property string $expirynotifylast
+ * @property string $hidecheaperinstances      If cheaper instances should hide more expensive ones (bool).
  * @property string $expirythreshold
  * @property string $frontpageoffers
  * @property string $longtimenosee
@@ -241,12 +251,34 @@ class config {
     }
 
     /**
+     * Check if a config property name is valid or declared in docblock.
+     * @param  string $name
+     * @return bool
+     */
+    protected static function is_valid_property(string $name): bool {
+        static $declaredproperties = null;
+        if ($declaredproperties === null) {
+            $declaredproperties = [];
+            $ref = new \ReflectionClass(static::class);
+            $doc = $ref->getDocComment();
+            if ($doc && preg_match_all('/@property(?:-read|-write)?\s+[^\s]+\s+\$([a-zA-Z0-9_]+)/', $doc, $matches)) {
+                $declaredproperties = array_fill_keys($matches[1], true);
+            }
+        }
+
+        return isset($declaredproperties[$name]);
+    }
+
+    /**
      * Check if a config value exists and display debug message if not.
      * @param  string $name
      * @return bool
      */
     protected function exists($name) {
-        $exists = isset($this->$name) || property_exists($this, $name) || property_exists($this->store, $name);
+        $exists = self::is_valid_property($name)
+            || property_exists($this->store, $name)
+            || property_exists($this, $name)
+            || isset($this->$name);
 
         if (!$exists && !self::upgrading()) {
             debugging("Trying to get undefined config value $name in enrol_wallet", DEBUG_DEVELOPER);
@@ -261,7 +293,7 @@ class config {
      */
     public static function upgrading(): bool {
         global $CFG;
-        $running = during_initial_install() || isset($CFG->upgraderunning);
+        $running = during_initial_install() || !empty($CFG->upgraderunning) || defined('UPGRADE_INTERNAL');
 
         if ($running) {
             return true;
@@ -273,7 +305,7 @@ class config {
 
         $currentversion = get_config('enrol_wallet', 'version');
 
-        return $plugin->version < $currentversion;
+        return !empty($currentversion) && ($plugin->version != $currentversion);
     }
 
     /**

@@ -1150,6 +1150,7 @@ final class enrol_wallet_test extends \advanced_testcase {
     public function test_hide_due_cheaper_instance(): void {
         global $DB;
         self::resetAfterTest(true);
+        set_config('hidecheaperinstances', 1, 'enrol_wallet');
 
         $walletplugin = new enrol_wallet_plugin();
         $user1 = $this->getDataGenerator()->create_user();

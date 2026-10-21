@@ -181,7 +181,7 @@ class topup_form extends \moodleform {
         $mform->setDefault('courseid', $instance->courseid);
 
         $mform->addElement('hidden', 'currency');
-        $mform->setType('currency', PARAM_INT);
+        $mform->setType('currency', PARAM_ALPHANUM);
         $mform->setDefault('currency', $instance->currency);
 
         $mform->addElement('hidden', 'instanceid');

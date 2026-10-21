@@ -1,0 +1,232 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
+
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template enrol_wallet/pricing_table
+
+    Modern Hostinger-style responsive pricing cards table for course enrolment options.
+}}
+<div class="wallet-pricing-wrapper my-4">
+    {{#hastitle}}
+    <div class="wallet-pricing-header text-center mb-4">
+        {{#title}}<h2 class="wallet-pricing-title fw-bold mb-2">{{title}}</h2>{{/title}}
+        {{#subtitle}}<p class="wallet-pricing-subtitle text-muted fs-6 mb-3">{{subtitle}}</p>{{/subtitle}}
+        
+        <div class="d-flex flex-wrap align-items-center justify-content-center gap-2 mb-2">
+            {{#showbalance}}
+            <div class="wallet-pricing-balance-badge d-inline-flex align-items-center px-3 py-1 rounded-pill bg-light border shadow-sm">
+                <span class="wallet-icon-badge me-2 ms-2">💳</span>
+                <span class="wallet-balance-text">
+                    {{#str}} availablebalance, enrol_wallet {{/str}} 
+                    <strong class="text-primary">{{userbalance}} {{currency}}</strong>
+                </span>
+                {{#topupurl}}
+                <a href="{{topupurl}}" class="btn btn-sm btn-outline-primary ms-3 me-3 py-0 px-2 rounded-pill">
+                    {{#str}} topup, enrol_wallet {{/str}}
+                </a>
+                {{/topupurl}}
+            </div>
+            {{/showbalance}}
+
+            {{#has_region_switcher}}
+            <div class="wallet-pricing-region-switcher d-inline-flex align-items-center p-1 rounded-pill bg-light border shadow-sm">
+                {{#is_admin_preview}}
+                <span class="text-primary small px-2 fw-semibold">🛠️ {{#str}} admin_preview, enrol_wallet {{/str}}:</span>
+                {{/is_admin_preview}}
+                {{^is_admin_preview}}
+                <span class="text-muted small px-2 d-none d-sm-inline">🌍 {{#str}} selectcountry, enrol_wallet {{/str}}:</span>
+                {{/is_admin_preview}}
+                <div class="btn-group btn-group-sm" role="group">
+                    {{#region_switcher}}
+                    <a href="{{switch_url}}" class="btn btn-sm rounded-pill px-3 py-1 {{#is_active}}btn-primary active text-white fw-bold shadow-sm{{/is_active}}{{^is_active}}btn-light text-secondary{{/is_active}}">
+                        {{label}}
+                    </a>
+                    {{/region_switcher}}
+                </div>
+            </div>
+            {{/has_region_switcher}}
+        </div>
+    </div>
+    {{/hastitle}}
+
+    <div class="wallet-pricing-grid row g-4 justify-content-center">
+        {{#cards}}
+        <div class="{{colclass}} d-flex">
+            <div class="card wallet-pricing-card w-100 border shadow-sm position-relative d-flex flex-column {{#is_featured}}is-featured{{/is_featured}}"
+                 style="--card-accent-color: {{accentcolor}};">
+                
+                {{#is_featured}}
+                <div class="wallet-card-featured-bar text-center py-2 px-3 fw-bold small text-uppercase"
+                     style="background: {{accentcolor}}; color: #ffffff;">
+                    {{featured_header}}
+                </div>
+                {{/is_featured}}
+
+                {{^is_featured}}
+                {{#badge}}
+                <div class="wallet-card-badge position-absolute top-0 end-0 translate-middle-y me-3 px-3 py-1 rounded-pill text-white fw-bold shadow-sm"
+                     style="background: {{accentcolor}};">
+                    {{badge}}
+                </div>
+                {{/badge}}
+                {{/is_featured}}
+
+                <div class="card-header bg-transparent border-0 pt-4 pb-2 px-4">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h4 class="card-title fw-bold mb-0 text-dark">{{name}}</h4>
+                        {{#has_discount}}
+                        <span class="badge bg-danger text-white rounded-pill px-2 py-1 small">
+                            {{#str}} discount, enrol_wallet {{/str}}
+                        </span>
+                        {{/has_discount}}
+                    </div>
+
+                    {{#has_discount}}
+                    <div class="text-muted text-decoration-line-through small mt-2">
+                        {{cost_before}} {{currency}}
+                    </div>
+                    {{/has_discount}}
+
+                    <div class="wallet-pricing-cost d-flex align-items-baseline flex-wrap mt-1 mb-1">
+                        <span class="display-5 fw-extrabold text-dark fw-bold me-1 ms-1">{{cost}}</span>
+                        <span class="fs-6 text-muted fw-semibold me-2 ms-2">{{currency}}</span>
+                        {{#duration}}
+                        <span class="badge bg-light text-secondary border rounded-pill px-2 py-1 small">
+                            ⏱️ {{duration}}
+                        </span>
+                        {{/duration}}
+                    </div>
+                </div>
+
+                {{! Hostinger-style CTA Button right below price }}
+                <div class="card-action-wrap px-4 pb-3">
+                    {{#is_enrolled}}
+                    <div class="alert alert-success py-2 px-3 text-center mb-2 rounded-3 small">
+                        {{#str}} alreadyenroled, enrol_wallet {{/str}}
+                    </div>
+                    <a href="{{courseurl}}" class="btn btn-outline-success w-100 py-2 rounded-3 fw-bold">
+                        {{#str}} gotocourse, core {{/str}}
+                    </a>
+                    {{/is_enrolled}}
+
+                    {{^is_enrolled}}
+                        {{#can_enrol_balance}}
+                        <form action="{{confirmpage}}" method="post" class="mb-0">
+                            <input type="hidden" name="id" value="{{courseid}}">
+                            <input type="hidden" name="instance" value="{{instanceid}}">
+                            <input type="hidden" name="sesskey" value="{{sesskey}}">
+                            <button type="submit"
+                                    class="btn {{#is_featured}}btn-primary text-white{{/is_featured}}{{^is_featured}}btn-dark text-white{{/is_featured}} w-100 py-2 rounded-3 fw-bold shadow-sm"
+                                    {{#is_featured}}style="background-color: {{accentcolor}}; border-color: {{accentcolor}};"{{/is_featured}}>
+                                {{#str}} chooseplan, enrol_wallet {{/str}}
+                            </button>
+                        </form>
+                        {{/can_enrol_balance}}
+
+                        {{#can_direct_pay}}
+                        <button
+                            class="btn {{#is_featured}}btn-primary text-white{{/is_featured}}{{^is_featured}}btn-dark text-white{{/is_featured}} w-100 py-2 rounded-3 fw-bold shadow-sm"
+                            type="button"
+                            {{#is_featured}}style="background-color: {{accentcolor}}; border-color: {{accentcolor}};"{{/is_featured}}
+                            data-action="core_payment/triggerPayment"
+                            data-component="enrol_wallet"
+                            data-paymentarea="walletenrol"
+                            data-itemid="{{payment_itemid}}"
+                            data-cost="{{payment_cost}}"
+                            data-successurl="{{payment_successurl}}"
+                            data-description="{{payment_description}}"
+                        >
+                            💳 {{#str}} sendpaymentbutton, enrol_wallet {{/str}} ({{payment_cost}})
+                        </button>
+                        {{/can_direct_pay}}
+
+                        {{#restriction_msg}}
+                        <div class="alert alert-warning py-2 px-3 text-center mb-0 mt-2 rounded-3 small">
+                            {{{restriction_msg}}}
+                        </div>
+                        {{/restriction_msg}}
+                    {{/is_enrolled}}
+                </div>
+
+                {{! Features Checklist }}
+                <div class="card-body px-4 pt-3 pb-3 border-top flex-grow-1">
+                    <div class="wallet-pricing-features-wrap">
+                        {{#features_html}}
+                        {{{features_html}}}
+                        {{/features_html}}
+                        {{^features_html}}
+                        <ul class="wallet-features-list">
+                            {{#features}}
+                            <li class="{{#is_disabled}}is-disabled{{/is_disabled}}{{^is_disabled}}is-enabled{{/is_disabled}}">
+                                {{#is_disabled}}<del>{{text}}</del>{{/is_disabled}}
+                                {{^is_disabled}}{{text}}{{/is_disabled}}
+                            </li>
+                            {{/features}}
+                        </ul>
+                        {{/features_html}}
+                    </div>
+                </div>
+
+                {{! Utilities (Coupons & Topup) }}
+                {{^is_enrolled}}
+                <div class="card-footer bg-transparent border-0 px-4 pb-3 pt-0">
+                    <div class="wallet-card-utilities text-center">
+                        {{#coupons_enabled}}
+                        <button class="btn btn-link btn-sm text-decoration-none p-0 text-secondary me-2 ms-2"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#coupon-collapse-{{instanceid}}"
+                                aria-expanded="false">
+                            🏷️ {{#str}} applycoupon, enrol_wallet {{/str}}
+                        </button>
+                        {{/coupons_enabled}}
+
+                        {{#show_topup_link}}
+                        <a href="{{topupurl}}" class="btn btn-link btn-sm text-decoration-none p-0 text-secondary me-2 ms-2">
+                            ➕ {{#str}} topup, enrol_wallet {{/str}}
+                        </a>
+                        {{/show_topup_link}}
+
+                        {{#coupons_enabled}}
+                        <div class="collapse mt-2" id="coupon-collapse-{{instanceid}}">
+                            <form action="{{coupon_action_url}}" method="post" class="d-flex gap-1">
+                                <input type="hidden" name="instanceid" value="{{instanceid}}">
+                                <input type="hidden" name="courseid" value="{{courseid}}">
+                                <input type="hidden" name="url" value="{{enrol_page_url}}">
+                                <input type="hidden" name="submitcoupon" value="1">
+                                <input type="hidden" name="sesskey" value="{{sesskey}}">
+                                <input type="text" name="coupon" class="form-control form-control-sm" placeholder="{{#str}} couponcode, enrol_wallet {{/str}}" required>
+                                <button type="submit" class="btn btn-sm btn-outline-primary">
+                                    {{#str}} apply, core {{/str}}
+                                </button>
+                            </form>
+                        </div>
+                        {{/coupons_enabled}}
+                    </div>
+                </div>
+                {{/is_enrolled}}
+
+            </div>
+        </div>
+        {{/cards}}
+    </div>
+</div>
+
+{{#js}}
+require(['core_payment/gateways_modal'], function(modal) {
+    modal.init();
+});
+{{/js}}

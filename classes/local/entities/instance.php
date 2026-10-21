@@ -68,8 +68,11 @@ use stdClass;
  *                                              (alias for customint7).
  * @property int    $customint8                 If to enable awards.
  * @property bool   $enableawards               If to enable awards (alias for customint8).
- * @property string $customchar1                Not used.
- * @property string $customchar2                Not used.
+ * @property string $customchar1                Card metadata (JSON containing targetregion and cardcolor).
+ * @property string $targetregion               Target country/region code (EG, GULF, GLOBAL).
+ * @property string $cardcolor                  Card accent color (hex or preset).
+ * @property string $customchar2                Card badge or ribbon text.
+ * @property string $cardbadge                  Card badge or ribbon text (alias for customchar2).
  * @property string $customchar3                The ids of the courses required for enrolment restriction (string)
  *                                              integers imploded by ','.
  * @property string $requiredcourses            The ids of the courses required for enrolment restriction (alias for customchar3).
@@ -84,7 +87,9 @@ use stdClass;
  * @property string $availabilityconditionsjson The availability conditions in JSON format (alias for customtext2).
  * @property string $customtext3                The offers rules in JSON format.
  * @property string $offersrules                The offers rules in JSON format (alias for customtext3).
- * @property string $customtext4                Not used.
+ * @property string $customtext4                Features list for pricing table.
+ * @property string $cardfeatures               Features list for pricing table (alias for customtext4).
+ * @property array  $customtext4_editor         Editor structure array for customtext4 (text and format).
  *                                              Todo Use this field for localized configurations as borrow,
  *                                              cashback and more options for awards.
  * @property int    $timecreated                The time at which the instance was created.
@@ -149,6 +154,23 @@ class instance extends entity implements \IteratorAggregate {
      * @return mixed
      */
     public function __get($name) {
+        if ($name === 'targetregion') {
+            $meta = \enrol_wallet\local\utils\geo::unpack_card_meta($this->instance->customchar1 ?? '');
+            return $meta['region'];
+        }
+
+        if ($name === 'cardcolor') {
+            $meta = \enrol_wallet\local\utils\geo::unpack_card_meta($this->instance->customchar1 ?? '');
+            return $meta['color'];
+        }
+
+        if ($name === 'customtext4_editor') {
+            return [
+                'text' => $this->instance->customtext4 ?? '',
+                'format' => FORMAT_HTML,
+            ];
+        }
+
         if (property_exists($this, $name)) {
             return $this->$name;
         }
@@ -176,6 +198,30 @@ class instance extends entity implements \IteratorAggregate {
      * @return void
      */
     public function __set($name, $value) {
+        if ($name === 'targetregion') {
+            $meta = \enrol_wallet\local\utils\geo::unpack_card_meta($this->instance->customchar1 ?? '');
+            $this->instance->customchar1 = \enrol_wallet\local\utils\geo::pack_card_meta((string)$value, $meta['color']);
+            $this->mark_as_dirty();
+            return;
+        }
+
+        if ($name === 'cardcolor') {
+            $meta = \enrol_wallet\local\utils\geo::unpack_card_meta($this->instance->customchar1 ?? '');
+            $this->instance->customchar1 = \enrol_wallet\local\utils\geo::pack_card_meta($meta['region'], (string)$value);
+            $this->mark_as_dirty();
+            return;
+        }
+
+        if ($name === 'customtext4_editor') {
+            if (is_array($value)) {
+                $this->instance->customtext4 = $value['text'] ?? '';
+            } else {
+                $this->instance->customtext4 = (string)$value;
+            }
+            $this->mark_as_dirty();
+            return;
+        }
+
         if (property_exists($this, $name)) {
             $this->$name = $value;
         } else if (property_exists($this->instance, $name)) {
@@ -202,6 +248,10 @@ class instance extends entity implements \IteratorAggregate {
      * @return bool
      */
     public function __isset($name) {
+        if ($name === 'targetregion' || $name === 'cardcolor' || $name === 'customtext4_editor') {
+            return true;
+        }
+
         if (property_exists($this, $name) && isset($this->$name)) {
             return true;
         }
@@ -247,8 +297,8 @@ class instance extends entity implements \IteratorAggregate {
             'customint6'  => 'allownewenrol', // Allow new enrol.
             'customint7'  => 'minrequiredcourses', // Min number or required courses.
             'customint8'  => 'enableawards', // Enable Awards.
-            'customchar1' => null, // Not used...
-            'customchar2' => null, // Not used...
+            'customchar1' => 'cardcolor', // Card accent color.
+            'customchar2' => 'cardbadge', // Card badge / ribbon.
             'customchar3' => 'requiredcourses', // Ids of the courses required for enrol
                                                 // restriction (string) integers imploded by ','.
             'customdec1'  => 'awardcondition', // Condition for award (percentage) (int) 0 - 99.
@@ -256,7 +306,7 @@ class instance extends entity implements \IteratorAggregate {
             'customtext1' => 'welcomemessage', // Welcome email content (string).
             'customtext2' => 'availabilityconditionsjson', // Restriction rules (JSON).
             'customtext3' => 'offersrules', // Offers rules (JSON).
-            'customtext4' => null, // Not used....
+            'customtext4' => 'cardfeatures', // Card features list (string).
         ];
 
         if (empty($fieldname)) {

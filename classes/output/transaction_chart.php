@@ -64,7 +64,11 @@ class transaction_chart implements renderable {
         $params = [];
         $filterssql = [];
 
-        $ttable = $report->get_main_table();
+        if (method_exists($report, 'get_main_table_sql')) {
+            $ttable = $report->get_main_table_sql();
+        } else {
+            $ttable = "{{$report->get_main_table()}}";
+        }
         $talias = $report->get_main_table_alias();
         $joins = [];
 
@@ -110,7 +114,7 @@ class transaction_chart implements renderable {
         $fields = ['id', 'amount', 'type', 'timecreated', 'balance', 'category', 'userid'];
         $fields = implode(', ', array_map(fn ($f) => "{$talias}.$f", $fields));
         $joins = implode(' ', $joins);
-        $sql = "SELECT $fields, cc.name FROM {{$ttable}} $talias $joins
+        $sql = "SELECT $fields, cc.name FROM $ttable $talias $joins
                 LEFT JOIN {course_categories} cc ON {$talias}.category = cc.id";
         $sql .= $select ? " WHERE $select" : '';
 
@@ -198,7 +202,7 @@ class transaction_chart implements renderable {
                         $select = implode(' AND ', array_filter($filterssql));
                         $fields = ['userid', 'balance'];
                         $fields = implode(', ', array_map(fn ($f) => "{$talias}.$f", $fields));
-                        $sql = "SELECT DISTINCT $fields FROM {{$ttable}} $talias $joins";
+                        $sql = "SELECT DISTINCT $fields FROM $ttable $talias $joins";
                         $newselect = "{$talias}.category = :catid AND {$talias}.timecreated <= :lasttime";
                         $sql .= $select ? " WHERE $select AND $newselect" : " WHERE $newselect";
                         $sql .= " GROUP BY {$talias}.userid ORDER BY {$talias}.id DESC";

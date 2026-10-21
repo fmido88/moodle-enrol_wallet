@@ -29,14 +29,46 @@ use enrol_wallet\payment\item;
 require_once('../../../config.php');
 require_once(__DIR__ . '/../lib.php');
 
-$instanceid = required_param('instanceid', PARAM_INT);
-$courseid = required_param('courseid', PARAM_INT);
+$config = config::make();
+
+$instanceid = optional_param('instanceid', 0, PARAM_INT);
+$courseid = optional_param('courseid', SITEID, PARAM_INT);
+if ($courseid <= 0) {
+    $courseid = SITEID;
+}
 $confirm = optional_param('confirm', 0, PARAM_BOOL);
-$account = required_param('account', PARAM_INT);
-$currency = required_param('currency', PARAM_TEXT);
+$account = optional_param('account', (int)($config->paymentaccount ?? 0), PARAM_INT);
+if ($account <= 0) {
+    $account = (int)($config->paymentaccount ?? 0);
+}
+$currency = optional_param('currency', (string)($config->currency ?? ''), PARAM_ALPHANUM);
+if (empty($currency)) {
+    $currency = (string)($config->currency ?? '');
+}
 $val = optional_param('value', 0, PARAM_FLOAT);
 $category = optional_param('category', 0, PARAM_INT);
 $return = optional_param('return', '', PARAM_LOCALURL);
+
+require_login(null, false);
+
+if (!empty($_POST)) {
+    require_sesskey();
+}
+
+// If accessed without a valid positive amount, redirect back to the top-up form tab.
+if ($val <= 0) {
+    redirect(new \moodle_url('/enrol/wallet/wallet.php#linktopup'));
+}
+
+// Verify that payment gateway account and currency are configured.
+if (empty($account) || empty($currency)) {
+    redirect(
+        new \moodle_url('/enrol/wallet/wallet.php#linktopup'),
+        get_string('error'),
+        null,
+        \core\output\notification::NOTIFY_ERROR
+    );
+}
 
 $urlparams = [
     'instanceid' => $instanceid,
@@ -50,7 +82,6 @@ $urlparams = [
 
 $baseurl = pages::TOPUP->url($urlparams);
 
-$config = config::make();
 // Check the conditional discount.
 $enabled = $config->conditionaldiscount_apply;
 $discount = 0;
@@ -61,11 +92,6 @@ if (!empty($enabled)) {
     $value = $val;
 }
 
-$context = context_course::instance($courseid);
-
-require_sesskey();
-require_login(null, false);
-
 $PAGE->set_context(context_system::instance());
 $PAGE->set_pagelayout('standard');
 $PAGE->set_url($baseurl);
@@ -74,7 +100,7 @@ $PAGE->set_title(new lang_string('confirm'));
 if (!empty($return)) {
     $url = new moodle_url($return);
 } else {
-    $url = ($courseid == SITEID) ? new \moodle_url('/') : new \moodle_url('/course/view.php', ['id' => $courseid]);
+    $url = ($courseid == SITEID) ? new \moodle_url('/enrol/wallet/wallet.php#linktopup') : new \moodle_url('/course/view.php', ['id' => $courseid]);
 }
 
 if ($value <= 0) {
@@ -92,7 +118,7 @@ echo $OUTPUT->header();
 $desc = get_string('paymenttopup_desc', 'enrol_wallet');
 
 // Set a fake item form payment.
-$item = item::create_item($value, $currency, null, 0, $category);
+$item = item::create_item($value, $currency, null, $instanceid, $category);
 // Prepare the payment button.
 $attributes = payment::get_payment_button_attributes($item->get('id'), $value, $desc);
 
